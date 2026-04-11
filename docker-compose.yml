@@ -8,7 +8,7 @@ services:
       - "3000:3000"
     environment:
       # AWS emulator connection (LocalStack, MiniStack, etc.)
-      - AWS_ENDPOINT=http://floci:4540
+      - AWS_ENDPOINT=http://floci:4566
       - AWS_REGION=us-east-1
       
       # AWS credentials (for emulator)
