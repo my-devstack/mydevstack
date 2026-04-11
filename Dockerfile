@@ -57,11 +57,11 @@ RUN mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx/tmp /var/run && \
 # Switch to non-root user
 USER appuser
 
-# Expose port
-EXPOSE 3000
+# Expose ports
+EXPOSE 3000 8081
 
 # Environment variables with defaults
-ENV PORT=8081
+ENV PROXY_PORT=8081
 ENV AWS_ENDPOINT=http://localhost:4566
 ENV AWS_REGION=us-east-1
 ENV AWS_ACCESS_KEY=test
@@ -71,5 +71,5 @@ ENV AWS_SECRET_KEY=test
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000 || exit 1
 
-# Start both nginx and proxy
-CMD sh -c "/usr/local/bin/mydevstack-proxy & nginx -g 'daemon off;' "
+# Start both nginx and proxy with proper startup order
+CMD sh -c "/usr/local/bin/mydevstack-proxy & sleep 2 && nginx -g 'daemon off;' "
