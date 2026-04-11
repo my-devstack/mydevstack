@@ -10,7 +10,7 @@ WORKDIR /build/proxy
 RUN apk add --no-cache git ca-certificates
 
 # Clone mydevstack-proxy at the specified version
-RUN git clone --depth 1 --branch v${BACKEND_VERSION} \
+RUN git clone --depth 1 --branch ${BACKEND_VERSION} \
     https://github.com/my-devstack/mydevstack-proxy.git .
 
 # Build the Go proxy
@@ -27,7 +27,7 @@ WORKDIR /build/frontend
 RUN apk add --no-cache git
 
 # Clone mydevstack-ui at the specified version
-RUN git clone --depth 1 --branch v${FRONTEND_VERSION} \
+RUN git clone --depth 1 --branch ${FRONTEND_VERSION} \
     https://github.com/my-devstack/mydevstack-ui.git .
 
 # Install dependencies and build
