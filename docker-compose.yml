@@ -5,22 +5,19 @@ services:
     image: beabys/mydevstack:latest
     container_name: mydevstack
     ports:
+      # UI
       - "3000:3000"
+      # Proxy port required for AWS emulator to connect to backend
+      - "8081:8081"
     environment:
-      # Frontend configuration
-      - PORT=3000
-      
-      # Backend proxy configuration
-      - PROXY_PORT=8081
-      
       # AWS emulator connection (LocalStack, MiniStack, etc.)
-      - AWS_ENDPOINT=http://localhost:4566
+      - AWS_ENDPOINT=http://floci:4566
       - AWS_REGION=us-east-1
       
       # AWS credentials (for emulator)
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
-    volumes:
+    # volumes:
       # Optional: override nginx config
       # - ./nginx.conf:/etc/nginx/nginx.conf:ro
     restart: unless-stopped
@@ -34,30 +31,21 @@ services:
       - mydevstack-network
 
   # Optional: LocalStack for local AWS emulation
-  localstack:
-    image: localstack/localstack:latest
-    container_name: localstack
+  floci:
+    image: hectorvent/floci:latest
     ports:
-      - "4566:4566"
-    environment:
-      - SERVICES=s3,lambda,dynamodb,sqs,sns,iam,kms,secretsmanager,ssm,apigateway,kinesis,cloudformation
-      - DEBUG=1
-      - DATA_DIR=/tmp/localstack/data
-      - LAMBDA_EXECUTOR=local
-      - DOCKER_HOST=unix:///var/run/docker.sock
+      - "4540:4566"
     volumes:
-      - "/tmp/localstack:/tmp/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../.dev/data/floci:/app/data
+    environment:
+      FLOCI_STORAGE_MODE: hybrid
+      FLOCI_SERVICES_DOCKER_NETWORK: mydevstack-network
     networks:
       - mydevstack-network
-
+    restart: unless-stopped
+  
 networks:
   mydevstack-network:
+    name: mydevstack-network 
     driver: bridge

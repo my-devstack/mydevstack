@@ -10,7 +10,7 @@ WORKDIR /build/proxy
 RUN apk add --no-cache git ca-certificates
 
 # Clone mydevstack-proxy at the specified version
-RUN git clone --depth 1 --branch v${BACKEND_VERSION} \
+RUN git clone --depth 1 --branch ${BACKEND_VERSION} \
     https://github.com/my-devstack/mydevstack-proxy.git .
 
 # Build the Go proxy
@@ -27,7 +27,7 @@ WORKDIR /build/frontend
 RUN apk add --no-cache git
 
 # Clone mydevstack-ui at the specified version
-RUN git clone --depth 1 --branch v${FRONTEND_VERSION} \
+RUN git clone --depth 1 --branch ${FRONTEND_VERSION} \
     https://github.com/my-devstack/mydevstack-ui.git .
 
 # Install dependencies and build
@@ -50,8 +50,9 @@ COPY --from=builder-frontend /build/frontend/dist /usr/share/nginx/html
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Set ownership
-RUN chown -R appuser:appuser /usr/share/nginx/html /var/cache/nginx /var/log/nginx /etc/nginx/conf.d
+# Create necessary directories and set ownership
+RUN mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx/tmp /var/run && \
+    chown -R appuser:appuser /var/cache/nginx /var/log/nginx /var/lib/nginx /var/run /etc/nginx
 
 # Switch to non-root user
 USER appuser
@@ -60,14 +61,15 @@ USER appuser
 EXPOSE 3000 8081
 
 # Environment variables with defaults
-ENV PORT=3000
 ENV PROXY_PORT=8081
 ENV AWS_ENDPOINT=http://localhost:4566
 ENV AWS_REGION=us-east-1
+ENV AWS_ACCESS_KEY=test
+ENV AWS_SECRET_KEY=test
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000 || exit 1
 
-# Start both nginx and proxy
-CMD sh -c "nginx & /usr/local/bin/mydevstack-proxy"
+# Start both nginx and proxy with proper startup order
+CMD sh -c "/usr/local/bin/mydevstack-proxy & sleep 2 && nginx -g 'daemon off;' "
