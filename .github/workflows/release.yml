@@ -78,7 +78,7 @@ jobs:
           # Fetch release notes from mydevstack-ui
           RELEASE_DATA=$(curl -s \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/my-devstack/mydevstack-ui/releases/tags/v${{ needs.release.outputs.frontend_version }}")
+            "https://api.github.com/repos/my-devstack/mydevstack-ui/releases/tags/${{ needs.release.outputs.frontend_version }}")
           
           FRONTEND_BODY=$(echo "$RELEASE_DATA" | jq -r '.body // "No release notes"')
           FRONTEND_URL=$(echo "$RELEASE_DATA" | jq -r '.html_url // ""')
@@ -92,7 +92,7 @@ jobs:
           # Fetch release notes from mydevstack-proxy
           RELEASE_DATA=$(curl -s \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/my-devstack/mydevstack-proxy/releases/tags/v${{ needs.release.outputs.backend_version }}")
+            "https://api.github.com/repos/my-devstack/mydevstack-proxy/releases/tags/${{ needs.release.outputs.backend_version }}")
           
           BACKEND_BODY=$(echo "$RELEASE_DATA" | jq -r '.body // "No release notes"')
           BACKEND_URL=$(echo "$RELEASE_DATA" | jq -r '.html_url // ""')
@@ -103,17 +103,17 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ needs.release.outputs.tag }}
-          name: MyDevStack v${{ needs.release.outputs.tag }}
+          tag_name: ${{ needs.release.outputs.tag }}
+          name: MyDevStack ${{ needs.release.outputs.tag }}
           body: |
             ## Components
 
-            ### Frontend (v${{ needs.release.outputs.frontend_version }})
+            ### Frontend (${{ needs.release.outputs.frontend_version }})
             [${{ steps.frontend_release.outputs.url }}](${{ steps.frontend_release.outputs.url }})
 
             ${{ steps.frontend_release.outputs.body }}
 
-            ### Backend (v${{ needs.release.outputs.backend_version }})
+            ### Backend (${{ needs.release.outputs.backend_version }})
             [${{ steps.backend_release.outputs.url }}](${{ steps.backend_release.outputs.url }})
 
             ${{ steps.backend_release.outputs.body }}
@@ -121,7 +121,7 @@ jobs:
             ## Docker Image
 
             ```
-            docker pull beabys/mydevstack:v${{ needs.release.outputs.tag }}
+            docker pull beabys/mydevstack:${{ needs.release.outputs.tag }}
             ```
 
             ## Notes
