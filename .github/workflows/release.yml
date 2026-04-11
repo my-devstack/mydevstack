@@ -83,9 +83,10 @@ jobs:
           FRONTEND_BODY=$(echo "$RELEASE_DATA" | jq -r '.body // "No release notes"')
           FRONTEND_URL=$(echo "$RELEASE_DATA" | jq -r '.html_url // ""')
           
-          # Write to file without extra escaping
-          printf '%s' "$FRONTEND_BODY" > frontend_body.txt
-          echo "$FRONTEND_URL" > frontend_url.txt
+          # Use printf to properly handle newlines, then escape for GITHUB_OUTPUT
+          FRONTEND_ESCAPED=$(printf '%s' "$FRONTEND_BODY" | jq -Rs '.')
+          echo "body=$FRONTEND_ESCAPED" >> $GITHUB_OUTPUT
+          echo "url=$FRONTEND_URL" >> $GITHUB_OUTPUT
 
       - name: Get backend release notes
         id: backend_release
@@ -98,9 +99,10 @@ jobs:
           BACKEND_BODY=$(echo "$RELEASE_DATA" | jq -r '.body // "No release notes"')
           BACKEND_URL=$(echo "$RELEASE_DATA" | jq -r '.html_url // ""')
           
-          # Write to file without extra escaping
-          printf '%s' "$BACKEND_BODY" > backend_body.txt
-          echo "$BACKEND_URL" > backend_url.txt
+          # Use printf to properly handle newlines, then escape for GITHUB_OUTPUT
+          BACKEND_ESCAPED=$(printf '%s' "$BACKEND_BODY" | jq -Rs '.')
+          echo "body=$BACKEND_ESCAPED" >> $GITHUB_OUTPUT
+          echo "url=$BACKEND_URL" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -119,24 +121,24 @@ jobs:
             ## Components
 
             ### Frontend v${{ needs.release.outputs.frontend_version }}
-            [:link: Release Notes]($(cat frontend_url.txt))
+            [:link: Release Notes](${{ steps.frontend_release.outputs.url }})
 
             <details>
             <summary>Changes</summary>
 
-            $(cat frontend_body.txt)
+            ${{ steps.frontend_release.outputs.body }}
 
             </details>
 
             ---
 
             ### Backend v${{ needs.release.outputs.backend_version }}
-            [:link: Release Notes]($(cat backend_url.txt))
+            [:link: Release Notes](${{ steps.backend_release.outputs.url }})
 
             <details>
             <summary>Changes</summary>
 
-            $(cat backend_body.txt)
+            ${{ steps.backend_release.outputs.body }}
 
             </details>
 
