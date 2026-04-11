@@ -59,8 +59,8 @@ RUN chown -R appuser:appuser /usr/share/nginx/html && \
 # Switch to non-root user
 USER appuser
 
-# Expose ports
-EXPOSE 3000 8081
+# Expose port
+EXPOSE 3000
 
 # Environment variables with defaults
 ENV PORT=3000
