@@ -83,8 +83,12 @@ jobs:
           FRONTEND_BODY=$(echo "$RELEASE_DATA" | jq -r '.body // "No release notes"')
           FRONTEND_URL=$(echo "$RELEASE_DATA" | jq -r '.html_url // ""')
           
-          echo "body=$FRONTEND_BODY" >> $GITHUB_OUTPUT
-          echo "url=$FRONTEND_URL" >> $GITHUB_OUTPUT
+          # Save to file to handle special characters
+          echo "$FRONTEND_BODY" > frontend_body.txt
+          echo "$FRONTEND_URL" > frontend_url.txt
+          
+          echo "body=$(cat frontend_body.txt | jq -Rs .)" >> $GITHUB_OUTPUT
+          echo "url=$(cat frontend_url.txt)" >> $GITHUB_OUTPUT
 
       - name: Get backend release notes
         id: backend_release
@@ -97,8 +101,12 @@ jobs:
           BACKEND_BODY=$(echo "$RELEASE_DATA" | jq -r '.body // "No release notes"')
           BACKEND_URL=$(echo "$RELEASE_DATA" | jq -r '.html_url // ""')
           
-          echo "body=$BACKEND_BODY" >> $GITHUB_OUTPUT
-          echo "url=$BACKEND_URL" >> $GITHUB_OUTPUT
+          # Save to file to handle special characters
+          echo "$BACKEND_BODY" > backend_body.txt
+          echo "$BACKEND_URL" > backend_url.txt
+          
+          echo "body=$(cat backend_body.txt | jq -Rs .)" >> $GITHUB_OUTPUT
+          echo "url=$(cat backend_url.txt)" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
