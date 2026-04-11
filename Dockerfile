@@ -51,8 +51,8 @@ COPY --from=builder-frontend /build/frontend/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Create necessary directories and set ownership
-RUN mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx/tmp && \
-    chown -R appuser:appuser /var/cache/nginx /var/log/nginx /var/lib/nginx /etc/nginx
+RUN mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx/tmp /var/run && \
+    chown -R appuser:appuser /var/cache/nginx /var/log/nginx /var/lib/nginx /var/run /etc/nginx
 
 # Switch to non-root user
 USER appuser
