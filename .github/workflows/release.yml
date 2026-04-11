@@ -83,12 +83,9 @@ jobs:
           FRONTEND_BODY=$(echo "$RELEASE_DATA" | jq -r '.body // "No release notes"')
           FRONTEND_URL=$(echo "$RELEASE_DATA" | jq -r '.html_url // ""')
           
-          # Save to file to handle special characters
-          echo "$FRONTEND_BODY" > frontend_body.txt
+          # Write to file without extra escaping
+          printf '%s' "$FRONTEND_BODY" > frontend_body.txt
           echo "$FRONTEND_URL" > frontend_url.txt
-          
-          echo "body=$(cat frontend_body.txt | jq -Rs .)" >> $GITHUB_OUTPUT
-          echo "url=$(cat frontend_url.txt)" >> $GITHUB_OUTPUT
 
       - name: Get backend release notes
         id: backend_release
@@ -101,12 +98,9 @@ jobs:
           BACKEND_BODY=$(echo "$RELEASE_DATA" | jq -r '.body // "No release notes"')
           BACKEND_URL=$(echo "$RELEASE_DATA" | jq -r '.html_url // ""')
           
-          # Save to file to handle special characters
-          echo "$BACKEND_BODY" > backend_body.txt
+          # Write to file without extra escaping
+          printf '%s' "$BACKEND_BODY" > backend_body.txt
           echo "$BACKEND_URL" > backend_url.txt
-          
-          echo "body=$(cat backend_body.txt | jq -Rs .)" >> $GITHUB_OUTPUT
-          echo "url=$(cat backend_url.txt)" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -114,28 +108,41 @@ jobs:
           tag_name: ${{ needs.release.outputs.tag }}
           name: MyDevStack ${{ needs.release.outputs.tag }}
           body: |
-            ## Components
-
-            ### Frontend (${{ needs.release.outputs.frontend_version }})
-            [${{ steps.frontend_release.outputs.url }}](${{ steps.frontend_release.outputs.url }})
-
-            ${{ steps.frontend_release.outputs.body }}
-
-            ### Backend (${{ needs.release.outputs.backend_version }})
-            [${{ steps.backend_release.outputs.url }}](${{ steps.backend_release.outputs.url }})
-
-            ${{ steps.backend_release.outputs.body }}
-
             ## Docker Image
 
-            ```
+            ```bash
             docker pull beabys/mydevstack:${{ needs.release.outputs.tag }}
             ```
 
-            ## Notes
+            ---
 
-            - Frontend: ${{ needs.release.outputs.frontend_version }}
-            - Backend: ${{ needs.release.outputs.backend_version }}
+            ## Components
+
+            ### Frontend v${{ needs.release.outputs.frontend_version }}
+            [:link: Release Notes]($(cat frontend_url.txt))
+
+            <details>
+            <summary>Changes</summary>
+
+            $(cat frontend_body.txt)
+
+            </details>
+
+            ---
+
+            ### Backend v${{ needs.release.outputs.backend_version }}
+            [:link: Release Notes]($(cat backend_url.txt))
+
+            <details>
+            <summary>Changes</summary>
+
+            $(cat backend_body.txt)
+
+            </details>
+
+            ---
+
+            **Version**: ${{ needs.release.outputs.tag }}
           draft: false
           prerelease: false
         env:

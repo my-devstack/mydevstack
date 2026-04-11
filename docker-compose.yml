@@ -5,7 +5,10 @@ services:
     image: beabys/mydevstack:latest
     container_name: mydevstack
     ports:
+      # UI
       - "3000:3000"
+      # Proxy port required for AWS emulator to connect to backend
+      - "8081:8081"
     environment:
       # AWS emulator connection (LocalStack, MiniStack, etc.)
       - AWS_ENDPOINT=http://floci:4566
