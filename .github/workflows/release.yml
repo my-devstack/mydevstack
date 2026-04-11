@@ -23,7 +23,7 @@ jobs:
 
       - name: Read release.json
         id: versions
-       run: |
+        run: |
           FRONTEND_VERSION=$(jq -r '.frontend' release.json)
           BACKEND_VERSION=$(jq -r '.backend' release.json)
           TAG=${GITHUB_TAG#v}
