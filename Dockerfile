@@ -50,8 +50,11 @@ COPY --from=builder-frontend /build/frontend/dist /usr/share/nginx/html
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Set ownership
-RUN chown -R appuser:appuser /usr/share/nginx/html /var/cache/nginx /var/log/nginx /etc/nginx/conf.d
+# Set ownership - only for existing directories
+RUN chown -R appuser:appuser /usr/share/nginx/html && \
+    chown appuser:appuser /var/cache/nginx 2>/dev/null || true && \
+    chown appuser:appuser /var/log/nginx 2>/dev/null || true && \
+    chown appuser:appuser /etc/nginx/nginx.conf 2>/dev/null || true
 
 # Switch to non-root user
 USER appuser
