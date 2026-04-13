@@ -41,6 +41,8 @@ services:
       - .dev/data/floci:/app/data
     environment:
       FLOCI_STORAGE_MODE: hybrid
+      FLOCI_STORAGE_PERSISTENT_PATH: /app/data
+      FLOCI_SERVICES_LAMBDA_CODE_PATH:	/app/data/lambda
       FLOCI_SERVICES_DOCKER_NETWORK: mydevstack-network
     networks:
       - mydevstack-network
