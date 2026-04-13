@@ -1,0 +1,52 @@
+services:
+  mydevstack:
+    image: beabys/mydevstack:latest
+    container_name: mydevstack
+    ports:
+      # UI
+      - "3000:3000"
+      # Proxy port required for AWS emulator to connect to backend
+      - "8081:8081"
+    environment:
+      # AWS emulator connection (LocalStack, MiniStack, etc.)
+      - AWS_ENDPOINT=http://floci:4566
+      - AWS_REGION=us-east-1
+      
+      # AWS credentials (for emulator)
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    # volumes:
+      # Optional: override nginx config
+      # - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mydevstack-network
+
+  # Optional: LocalStack for local AWS emulation
+  floci:
+    image: hectorvent/floci:latest
+    ports:
+      - "4566:4566"
+      - "5100-5199:5100-5199" # ECR registry ports for docker push/pull
+      - "6379-6399:6379-6399" # ElastiCache Redis proxy ports
+      - "7001-7099:7001-7099" # RDS proxy ports
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .dev/data/floci:/app/data
+    environment:
+      FLOCI_STORAGE_MODE: hybrid
+      FLOCI_SERVICES_DOCKER_NETWORK: mydevstack-network
+    networks:
+      - mydevstack-network
+    restart: unless-stopped
+  
+networks:
+  mydevstack-network:
+    name: mydevstack-network 
+    driver: bridge

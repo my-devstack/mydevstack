@@ -25,6 +25,36 @@ This repository builds a unified Docker image that combines:
 
 ### Using Docker Compose
 
+#### With LocalStack
+
+```bash
+docker-compose up -d
+```
+
+Or use a specific docker-compose file:
+
+| Emulator | Command |
+|----------|---------|
+| LocalStack | `docker-compose up -d` |
+| FloCi | `docker-compose -f docker-compose-floci.yml up -d` |
+| MiniStack | `docker-compose -f docker-compose-ministack.yml up -d` |
+
+Then access the UI at [http://localhost:3000](http://localhost:3000)
+
+#### With FloCi
+
+```bash
+docker-compose -f docker-compose-floci.yml up -d
+```
+
+#### With MiniStack
+
+```bash
+docker-compose -f docker-compose-ministack.yml up -d
+```
+
+### Using Docker Compose (custom)
+
 ```yaml
 version: '3.8'
 
@@ -49,8 +79,6 @@ services:
 ```bash
 docker-compose up -d
 ```
-
-Then access the UI at [http://localhost:3000](http://localhost:3000)
 
 ### Using Docker Directly
 

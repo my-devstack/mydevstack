@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mydevstack:
     image: beabys/mydevstack:latest
@@ -11,9 +9,8 @@ services:
       - "8081:8081"
     environment:
       # AWS emulator connection (LocalStack, MiniStack, etc.)
-      - AWS_ENDPOINT=http://floci:4566
+      - AWS_ENDPOINT=http://ministack:4566
       - AWS_REGION=us-east-1
-      
       # AWS credentials (for emulator)
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
@@ -31,19 +28,51 @@ services:
       - mydevstack-network
 
   # Optional: LocalStack for local AWS emulation
-  floci:
-    image: hectorvent/floci:latest
+  ministack:
+    image: ministackorg/ministack:latest
     ports:
-      - "4540:4566"
+      - "4566:4566"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ../.dev/data/floci:/app/data
+      - .dev/data/ministack:/tmp/ministack-state
     environment:
-      FLOCI_STORAGE_MODE: hybrid
-      FLOCI_SERVICES_DOCKER_NETWORK: mydevstack-network
+      - GATEWAY_PORT=4566
+      - PERSIST_STATE=1
+      - LOG_LEVEL=INFO
+      - S3_PERSIST=1
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RDS_BASE_PORT=15432
+      - ELASTICACHE_BASE_PORT=16379
+      - LAMBDA_EXECUTOR=local
+      - LAMBDA_DOCKER_NETWORK=mydevstack-network
     networks:
       - mydevstack-network
     restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:4566/_ministack/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+  
+
+  redis:
+    image: redis:7-alpine
+    container_name: ministack-redis
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - mydevstack-network
   
 networks:
   mydevstack-network:
