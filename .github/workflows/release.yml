@@ -120,7 +120,7 @@ jobs:
 
             ## Components
 
-            ### Frontend v${{ needs.release.outputs.frontend_version }}
+            ### Frontend ${{ needs.release.outputs.frontend_version }}
             [:link: Release Notes](${{ steps.frontend_release.outputs.url }})
 
             <details>
@@ -132,7 +132,7 @@ jobs:
 
             ---
 
-            ### Backend v${{ needs.release.outputs.backend_version }}
+            ### Backend ${{ needs.release.outputs.backend_version }}
             [:link: Release Notes](${{ steps.backend_release.outputs.url }})
 
             <details>
