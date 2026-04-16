@@ -1,5 +1,5 @@
 # Stage 1: Build the Go backend proxy
-FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS builder-proxy
+FROM --platform=$BUILDPLATFORM golang:latest AS builder-proxy
 
 ARG FRONTEND_VERSION
 ARG BACKEND_VERSION
@@ -14,10 +14,10 @@ RUN git clone --depth 1 --branch ${BACKEND_VERSION} \
     https://github.com/my-devstack/mydevstack-proxy.git .
 
 # Build the Go proxy
-RUN CGO_ENABLED=0 GOOS=linux go build -o /mydevstack-proxy main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o /mydevstack-proxy ./cmd/server
 
 # Stage 2: Build the frontend
-FROM --platform=$BUILDPLATFORM node:20-alpine AS builder-frontend
+FROM --platform=$BUILDPLATFORM node:latest AS builder-frontend
 
 ARG FRONTEND_VERSION
 
@@ -34,7 +34,7 @@ RUN git clone --depth 1 --branch ${FRONTEND_VERSION} \
 RUN npm ci && npm run build
 
 # Stage 3: Final image
-FROM alpine:3.19 AS final
+FROM alpine:latest AS final
 
 RUN apk add --no-cache nginx curl
 
@@ -60,10 +60,11 @@ USER appuser
 # Expose ports
 EXPOSE 3000 8081
 
+ENV GIN_MODE=release
+
 # Environment variables with defaults
 ENV PROXY_PORT=8081
 ENV AWS_ENDPOINT=http://localhost:4566
-ENV AWS_REGION=us-east-1
 ENV AWS_ACCESS_KEY=test
 ENV AWS_SECRET_KEY=test
 
