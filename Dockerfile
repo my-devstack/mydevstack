@@ -1,5 +1,5 @@
 # Stage 1: Build the Go backend proxy
-FROM --platform=$BUILDPLATFORM golang:latest AS builder-proxy
+FROM --platform=$BUILDPLATFORM golang:alpine AS builder-proxy
 
 ARG FRONTEND_VERSION
 ARG BACKEND_VERSION
@@ -17,7 +17,7 @@ RUN git clone --depth 1 --branch ${BACKEND_VERSION} \
 RUN CGO_ENABLED=0 GOOS=linux go build -o /mydevstack-proxy ./cmd/server
 
 # Stage 2: Build the frontend
-FROM --platform=$BUILDPLATFORM node:latest AS builder-frontend
+FROM --platform=$BUILDPLATFORM node:alpine AS builder-frontend
 
 ARG FRONTEND_VERSION
 
