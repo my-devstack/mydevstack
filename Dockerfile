@@ -67,6 +67,7 @@ ENV PROXY_PORT=8081
 ENV AWS_ENDPOINT=http://localhost:4566
 ENV AWS_ACCESS_KEY=test
 ENV AWS_SECRET_KEY=test
+ENV EMULATOR=AWS
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
