@@ -11,8 +11,29 @@ A modern, developer-friendly Docker image for managing AWS services running loca
 
 This repository builds a unified Docker image that combines:
 
-- **Frontend**: [mydevstack-ui](https://github.com/my-devstack/mydevstack-ui) - Vue 3 + TypeScript web interface
-- **Backend**: [mydevstack-proxy](https://github.com/my-devstack/mydevstack-proxy) - Go REST API proxy
+- **Frontend**: Vue 3 + TypeScript web interface (in `pkg/ui`)
+- **Backend**: Go REST API proxy (in `pkg/proxy`)
+
+## Project Structure
+
+```
+mydevstack/
+├── .dev/                    # Local development data
+├── .github/                 # GitHub workflows
+├── pkg/
+│   ├── proxy/              # Go backend API proxy
+│   │   ├── cmd/           # Entry points
+│   │   ├── internal/       # Business logic
+│   │   └── bootstrap/      # DI setup
+│   └── ui/                 # Vue 3 frontend
+│       ├── src/            # Vue source code
+│       └── package.json    # Dependencies
+├── docker-compose.yml       # Docker Compose for LocalStack
+├── docker-compose-floci.yml # Docker Compose for FloCi
+├── docker-compose-ministack.yml # Docker Compose for MiniStack
+├── Dockerfile              # Multi-platform Docker image
+└── nginx.conf             # Nginx configuration
+```
 
 ## Features
 
@@ -212,6 +233,8 @@ docker build -t beabys/mydevstack:latest .
 # Or build for specific platform
 docker build --platform linux/amd64 -t beabys/mydevstack:amd64 .
 ```
+
+## What's Changed<br>* FEAT: Update Api Gateway Functionallity by @beabys in https://github.com/my-devstack/mydevstack-proxy/pull/17<br><br><br>**Full Changelog**: my-devstack/mydevstack-proxy@v0.0.7...v0.0.8
 
 ### Release Process
 
