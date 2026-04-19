@@ -26,7 +26,7 @@ jobs:
         run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.3.0
 
       - name: Run golangci-lint
-        run: cd pkg/proxy && golangci-lint run
+        run: make lint-proxy
 
   lint-ui:
     name: Lint UI
@@ -42,10 +42,11 @@ jobs:
           cache: 'npm'
           cache-dependency-path: pkg/ui/package-lock.json
 
+      - name: Install dependencies
+        run: cd pkg/ui && npm ci
+
       - name: Run ESLint
-        run: |
-          cd pkg/ui
-          npm run lint
+        run: cd pkg/ui && npm run lint
 
   test-proxy:
     name: Test Proxy
@@ -64,7 +65,14 @@ jobs:
         run: cd pkg/proxy && go mod download
 
       - name: Run unit tests
-        run: cd pkg/proxy && go test ./...
+        run: make unit-coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: unit.html
+          retention-days: 7
 
   build-release:
     name: Build Release Binary
