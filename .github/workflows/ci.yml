@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-  push:
     tags:
       - 'v*'
 
@@ -68,13 +67,32 @@ jobs:
         run: cd pkg/proxy && go test ./...
 
   build-release:
-    name: Build Release
+    name: Build Release Binary
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    needs: 
+    needs:
       - lint-proxy
       - lint-ui
       - test-proxy
+    
+    strategy:
+      matrix:
+        include:
+          - GOOS: linux
+            GOARCH: amd64
+            ARTIFACT_NAME: mydevstack-proxy-linux-amd64
+          - GOOS: linux
+            GOARCH: arm64
+            ARTIFACT_NAME: mydevstack-proxy-linux-arm64
+          - GOOS: darwin
+            GOARCH: amd64
+            ARTIFACT_NAME: mydevstack-proxy-darwin-amd64
+          - GOOS: darwin
+            GOARCH: arm64
+            ARTIFACT_NAME: mydevstack-proxy-darwin-arm64
+          - GOOS: windows
+            GOARCH: amd64
+            ARTIFACT_NAME: mydevstack-proxy-windows-amd64
 
     steps:
       - name: Checkout code
@@ -85,17 +103,47 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/v}
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
+      - name: Get tag info
+        id: tag
+        run: |
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          echo "DATE=$(date -u +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.26'
 
       - name: Build Go Binary
+        env:
+          GOOS: ${{ matrix.GOOS }}
+          GOARCH: ${{ matrix.GOARCH }}
+          CGO_ENABLED: 0
         run: |
-          cd pkg/proxy
-          GOOS=linux GOARCH=amd64 go build -o mydevstack-proxy-linux-amd64 ./cmd/server/
-          GOOS=darwin GOARCH=amd64 go build -o mydevstack-proxy-darwin-amd64 ./cmd/server/
-          GOOS=windows GOARCH=amd64 go build -o mydevstack-proxy-windows-amd64.exe ./cmd/server/
+          BINARY_NAME="mydevstack-proxy"
+          if [ "$GOOS" = "windows" ]; then
+            BINARY_NAME="${BINARY_NAME}.exe"
+          fi
+          mkdir -p "dist/${GOOS}/${GOARCH}"
+          go build -ldflags="-s -w -X main.Version=${{ steps.tag.outputs.VERSION }} -X main.BuildDate=${{ steps.tag.outputs.DATE }}" -o "dist/${GOOS}/${GOARCH}/${BINARY_NAME}" ./pkg/proxy/cmd/server
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.ARTIFACT_NAME }}
+          path: dist/${{ matrix.GOOS }}/${{ matrix.GOARCH }}/*
+          retention-days: 5
+
+  build-ui:
+    name: Build UI
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - lint-ui
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -109,26 +157,76 @@ jobs:
           cd pkg/ui
           npm ci
           npm run build
-          zip -r dist.zip dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mydevstack-proxy-ui
+          path: pkg/ui/dist/
+          retention-days: 5
+
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - build-release
+      - build-ui
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create zipped release assets
+        run: |
+          cd artifacts
+          rm -f *.zip checksums.txt
+          shopt -s nullglob
+          for d in */; do
+            [ -d "$d" ] || continue
+            artifact_name="${d%/}"
+            files=("$d"*)
+            if [ ${#files[@]} -eq 0 ]; then
+              echo "No file found in $d"
+              continue
+            fi
+            zip -j "${artifact_name}.zip" "${files[@]}"
+          done
+          ls -la *.zip
+
+      - name: Create checksum file
+        run: |
+          cd artifacts
+          find . -maxdepth 1 -name '*.zip' | sort | xargs sha256sum > checksums.txt
+          cat checksums.txt
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.VERSION }}
-          name: MyDevStack ${{ env.VERSION }}
+          tag_name: ${{ github.ref_name }}
           files: |
-            pkg/proxy/mydevstack-proxy-linux-amd64
-            pkg/proxy/mydevstack-proxy-darwin-amd64
-            pkg/proxy/mydevstack-proxy-windows-amd64.exe
-            pkg/ui/dist.zip
+            artifacts/*.zip
+            artifacts/checksums.txt
+          generate_release_notes: true
           draft: false
-          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release-docker:
     name: Release Docker
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    needs: build-release
+    needs: create-release
 
     steps:
       - name: Checkout code
