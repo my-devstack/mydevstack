@@ -13,7 +13,9 @@ onMounted(async () => {
     const response = await fetch('/VERSION')
     if (response.ok) {
       const text = await response.text()
-      version.value = text.trim()
+      if (!text.startsWith('<')) {
+        version.value = text.trim()
+      }
     }
   } catch {
     // Use default 'dev' if VERSION file doesn't exist
@@ -362,7 +364,7 @@ const clearLocalStorage = () => {
             </a>
             <!-- GitHub -->
             <a 
-              href="https://github.com/my-devstack/mydevstack-ui" 
+              href="https://github.com/my-devstack/mydevstack" 
               target="_blank" 
               rel="noopener noreferrer"
               class="flex flex-col items-center gap-1 text-primary-600 hover:text-primary-700 dark:text-primary-400 text-sm"

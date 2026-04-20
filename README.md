@@ -18,7 +18,6 @@ This repository builds a unified Docker image that combines:
 
 ```
 mydevstack/
-├── .dev/                    # Local development data
 ├── .github/                 # GitHub workflows
 ├── pkg/
 │   ├── proxy/              # Go backend API proxy
@@ -77,8 +76,6 @@ docker-compose -f docker-compose-ministack.yml up -d
 ### Using Docker Compose (custom)
 
 ```yaml
-version: '3.8'
-
 services:
   mydevstack:
     image: beabys/mydevstack:latest
@@ -217,36 +214,16 @@ services:
 - Docker 24.0+
 - Git
 
-### Build Steps
-
-```bash
-# Clone this repository
-git clone https://github.com/my-devstack/mydevstack.git
-cd mydevstack
-
-# Update release.json with desired versions
-# {"frontend": "1.0.0", "backend": "1.0.0"}
-
-# Build the image
-docker build -t beabys/mydevstack:latest .
-
-# Or build for specific platform
-docker build --platform linux/amd64 -t beabys/mydevstack:amd64 .
-```
-
-## What's Changed<br>* FEAT: Update Api Gateway Functionallity by @beabys in https://github.com/my-devstack/mydevstack-proxy/pull/17<br><br><br>**Full Changelog**: my-devstack/mydevstack-proxy@v0.0.7...v0.0.8
-
 ### Release Process
 
-1. Update `release.json` with new versions
-2. Create a git tag with prefix `v`:
+1. Create a git tag with prefix `v`:
    ```bash
    git add release.json
    git commit -m "Release v1.0.0"
    git tag v1.0.0
    git push origin v1.0.0
    ```
-3. GitHub Actions will build and push the image
+2. GitHub Actions will build and push the image
 
 ## Supported Services
 
@@ -265,10 +242,6 @@ docker build --platform linux/amd64 -t beabys/mydevstack:amd64 .
 | Kinesis | ✅ | Streams, Shards |
 | CloudFormation | ✅ | Stacks, Templates |
 
-## Related Repositories
-
-- [mydevstack-ui](https://github.com/my-devstack/mydevstack-ui) - Frontend Vue 3 application
-- [mydevstack-proxy](https://github.com/my-devstack/mydevstack-proxy) - Backend Go proxy
 
 ## License
 
