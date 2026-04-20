@@ -1,0 +1,382 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme Variables */
+:root {
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #06b6d4;
+}
+
+/* Dark mode overrides */
+.dark {
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-border: #334155;
+  --color-text: #f1f5f9;
+  --color-text-muted: #94a3b8;
+}
+
+.light {
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-text: #0f172a;
+  --color-text-muted: #64748b;
+}
+
+/* Base Styles */
+@layer base {
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply font-sans transition-colors duration-200;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dark-border dark:bg-dark-border rounded-full;
+  }
+
+  .light ::-webkit-scrollbar-thumb {
+    @apply bg-light-border;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-600;
+  }
+
+  /* Focus styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+  }
+
+  .dark *:focus-visible {
+    @apply ring-offset-dark-bg;
+  }
+
+  .light *:focus-visible {
+    @apply ring-offset-light-bg;
+  }
+}
+
+/* Component Utilities */
+@layer components {
+  /* Cards */
+  .card {
+    @apply rounded-lg border transition-all duration-200;
+  }
+
+  .card-light {
+    @apply bg-light-surface border-light-border shadow-sm;
+  }
+
+  .card-dark {
+    @apply bg-dark-surface border-dark-border;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800;
+  }
+
+  .btn-secondary {
+    @apply bg-dark-surface text-dark-text border border-dark-border hover:bg-dark-border;
+  }
+
+  .btn-light {
+    @apply bg-light-surface text-light-text border border-light-border hover:bg-light-bg;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent hover:bg-dark-border text-dark-text;
+  }
+
+  .btn-light.btn-ghost {
+    @apply hover:bg-light-border text-light-text;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-lg;
+  }
+
+  /* Inputs */
+  .input {
+    @apply w-full px-3 py-2 rounded-lg border transition-colors duration-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+  }
+
+  .input-light {
+    @apply bg-light-surface border-light-border text-light-text placeholder-light-muted;
+  }
+
+  .input-dark {
+    @apply bg-dark-bg border-dark-border text-dark-text placeholder-dark-muted;
+  }
+
+  /* Labels */
+  .label {
+    @apply block text-sm font-medium mb-1;
+  }
+
+  .label-light {
+    @apply text-light-text;
+  }
+
+  .label-dark {
+    @apply text-dark-text;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-success {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+  }
+
+  .badge-warning {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
+  }
+
+  .badge-error {
+    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+  }
+
+  .badge-info {
+    @apply bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200;
+  }
+
+  .badge-neutral {
+    @apply bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200;
+  }
+
+  /* Tables */
+  .table-container {
+    @apply overflow-x-auto rounded-lg border;
+  }
+
+  .table-light {
+    @apply bg-light-surface border-light-border;
+  }
+
+  .table-dark {
+    @apply bg-dark-surface border-dark-border;
+  }
+
+  table {
+    @apply min-w-full divide-y;
+  }
+
+  .table-light table {
+    @apply divide-light-border;
+  }
+
+  .table-dark table {
+    @apply divide-dark-border;
+  }
+
+  thead {
+    @apply border-b;
+  }
+
+  .table-light thead {
+    @apply bg-light-bg;
+  }
+
+  .table-dark thead {
+    @apply bg-dark-bg;
+  }
+
+  th {
+    @apply px-4 py-3 text-left text-xs font-medium uppercase tracking-wider;
+  }
+
+  .table-light th {
+    @apply text-light-muted;
+  }
+
+  .table-dark th {
+    @apply text-dark-muted;
+  }
+
+  td {
+    @apply px-4 py-3 whitespace-nowrap;
+  }
+
+  .table-light td {
+    @apply text-light-text;
+  }
+
+  .table-dark td {
+    @apply text-dark-text;
+  }
+
+  tbody tr {
+    @apply transition-colors duration-150;
+  }
+
+  .table-light tbody tr:hover {
+    @apply bg-light-bg;
+  }
+
+  .table-dark tbody tr:hover {
+    @apply bg-dark-bg;
+  }
+
+  /* Service-specific colors */
+  .service-s3 { @apply text-service-s3; }
+  .service-lambda { @apply text-service-lambda; }
+  .service-dynamodb { @apply text-service-dynamodb; }
+  .service-sqs { @apply text-service-sqs; }
+  .service-sns { @apply text-service-sns; }
+  .service-iam { @apply text-service-iam; }
+  .service-kms { @apply text-service-kms; }
+  .service-secretsmanager { @apply text-service-secretsmanager; }
+  .service-eventbridge { @apply text-service-eventbridge; }
+  .service-cloudwatch { @apply text-service-cloudwatch; }
+  .service-stepfunctions { @apply text-service-stepfunctions; }
+  .service-cognito { @apply text-service-cognito; }
+  .service-apigateway { @apply text-service-apigateway; }
+  .service-kinesis { @apply text-service-kinesis; }
+  .service-cloudformation { @apply text-service-cloudformation; }
+  .service-ssm { @apply text-service-ssm; }
+  .service-elasticache { @apply text-service-elasticache; }
+  .service-rds { @apply text-service-rds; }
+
+  .bg-service-s3 { @apply bg-service-s3; }
+  .bg-service-lambda { @apply bg-service-lambda; }
+  .bg-service-dynamodb { @apply bg-service-dynamodb; }
+  .bg-service-sqs { @apply bg-service-sqs; }
+  .bg-service-sns { @apply bg-service-sns; }
+  .bg-service-iam { @apply bg-service-iam; }
+  .bg-service-kms { @apply bg-service-kms; }
+  .bg-service-secretsmanager { @apply bg-service-secretsmanager; }
+  .bg-service-eventbridge { @apply bg-service-eventbridge; }
+  .bg-service-cloudwatch { @apply bg-service-cloudwatch; }
+  .bg-service-stepfunctions { @apply bg-service-stepfunctions; }
+  .bg-service-cognito { @apply bg-service-cognito; }
+  .bg-service-apigateway { @apply bg-service-apigateway; }
+  .bg-service-kinesis { @apply bg-service-kinesis; }
+  .bg-service-cloudformation { @apply bg-service-cloudformation; }
+  .bg-service-ssm { @apply bg-service-ssm; }
+  .bg-service-elasticache { @apply bg-service-elasticache; }
+  .bg-service-rds { @apply bg-service-rds; }
+
+  /* Status indicators */
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .status-active {
+    @apply bg-green-500;
+  }
+
+  .status-inactive {
+    @apply bg-gray-400;
+  }
+
+  .status-warning {
+    @apply bg-yellow-500;
+  }
+
+  .status-error {
+    @apply bg-red-500;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    @apply animate-spin rounded-full border-2 border-current border-t-transparent;
+  }
+
+  .spinner-sm {
+    @apply w-4 h-4;
+  }
+
+  .spinner-md {
+    @apply w-6 h-6;
+  }
+
+  .spinner-lg {
+    @apply w-8 h-8;
+  }
+}
+
+/* Utilities */
+@layer utilities {
+  .transition-default {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-in {
+    animation: fadeIn 0.2s ease-out, slideIn 0.2s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateY(-10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply backdrop-blur-md bg-opacity-80;
+  }
+
+  .glass-light {
+    @apply bg-light-surface/80;
+  }
+
+  .glass-dark {
+    @apply bg-dark-surface/80;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-primary-700;
+  }
+}

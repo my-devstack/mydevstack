@@ -1,1 +1,14 @@
 .dev/
+testCoverage*
+.testCoverage*
+unit.html
+coverage.*
+*.log
+*.exe
+*.dll
+.vscode/
+.idea/
+.DS_Store
+dist/
+node_modules/
+pkg/ui/public/VERSION

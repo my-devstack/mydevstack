@@ -1,36 +1,29 @@
+# check=skip=SecretsUsedInArgOrEnv
 # Stage 1: Build the Go backend proxy
 FROM --platform=$BUILDPLATFORM golang:alpine AS builder-proxy
 
-ARG FRONTEND_VERSION
-ARG BACKEND_VERSION
+ARG VERSION
 
 WORKDIR /build/proxy
+COPY ./pkg ./pkg
+COPY ./go.* .
 
 # Install git and ca-certificates for cloning
-RUN apk add --no-cache git ca-certificates
-
-# Clone mydevstack-proxy at the specified version
-RUN git clone --depth 1 --branch ${BACKEND_VERSION} \
-    https://github.com/my-devstack/mydevstack-proxy.git .
+RUN apk add --no-cache ca-certificates
 
 # Build the Go proxy
-RUN CGO_ENABLED=0 GOOS=linux go build -o /mydevstack-proxy ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -o /mydevstack-proxy ./pkg/proxy/cmd/server
 
 # Stage 2: Build the frontend
 FROM --platform=$BUILDPLATFORM node:alpine AS builder-frontend
 
-ARG FRONTEND_VERSION
+ARG VERSION
 
-WORKDIR /build/frontend
-
-# Install git for cloning
-RUN apk add --no-cache git
-
-# Clone mydevstack-ui at the specified version
-RUN git clone --depth 1 --branch ${FRONTEND_VERSION} \
-    https://github.com/my-devstack/mydevstack-ui.git .
+WORKDIR /build/ui
 
 # Install dependencies and build
+WORKDIR /build/ui/pkg/ui
+COPY ./pkg/ui/. .
 RUN npm ci && npm run build
 
 # Stage 3: Final image
@@ -45,7 +38,7 @@ RUN adduser -D -g '' appuser
 COPY --from=builder-proxy /mydevstack-proxy /usr/local/bin/mydevstack-proxy
 
 # Copy frontend dist from builder-frontend
-COPY --from=builder-frontend /build/frontend/dist /usr/share/nginx/html
+COPY --from=builder-frontend /build/ui/pkg/ui/dist /usr/share/nginx/html
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
@@ -74,4 +67,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000 || exit 1
 
 # Start both nginx and proxy with proper startup order
-CMD sh -c "/usr/local/bin/mydevstack-proxy & sleep 2 && nginx -g 'daemon off;' "
+CMD ["/bin/sh", "-c", "/usr/local/bin/mydevstack-proxy & sleep 2 && nginx -g 'daemon off;'"]
