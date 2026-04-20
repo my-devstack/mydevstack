@@ -64,20 +64,20 @@ function handleCancel() {
         
         <div class="flex justify-end gap-3">
           <button
-            @click="handleCancel"
             class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             :class="settingsStore.darkMode 
               ? 'bg-dark-border text-dark-text hover:bg-dark-border/80' 
               : 'bg-light-border text-light-text hover:bg-light-border/80'"
+            @click="handleCancel"
           >
             {{ props.cancelText }}
           </button>
           <button
-            @click="handleConfirm"
             class="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors"
             :class="props.confirmVariant === 'danger' 
               ? 'bg-red-500 hover:bg-red-600' 
               : 'bg-blue-500 hover:bg-blue-600'"
+            @click="handleConfirm"
           >
             {{ props.confirmText }}
           </button>

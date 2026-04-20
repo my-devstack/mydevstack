@@ -364,7 +364,7 @@ export class APIGatewayService {
     return apiGatewayV2Request('UpdateIntegration', sdkOptions)
   }
 
-  async deleteIntegration(apiId: string, integrationId: string): Promise<any> {
+  async deleteIntegrationV2(apiId: string, integrationId: string): Promise<any> {
     // Note: This uses the v2 API endpoint (ApiGatewayV2) - uses capitalized field names
     return apiGatewayV2Request('DeleteIntegration', { ApiId: apiId, IntegrationId: integrationId })
   }
@@ -496,7 +496,7 @@ export const getHttpIntegrations = (apiId: string) => apiGatewayService.getInteg
 export const createHttpIntegration = (apiId: string, options: any) => apiGatewayService.createIntegration(apiId, options)
 export const updateHttpIntegration = (apiId: string, integrationId: string, options: any) => apiGatewayService.updateIntegration(apiId, integrationId, options)
 export const deleteHttpApiIntegration = (apiId: string, integrationId: string) =>
-  apiGatewayService.deleteIntegration(apiId, integrationId)
+  apiGatewayService.deleteIntegrationV2(apiId, integrationId)
 
 // HTTP API v2 Stages
 export const getHttpApiStages = (apiId: string) => apiGatewayService.getStagesV2(apiId)

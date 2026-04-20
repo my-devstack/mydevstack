@@ -1798,9 +1798,15 @@ onMounted(() => {
           class="hidden md:grid grid-cols-12 gap-4 px-4 py-2 text-xs font-semibold uppercase tracking-wider border-b"
           :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'"
         >
-          <div class="col-span-5">Name / ID</div>
-          <div class="col-span-4">Description</div>
-          <div class="col-span-3 text-right">Actions</div>
+          <div class="col-span-5">
+            Name / ID
+          </div>
+          <div class="col-span-4">
+            Description
+          </div>
+          <div class="col-span-3 text-right">
+            Actions
+          </div>
         </div>
 
         <div
@@ -1976,9 +1982,15 @@ onMounted(() => {
                 class="hidden md:grid grid-cols-12 gap-4 px-3 py-2 text-xs font-semibold uppercase tracking-wider border-b"
                 :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'"
               >
-                <div class="col-span-6">Resource Path</div>
-                <div class="col-span-3">Methods</div>
-                <div class="col-span-3 text-right">Actions</div>
+                <div class="col-span-6">
+                  Resource Path
+                </div>
+                <div class="col-span-3">
+                  Methods
+                </div>
+                <div class="col-span-3 text-right">
+                  Actions
+                </div>
               </div>
 
               <div
@@ -2135,98 +2147,224 @@ onMounted(() => {
             </div>
 
             <!-- Deployments Section -->
-              <div class="mt-4 pt-4 border-t" :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'">
-                <div class="flex justify-between items-center mb-4">
-                  <h4 class="text-sm font-medium" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
-                    Deployments
-                  </h4>
-                  <Button size="sm" @click.stop="selectedRestApi = api; showCreateDeploymentModal = true">
-                    <template #icon>
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                      </svg>
-                    </template>
-                    Create Deployment
-                  </Button>
-                </div>
+            <div
+              class="mt-4 pt-4 border-t"
+              :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
+            >
+              <div class="flex justify-between items-center mb-4">
+                <h4
+                  class="text-sm font-medium"
+                  :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                >
+                  Deployments
+                </h4>
+                <Button
+                  size="sm"
+                  @click.stop="selectedRestApi = api; showCreateDeploymentModal = true"
+                >
+                  <template #icon>
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                  </template>
+                  Create Deployment
+                </Button>
+              </div>
 
-                <div v-if="loadingDeployments" class="flex justify-center py-4">
-                  <LoadingSpinner />
-                </div>
-                <EmptyState v-else-if="restDeployments.length === 0" icon="server" title="No Deployments" description="No deployments found for this API." />
-                <div v-else class="space-y-2">
-                  <div class="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-semibold uppercase tracking-wider border-b" :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'">
-                    <div class="col-span-4">ID</div>
-                    <div class="col-span-5">Description</div>
-                    <div class="col-span-3 text-right">Actions</div>
+              <div
+                v-if="loadingDeployments"
+                class="flex justify-center py-4"
+              >
+                <LoadingSpinner />
+              </div>
+              <EmptyState
+                v-else-if="restDeployments.length === 0"
+                icon="server"
+                title="No Deployments"
+                description="No deployments found for this API."
+              />
+              <div
+                v-else
+                class="space-y-2"
+              >
+                <div
+                  class="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-semibold uppercase tracking-wider border-b"
+                  :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'"
+                >
+                  <div class="col-span-4">
+                    ID
                   </div>
-                  <div v-for="deployment in restDeployments" :key="deployment.id" class="flex items-center justify-between p-2 rounded bg-light-border/30 dark:bg-dark-border/30">
-                    <div class="col-span-4">
-                      <code class="text-xs bg-light-border dark:bg-dark-border px-2 py-0.5 rounded">{{ deployment.id }}</code>
-                    </div>
-                    <div class="col-span-5 text-sm text-light-muted dark:text-dark-muted truncate">
-                      {{ deployment.description || '-' }}
-                    </div>
-                    <div class="col-span-3 flex justify-end gap-2">
-                      <button class="px-2 py-1 text-xs rounded hover:bg-light-border dark:hover:bg-dark-border" title="Create Stage" @click.stop="selectedRestApi = api; showCreateStageModal = true">
-                        + Stage
-                      </button>
-                      <button class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500" title="Delete" @click.stop="deleteDeployment(api.id, deployment.id)">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
+                  <div class="col-span-5">
+                    Description
+                  </div>
+                  <div class="col-span-3 text-right">
+                    Actions
+                  </div>
+                </div>
+                <div
+                  v-for="deployment in restDeployments"
+                  :key="deployment.id"
+                  class="flex items-center justify-between p-2 rounded bg-light-border/30 dark:bg-dark-border/30"
+                >
+                  <div class="col-span-4">
+                    <code class="text-xs bg-light-border dark:bg-dark-border px-2 py-0.5 rounded">{{ deployment.id }}</code>
+                  </div>
+                  <div class="col-span-5 text-sm text-light-muted dark:text-dark-muted truncate">
+                    {{ deployment.description || '-' }}
+                  </div>
+                  <div class="col-span-3 flex justify-end gap-2">
+                    <button
+                      class="px-2 py-1 text-xs rounded hover:bg-light-border dark:hover:bg-dark-border"
+                      title="Create Stage"
+                      @click.stop="selectedRestApi = api; showCreateStageModal = true"
+                    >
+                      + Stage
+                    </button>
+                    <button
+                      class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
+                      title="Delete"
+                      @click.stop="deleteDeployment(api.id, deployment.id)"
+                    >
+                      <svg
+                        class="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <!-- Stages Section -->
-              <div class="mt-4 pt-4 border-t" :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'">
-                <div class="flex justify-between items-center mb-4">
-                  <h4 class="text-sm font-medium" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
-                    Stages
-                  </h4>
-                  <Button size="sm" @click.stop="selectedRestApi = api; showCreateStageModal = true">
-                    <template #icon>
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            <!-- Stages Section -->
+            <div
+              class="mt-4 pt-4 border-t"
+              :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
+            >
+              <div class="flex justify-between items-center mb-4">
+                <h4
+                  class="text-sm font-medium"
+                  :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                >
+                  Stages
+                </h4>
+                <Button
+                  size="sm"
+                  @click.stop="selectedRestApi = api; showCreateStageModal = true"
+                >
+                  <template #icon>
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                  </template>
+                  Create Stage
+                </Button>
+              </div>
+
+              <div
+                v-if="loadingRestStages"
+                class="flex justify-center py-4"
+              >
+                <LoadingSpinner />
+              </div>
+              <EmptyState
+                v-else-if="restStages.length === 0"
+                icon="server"
+                title="No Stages"
+                description="No stages found for this API."
+              />
+              <div
+                v-else
+                class="space-y-2"
+              >
+                <div
+                  class="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-semibold uppercase tracking-wider border-b"
+                  :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'"
+                >
+                  <div class="col-span-3">
+                    Name
+                  </div>
+                  <div class="col-span-3">
+                    Deployment ID
+                  </div>
+                  <div class="col-span-3">
+                    Created
+                  </div>
+                  <div class="col-span-3 text-right">
+                    Actions
+                  </div>
+                </div>
+                <div
+                  v-for="stage in restStages"
+                  :key="stage.stageName"
+                  class="flex items-center justify-between p-2 rounded bg-light-border/30 dark:bg-dark-border/30"
+                >
+                  <div class="col-span-3">
+                    <span class="text-sm font-medium">{{ stage.stageName }}</span>
+                  </div>
+                  <div class="col-span-3">
+                    <code
+                      v-if="stage.deploymentId"
+                      class="text-xs bg-light-border dark:bg-dark-border px-2 py-0.5 rounded"
+                    >{{ stage.deploymentId }}</code>
+                    <span
+                      v-else
+                      class="text-xs text-light-muted dark:text-dark-muted italic"
+                    >N/A</span>
+                  </div>
+                  <div class="col-span-3 text-xs text-light-muted dark:text-dark-muted">
+                    {{ stage.createdDate ? new Date(stage.createdDate).toLocaleDateString() : '-' }}
+                  </div>
+                  <div class="col-span-3 flex justify-end gap-2">
+                    <button
+                      class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
+                      title="Delete"
+                      @click.stop="deleteRestApiStage(api.id, stage.stageName)"
+                    >
+                      <svg
+                        class="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
                       </svg>
-                    </template>
-                    Create Stage
-                  </Button>
-                </div>
-
-                <div v-if="loadingRestStages" class="flex justify-center py-4">
-                  <LoadingSpinner />
-                </div>
-                <EmptyState v-else-if="restStages.length === 0" icon="server" title="No Stages" description="No stages found for this API." />
-                <div v-else class="space-y-2">
-                  <div class="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-semibold uppercase tracking-wider border-b" :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'">
-                    <div class="col-span-3">Name</div>
-                    <div class="col-span-3">Deployment ID</div>
-                    <div class="col-span-3">Created</div>
-                    <div class="col-span-3 text-right">Actions</div>
+                    </button>
                   </div>
-                  <div v-for="stage in restStages" :key="stage.stageName" class="flex items-center justify-between p-2 rounded bg-light-border/30 dark:bg-dark-border/30">
-                    <div class="col-span-3">
-                      <span class="text-sm font-medium">{{ stage.stageName }}</span>
-                    </div>
-                    <div class="col-span-3">
-                      <code v-if="stage.deploymentId" class="text-xs bg-light-border dark:bg-dark-border px-2 py-0.5 rounded">{{ stage.deploymentId }}</code>
-                      <span v-else class="text-xs text-light-muted dark:text-dark-muted italic">N/A</span>
-                    </div>
-                    <div class="col-span-3 text-xs text-light-muted dark:text-dark-muted">
-                      {{ stage.createdDate ? new Date(stage.createdDate).toLocaleDateString() : '-' }}
-                    </div>
-                    <div class="col-span-3 flex justify-end gap-2">
-                      <button class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500" title="Delete" @click.stop="deleteRestApiStage(api.id, stage.stageName)">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -2267,7 +2405,10 @@ onMounted(() => {
       </div>
 
       <!-- Loading State -->
-      <div v-if="loadingHttpApis" class="flex justify-center py-12">
+      <div
+        v-if="loadingHttpApis"
+        class="flex justify-center py-12"
+      >
         <LoadingSpinner />
       </div>
 
@@ -2280,13 +2421,27 @@ onMounted(() => {
       />
 
       <!-- HTTP API List -->
-      <div v-else class="space-y-4">
+      <div
+        v-else
+        class="space-y-4"
+      >
         <!-- Column Headers -->
-        <div class="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-semibold uppercase tracking-wider border-b" :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'">
-          <div class="col-span-4">Name / ID</div>
-          <div class="col-span-4">Protocol</div>
-          <div class="col-span-3">Description</div>
-          <div class="col-span-1 text-right">Actions</div>
+        <div
+          class="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-semibold uppercase tracking-wider border-b"
+          :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'"
+        >
+          <div class="col-span-4">
+            Name / ID
+          </div>
+          <div class="col-span-4">
+            Protocol
+          </div>
+          <div class="col-span-3">
+            Description
+          </div>
+          <div class="col-span-1 text-right">
+            Actions
+          </div>
         </div>
 
         <!-- HTTP API Accordion -->
@@ -2310,28 +2465,63 @@ onMounted(() => {
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
               <div>
-                <div class="font-medium">{{ api.name }}</div>
-                <code class="text-xs" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">{{ api.apiId }}</code>
+                <div class="font-medium">
+                  {{ api.name }}
+                </div>
+                <code
+                  class="text-xs"
+                  :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                >{{ api.apiId }}</code>
               </div>
             </div>
             <div class="col-span-4">
               <StatusBadge :status="api.protocolType || 'HTTP'" />
             </div>
             <div class="col-span-3">
-              <span v-if="api.description" class="text-sm truncate block" :title="api.description">
+              <span
+                v-if="api.description"
+                class="text-sm truncate block"
+                :title="api.description"
+              >
                 {{ api.description }}
               </span>
-              <span v-else class="text-sm italic" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">
+              <span
+                v-else
+                class="text-sm italic"
+                :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+              >
                 No description
               </span>
             </div>
-            <div class="col-span-1 flex justify-end gap-2" @click.stop>
-              <button class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500" title="Delete" @click="deleteHttpApi(api)">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <div
+              class="col-span-1 flex justify-end gap-2"
+              @click.stop
+            >
+              <button
+                class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
+                title="Delete"
+                @click="deleteHttpApi(api)"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
               </button>
             </div>
@@ -2344,35 +2534,75 @@ onMounted(() => {
             :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
           >
             <!-- Loading -->
-            <div v-if="loadingRoutes && loadingIntegrations" class="flex justify-center py-4">
+            <div
+              v-if="loadingRoutes && loadingIntegrations"
+              class="flex justify-center py-4"
+            >
               <LoadingSpinner />
             </div>
 
             <!-- HTTP API Details -->
-            <div v-else class="space-y-6">
+            <div
+              v-else
+              class="space-y-6"
+            >
               <!-- Routes Section -->
               <div>
                 <div class="flex justify-between items-center mb-4">
-                  <h4 class="text-sm font-medium" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
+                  <h4
+                    class="text-sm font-medium"
+                    :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                  >
                     Routes
                   </h4>
-                  <Button size="sm" @click.stop="selectedHttpApi = api; showCreateRouteModal = true">
+                  <Button
+                    size="sm"
+                    @click.stop="selectedHttpApi = api; showCreateRouteModal = true"
+                  >
                     <template #icon>
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 4v16m8-8H4"
+                        />
                       </svg>
                     </template>
                     Create Route
                   </Button>
                 </div>
 
-                <EmptyState v-if="httpRoutes.length === 0" icon="server" title="No Routes" description="No routes found for this API." compact />
+                <EmptyState
+                  v-if="httpRoutes.length === 0"
+                  icon="server"
+                  title="No Routes"
+                  description="No routes found for this API."
+                  compact
+                />
 
-                <div v-else class="space-y-2">
-                  <div class="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-semibold uppercase tracking-wider border-b" :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'">
-                    <div class="col-span-4">Route Key</div>
-                    <div class="col-span-5">Target</div>
-                    <div class="col-span-3 text-right">Actions</div>
+                <div
+                  v-else
+                  class="space-y-2"
+                >
+                  <div
+                    class="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-semibold uppercase tracking-wider border-b"
+                    :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'"
+                  >
+                    <div class="col-span-4">
+                      Route Key
+                    </div>
+                    <div class="col-span-5">
+                      Target
+                    </div>
+                    <div class="col-span-3 text-right">
+                      Actions
+                    </div>
                   </div>
                   <div
                     v-for="route in httpRoutes"
@@ -2383,18 +2613,53 @@ onMounted(() => {
                       <span class="text-sm font-mono">{{ route.routeKey }}</span>
                     </div>
                     <div class="col-span-5">
-                      <code v-if="route.target" class="text-xs bg-light-border dark:bg-dark-border px-2 py-0.5 rounded">{{ route.target }}</code>
-                      <span v-else class="text-xs italic" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">No target</span>
+                      <code
+                        v-if="route.target"
+                        class="text-xs bg-light-border dark:bg-dark-border px-2 py-0.5 rounded"
+                      >{{ route.target }}</code>
+                      <span
+                        v-else
+                        class="text-xs italic"
+                        :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                      >No target</span>
                     </div>
                     <div class="col-span-3 flex justify-end gap-2">
-                      <button class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-blue-500" title="Edit" @click.stop="openEditRouteModal(api.apiId, route)">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <button
+                        class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-blue-500"
+                        title="Edit"
+                        @click.stop="openEditRouteModal(api.apiId, route)"
+                      >
+                        <svg
+                          class="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
                         </svg>
                       </button>
-                      <button class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500" title="Delete" @click.stop="deleteRoute(api.apiId, route.routeId)">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <button
+                        class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
+                        title="Delete"
+                        @click.stop="deleteRoute(api.apiId, route.routeId)"
+                      >
+                        <svg
+                          class="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -2405,27 +2670,63 @@ onMounted(() => {
               <!-- Integrations Section -->
               <div>
                 <div class="flex justify-between items-center mb-4">
-                  <h4 class="text-sm font-medium" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
+                  <h4
+                    class="text-sm font-medium"
+                    :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                  >
                     Integrations
                   </h4>
-                  <Button size="sm" @click.stop="selectedHttpApi = api; loadLambdaFunctions(); showCreateIntegrationModal = true">
+                  <Button
+                    size="sm"
+                    @click.stop="selectedHttpApi = api; loadLambdaFunctions(); showCreateIntegrationModal = true"
+                  >
                     <template #icon>
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 4v16m8-8H4"
+                        />
                       </svg>
                     </template>
                     Create Integration
                   </Button>
                 </div>
 
-                <EmptyState v-if="httpIntegrations.length === 0" icon="server" title="No Integrations" description="No integrations found for this API." compact />
+                <EmptyState
+                  v-if="httpIntegrations.length === 0"
+                  icon="server"
+                  title="No Integrations"
+                  description="No integrations found for this API."
+                  compact
+                />
 
-                <div v-else class="space-y-2">
-                  <div class="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-semibold uppercase tracking-wider border-b" :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'">
-                    <div class="col-span-3">Integration ID</div>
-                    <div class="col-span-3">Type</div>
-                    <div class="col-span-4">URI</div>
-                    <div class="col-span-2 text-right">Actions</div>
+                <div
+                  v-else
+                  class="space-y-2"
+                >
+                  <div
+                    class="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-semibold uppercase tracking-wider border-b"
+                    :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'"
+                  >
+                    <div class="col-span-3">
+                      Integration ID
+                    </div>
+                    <div class="col-span-3">
+                      Type
+                    </div>
+                    <div class="col-span-4">
+                      URI
+                    </div>
+                    <div class="col-span-2 text-right">
+                      Actions
+                    </div>
                   </div>
                   <div
                     v-for="integration in httpIntegrations"
@@ -2439,18 +2740,54 @@ onMounted(() => {
                       <StatusBadge :status="integration.integrationType || 'UNKNOWN'" />
                     </div>
                     <div class="col-span-3">
-                      <code v-if="integration.integrationUri" class="text-xs bg-light-border dark:bg-dark-border px-2 py-0.5 rounded truncate block" :title="integration.integrationUri">{{ integration.integrationUri }}</code>
-                      <span v-else class="text-xs italic" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">No URI</span>
+                      <code
+                        v-if="integration.integrationUri"
+                        class="text-xs bg-light-border dark:bg-dark-border px-2 py-0.5 rounded truncate block"
+                        :title="integration.integrationUri"
+                      >{{ integration.integrationUri }}</code>
+                      <span
+                        v-else
+                        class="text-xs italic"
+                        :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                      >No URI</span>
                     </div>
                     <div class="col-span-3 flex justify-end gap-2">
-                      <button class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-blue-500" title="Edit" @click.stop="openEditIntegrationModal(api.apiId, integration)">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <button
+                        class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-blue-500"
+                        title="Edit"
+                        @click.stop="openEditIntegrationModal(api.apiId, integration)"
+                      >
+                        <svg
+                          class="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
                         </svg>
                       </button>
-                      <button class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500" title="Delete" @click.stop="deleteIntegration(api.apiId, integration.integrationId)">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <button
+                        class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
+                        title="Delete"
+                        @click.stop="deleteIntegration(api.apiId, integration.integrationId)"
+                      >
+                        <svg
+                          class="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -2461,28 +2798,66 @@ onMounted(() => {
               <!-- Stages Section -->
               <div>
                 <div class="flex justify-between items-center mb-4">
-                  <h4 class="text-sm font-medium" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
+                  <h4
+                    class="text-sm font-medium"
+                    :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                  >
                     Stages
                   </h4>
-                  <Button size="sm" @click.stop="selectedHttpApi = api; showCreateHttpStageModal = true">
+                  <Button
+                    size="sm"
+                    @click.stop="selectedHttpApi = api; showCreateHttpStageModal = true"
+                  >
                     <template #icon>
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 4v16m8-8H4"
+                        />
                       </svg>
                     </template>
                     Create Stage
                   </Button>
                 </div>
 
-                <EmptyState v-if="httpStages.length === 0" icon="server" title="No Stages" description="No stages found for this API." compact />
+                <EmptyState
+                  v-if="httpStages.length === 0"
+                  icon="server"
+                  title="No Stages"
+                  description="No stages found for this API."
+                  compact
+                />
 
-                <div v-else class="space-y-2">
-                  <div class="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-semibold uppercase tracking-wider border-b" :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'">
-                    <div class="col-span-2">Stage Name</div>
-                    <div class="col-span-3">Invoke URL</div>
-                    <div class="col-span-2">Auto Deploy</div>
-                    <div class="col-span-2">Description</div>
-                    <div class="col-span-3 text-right">Actions</div>
+                <div
+                  v-else
+                  class="space-y-2"
+                >
+                  <div
+                    class="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-semibold uppercase tracking-wider border-b"
+                    :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'"
+                  >
+                    <div class="col-span-2">
+                      Stage Name
+                    </div>
+                    <div class="col-span-3">
+                      Invoke URL
+                    </div>
+                    <div class="col-span-2">
+                      Auto Deploy
+                    </div>
+                    <div class="col-span-2">
+                      Description
+                    </div>
+                    <div class="col-span-3 text-right">
+                      Actions
+                    </div>
                   </div>
                   <div
                     v-for="stage in httpStages"
@@ -2498,25 +2873,64 @@ onMounted(() => {
                       </code>
                     </div>
                     <div class="col-span-2">
-                      <span :class="stage.autoDeploy ? 'text-green-500' : 'text-gray-400'" class="text-xs">
+                      <span
+                        :class="stage.autoDeploy ? 'text-green-500' : 'text-gray-400'"
+                        class="text-xs"
+                      >
                         {{ stage.autoDeploy ? 'Yes' : 'No' }}
                       </span>
                     </div>
                     <div class="col-span-2">
-                      <span v-if="stage.description" class="text-xs text-light-muted dark:text-dark-muted truncate block" :title="stage.description">
+                      <span
+                        v-if="stage.description"
+                        class="text-xs text-light-muted dark:text-dark-muted truncate block"
+                        :title="stage.description"
+                      >
                         {{ stage.description }}
                       </span>
-                      <span v-else class="text-xs italic" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">-</span>
+                      <span
+                        v-else
+                        class="text-xs italic"
+                        :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                      >-</span>
                     </div>
                     <div class="col-span-3 flex justify-end gap-2">
-                      <button class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-blue-500" title="Edit" @click.stop="openEditHttpStageModal(api.apiId, stage)">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <button
+                        class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-blue-500"
+                        title="Edit"
+                        @click.stop="openEditHttpStageModal(api.apiId, stage)"
+                      >
+                        <svg
+                          class="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
                         </svg>
                       </button>
-                      <button class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500" title="Delete" @click.stop="deleteHttpApiStage(api.apiId, stage.stageName)">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <button
+                        class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
+                        title="Delete"
+                        @click.stop="deleteHttpApiStage(api.apiId, stage.stageName)"
+                      >
+                        <svg
+                          class="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -2859,14 +3273,19 @@ onMounted(() => {
           hint="For HTTP APIs, use format: METHOD /path or $default"
         />
         <div>
-          <label class="block text-sm font-medium mb-1" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
+          <label
+            class="block text-sm font-medium mb-1"
+            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+          >
             Integration
           </label>
           <select
             v-model="newRouteTarget"
             class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
           >
-            <option value="">-- Select Integration --</option>
+            <option value="">
+              -- Select Integration --
+            </option>
             <option
               v-for="integration in httpIntegrations"
               :key="integration.integrationId"
@@ -3010,7 +3429,10 @@ onMounted(() => {
         
         <!-- Lambda dropdown for AWS_PROXY -->
         <div v-if="httpApiIntegrationType === 'AWS_PROXY'">
-          <label class="block text-sm font-medium mb-1" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
+          <label
+            class="block text-sm font-medium mb-1"
+            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+          >
             Lambda Function
           </label>
           <select
@@ -3018,7 +3440,9 @@ onMounted(() => {
             class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
             @change="httpApiIntegrationUri = selectedLambdaArn"
           >
-            <option value="">-- Select Lambda Function --</option>
+            <option value="">
+              -- Select Lambda Function --
+            </option>
             <option
               v-for="lambda in availableLambdas"
               :key="lambda.FunctionName"
@@ -3090,7 +3514,7 @@ onMounted(() => {
             min="50"
             max="30000"
             class="w-32 px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-          />
+          >
           <span class="text-xs text-light-muted dark:text-dark-muted">50-30000 ms (default: 30000)</span>
         </div>
       </div>
@@ -3108,119 +3532,285 @@ onMounted(() => {
           >
             Create
           </Button>
-          </div>
+        </div>
       </template>
     </Modal>
 
     <!-- Create Deployment Modal (REST API) -->
-    <Modal v-model:open="showCreateDeploymentModal" title="Create Deployment" size="md">
+    <Modal
+      v-model:open="showCreateDeploymentModal"
+      title="Create Deployment"
+      size="md"
+    >
       <div class="space-y-4">
-        <FormInput v-model="newDeploymentStageName" label="Stage Name" placeholder="prod" required />
-        <FormInput v-model="newDeploymentDescription" label="Description" placeholder="Production deployment" />
+        <FormInput
+          v-model="newDeploymentStageName"
+          label="Stage Name"
+          placeholder="prod"
+          required
+        />
+        <FormInput
+          v-model="newDeploymentDescription"
+          label="Description"
+          placeholder="Production deployment"
+        />
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <Button variant="secondary" @click="showCreateDeploymentModal = false">Cancel</Button>
-          <Button :loading="creating" @click="createDeployment">Create</Button>
+          <Button
+            variant="secondary"
+            @click="showCreateDeploymentModal = false"
+          >
+            Cancel
+          </Button>
+          <Button
+            :loading="creating"
+            @click="createDeployment"
+          >
+            Create
+          </Button>
         </div>
       </template>
     </Modal>
 
     <!-- Create Stage Modal (REST API) -->
-    <Modal v-model:open="showCreateStageModal" title="Create Stage" size="md">
+    <Modal
+      v-model:open="showCreateStageModal"
+      title="Create Stage"
+      size="md"
+    >
       <div class="space-y-4">
-        <FormInput v-model="newRestStageName" label="Stage Name" placeholder="prod" required />
-        <FormInput v-model="newRestStageDeploymentId" label="Deployment ID (optional)" placeholder="Deployment ID" />
-        <FormInput v-model="newRestStageDescription" label="Description" placeholder="Stage description" />
+        <FormInput
+          v-model="newRestStageName"
+          label="Stage Name"
+          placeholder="prod"
+          required
+        />
+        <FormInput
+          v-model="newRestStageDeploymentId"
+          label="Deployment ID (optional)"
+          placeholder="Deployment ID"
+        />
+        <FormInput
+          v-model="newRestStageDescription"
+          label="Description"
+          placeholder="Stage description"
+        />
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <Button variant="secondary" @click="showCreateStageModal = false">Cancel</Button>
-          <Button :loading="creating" @click="createRestApiStage">Create</Button>
+          <Button
+            variant="secondary"
+            @click="showCreateStageModal = false"
+          >
+            Cancel
+          </Button>
+          <Button
+            :loading="creating"
+            @click="createRestApiStage"
+          >
+            Create
+          </Button>
         </div>
       </template>
     </Modal>
 
     <!-- Create HTTP API Stage Modal -->
-    <Modal v-model:open="showCreateHttpStageModal" title="Create HTTP API Stage" size="md">
+    <Modal
+      v-model:open="showCreateHttpStageModal"
+      title="Create HTTP API Stage"
+      size="md"
+    >
       <div class="space-y-4">
-        <FormInput v-model="newHttpStageName" label="Stage Name" placeholder="prod" required />
-        <FormInput v-model="newHttpStageDescription" label="Description" placeholder="Stage description" />
+        <FormInput
+          v-model="newHttpStageName"
+          label="Stage Name"
+          placeholder="prod"
+          required
+        />
+        <FormInput
+          v-model="newHttpStageDescription"
+          label="Description"
+          placeholder="Stage description"
+        />
         <div>
-          <label class="block text-sm font-medium mb-1" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
+          <label
+            class="block text-sm font-medium mb-1"
+            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+          >
             Auto Deploy
           </label>
-          <select v-model="newHttpStageAutoDeploy" class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border">
-            <option :value="true">Enabled</option>
-            <option :value="false">Disabled</option>
+          <select
+            v-model="newHttpStageAutoDeploy"
+            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
+          >
+            <option :value="true">
+              Enabled
+            </option>
+            <option :value="false">
+              Disabled
+            </option>
           </select>
         </div>
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <Button variant="secondary" @click="showCreateHttpStageModal = false">Cancel</Button>
-          <Button :loading="creating" @click="createHttpApiStage">Create</Button>
+          <Button
+            variant="secondary"
+            @click="showCreateHttpStageModal = false"
+          >
+            Cancel
+          </Button>
+          <Button
+            :loading="creating"
+            @click="createHttpApiStage"
+          >
+            Create
+          </Button>
         </div>
       </template>
     </Modal>
 
     <!-- Edit Route Modal -->
-    <Modal v-model:open="showEditRouteModal" title="Edit Route" size="md">
-      <div class="space-y-4" v-if="editingRoute">
-        <FormInput v-model="editingRoute.routeKey" label="Route Key" placeholder="GET /api" />
+    <Modal
+      v-model:open="showEditRouteModal"
+      title="Edit Route"
+      size="md"
+    >
+      <div
+        v-if="editingRoute"
+        class="space-y-4"
+      >
+        <FormInput
+          v-model="editingRoute.routeKey"
+          label="Route Key"
+          placeholder="GET /api"
+        />
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <Button variant="secondary" @click="showEditRouteModal = false">Cancel</Button>
-          <Button :loading="creating" @click="saveEditRoute">Save</Button>
+          <Button
+            variant="secondary"
+            @click="showEditRouteModal = false"
+          >
+            Cancel
+          </Button>
+          <Button
+            :loading="creating"
+            @click="saveEditRoute"
+          >
+            Save
+          </Button>
         </div>
       </template>
     </Modal>
 
     <!-- Edit Integration Modal -->
-    <Modal v-model:open="showEditIntegrationModal" title="Edit Integration" size="md">
-      <div class="space-y-4" v-if="editingIntegration">
+    <Modal
+      v-model:open="showEditIntegrationModal"
+      title="Edit Integration"
+      size="md"
+    >
+      <div
+        v-if="editingIntegration"
+        class="space-y-4"
+      >
         <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
+          <label
+            class="block text-sm font-medium mb-1"
+            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+          >
             Integration ID
           </label>
           <code class="text-xs bg-light-border dark:bg-dark-border px-2 py-1 rounded">{{ editingIntegration.integrationId }}</code>
         </div>
-        <FormInput v-model="editingIntegration.integrationType" label="Type" disabled />
-        <FormInput v-model="editingIntegration.description" label="Description" placeholder="Integration description" />
+        <FormInput
+          v-model="editingIntegration.integrationType"
+          label="Type"
+          disabled
+        />
+        <FormInput
+          v-model="editingIntegration.description"
+          label="Description"
+          placeholder="Integration description"
+        />
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <Button variant="secondary" @click="showEditIntegrationModal = false">Cancel</Button>
-          <Button :loading="creating" @click="saveEditIntegration">Save</Button>
+          <Button
+            variant="secondary"
+            @click="showEditIntegrationModal = false"
+          >
+            Cancel
+          </Button>
+          <Button
+            :loading="creating"
+            @click="saveEditIntegration"
+          >
+            Save
+          </Button>
         </div>
       </template>
     </Modal>
 
     <!-- Edit HTTP API Stage Modal -->
-    <Modal v-model:open="showEditHttpStageModal" title="Edit Stage" size="md">
-      <div class="space-y-4" v-if="editingStage">
+    <Modal
+      v-model:open="showEditHttpStageModal"
+      title="Edit Stage"
+      size="md"
+    >
+      <div
+        v-if="editingStage"
+        class="space-y-4"
+      >
         <div class="mb-4">
-          <label class="block text-sm font-medium mb-1" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
+          <label
+            class="block text-sm font-medium mb-1"
+            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+          >
             Stage Name
           </label>
           <code class="text-xs bg-light-border dark:bg-dark-border px-2 py-1 rounded">{{ editingStage.stageName }}</code>
         </div>
-        <FormInput v-model="editingStage.description" label="Description" placeholder="Stage description" />
+        <FormInput
+          v-model="editingStage.description"
+          label="Description"
+          placeholder="Stage description"
+        />
         <div>
-          <label class="block text-sm font-medium mb-1" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
+          <label
+            class="block text-sm font-medium mb-1"
+            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+          >
             Auto Deploy
           </label>
-          <select v-model="editingStage.autoDeploy" class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border">
-            <option :value="true">Enabled</option>
-            <option :value="false">Disabled</option>
+          <select
+            v-model="editingStage.autoDeploy"
+            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
+          >
+            <option :value="true">
+              Enabled
+            </option>
+            <option :value="false">
+              Disabled
+            </option>
           </select>
         </div>
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <Button variant="secondary" @click="showEditHttpStageModal = false">Cancel</Button>
-          <Button :loading="creating" @click="saveEditHttpStage">Save</Button>
+          <Button
+            variant="secondary"
+            @click="showEditHttpStageModal = false"
+          >
+            Cancel
+          </Button>
+          <Button
+            :loading="creating"
+            @click="saveEditHttpStage"
+          >
+            Save
+          </Button>
         </div>
       </template>
     </Modal>
