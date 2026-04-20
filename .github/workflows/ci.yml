@@ -206,12 +206,7 @@ jobs:
           for d in */; do
             [ -d "$d" ] || continue
             artifact_name="${d%/}"
-            files=("$d"*)
-            if [ ${#files[@]} -eq 0 ]; then
-              echo "No file found in $d"
-              continue
-            fi
-            zip -j "${artifact_name}.zip" "${files[@]}"
+            zip -r "${artifact_name}.zip" "$d"
           done
           ls -la *.zip
 
