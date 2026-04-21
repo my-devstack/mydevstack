@@ -7,6 +7,7 @@ import { GlobeAltIcon } from '@heroicons/vue/24/outline'
 import DataTable from '@/components/common/DataTable.vue'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
+import APIGatewayIntegrationDetailsModal from '@/components/apiGateway/APIGatewayIntegrationDetailsModal.vue'
 import FormInput from '@/components/common/FormInput.vue'
 import FormSelect from '@/components/common/FormSelect.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
@@ -18,6 +19,28 @@ import { refreshAPIGatewayClient } from '@/api/services/api-gateway'
 import { listFunctions } from '@/api/services/lambda'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import type { APIGatewayRestAPI, APIGatewayResource, APIGatewayMethod } from '@/api/types/aws'
+
+// New component imports
+import APIGatewayCodeExamples from '@/components/apiGateway/APIGatewayCodeExamples.vue'
+import APIGatewayRestApisList from '@/components/apiGateway/APIGatewayRestApisList.vue'
+import APIGatewayHttpApisList from '@/components/apiGateway/APIGatewayHttpApisList.vue'
+import APIGatewayCreateModal from '@/components/apiGateway/APIGatewayCreateModal.vue'
+import APIGatewayDeleteModal from '@/components/apiGateway/APIGatewayDeleteModal.vue'
+import APIGatewayDeploymentsModal from '@/components/apiGateway/APIGatewayDeploymentsModal.vue'
+import APIGatewayMethodModal from '@/components/apiGateway/APIGatewayMethodModal.vue'
+import APIGatewayResourceModal from '@/components/apiGateway/APIGatewayResourceModal.vue'
+import APIGatewayRouteModal from '@/components/apiGateway/APIGatewayRouteModal.vue'
+import APIGatewayIntegrationModal from '@/components/apiGateway/APIGatewayIntegrationModal.vue'
+import APIGatewayStageModal from '@/components/apiGateway/APIGatewayStageModal.vue'
+import APIGatewayRoutesModal from '@/components/apiGateway/APIGatewayRoutesModal.vue'
+import APIGatewayIntegrationsModal from '@/components/apiGateway/APIGatewayIntegrationsModal.vue'
+import APIGatewayEditConfigModal from '@/components/apiGateway/APIGatewayEditConfigModal.vue'
+import APIGatewayEditRouteModal from '@/components/apiGateway/APIGatewayEditRouteModal.vue'
+import APIGatewayEditIntegrationModal from '@/components/apiGateway/APIGatewayEditIntegrationModal.vue'
+import APIGatewayEditStageModal from '@/components/apiGateway/APIGatewayEditStageModal.vue'
+import APIGatewayViewDetailsModal from '@/components/apiGateway/APIGatewayViewDetailsModal.vue'
+import APIGatewayViewRestModal from '@/components/apiGateway/APIGatewayViewRestModal.vue'
+import APIGatewaySetupIntegrationModal from '@/components/apiGateway/APIGatewaySetupIntegrationModal.vue'
 
 const settingsStore = useSettingsStore()
 const uiStore = useUIStore()
@@ -188,33 +211,32 @@ async function loadMethodsForResource(resourceId: string) {
   resourceMethodsLoading.value[resourceId] = true
   resourceMethodsMap.value[resourceId] = {}
   
-  const httpMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD']
-  const createdMethodKey = justCreatedMethod.value
-  const createdMethod = createdMethodKey?.startsWith(`${resourceId}:`) 
-    ? createdMethodKey.split(':')[1] 
-    : null
+  // Try to get methods from resourceMethods, fallback to trying all common methods
+  const resourceMethods = resource.resourceMethods || {}
+  const methods = Object.keys(resourceMethods)
   
-  const promises = httpMethods.map(method => 
-    apigateway.getMethod(selectedRestApi.value.id, resource.id, method)
-      .then(result => ({ method, result }))
-      .catch(() => ({ method, result: null }))
-  )
+  // If resourceMethods exists and has entries, use it; otherwise try all methods
+  const methodsToTry = methods.length > 0 ? methods : ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD']
   
-  const results = await Promise.all(promises)
-  
-  for (const { method, result } of results) {
-    if (result && (result.HttpMethod || result.httpMethod)) {
-      resourceMethodsMap.value[resourceId][method] = result
+  for (const method of methodsToTry) {
+    try {
+      const result = await apigateway.getMethod(selectedRestApi.value.id, resource.id, method)
+      // Only add if method actually exists (has httpMethod)
+      if (result && (result.httpMethod || result.HttpMethod)) {
+        try {
+          const integration = await apigateway.getIntegration(selectedRestApi.value.id, resource.id, method)
+          resourceMethodsMap.value[resourceId][method] = { ...result, ...integration }
+        } catch {
+          resourceMethodsMap.value[resourceId][method] = result
+        }
+      }
+    } catch {
+      // Method doesn't exist - skip
     }
   }
   
   resourceMethodsLoading.value[resourceId] = false
   resourceMethodsMap.value = { ...resourceMethodsMap.value }
-  
-  if (createdMethod && resourceMethodsMap.value[resourceId][createdMethod]) {
-    toast.success(`Method ${createdMethod} created successfully`)
-    justCreatedMethod.value = null
-  }
 }
 
 // HTTP API state
@@ -243,7 +265,6 @@ const showCreateRouteModal = ref(false)
 const showCreateIntegrationModal = ref(false)
 const showRoutesModal = ref(false)
 const showIntegrationsModal = ref(false)
-const showImportSwaggerModal = ref(false)
 const showEditRestModal = ref(false)
 const showViewRestModal = ref(false)
 const showDeleteRestModal = ref(false)
@@ -281,21 +302,6 @@ const deleteRouteId = ref('')
 const deleteStageName = ref('')
 const deleteResourceId = ref('')
 
-// Swagger import state
-const swaggerFile = ref<File | null>(null)
-const swaggerContent = ref('')
-const swaggerValidationErrors = ref<string[]>([])
-const swaggerSpecPreview = ref<{ title: string; version: string; pathCount: number } | null>(null)
-const importingSwagger = ref(false)
-const swaggerImportResult = ref<{
-  success: boolean
-  apiId?: string
-  apiName?: string
-  resourcesCreated?: number
-  methodsCreated?: number
-  errors?: string[]
-} | null>(null)
-
 // Edit REST API state
 const editingRestApi = ref<APIGatewayRestAPI | null>(null)
 const editRestApiName = ref('')
@@ -328,6 +334,15 @@ const newIntegrationType = ref('MOCK')
 const newIntegrationUri = ref('')
 const newIntegrationHttpMethod = ref('POST')
 const savingIntegration = ref(false)
+
+// Integration details modal
+const showIntegrationDetailsModal = ref(false)
+const integrationDetailsData = ref<any>(null)
+
+function showMethodIntegrationDetails(details: any) {
+  integrationDetailsData.value = details
+  showIntegrationDetailsModal.value = true
+}
 
 // Deployment modal state
 const newDeploymentStageName = ref('')
@@ -683,99 +698,7 @@ const newHttpApiDescription = ref('')
 const newRouteKey = ref('GET /')
 
 const creating = ref(false)
-
-// Handle Swagger file selection
-function handleSwaggerFileSelect(event: Event) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-  
-  swaggerFile.value = file
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const content = e.target?.result as string
-    swaggerContent.value = content
-    validateSwaggerContent(content)
-  }
-  reader.readAsText(file)
-}
-
-// Validate Swagger content
-function validateSwaggerContent(content: string) {
-  swaggerValidationErrors.value = []
-  swaggerSpecPreview.value = null
-  
-  try {
-    const spec = apigateway.parseSwaggerSpec(content)
-    const errors = apigateway.validateSwaggerSpec(spec)
-    
-    if (errors.length > 0) {
-      swaggerValidationErrors.value = errors
-      return
-    }
-    
-    swaggerSpecPreview.value = {
-      title: spec.info.title,
-      version: spec.info.version,
-      pathCount: Object.keys(spec.paths).length,
-    }
-  } catch (error) {
-    swaggerValidationErrors.value = [`Failed to parse file: ${error}`]
-  }
-}
-
-// Import Swagger file
-async function importSwaggerFile() {
-  if (!swaggerContent.value || swaggerValidationErrors.value.length > 0) {
-    toast.error('Please fix validation errors before importing')
-    return
-  }
-  
-  importingSwagger.value = true
-  swaggerImportResult.value = null
-  
-  try {
-    const result = await apigateway.importSwaggerFromFile(swaggerContent.value)
-    
-    swaggerImportResult.value = {
-      success: result.errors.length === 0,
-      apiId: result.apiId,
-      apiName: result.apiName,
-      resourcesCreated: result.resourcesCreated,
-      methodsCreated: result.methodsCreated,
-      errors: result.errors,
-    }
-    
-    if (result.errors.length === 0) {
-      toast.success(`Imported ${result.resourcesCreated} resources and ${result.methodsCreated} methods`)
-      showImportSwaggerModal.value = false
-      loadRestApis()
-      resetSwaggerImport()
-    } else {
-      toast.warning(`Imported with ${result.errors.length} errors`)
-    }
-  } catch (error) {
-    console.error('Error importing Swagger:', error)
-    toast.error('Failed to import Swagger specification')
-  } finally {
-    importingSwagger.value = false
-  }
-}
-
-// Reset Swagger import state
-function resetSwaggerImport() {
-  swaggerFile.value = null
-  swaggerContent.value = ''
-  swaggerValidationErrors.value = []
-  swaggerSpecPreview.value = null
-  swaggerImportResult.value = null
-}
-
-// Clear import modal
-function closeImportModal() {
-  showImportSwaggerModal.value = false
-  resetSwaggerImport()
-}
+const creatingIntegration = ref(false)
 
 // REST API columns
 const restApiColumns = computed(() => [
@@ -848,14 +771,28 @@ async function loadMethods(resource: APIGatewayResource) {
   loadingMethods.value = true
 
   restMethods.value = {}
-  // Try to load all common HTTP methods since LocalStack's GetResources 
-  // doesn't reliably return resourceMethods
-  const httpMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD']
   
-  for (const method of httpMethods) {
+  // Try to get methods from resourceMethods, fallback to trying all common methods
+  const resourceMethods = resource.resourceMethods || {}
+  const methods = Object.keys(resourceMethods)
+  
+  // If resourceMethods exists and has entries, use it; otherwise try all methods
+  const methodsToTry = methods.length > 0 ? methods : ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD']
+  
+  for (const method of methodsToTry) {
     try {
       const methodDetails = await apigateway.getMethod(selectedRestApi.value.id, resource.id, method)
-      restMethods.value[method] = methodDetails
+      // Only add if method actually exists
+      if (methodDetails && (methodDetails.httpMethod || methodDetails.HttpMethod)) {
+        // Also fetch integration info for this method
+        try {
+          const integration = await apigateway.getIntegration(selectedRestApi.value.id, resource.id, method)
+          restMethods.value[method] = { ...methodDetails, ...integration }
+        } catch {
+          // Integration might not exist - that's ok
+          restMethods.value[method] = methodDetails
+        }
+      }
     } catch (error: any) {
       // Method doesn't exist - that's expected for most methods
       // LocalStack returns 500 for non-existent methods, so treat 500 as "doesn't exist"
@@ -868,22 +805,26 @@ async function loadMethods(resource: APIGatewayResource) {
         }
       }
       // Unexpected error - log it but don't fail
+      console.error(`Error loading method ${method}:`, error)
     }
   }
   loadingMethods.value = false
 }
 
 // Create REST API
-async function createRestApi() {
-  if (!newRestApiName.value) {
+async function createRestApi(name?: string, description?: string) {
+  const apiName = name || newRestApiName.value
+  const apiDescription = description || newRestApiDescription.value
+  
+  if (!apiName) {
     toast.error('API name is required')
     return
   }
 
   creating.value = true
   try {
-    await apigateway.createRestApi(newRestApiName.value, {
-      Description: newRestApiDescription.value,
+    await apigateway.createRestApi(apiName, {
+      Description: apiDescription,
     })
     toast.success('REST API created successfully')
     showCreateRestModal.value = false
@@ -1010,6 +951,7 @@ async function openIntegrationModalForMethod(method: string) {
   newIntegrationUri.value = ''
   newIntegrationHttpMethod.value = 'POST'
   
+  await loadLambdaFunctions()
   showIntegrationModal.value = true
   
   try {
@@ -1051,8 +993,11 @@ async function saveIntegration() {
     )
     toast.success('Integration saved successfully')
     showIntegrationModal.value = false
-    // Reload method to get updated integration
-    loadMethods(selectedResource.value)
+    // Reload method to get updated integration (both stores)
+    await loadMethods(selectedResource.value)
+    if (selectedResource.value?.id) {
+      await loadMethodsForResource(selectedResource.value.id)
+    }
   } catch (error) {
     console.error('Error saving integration:', error)
     toast.error('Failed to save integration')
@@ -1090,8 +1035,10 @@ async function confirmDeleteMethod() {
 }
 
 // Create resource
-async function createResource() {
-  if (!selectedRestApi.value || !newResourcePath.value) {
+async function createResource(passedPath?: string) {
+  const pathToUse = passedPath || newResourcePath.value
+
+  if (!selectedRestApi.value || !pathToUse) {
     toast.error('Resource path is required')
     return
   }
@@ -1110,7 +1057,7 @@ async function createResource() {
       return
     }
 
-    await apigateway.createResource(selectedRestApi.value.id, parentId, newResourcePath.value)
+    await apigateway.createResource(selectedRestApi.value.id, parentId, pathToUse)
     toast.success('Resource created successfully')
     showCreateResourceModal.value = false
     newResourcePath.value = ''
@@ -1125,25 +1072,35 @@ async function createResource() {
 }
 
 // Create method
-async function createMethod() {
-  if (!selectedRestApi.value || !newMethodResourceId.value || !newMethodType.value) {
+async function createMethod(
+  passedResourceId?: string, 
+  passedMethodType?: string, 
+  passedAuthType?: string, 
+  passedAuthorizerId?: string
+) {
+  const resourceIdToUse = passedResourceId || newMethodResourceId.value
+  const methodTypeToUse = passedMethodType || newMethodType.value
+  const authTypeToUse = passedAuthType || newMethodAuthType.value
+  const authorizerIdToUse = passedAuthorizerId || newMethodAuthorizerId.value
+
+  if (!selectedRestApi.value || !resourceIdToUse || !methodTypeToUse) {
     toast.error('Resource and method type are required')
     return
   }
 
-  const resourceId = newMethodResourceId.value
-  const methodType = newMethodType.value
+  const resourceId = resourceIdToUse
+  const methodType = methodTypeToUse
   
   creating.value = true
   try {
     const options: any = { 
-      authorizationType: newMethodAuthType.value,
+      authorizationType: authTypeToUse,
     }
     if (newMethodApiKeyRequired.value) {
       options.apiKeyRequired = true
     }
-    if (newMethodAuthorizerId.value) {
-      options.authorizerId = newMethodAuthorizerId.value
+    if (authorizerIdToUse) {
+      options.authorizerId = authorizerIdToUse
     }
     
     await apigateway.createMethod(
@@ -1164,6 +1121,8 @@ async function createMethod() {
     
     const resource = restResources.value.find(r => r.id === resourceId)
     if (resource) {
+      // Reload resources to get updated resourceMethods
+      await loadResourcesForApi(selectedRestApi.value.id)
       setTimeout(() => {
         loadMethodsForResource(resourceId)
         if (!expandedResources.value.has(resourceId)) {
@@ -1228,12 +1187,20 @@ async function loadIntegrations(api: any) {
 }
 
 // Create HTTP API
-async function createHttpApi() {
+async function createHttpApi(passedName?: string, passedDescription?: string) {
+  const nameToUse = passedName || newHttpApiName.value
+  const descToUse = passedDescription || newHttpApiDescription.value
+
+  if (!nameToUse) {
+    toast.error('HTTP API name is required')
+    return
+  }
+
   creating.value = true
   try {
     const options: any = {}
-    if (newHttpApiName.value) options.name = newHttpApiName.value
-    if (newHttpApiDescription.value) options.description = newHttpApiDescription.value
+    if (nameToUse) options.name = nameToUse
+    if (descToUse) options.description = descToUse
     
     await apigateway.createHttpApi(options)
     toast.success('HTTP API created successfully')
@@ -1272,8 +1239,11 @@ async function confirmDeleteHttpApi() {
 }
 
 // Create route
-async function createRoute() {
-  if (!selectedHttpApi.value || !newRouteKey.value) {
+async function createRoute(passedRouteKey?: string, passedTarget?: string) {
+  const routeKeyToUse = passedRouteKey || newRouteKey.value
+  const targetToUse = passedTarget || newRouteTarget.value
+
+  if (!selectedHttpApi.value || !routeKeyToUse) {
     toast.error('Route key is required')
     return
   }
@@ -1281,12 +1251,12 @@ async function createRoute() {
   creating.value = true
   try {
     const routeOptions: Record<string, any> = {
-      routeKey: newRouteKey.value,
+      routeKey: routeKeyToUse,
     }
     
     // Target (integration) is required for the route to work
-    if (newRouteTarget.value) {
-      routeOptions.target = newRouteTarget.value
+    if (targetToUse) {
+      routeOptions.target = targetToUse
     } else {
       toast.error('Please select an integration for this route')
       creating.value = false
@@ -1318,26 +1288,32 @@ async function createRoute() {
 }
 
 // Create integration
-async function createIntegration() {
+async function createIntegration(passedIntegrationType?: string, passedUri?: string, passedPayloadFormat?: string) {
+  const integrationTypeToUse = passedIntegrationType || httpApiIntegrationType.value
+  const uriToUse = passedUri || httpApiIntegrationUri.value
+
+  console.log('[createIntegration] received:', { passedIntegrationType, passedUri, passedPayloadFormat })
+  console.log('[createIntegration] using:', { integrationTypeToUse, uriToUse })
+
   if (!selectedHttpApi.value) {
     toast.error('HTTP API is required')
     return
   }
 
-  if (httpApiIntegrationType.value === 'AWS_PROXY' && !httpApiIntegrationUri.value) {
-    toast.error('Integration URI is required for AWS_PROXY integrations')
+  if (integrationTypeToUse === 'lambda' && !uriToUse) {
+    toast.error('Integration URI is required for Lambda integrations')
     return
   }
 
-  creating.value = true
+  creatingIntegration.value = true
   try {
     const integrationOptions: Record<string, any> = {
-      integrationType: httpApiIntegrationType.value,
+      integrationType: integrationTypeToUse === 'lambda' ? 'AWS_PROXY' : integrationTypeToUse,
     }
     
     // Add optional fields based on integration type
-    if (httpApiIntegrationUri.value) {
-      integrationOptions.integrationUri = httpApiIntegrationUri.value
+    if (uriToUse) {
+      integrationOptions.integrationUri = uriToUse
     }
     if (httpApiIntegrationMethod.value) {
       integrationOptions.integrationMethod = httpApiIntegrationMethod.value
@@ -1359,7 +1335,7 @@ async function createIntegration() {
     }
     
     // Payload format version is required for AWS_PROXY
-    if (httpApiIntegrationType.value === 'AWS_PROXY') {
+    if (integrationTypeToUse === 'lambda') {
       integrationOptions.payloadFormatVersion = '2.0'
     }
     
@@ -1380,18 +1356,24 @@ async function createIntegration() {
     console.error('Error creating integration:', error)
     toast.error('Failed to create integration')
   } finally {
-    creating.value = false
+    creatingIntegration.value = false
   }
 }
 
+// Alias for template
+const createHttpApiIntegration = createIntegration
+
 // Create deployment (REST API)
-async function createDeployment() {
+async function createDeployment(stageName?: string, description?: string) {
+  const actualStageName = stageName || newDeploymentStageName.value
+  const actualDescription = description || newDeploymentDescription.value
+
   if (!selectedRestApi.value) {
     toast.error('REST API is required')
     return
   }
 
-  if (!newDeploymentStageName.value) {
+  if (!actualStageName) {
     toast.error('Stage name is required')
     return
   }
@@ -1399,8 +1381,8 @@ async function createDeployment() {
   creating.value = true
   try {
     await apigateway.createDeployment(selectedRestApi.value.id, {
-      stageName: newDeploymentStageName.value,
-      description: newDeploymentDescription.value,
+      stageName: actualStageName,
+      description: actualDescription,
     })
     toast.success('Deployment created successfully')
     showCreateDeploymentModal.value = false
@@ -1416,20 +1398,28 @@ async function createDeployment() {
 }
 
 // Create REST API stage
-async function createRestApiStage() {
+async function createRestApiStage(passedStageName?: string, passedDeploymentId?: string) {
+  const stageToUse = passedStageName || newRestStageName.value
+  const deploymentIdToUse = passedDeploymentId || newRestStageDeploymentId.value
+
   if (!selectedRestApi.value) {
     toast.error('REST API is required')
     return
   }
 
-  if (!newRestStageName.value) {
+  if (!stageToUse) {
     toast.error('Stage name is required')
+    return
+  }
+
+  if (!deploymentIdToUse) {
+    toast.error('Deployment is required')
     return
   }
 
   creating.value = true
   try {
-    await apigateway.createRestApiStage(selectedRestApi.value.id, newRestStageDeploymentId.value, newRestStageName.value)
+    await apigateway.createRestApiStage(selectedRestApi.value.id, deploymentIdToUse, stageToUse)
     toast.success('Stage created successfully')
     showCreateStageModal.value = false
     newRestStageName.value = ''
@@ -1445,13 +1435,19 @@ async function createRestApiStage() {
 }
 
 // Create HTTP API stage
-async function createHttpApiStage() {
+async function createHttpApiStage(passedStageName?: string, passedAutoDeploy?: boolean, passedDescription?: string) {
+  console.log('[createHttpApiStage] received:', { passedStageName, passedAutoDeploy, passedDescription })
+  const stageToUse = passedStageName || newHttpStageName.value
+  const autoDeployToUse = passedAutoDeploy ?? newHttpStageAutoDeploy.value
+  const descToUse = passedDescription ?? newHttpStageDescription.value
+  console.log('[createHttpApiStage] using:', { stageToUse, autoDeployToUse, descToUse, selectedHttpApi: selectedHttpApi.value })
+
   if (!selectedHttpApi.value) {
     toast.error('HTTP API is required')
     return
   }
 
-  if (!newHttpStageName.value) {
+  if (!stageToUse) {
     toast.error('Stage name is required')
     return
   }
@@ -1465,9 +1461,9 @@ async function createHttpApiStage() {
   creating.value = true
   try {
     await apigateway.createHttpApiStage(apiId, {
-      stageName: newHttpStageName.value,
-      description: newHttpStageDescription.value,
-      autoDeploy: newHttpStageAutoDeploy.value,
+      stageName: stageToUse,
+      description: descToUse,
+      autoDeploy: autoDeployToUse,
     })
     toast.success('Stage created successfully')
     showCreateHttpStageModal.value = false
@@ -1491,13 +1487,14 @@ async function deleteRoute(apiId: string, routeId: string) {
 }
 
 async function confirmDeleteRoute() {
+  const apiId = deleteRouteApiId.value
   try {
     await apigateway.deleteRoute(deleteRouteApiId.value, deleteRouteId.value)
     toast.success('Route deleted successfully')
     showDeleteRouteModal.value = false
     deleteRouteApiId.value = ''
     deleteRouteId.value = ''
-    loadHttpApiDetails(deleteRouteApiId.value)
+    loadHttpApiDetails(apiId)
   } catch (error) {
     console.error('Error deleting route:', error)
     toast.error('Failed to delete route')
@@ -1514,13 +1511,14 @@ async function deleteIntegration(apiId: string, integrationId: string) {
 async function confirmDeleteIntegration() {
   if (!deleteIntegrationApiId.value || !deleteIntegrationId.value) return
   
+  const apiId = deleteIntegrationApiId.value
   try {
-    await apigateway.deleteIntegration(deleteIntegrationApiId.value, deleteIntegrationId.value)
+    await apigateway.deleteHttpApiIntegration(deleteIntegrationApiId.value, deleteIntegrationId.value)
     toast.success('Integration deleted successfully')
     showDeleteIntegrationModal.value = false
     deleteIntegrationApiId.value = ''
     deleteIntegrationId.value = ''
-    loadHttpApiDetails(deleteIntegrationApiId.value)
+    loadHttpApiDetails(apiId)
   } catch (error) {
     console.error('Error deleting integration:', error)
     toast.error('Failed to delete integration')
@@ -1542,13 +1540,14 @@ async function deleteHttpApiStage(apiId: string, stageName: string) {
 async function confirmDeleteHttpStage() {
   if (!deleteHttpStageApiId.value || !deleteStageName.value) return
   
+  const apiId = deleteHttpStageApiId.value
   try {
     await apigateway.deleteHttpApiStage(deleteHttpStageApiId.value, deleteStageName.value)
     toast.success('Stage deleted successfully')
     showDeleteHttpStageModal.value = false
     deleteHttpStageApiId.value = ''
     deleteStageName.value = ''
-    loadHttpApiDetails(deleteHttpStageApiId.value)
+    loadHttpApiDetails(apiId)
   } catch (error: any) {
     console.error('Error deleting stage:', error)
     toast.error(error?.error || error?.message || 'Failed to delete stage')
@@ -1565,12 +1564,14 @@ function openEditRouteModal(apiId: string, route: any) {
   showEditRouteModal.value = true
 }
 
-async function saveEditRoute() {
+async function saveEditRoute(routeKey: string, authType: string, authorizerId: string) {
   if (!selectedHttpApi.value || !editingRoute.value) return
-  
+   
   try {
     await apigateway.updateHttpRoute(selectedHttpApi.value.apiId, editingRoute.value.routeId, {
-      routeKey: editingRoute.value.routeKey,
+      routeKey: routeKey,
+      authorizationType: authType,
+      authorizerId: authorizerId || undefined,
     })
     toast.success('Route updated successfully')
     showEditRouteModal.value = false
@@ -1592,12 +1593,12 @@ function openEditIntegrationModal(apiId: string, integration: any) {
   showEditIntegrationModal.value = true
 }
 
-async function saveEditIntegration() {
+async function saveEditIntegration(description: string) {
   if (!selectedHttpApi.value || !editingIntegration.value) return
-  
+   
   try {
     await apigateway.updateHttpIntegration(selectedHttpApi.value.apiId, editingIntegration.value.integrationId, {
-      description: editingIntegration.value.description,
+      description: description,
     })
     toast.success('Integration updated successfully')
     showEditIntegrationModal.value = false
@@ -1620,13 +1621,13 @@ function openEditHttpStageModal(apiId: string, stage: any) {
   showEditHttpStageModal.value = true
 }
 
-async function saveEditHttpStage() {
+async function saveEditHttpStage(description: string, autoDeploy: boolean) {
   if (!selectedHttpApi.value || !editingStage.value) return
-  
+   
   try {
     await apigateway.updateHttpApiStage(selectedHttpApi.value.apiId, editingStage.value.stageName, {
-      description: editingStage.value.description,
-      autoDeploy: editingStage.value.autoDeploy,
+      description: description,
+      autoDeploy: autoDeploy,
     })
     toast.success('Stage updated successfully')
     showEditHttpStageModal.value = false
@@ -1648,6 +1649,7 @@ async function deleteDeployment(apiId: string, deploymentId: string) {
 async function confirmDeleteDeployment() {
   if (!deleteDeploymentApiId.value || !deleteDeploymentId.value) return
   
+  const apiId = deleteDeploymentApiId.value
   try {
     const result = await apigateway.deleteDeployment(deleteDeploymentApiId.value, deleteDeploymentId.value)
     if (result?.error) {
@@ -1658,7 +1660,7 @@ async function confirmDeleteDeployment() {
     showDeleteDeploymentModal.value = false
     deleteDeploymentApiId.value = ''
     deleteDeploymentId.value = ''
-    loadResourcesForApi(deleteDeploymentApiId.value)
+    loadResourcesForApi(apiId)
   } catch (error: any) {
     console.error('Error deleting deployment:', error)
     toast.error(error?.error || error?.message || 'Failed to delete deployment')
@@ -1675,13 +1677,14 @@ async function deleteRestApiStage(apiId: string, stageName: string) {
 async function confirmDeleteRestStage() {
   if (!deleteRestStageApiId.value || !deleteStageName.value) return
   
+  const apiId = deleteRestStageApiId.value
   try {
     await apigateway.deleteRestApiStage(deleteRestStageApiId.value, deleteStageName.value)
     toast.success('Stage deleted successfully')
     showDeleteRestStageModal.value = false
     deleteRestStageApiId.value = ''
     deleteStageName.value = ''
-    loadResourcesForApi(deleteRestStageApiId.value)
+    loadResourcesForApi(apiId)
   } catch (error) {
     console.error('Error deleting stage:', error)
     toast.error('Failed to delete stage')
@@ -1739,27 +1742,6 @@ onMounted(() => {
           REST APIs
         </h3>
         <div class="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            @click="showImportSwaggerModal = true"
-          >
-            <template #icon>
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                />
-              </svg>
-            </template>
-            Import Swagger
-          </Button>
           <Button @click="showCreateRestModal = true">
             <template #icon>
               <svg
@@ -2111,19 +2093,34 @@ onMounted(() => {
                         >
                           API Key
                         </span>
+                        <!-- Integration Info -->
+                        <button
+                          v-if="methodDetails?.uri || methodDetails?.type || methodDetails?.Uri || methodDetails?.Type"
+                          type="button"
+                          class="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800"
+                          @click.stop="showMethodIntegrationDetails(methodDetails)"
+                        >
+                          {{ methodDetails?.type || methodDetails?.Type || 'INT' }}
+                        </button>
+                        <span
+                          v-else
+                          class="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+                        >
+                          No INT
+                        </span>
                       </div>
                       <div class="flex items-center gap-2">
                         <button
                           class="px-2 py-1 text-xs rounded hover:bg-light-border dark:hover:bg-dark-border"
                           title="Setup Integration"
-                          @click.stop="selectedResource = resource; openIntegrationModalForMethod(method as string)"
+                          @click.stop="selectedRestApi = api; selectedResource = resource; openIntegrationModalForMethod(method as string)"
                         >
                           Integration
                         </button>
                         <button
                           class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
                           title="Delete Method"
-                          @click.stop="selectedResource = resource; deleteMethod(method as string)"
+                          @click.stop="selectedRestApi = api; selectedResource = resource; deleteMethod(method as string)"
                         >
                           <svg
                             class="w-3 h-3"
@@ -2474,7 +2471,7 @@ onMounted(() => {
               </svg>
               <div>
                 <div class="font-medium">
-                  {{ api.name }}
+                  {{ api.name || api.Name || 'Unnamed API' }}
                 </div>
                 <code
                   class="text-xs"
@@ -2487,11 +2484,11 @@ onMounted(() => {
             </div>
             <div class="col-span-3">
               <span
-                v-if="api.description"
+                v-if="api.description || api.Description"
                 class="text-sm truncate block"
-                :title="api.description"
+                :title="api.description || api.Description"
               >
-                {{ api.description }}
+                {{ api.description || api.Description }}
               </span>
               <span
                 v-else
@@ -2557,7 +2554,7 @@ onMounted(() => {
                   </h4>
                   <Button
                     size="sm"
-                    @click.stop="selectedHttpApi = api; showCreateRouteModal = true"
+                    @click.stop="selectedHttpApi = api; loadLambdaFunctions(); showCreateRouteModal = true"
                   >
                     <template #icon>
                       <svg
@@ -2944,1642 +2941,289 @@ onMounted(() => {
     </div>
 
     <!-- Create REST API Modal -->
-    <Modal
+    <APIGatewayCreateModal
       v-model:open="showCreateRestModal"
-      title="Create REST API"
-      size="md"
-    >
-      <div class="space-y-4">
-        <FormInput
-          v-model="newRestApiName"
-          label="API Name"
-          placeholder="my-rest-api"
-          required
-        />
-        <FormInput
-          v-model="newRestApiDescription"
-          label="Description"
-          placeholder="Optional description"
-        />
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showCreateRestModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="creating"
-            @click="createRestApi"
-          >
-            Create
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      type="rest"
+      :loading="creating"
+      @create-rest="createRestApi"
+    />
 
     <!-- Create HTTP API Modal -->
-    <Modal
+    <APIGatewayCreateModal
       v-model:open="showCreateHttpModal"
-      title="Create HTTP API"
-      size="md"
-    >
-      <div class="space-y-4">
-        <FormInput
-          v-model="newHttpApiName"
-          label="API Name"
-          placeholder="my-http-api"
-        />
-        <FormInput
-          v-model="newHttpApiDescription"
-          label="Description"
-          placeholder="Optional description"
-        />
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showCreateHttpModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="creating"
-            @click="createHttpApi"
-          >
-            Create
-          </Button>
-        </div>
-      </template>
-    </Modal>
-    <Modal
+      type="http"
+      :loading="creating"
+      @create-http="createHttpApi"
+    />
+
+    <APIGatewayMethodModal
       v-model:open="showCreateMethodModal"
-      title="Create Method"
-      size="md"
-      :z-index="60"
-    >
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">Resource</label>
-          <select
-            v-model="newMethodResourceId"
-            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-          >
-            <option value="">
-              Select a resource...
-            </option>
-            <option
-              v-for="resource in restResources"
-              :key="resource.id"
-              :value="resource.id"
-            >
-              {{ resource.path }} ({{ resource.pathPart }})
-            </option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">HTTP Method</label>
-          <select
-            v-model="newMethodType"
-            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-          >
-            <option value="GET">
-              GET
-            </option>
-            <option value="POST">
-              POST
-            </option>
-            <option value="PUT">
-              PUT
-            </option>
-            <option value="PATCH">
-              PATCH
-            </option>
-            <option value="DELETE">
-              DELETE
-            </option>
-            <option value="OPTIONS">
-              OPTIONS
-            </option>
-            <option value="HEAD">
-              HEAD
-            </option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Authorization Type</label>
-          <select
-            v-model="newMethodAuthType"
-            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-          >
-            <option value="NONE">
-              NONE - No authorization
-            </option>
-            <option value="AWS_IAM">
-              AWS_IAM - IAM role based
-            </option>
-            <option value="CUSTOM">
-              CUSTOM - Custom authorizer (requires Authorizer ID)
-            </option>
-            <option value="COGNITO_USER_POOLS">
-              COGNITO_USER_POOLS - Cognito (requires Authorizer ID)
-            </option>
-          </select>
-        </div>
-        <div v-if="newMethodAuthType === 'CUSTOM' || newMethodAuthType === 'COGNITO_USER_POOLS'">
-          <label class="block text-sm font-medium mb-1">Authorizer ID</label>
-          <input
-            v-model="newMethodAuthorizerId"
-            type="text"
-            placeholder="Enter authorizer ID"
-            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-          >
-        </div>
-        <div class="flex items-center gap-2">
-          <input
-            id="apiKeyRequired"
-            v-model="newMethodApiKeyRequired"
-            type="checkbox"
-            class="w-4 h-4 rounded border-light-border dark:border-dark-border"
-          >
-          <label
-            for="apiKeyRequired"
-            class="text-sm font-medium"
-          >
-            API Key Required
-          </label>
-        </div>
-        <FormInput
-          v-model="newIntegrationUri"
-          label="Integration URI (optional)"
-          placeholder="arn:aws:apigateway:region:lambda:path/..."
-          hint="Leave empty for mock integration"
-        />
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showCreateMethodModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="creating"
-            @click="createMethod"
-          >
-            Create
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      :resources="restResources"
+      :loading="creating"
+      @create="createMethod"
+    />
 
     <!-- Create Resource Modal -->
-    <Modal
+    <APIGatewayResourceModal
       v-model:open="showCreateResourceModal"
-      title="Create Resource"
-      size="md"
-    >
-      <div class="space-y-4">
-        <FormInput
-          v-model="newResourcePath"
-          label="Resource Path"
-          placeholder="items"
-          required
-        />
-        <div>
-          <label class="block text-sm font-medium mb-1">Parent Resource</label>
-          <select
-            v-model="newResourceParentId"
-            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-          >
-            <option value="">
-              Root (/)
-            </option>
-            <option
-              v-for="resource in restResources.filter(r => r.path !== '/')"
-              :key="resource.id"
-              :value="resource.id"
-            >
-              {{ resource.path }} ({{ resource.pathPart }})
-            </option>
-          </select>
-        </div>
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showCreateResourceModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="creating"
-            @click="createResource"
-          >
-            Create
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      :parent-id="newResourceParentId"
+      :loading="creating"
+      @create="createResource"
+    />
 
     <!-- Routes Modal -->
-    <Modal
+    <APIGatewayRoutesModal
       v-model:open="showRoutesModal"
-      :title="`Routes: ${selectedHttpApi?.name}`"
-      size="lg"
-    >
-      <div class="flex justify-end mb-4">
-        <Button
-          size="sm"
-          @click="showCreateRouteModal = true"
-        >
-          <template #icon>
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          </template>
-          Create Route
-        </Button>
-      </div>
-
-      <div
-        v-if="loadingRoutes"
-        class="flex justify-center py-8"
-      >
-        <LoadingSpinner />
-      </div>
-
-      <EmptyState
-        v-else-if="httpRoutes.length === 0"
-        icon="server"
-        title="No Routes"
-        description="No routes found for this API."
-      />
-
-      <DataTable
-        v-else
-        :columns="routeColumns"
-        :data="httpRoutes"
-        empty-title="No Routes"
-        empty-text="No routes found."
-      >
-        <template #cell-routeKey="{ value }">
-          <span class="font-mono font-medium">{{ value }}</span>
-        </template>
-        <template #cell-routeId="{ value }">
-          <code class="text-xs bg-light-border dark:bg-dark-border px-2 py-1 rounded">{{ value }}</code>
-        </template>
-      </DataTable>
-
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showRoutesModal = false"
-          >
-            Close
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      :api-name="selectedHttpApi?.name || ''"
+      :routes="httpRoutes"
+      :loading="loadingRoutes"
+      @create-route="showCreateRouteModal = true"
+    />
 
     <!-- Create Route Modal -->
-    <Modal
+    <APIGatewayRouteModal
       v-model:open="showCreateRouteModal"
-      title="Create Route"
-      size="md"
-    >
-      <div class="space-y-4">
-        <FormInput
-          v-model="newRouteKey"
-          label="Route Key"
-          placeholder="GET /items or $default"
-          required
-          hint="For HTTP APIs, use format: METHOD /path or $default"
-        />
-        <div>
-          <label
-            class="block text-sm font-medium mb-1"
-            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-          >
-            Integration
-          </label>
-          <select
-            v-model="newRouteTarget"
-            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-          >
-            <option value="">
-              -- Select Integration --
-            </option>
-            <option
-              v-for="integration in httpIntegrations"
-              :key="integration.integrationId"
-              :value="`integrations/${integration.integrationId}`"
-            >
-              {{ integration.integrationType }}: {{ integration.integrationId }}
-              {{ integration.integrationUri ? `- ${integration.integrationUri}` : '' }}
-            </option>
-          </select>
-          <p class="text-xs text-light-muted dark:text-dark-muted mt-1">
-            Select an integration to connect this route to
-          </p>
-        </div>
-        <FormSelect
-          v-model="newRouteAuthType"
-          label="Authorization Type"
-          :options="[
-            { value: 'NONE', label: 'NONE (No authorization)' },
-            { value: 'JWT', label: 'JWT (JSON Web Token)' },
-            { value: 'AWS_IAM', label: 'AWS IAM' },
-            { value: 'CUSTOM', label: 'CUSTOM (Lambda Authorizer)' },
-          ]"
-        />
-        <FormInput
-          v-if="newRouteAuthType !== 'NONE' && newRouteAuthType !== 'AWS_IAM'"
-          v-model="newRouteAuthorizerId"
-          label="Authorizer ID"
-          placeholder="abc123"
-          hint="The ID of the authorizer resource to associate with this route"
-        />
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showCreateRouteModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="creating"
-            @click="createRoute"
-          >
-            Create
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      :integrations="httpIntegrations.map(i => i.integrationId)"
+      :loading="creating"
+      @create="createRoute"
+    />
+
+    <!-- Duplicate removed - using component above -->
 
     <!-- Integrations Modal -->
-    <Modal
+    <APIGatewayIntegrationsModal
       v-model:open="showIntegrationsModal"
-      :title="`Integrations: ${selectedHttpApi?.name}`"
-      size="lg"
-    >
-      <div class="flex justify-end mb-4">
-        <Button
-          size="sm"
-          @click="showCreateIntegrationModal = true"
-        >
-          <template #icon>
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          </template>
-          Create Integration
-        </Button>
-      </div>
-
-      <div
-        v-if="loadingIntegrations"
-        class="flex justify-center py-8"
-      >
-        <LoadingSpinner />
-      </div>
-
-      <EmptyState
-        v-else-if="httpIntegrations.length === 0"
-        icon="server"
-        title="No Integrations"
-        description="No integrations found for this API."
-      />
-
-      <DataTable
-        v-else
-        :columns="integrationColumns"
-        :data="httpIntegrations"
-        empty-title="No Integrations"
-        empty-text="No integrations found."
-      >
-        <template #cell-integrationType="{ value }">
-          <span class="font-medium">{{ value }}</span>
-        </template>
-        <template #cell-integrationId="{ value }">
-          <code class="text-xs bg-light-border dark:bg-dark-border px-2 py-1 rounded">{{ value }}</code>
-        </template>
-        <template #cell-integrationUri="{ value }">
-          <code class="text-xs bg-light-border dark:bg-dark-border px-2 py-1 rounded">{{ value || '-' }}</code>
-        </template>
-      </DataTable>
-
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showIntegrationsModal = false"
-          >
-            Close
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      :api-name="selectedHttpApi?.name || ''"
+      :integrations="httpIntegrations"
+      :loading="loadingIntegrations"
+      @create-integration="showCreateIntegrationModal = true"
+    />
 
     <!-- Create Integration Modal -->
-    <Modal
+    <APIGatewayIntegrationModal
       v-model:open="showCreateIntegrationModal"
-      title="Create Integration"
-      size="lg"
-    >
-      <div class="space-y-4">
-        <FormSelect
-          v-model="httpApiIntegrationType"
-          label="Integration Type"
-          :options="[
-            { value: 'AWS_PROXY', label: 'AWS_PROXY (Lambda Proxy)' },
-            { value: 'AWS', label: 'AWS (Lambda or Service)' },
-            { value: 'HTTP_PROXY', label: 'HTTP_PROXY (HTTP Backend)' },
-            { value: 'MOCK', label: 'MOCK (Passthrough)' },
-          ]"
-        />
-        
-        <!-- Lambda dropdown for AWS_PROXY -->
-        <div v-if="httpApiIntegrationType === 'AWS_PROXY'">
-          <label
-            class="block text-sm font-medium mb-1"
-            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-          >
-            Lambda Function
-          </label>
-          <select
-            v-model="selectedLambdaArn"
-            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-            @change="httpApiIntegrationUri = selectedLambdaArn"
-          >
-            <option value="">
-              -- Select Lambda Function --
-            </option>
-            <option
-              v-for="lambda in availableLambdas"
-              :key="lambda.FunctionName"
-              :value="lambda.FunctionArn"
-            >
-              {{ lambda.FunctionName }}
-            </option>
-          </select>
-          <p class="text-xs text-light-muted dark:text-dark-muted mt-1">
-            Select a Lambda function to use as the integration target
-          </p>
-        </div>
-        
-        <!-- Manual URI input for HTTP_PROXY and AWS -->
-        <FormInput
-          v-if="httpApiIntegrationType === 'HTTP_PROXY' || httpApiIntegrationType === 'AWS'"
-          v-model="httpApiIntegrationUri"
-          label="Integration URI"
-          placeholder="https://example.com/path"
-          :required="true"
-        />
-        
-        <FormInput
-          v-if="httpApiIntegrationType === 'HTTP_PROXY'"
-          v-model="httpApiIntegrationMethod"
-          label="Integration HTTP Method"
-          placeholder="GET, POST, PUT, etc."
-        />
-        
-        <FormInput
-          v-model="httpApiIntegrationDescription"
-          label="Description"
-          placeholder="Optional description for this integration"
-        />
-        
-        <FormSelect
-          v-model="httpApiConnectionType"
-          label="Connection Type"
-          :options="[
-            { value: 'INTERNET', label: 'INTERNET (Public)' },
-            { value: 'VPC_LINK', label: 'VPC_LINK (Private)' },
-          ]"
-        />
-        
-        <FormInput
-          v-if="httpApiConnectionType === 'VPC_LINK'"
-          v-model="httpApiConnectionId"
-          label="VPC Link ID"
-          placeholder="abc123"
-        />
-        
-        <FormInput
-          v-model="httpApiIntegrationCredentialsArn"
-          label="Credentials ARN"
-          placeholder="arn:aws:iam::account-id:role/role-name"
-          hint="IAM role for invoking the integration (optional for Lambda)"
-        />
-        
-        <div class="flex items-center gap-2">
-          <label
-            class="text-sm font-medium"
-            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-          >
-            Timeout (ms)
-          </label>
-          <input
-            v-model.number="httpApiIntegrationTimeout"
-            type="number"
-            min="50"
-            max="30000"
-            class="w-32 px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-          >
-          <span class="text-xs text-light-muted dark:text-dark-muted">50-30000 ms (default: 30000)</span>
-        </div>
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showCreateIntegrationModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="creating"
-            @click="createIntegration"
-          >
-            Create
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      type="http"
+      :lambda-functions="availableLambdas.map(l => l.FunctionName)"
+      :loading="creatingIntegration"
+      @create="createHttpApiIntegration"
+    />
+    <!-- Dummy comment -->
 
-    <!-- Create Deployment Modal (REST API) -->
-    <Modal
+    <!-- Create Deployment Modal (REST API) - Using existing component -->
+    <APIGatewayDeploymentsModal
       v-model:open="showCreateDeploymentModal"
-      title="Create Deployment"
-      size="md"
-    >
-      <div class="space-y-4">
-        <FormInput
-          v-model="newDeploymentStageName"
-          label="Stage Name"
-          placeholder="prod"
-          required
-        />
-        <FormInput
-          v-model="newDeploymentDescription"
-          label="Description"
-          placeholder="Production deployment"
-        />
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showCreateDeploymentModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="creating"
-            @click="createDeployment"
-          >
-            Create
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      type="rest"
+      :loading="creating"
+      @create-deployment="createDeployment"
+    />
 
     <!-- Create Stage Modal (REST API) -->
-    <Modal
+    <APIGatewayStageModal
       v-model:open="showCreateStageModal"
-      title="Create Stage"
-      size="md"
-    >
-      <div class="space-y-4">
-        <FormInput
-          v-model="newRestStageName"
-          label="Stage Name"
-          placeholder="prod"
-          required
-        />
-        <FormInput
-          v-model="newRestStageDeploymentId"
-          label="Deployment ID (optional)"
-          placeholder="Deployment ID"
-        />
-        <FormInput
-          v-model="newRestStageDescription"
-          label="Description"
-          placeholder="Stage description"
-        />
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showCreateStageModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="creating"
-            @click="createRestApiStage"
-          >
-            Create
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      type="rest"
+      :loading="creating"
+      :deployments="restDeployments"
+      @create-rest="createRestApiStage"
+    />
 
     <!-- Create HTTP API Stage Modal -->
-    <Modal
+    <APIGatewayStageModal
       v-model:open="showCreateHttpStageModal"
-      title="Create HTTP API Stage"
-      size="md"
-    >
-      <div class="space-y-4">
-        <FormInput
-          v-model="newHttpStageName"
-          label="Stage Name"
-          placeholder="prod"
-          required
-        />
-        <FormInput
-          v-model="newHttpStageDescription"
-          label="Description"
-          placeholder="Stage description"
-        />
-        <div>
-          <label
-            class="block text-sm font-medium mb-1"
-            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-          >
-            Auto Deploy
-          </label>
-          <select
-            v-model="newHttpStageAutoDeploy"
-            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-          >
-            <option :value="true">
-              Enabled
-            </option>
-            <option :value="false">
-              Disabled
-            </option>
-          </select>
-        </div>
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showCreateHttpStageModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="creating"
-            @click="createHttpApiStage"
-          >
-            Create
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      type="http"
+      :loading="creating"
+      @create-http="createHttpApiStage"
+    />
 
     <!-- Edit Route Modal -->
-    <Modal
+    <APIGatewayEditRouteModal
       v-model:open="showEditRouteModal"
-      title="Edit Route"
-      size="md"
-    >
-      <div
-        v-if="editingRoute"
-        class="space-y-4"
-      >
-        <FormInput
-          v-model="editingRoute.routeKey"
-          label="Route Key"
-          placeholder="GET /api"
-        />
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showEditRouteModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="creating"
-            @click="saveEditRoute"
-          >
-            Save
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      :route-key="editingRoute?.routeKey || ''"
+      :authorization-type="editingRoute?.authorizationType"
+      :authorizer-id="editingRoute?.authorizerId"
+      :loading="creating"
+      @update="saveEditRoute"
+    />
 
     <!-- Edit Integration Modal -->
-    <Modal
+    <APIGatewayEditIntegrationModal
       v-model:open="showEditIntegrationModal"
-      title="Edit Integration"
-      size="md"
-    >
-      <div
-        v-if="editingIntegration"
-        class="space-y-4"
-      >
-        <div class="mb-4">
-          <label
-            class="block text-sm font-medium mb-1"
-            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-          >
-            Integration ID
-          </label>
-          <code class="text-xs bg-light-border dark:bg-dark-border px-2 py-1 rounded">{{ editingIntegration.integrationId }}</code>
-        </div>
-        <FormInput
-          v-model="editingIntegration.integrationType"
-          label="Type"
-          disabled
-        />
-        <FormInput
-          v-model="editingIntegration.description"
-          label="Description"
-          placeholder="Integration description"
-        />
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showEditIntegrationModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="creating"
-            @click="saveEditIntegration"
-          >
-            Save
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      :integration-id="editingIntegration?.integrationId || ''"
+      :description="editingIntegration?.description"
+      :loading="creating"
+      @update="saveEditIntegration"
+    />
 
     <!-- Edit HTTP API Stage Modal -->
-    <Modal
+    <APIGatewayEditStageModal
       v-model:open="showEditHttpStageModal"
-      title="Edit Stage"
-      size="md"
-    >
-      <div
-        v-if="editingStage"
-        class="space-y-4"
-      >
-        <div class="mb-4">
-          <label
-            class="block text-sm font-medium mb-1"
-            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-          >
-            Stage Name
-          </label>
-          <code class="text-xs bg-light-border dark:bg-dark-border px-2 py-1 rounded">{{ editingStage.stageName }}</code>
-        </div>
-        <FormInput
-          v-model="editingStage.description"
-          label="Description"
-          placeholder="Stage description"
-        />
-        <div>
-          <label
-            class="block text-sm font-medium mb-1"
-            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-          >
-            Auto Deploy
-          </label>
-          <select
-            v-model="editingStage.autoDeploy"
-            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-          >
-            <option :value="true">
-              Enabled
-            </option>
-            <option :value="false">
-              Disabled
-            </option>
-          </select>
-        </div>
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showEditHttpStageModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="creating"
-            @click="saveEditHttpStage"
-          >
-            Save
-          </Button>
-        </div>
-      </template>
-    </Modal>
-
-    <!-- Import Swagger Modal -->
-    <Modal
-      v-model:open="showImportSwaggerModal"
-      title="Import Swagger / OpenAPI Specification"
-      size="lg"
-    >
-      <div class="space-y-4">
-        <!-- File Upload -->
-        <div class="border-2 border-dashed border-light-border dark:border-dark-border rounded-lg p-6 text-center">
-          <input
-            id="swagger-file-input"
-            type="file"
-            accept=".json,.yaml,.yml"
-            class="hidden"
-            @change="handleSwaggerFileSelect"
-          >
-          <label
-            for="swagger-file-input"
-            class="cursor-pointer flex flex-col items-center gap-2"
-          >
-            <svg
-              class="w-12 h-12 text-light-muted dark:text-dark-muted"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              />
-            </svg>
-            <span class="text-sm text-light-muted dark:text-dark-muted">
-              Click to upload or drag and drop
-            </span>
-            <span class="text-xs text-light-muted dark:text-dark-muted">
-              JSON or YAML files (.json, .yaml, .yml)
-            </span>
-          </label>
-          <div
-            v-if="swaggerFile"
-            class="mt-4"
-          >
-            <div class="flex items-center gap-2 justify-center">
-              <svg
-                class="w-5 h-5 text-green-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span class="text-sm font-medium">{{ swaggerFile.name }}</span>
-              <span class="text-xs text-light-muted dark:text-dark-muted">
-                ({{ (swaggerFile.size / 1024).toFixed(2) }} KB)
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Validation Errors -->
-        <div
-          v-if="swaggerValidationErrors.length > 0"
-          class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
-        >
-          <h4 class="text-sm font-medium text-red-800 dark:text-red-200 mb-2">
-            Validation Errors:
-          </h4>
-          <ul class="text-sm text-red-700 dark:text-red-300 space-y-1">
-            <li
-              v-for="(error, index) in swaggerValidationErrors"
-              :key="index"
-              class="flex items-start gap-2"
-            >
-              <svg
-                class="w-4 h-4 mt-0.5 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-              {{ error }}
-            </li>
-          </ul>
-        </div>
-
-        <!-- Spec Preview -->
-        <div
-          v-if="swaggerSpecPreview"
-          class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4"
-        >
-          <h4 class="text-sm font-medium text-green-800 dark:text-green-200 mb-2">
-            Specification Valid:
-          </h4>
-          <div class="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <span class="text-green-600 dark:text-green-400 font-medium">Title:</span>
-              <p class="text-green-800 dark:text-green-200">
-                {{ swaggerSpecPreview.title }}
-              </p>
-            </div>
-            <div>
-              <span class="text-green-600 dark:text-green-400 font-medium">Version:</span>
-              <p class="text-green-800 dark:text-green-200">
-                {{ swaggerSpecPreview.version }}
-              </p>
-            </div>
-            <div>
-              <span class="text-green-600 dark:text-green-400 font-medium">Paths:</span>
-              <p class="text-green-800 dark:text-green-200">
-                {{ swaggerSpecPreview.pathCount }} endpoints
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Import Result -->
-        <div
-          v-if="swaggerImportResult"
-          class="rounded-lg p-4"
-          :class="swaggerImportResult.success ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800'"
-        >
-          <div class="flex items-center gap-2 mb-3">
-            <svg
-              v-if="swaggerImportResult.success"
-              class="w-5 h-5 text-green-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <svg
-              v-else
-              class="w-5 h-5 text-yellow-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
-            <span
-              class="font-medium"
-              :class="swaggerImportResult.success ? 'text-green-800 dark:text-green-200' : 'text-yellow-800 dark:text-yellow-200'"
-            >
-              {{ swaggerImportResult.success ? 'Import Successful' : 'Import Completed with Errors' }}
-            </span>
-          </div>
-          
-          <div
-            v-if="swaggerImportResult.success"
-            class="grid grid-cols-3 gap-4 text-sm mb-3"
-          >
-            <div>
-              <span class="text-green-600 dark:text-green-400">API ID:</span>
-              <code class="ml-1 text-green-800 dark:text-green-200">{{ swaggerImportResult.apiId }}</code>
-            </div>
-            <div>
-              <span class="text-green-600 dark:text-green-400">Resources:</span>
-              <span class="ml-1 text-green-800 dark:text-green-200">{{ swaggerImportResult.resourcesCreated }}</span>
-            </div>
-            <div>
-              <span class="text-green-600 dark:text-green-400">Methods:</span>
-              <span class="ml-1 text-green-800 dark:text-green-200">{{ swaggerImportResult.methodsCreated }}</span>
-            </div>
-          </div>
-          
-          <div v-if="swaggerImportResult.errors && swaggerImportResult.errors.length > 0">
-            <h5 class="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-1">
-              Errors:
-            </h5>
-            <ul class="text-xs text-yellow-700 dark:text-yellow-300 space-y-1 max-h-32 overflow-y-auto">
-              <li
-                v-for="(error, index) in swaggerImportResult.errors"
-                :key="index"
-              >
-                {{ error }}
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <template #footer>
-        <div class="flex justify-between items-center">
-          <Button
-            variant="secondary"
-            @click="closeImportModal"
-          >
-            {{ swaggerImportResult ? 'Close' : 'Cancel' }}
-          </Button>
-          <Button
-            v-if="!swaggerImportResult"
-            :loading="importingSwagger"
-            :disabled="!swaggerSpecPreview || swaggerValidationErrors.length > 0"
-            @click="importSwaggerFile"
-          >
-            <template #icon>
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                />
-              </svg>
-            </template>
-            Import Specification
-          </Button>
-        </div>
-      </template>
-    </Modal>
-
-    <!-- View REST API Modal -->
-    <Modal
-      v-model:open="showViewRestModal"
-      :title="`API Details: ${viewRestApiDetails?.name || ''}`"
-      size="md"
-    >
-      <div
-        v-if="viewLoading"
-        class="flex justify-center py-8"
-      >
-        <LoadingSpinner />
-      </div>
-      
-      <div
-        v-else-if="viewRestApiDetails"
-        class="space-y-4"
-      >
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="text-sm font-medium text-light-muted dark:text-dark-muted">API ID</label>
-            <p
-              class="font-mono text-sm mt-1"
-              :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-            >
-              {{ viewRestApiDetails.id }}
-            </p>
-          </div>
-          <div>
-            <label class="text-sm font-medium text-light-muted dark:text-dark-muted">API Key Source</label>
-            <p
-              class="text-sm mt-1"
-              :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-            >
-              {{ viewRestApiDetails.apiKeySource || 'HEADER' }}
-            </p>
-          </div>
-          <div>
-            <label class="text-sm font-medium text-light-muted dark:text-dark-muted">Endpoint Type</label>
-            <p
-              class="text-sm mt-1"
-              :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-            >
-              {{ viewRestApiDetails.endpointConfiguration?.types?.join(', ') || 'REGIONAL' }}
-            </p>
-          </div>
-          <div>
-            <label class="text-sm font-medium text-light-muted dark:text-dark-muted">Created</label>
-            <p
-              class="text-sm mt-1"
-              :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-            >
-              {{ new Date(Number(viewRestApiDetails.createdDate) * 1000).toLocaleString() }}
-            </p>
-          </div>
-        </div>
-        
-        <div v-if="viewRestApiDetails.description">
-          <label class="text-sm font-medium text-light-muted dark:text-dark-muted">Description</label>
-          <p
-            class="text-sm mt-1"
-            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-          >
-            {{ viewRestApiDetails.description }}
-          </p>
-        </div>
-        
-        <div v-if="viewRestApiDetails.binaryMediaTypes?.length">
-          <label class="text-sm font-medium text-light-muted dark:text-dark-muted">Binary Media Types</label>
-          <div class="flex flex-wrap gap-2 mt-1">
-            <span
-              v-for="type in viewRestApiDetails.binaryMediaTypes"
-              :key="type"
-              class="px-2 py-1 text-xs rounded bg-light-border dark:bg-dark-border"
-            >
-              {{ type }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <template #footer>
-        <div class="flex justify-between items-center">
-          <Button
-            variant="secondary"
-            @click="showViewRestModal = false"
-          >
-            Close
-          </Button>
-          <div class="flex gap-2">
-            <Button
-              variant="secondary"
-              @click="() => { showViewRestModal = false; openEditModal(viewRestApiDetails!) }"
-            >
-              Edit
-            </Button>
-            <Button
-              variant="danger"
-              @click="() => { showViewRestModal = false; openDeleteModal(viewRestApiDetails!) }"
-            >
-              Delete
-            </Button>
-          </div>
-        </div>
-      </template>
-    </Modal>
+      :stage-name="editingStage?.stageName || ''"
+      :description="editingStage?.description"
+      :auto-deploy="editingStage?.autoDeploy"
+      :loading="creating"
+      @update="saveEditHttpStage"
+    />
 
     <!-- Edit REST API Modal -->
-    <Modal
+    <APIGatewayEditConfigModal
       v-model:open="showEditRestModal"
       title="Edit REST API"
-      size="md"
-    >
-      <div class="space-y-4">
-        <FormInput
-          v-model="editRestApiName"
-          label="API Name"
-          placeholder="my-rest-api"
-          required
-        />
-        <FormInput
-          v-model="editRestApiDescription"
-          label="Description"
-          placeholder="Optional description"
-        />
-      </div>
+      :name="editRestApiName"
+      :description="editRestApiDescription"
+      :loading="editing"
+      @update-config="updateRestApi"
+    />
 
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showEditRestModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="editing"
-            @click="updateRestApi"
-          >
-            Save Changes
-          </Button>
-        </div>
-      </template>
-    </Modal>
+    <!-- View REST API Modal -->
+    <APIGatewayViewRestModal
+      v-model:open="showViewRestModal"
+      :details="viewRestApiDetails"
+      :loading="viewLoading"
+      @edit="() => openEditModal(viewRestApiDetails!)"
+      @delete="() => openDeleteModal(viewRestApiDetails!)"
+    />
+
+    <!-- Edit REST API Modal -->
+    <APIGatewayEditConfigModal
+      v-model:open="showEditRestModal"
+      title="Edit REST API"
+      :name="editRestApiName"
+      :description="editRestApiDescription"
+      :loading="editing"
+      @update-config="updateRestApi"
+    />
 
     <!-- Delete REST API Confirmation -->
-    <Modal
+    <APIGatewayDeleteModal
       v-model:open="showDeleteRestModal"
-      title="Delete REST API"
-      size="sm"
-    >
-      <div class="space-y-4">
-        <p :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
-          Are you sure you want to delete the REST API <strong>"{{ apiToDelete?.name }}"</strong>?
-        </p>
-        <p class="text-sm text-red-500">
-          This action cannot be undone. All resources and methods associated with this API will be deleted.
-        </p>
-      </div>
+      :item-name="apiToDelete?.name || ''"
+      item-type="REST API"
+      :loading="deleting"
+      @delete="confirmDeleteRestApi"
+    />
 
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showDeleteRestModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            :loading="deleting"
-            @click="confirmDeleteRestApi"
-          >
-            Delete
-          </Button>
-        </div>
-      </template>
-    </Modal>
+    <!-- Delete HTTP API Confirmation -->
+    <APIGatewayDeleteModal
+      v-model:open="showDeleteHttpApiModal"
+      :item-name="deleteApiName || ''"
+      item-type="HTTP API"
+      :loading="deleting"
+      @delete="confirmDeleteHttpApi"
+    />
 
     <!-- Delete Resource Confirmation -->
-    <Modal
+    <APIGatewayDeleteModal
       v-model:open="showDeleteResourceModal"
-      title="Delete Resource"
-      size="sm"
-    >
-      <div class="space-y-4">
-        <p :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
-          Are you sure you want to delete the resource <strong>"{{ resourceToDelete?.path }}"</strong>?
-        </p>
-        <p class="text-sm text-red-500">
-          This action cannot be undone. All methods associated with this resource will be deleted.
-        </p>
-      </div>
-
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showDeleteResourceModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            :loading="deletingResource"
-            @click="confirmDeleteResource"
-          >
-            Delete
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      :item-name="resourceToDelete?.path || ''"
+      item-type="Resource"
+      :loading="deletingResource"
+      @delete="confirmDeleteResource"
+    />
 
     <!-- Integration Setup Modal -->
-    <Modal
+    <APIGatewaySetupIntegrationModal
       v-model:open="showIntegrationModal"
-      title="Setup Integration"
-      size="md"
-    >
-      <div
-        v-if="loadingIntegration"
-        class="flex justify-center py-8"
-      >
-        <LoadingSpinner />
-      </div>
-      <div
-        v-else
-        class="space-y-4"
-      >
-        <div>
-          <label class="block text-sm font-medium mb-1">Integration Type</label>
-          <select
-            v-model="newIntegrationType"
-            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-          >
-            <option value="MOCK">
-              Mock
-            </option>
-            <option value="AWS">
-              AWS (Lambda)
-            </option>
-            <option value="HTTP">
-              HTTP
-            </option>
-            <option value="HTTP_PROXY">
-              HTTP Proxy
-            </option>
-          </select>
-        </div>
-        
-        <FormInput
-          v-model="newIntegrationUri"
-          label="Integration URI"
-          placeholder="arn:aws:apigateway:region:lambda:path/..."
-          hint="Required for AWS, HTTP, and HTTP_PROXY types"
-        />
-        
-        <div>
-          <label class="block text-sm font-medium mb-1">Integration HTTP Method</label>
-          <select
-            v-model="newIntegrationHttpMethod"
-            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-          >
-            <option value="GET">
-              GET
-            </option>
-            <option value="POST">
-              POST
-            </option>
-            <option value="PUT">
-              PUT
-            </option>
-            <option value="PATCH">
-              PATCH
-            </option>
-            <option value="DELETE">
-              DELETE
-            </option>
-            <option value="HEAD">
-              HEAD
-            </option>
-            <option value="OPTIONS">
-              OPTIONS
-            </option>
-          </select>
-        </div>
-        
-        <div
-          v-if="currentIntegration"
-          class="text-sm text-light-muted dark:text-dark-muted"
-        >
-          Current integration: {{ currentIntegration.type || 'None' }}
-        </div>
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showIntegrationModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="savingIntegration"
-            @click="saveIntegration"
-          >
-            Save
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      :loading="loadingIntegration"
+      :current-integration="currentIntegration"
+      :initial-type="newIntegrationType"
+      :initial-uri="newIntegrationUri"
+      :initial-http-method="newIntegrationHttpMethod"
+      :lambda-functions="availableLambdas.map(fn => fn.FunctionName)"
+      @update:type="newIntegrationType = $event"
+      @update:uri="newIntegrationUri = $event"
+      @update:http-method="newIntegrationHttpMethod = $event"
+      @save="saveIntegration"
+    />
+
+    <!-- Integration Details Modal -->
+    <APIGatewayIntegrationDetailsModal
+      v-model:open="showIntegrationDetailsModal"
+      :integration-data="integrationDetailsData"
+    />
+
+    <!-- Delete Method Confirmation -->
+    <APIGatewayDeleteModal
+      v-model:open="showDeleteMethodModal"
+      :item-name="deleteMethodName"
+      item-type="Method"
+      :loading="deleting"
+      @delete="confirmDeleteMethod"
+    />
 
     <!-- Delete Integration Confirmation -->
-    <Modal
+    <APIGatewayDeleteModal
       v-model:open="showDeleteIntegrationModal"
-      title="Delete Integration"
-      size="sm"
-    >
-      <div class="space-y-4">
-        <p :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
-          Are you sure you want to delete this integration?
-        </p>
-        <p class="text-sm text-red-500">
-          This action cannot be undone.
-        </p>
-      </div>
+      item-name="Integration"
+      :loading="deleting"
+      @delete="confirmDeleteIntegration"
+    />
 
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showDeleteIntegrationModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            @click="confirmDeleteIntegration"
-          >
-            Delete
-          </Button>
-        </div>
-      </template>
-    </Modal>
+    <!-- Delete HTTP API Route Confirmation -->
+    <APIGatewayDeleteModal
+      v-model:open="showDeleteRouteModal"
+      item-name="Route"
+      :loading="deleting"
+      @delete="confirmDeleteRoute"
+    />
 
-    <!-- Delete HTTP API Stage Confirmation -->
-    <Modal
+    <!-- Delete HTTP Stage Confirmation -->
+    <APIGatewayDeleteModal
       v-model:open="showDeleteHttpStageModal"
-      title="Delete Stage"
-      size="sm"
-    >
-      <div class="space-y-4">
-        <p :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
-          Are you sure you want to delete the stage <strong>"{{ deleteStageName }}"</strong>?
-        </p>
-        <p class="text-sm text-red-500">
-          This action cannot be undone.
-        </p>
-      </div>
-
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showDeleteHttpStageModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            @click="confirmDeleteHttpStage"
-          >
-            Delete
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      item-name="Stage"
+      :loading="deleting"
+      @delete="confirmDeleteHttpStage"
+    />
 
     <!-- Delete Deployment Confirmation -->
-    <Modal
+    <APIGatewayDeleteModal
       v-model:open="showDeleteDeploymentModal"
-      title="Delete Deployment"
-      size="sm"
-    >
-      <div class="space-y-4">
-        <p :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
-          Are you sure you want to delete this deployment?
-        </p>
-        <p class="text-sm text-red-500">
-          This action cannot be undone.
-        </p>
-      </div>
-
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showDeleteDeploymentModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            @click="confirmDeleteDeployment"
-          >
-            Delete
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      item-name="Deployment"
+      :loading="deleting"
+      @delete="confirmDeleteDeployment"
+    />
 
     <!-- Delete REST Stage Confirmation -->
-    <Modal
+    <APIGatewayDeleteModal
       v-model:open="showDeleteRestStageModal"
-      title="Delete Stage"
-      size="sm"
-    >
-      <div class="space-y-4">
-        <p :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
-          Are you sure you want to delete the stage <strong>"{{ deleteStageName }}"</strong>?
-        </p>
-        <p class="text-sm text-red-500">
-          This action cannot be undone.
-        </p>
-      </div>
+      item-name="Stage"
+      :loading="deleting"
+      @delete="confirmDeleteRestStage"
+    />
 
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showDeleteRestStageModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            @click="confirmDeleteRestStage"
-          >
-            Delete
-          </Button>
-        </div>
-      </template>
-    </Modal>
+    <!-- Delete HTTP API Route Confirmation -->
+    <APIGatewayDeleteModal
+      v-model:open="showDeleteRouteModal"
+      item-name="Route"
+      @delete="confirmDeleteRoute"
+    />
+
+    <!-- Delete HTTP API Stage Confirmation -->
+    <APIGatewayDeleteModal
+      v-model:open="showDeleteHttpStageModal"
+      :item-name="deleteStageName"
+      item-type="Stage"
+      @delete="confirmDeleteHttpStage"
+    />
+
+    <!-- Delete Deployment Confirmation -->
+    <APIGatewayDeleteModal
+      v-model:open="showDeleteDeploymentModal"
+      item-name="Deployment"
+      @delete="confirmDeleteDeployment"
+    />
+
+    <!-- Delete REST Stage Confirmation -->
+    <APIGatewayDeleteModal
+      v-model:open="showDeleteRestStageModal"
+      :item-name="deleteStageName"
+      item-type="Stage"
+      @delete="confirmDeleteRestStage"
+    />
 
     <!-- Usage Examples -->
-    <div
-      v-if="activeTab === 'rest'"
-      class="mt-8"
-    >
-      <h3 
-        class="text-lg font-semibold mb-4"
-        :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-      >
-        REST API Usage Examples
-      </h3>
-      <div 
-        class="rounded-lg border overflow-hidden"
-        :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border' : 'bg-light-surface border-light-border'"
-      >
-        <div
-          class="flex border-b"
-          :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
-        >
-          <button
-            v-for="(example, index) in codeExamples"
-            :key="example.language"
-            class="px-4 py-2 text-sm font-medium transition-colors"
-            :class="[
-              restExampleIndex === index
-                ? settingsStore.darkMode ? 'bg-dark-bg text-dark-text' : 'bg-light-bg text-light-text'
-                : settingsStore.darkMode ? 'text-dark-muted hover:text-dark-text hover:bg-dark-bg' : 'text-light-muted hover:text-light-text hover:bg-light-bg'
-            ]"
-            @click="restExampleIndex = index"
-          >
-            {{ example.label }}
-          </button>
-        </div>
-        <div class="p-4 overflow-x-auto">
-          <pre 
-            class="text-sm font-mono"
-            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-          >{{ codeExamples[restExampleIndex].code }}</pre>
-        </div>
-      </div>
-    </div>
-
-    <!-- HTTP API Usage Examples -->
-    <div
-      v-if="activeTab === 'http'"
-      class="mt-8"
-    >
-      <h3 
-        class="text-lg font-semibold mb-4"
-        :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-      >
-        HTTP API Usage Examples
-      </h3>
-      <div 
-        class="rounded-lg border overflow-hidden"
-        :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border' : 'bg-light-surface border-light-border'"
-      >
-        <div
-          class="flex border-b"
-          :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
-        >
-          <button
-            v-for="(example, index) in httpApiExamples"
-            :key="example.language"
-            class="px-4 py-2 text-sm font-medium transition-colors"
-            :class="[
-              httpExampleIndex === index
-                ? settingsStore.darkMode ? 'bg-dark-bg text-dark-text' : 'bg-light-bg text-light-text'
-                : settingsStore.darkMode ? 'text-dark-muted hover:text-dark-text hover:bg-dark-bg' : 'text-light-muted hover:text-light-text hover:bg-light-bg'
-            ]"
-            @click="httpExampleIndex = index"
-          >
-            {{ example.label }}
-          </button>
-        </div>
-        <div class="p-4 overflow-x-auto">
-          <pre 
-            class="text-sm font-mono"
-            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-          >{{ httpApiExamples[httpExampleIndex].code }}</pre>
-        </div>
-      </div>
-    </div>
+    <APIGatewayCodeExamples
+      :region="settingsStore.region"
+      :access-key="settingsStore.accessKey"
+      :secret-key="settingsStore.secretKey"
+    />
   </div>
 </template>

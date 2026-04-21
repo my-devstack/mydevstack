@@ -485,7 +485,7 @@ export const deleteRestApiStage = (apiId: string, stageName: string) =>
 
 // HTTP API v2 methods
 export const getHttpApis = (options?: any) => apiGatewayService.getApis(options)
-export const createHttpApi = (options?: any) => apiGatewayService.createApi(options?.name || '', options)
+export const createHttpApi = (options?: any) => apiGatewayService.createApi(options)
 export const deleteHttpApi = (apiId: string) => apiGatewayService.deleteApi(apiId)
 export const getHttpApi = (apiId: string) => apiGatewayService.getApi(apiId)
 export const getHttpRoutes = (apiId: string) => apiGatewayService.getRoutes(apiId)
