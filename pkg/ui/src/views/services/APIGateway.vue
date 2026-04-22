@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useUIStore } from '@/stores/ui'
 import { useToast } from '@/composables/useToast'
-import { GlobeAltIcon } from '@heroicons/vue/24/outline'
+import { GlobeAltIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import DataTable from '@/components/common/DataTable.vue'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
@@ -1922,20 +1922,7 @@ onMounted(() => {
             @click="toggleApiExpansion(api.id)"
           >
             <div class="col-span-5 flex items-center gap-3">
-              <svg
-                class="w-5 h-5 text-orange-500 transition-transform flex-shrink-0"
-                :class="{ 'rotate-90': expandedApis.has(api.id) }"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+              <GlobeAltIcon class="h-5 w-5 text-primary-500 flex-shrink-0" />
               <div>
                 <div class="font-medium">
                   {{ api.name }}
@@ -1958,7 +1945,7 @@ onMounted(() => {
                 No description
               </span>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="col-span-3 flex justify-end gap-2">
               <button
                 class="px-2 py-1 text-sm rounded hover:bg-light-border dark:hover:bg-dark-border"
                 title="Get Invoke URL"
@@ -2041,6 +2028,10 @@ onMounted(() => {
                   />
                 </svg>
               </button>
+              <ChevronRightIcon
+                class="h-5 w-5 transition-transform flex-shrink-0"
+                :class="{ 'rotate-90': expandedApis.has(api.id) }"
+              />
             </div>
           </div>
 
@@ -2593,20 +2584,7 @@ onMounted(() => {
             @click="toggleHttpApiExpansion(api.apiId)"
           >
             <div class="col-span-4 flex items-center gap-3">
-              <svg
-                class="w-5 h-5 transition-transform"
-                :class="{ 'rotate-90': expandedHttpApis.has(api.apiId) }"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+              <GlobeAltIcon class="h-5 w-5 text-primary-500 flex-shrink-0" />
               <div>
                 <div class="font-medium">
                   {{ api.name || api.Name || 'Unnamed API' }}
@@ -2678,6 +2656,10 @@ onMounted(() => {
                   />
                 </svg>
               </button>
+              <ChevronRightIcon
+                class="h-5 w-5 transition-transform flex-shrink-0"
+                :class="{ 'rotate-90': expandedHttpApis.has(api.apiId) }"
+              />
             </div>
           </div>
 

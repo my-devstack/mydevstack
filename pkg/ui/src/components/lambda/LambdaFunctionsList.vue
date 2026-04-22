@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
+import { CodeBracketIcon } from '@heroicons/vue/24/outline'
 import type { LambdaFunction } from '@/api/types/aws'
 
 const props = defineProps<{
@@ -175,7 +176,8 @@ defineExpose({ updateInvokeResult })
         @click="toggleFunctionExpansion(func.FunctionName)"
       >
         <div class="w-8 flex-shrink-0" />
-        <div class="flex-1 min-w-[100px] font-medium text-light-text dark:text-dark-text truncate">
+        <div class="flex-1 min-w-[100px] font-medium text-light-text dark:text-dark-text truncate flex items-center gap-2">
+          <CodeBracketIcon class="h-5 w-5 text-primary-500" />
           {{ func.FunctionName }}
         </div>
         <div class="w-48 flex-shrink-0 text-light-muted dark:text-dark-muted truncate">
