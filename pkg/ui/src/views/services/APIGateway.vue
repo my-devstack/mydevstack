@@ -746,6 +746,10 @@ const integrationColumns = computed(() => [
   { key: 'integrationUri', label: 'URI', sortable: false },
 ])
 
+const isLocalStack = computed(() => {
+  return settingsStore.provider === 'localstack' || settingsStore.emulator === 'localstack'
+})
+
 // Load REST APIs
 async function loadRestApis() {
   loadingRestApis.value = true
@@ -1258,6 +1262,32 @@ async function createRoute(passedRouteKey?: string, passedTarget?: string) {
     return
   }
 
+  let integrationId = targetToUse
+
+  // Auto-create mock integration if target is $mock
+  if (targetToUse === '$mock') {
+    try {
+      const mockIntegration = await apigateway.createIntegration(selectedHttpApi.value.apiId, {
+        integrationType: 'MOCK',
+        description: 'Mock integration for route',
+        requestTemplates: {
+          'application/json': '{"statusCode": 200}',
+        },
+      })
+      integrationId = mockIntegration.IntegrationId
+    } catch (error) {
+      console.error('Error creating mock integration:', error)
+      toast.error('Failed to create mock integration')
+      return
+    }
+  }
+
+  // Validate target exists
+  if (!integrationId) {
+    toast.error('Please select an integration for this route')
+    return
+  }
+
   creating.value = true
   try {
     const routeOptions: Record<string, any> = {
@@ -1265,8 +1295,8 @@ async function createRoute(passedRouteKey?: string, passedTarget?: string) {
     }
     
     // Target (integration) is required for the route to work
-    if (targetToUse) {
-      routeOptions.target = targetToUse
+    if (integrationId) {
+      routeOptions.target = integrationId
     } else {
       toast.error('Please select an integration for this route')
       creating.value = false
@@ -3104,6 +3134,7 @@ onMounted(() => {
       v-model:open="showCreateRouteModal"
       :integrations="httpIntegrations.map(i => i.integrationId)"
       :loading="creating"
+      :show-mock-target="!isLocalStack"
       @create="createRoute"
     />
 

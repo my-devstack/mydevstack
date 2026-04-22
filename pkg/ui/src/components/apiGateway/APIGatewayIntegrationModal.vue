@@ -29,11 +29,18 @@ const uri = ref('')
 const payloadFormat = ref('1.0')
 const selectedLambdaFunction = ref('')
 
-const integrationTypes = [
+const allIntegrationTypes = [
   { value: 'lambda', label: 'Lambda Function' },
   { value: 'http', label: 'HTTP' },
   { value: 'mock', label: 'Mock' },
 ]
+
+const integrationTypes = computed(() => {
+  if (props.type === 'http') {
+    return allIntegrationTypes.filter(t => t.value !== 'mock')
+  }
+  return allIntegrationTypes
+})
 
 const payloadFormats = [
   { value: '1.0', label: 'Lambda (1.0)' },
@@ -61,7 +68,7 @@ watch(() => props.open, (newVal) => {
 })
 
 function handleCreate() {
-  if (!uri.value.trim()) return
+  if (integrationType.value !== 'mock' && !uri.value.trim()) return
   emit('create', integrationType.value, uri.value, payloadFormat.value)
 }
 
@@ -131,7 +138,7 @@ function handleClose() {
         </Button>
         <Button
           :loading="loading"
-          :disabled="!uri.trim()"
+          :disabled="integrationType !== 'mock' && !uri.trim()"
           @click="handleCreate"
         >
           {{ loading ? 'Creating...' : 'Create' }}

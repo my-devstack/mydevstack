@@ -121,7 +121,10 @@ function copyEmulatorUrl() {
         @update:model-value="handleStageChange"
       />
 
-      <div v-if="loading" class="flex justify-center py-4">
+      <div
+        v-if="loading"
+        class="flex justify-center py-4"
+      >
         <div
           class="animate-spin rounded-full h-8 w-8 border-b-2"
           :class="settingsStore.darkMode ? 'border-dark-primary' : 'border-light-primary'"
