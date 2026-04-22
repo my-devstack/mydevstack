@@ -1,0 +1,6 @@
+port: ${PROXY_PORT}
+aws:
+  endpoint: ${AWS_ENDPOINT}
+  access_key: ${AWS_ACCESS_KEY}
+  secret_key: ${AWS_SECRET_KEY}
+emulator: ${EMULATOR}

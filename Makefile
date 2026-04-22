@@ -1,4 +1,11 @@
-.PHONY: help run-proxy run-ui run-dev build dist lint lint-proxy lint-ui test clean
+
+FILE=./.env
+ifneq ("$(wildcard $(FILE))","")
+	include $(FILE)
+	export $(shell sed 's/=.*//' $(FILE))
+endif
+
+.PHONY: help run-proxy run-ui build dist lint lint-proxy lint-ui test clean unit unit-coverage
 
 .DEFAULT_GOAL := help
 
@@ -6,7 +13,6 @@ help:
 	@echo "Available commands:"
 	@echo "  make run-proxy     - Run the Go proxy backend"
 	@echo "  make run-ui     - Run the Vue UI dev server"
-	@echo "  make run-dev    - Run both proxy and UI for development"
 	@echo "  make build      - Build production binaries and dist"
 	@echo "  make dist     - Build production dist (UI)"
 	@echo "  make lint     - Run lint on all (proxy + UI)"
@@ -20,8 +26,6 @@ run-proxy:
 
 run-ui:
 	cd pkg/ui && npm run dev
-
-run-dev: run-proxy run-ui
 
 build:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o mydevstack-proxy-linux-amd64 ./pkg/proxy/cmd/server
@@ -46,11 +50,9 @@ test:
 mockery:
 	cd pkg/proxy && mockery && go mod tidy
 
-.PHONY: unit
 unit:
 	go mod tidy
 	go test $(shell go list ./pkg/proxy/internal/... | grep -v /mocks) -race -coverprofile .testCoverage.txt -v 2>&1
 
-.PHONY: unit-coverage
 unit-coverage: unit ## Runs unit tests and generates a html coverage report
 	go tool cover -html=.testCoverage.txt -o unit.html

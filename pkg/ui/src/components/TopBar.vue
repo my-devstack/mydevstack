@@ -16,6 +16,10 @@ const pageTitle = computed(() => {
   return title || 'MyDevStack'
 })
 
+const isEmulatorMode = computed(() => {
+  return settingsStore.emulator === 'MINISTACK'
+})
+
 const endpointDisplay = computed(() => {
   const url = settingsStore.endpoint
   try {
@@ -143,8 +147,18 @@ async function handleRegionChange() {
         {{ endpointDisplay }}
       </div>
 
-      <!-- Region Selector -->
+      <!-- Region Display (for emulator mode) -->
       <div
+        v-if="isEmulatorMode"
+        class="px-3 py-1.5 rounded-lg text-xs font-mono"
+        :class="settingsStore.darkMode ? 'bg-dark-bg text-dark-muted' : 'bg-light-bg text-light-muted'"
+      >
+        {{ regionDisplay }}
+      </div>
+
+      <!-- Region Selector (for non-emulator mode) -->
+      <div
+        v-else
         class="relative"
         :title="regionDisplay"
       >

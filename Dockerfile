@@ -44,8 +44,10 @@ COPY --from=builder-frontend /build/ui/pkg/ui/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Create necessary directories and set ownership
-RUN mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx/tmp /var/run && \
-    chown -R appuser:appuser /var/cache/nginx /var/log/nginx /var/lib/nginx /var/run /etc/nginx
+RUN mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx/tmp /var/run  /etc/mydevstack/config && \
+    chown -R appuser:appuser /var/cache/nginx /var/log/nginx /var/lib/nginx /var/run /etc/nginx /etc/mydevstack/config
+
+COPY ./config.yaml.example /etc/mydevstack/config/config.yaml
 
 # Switch to non-root user
 USER appuser
@@ -53,6 +55,7 @@ USER appuser
 # Expose ports
 EXPOSE 3000 8081
 
+ENV CONFIG_FILE=/etc/mydevstack/config/config.yaml
 ENV GIN_MODE=release
 
 # Environment variables with defaults
@@ -60,7 +63,7 @@ ENV PROXY_PORT=8081
 ENV AWS_ENDPOINT=http://localhost:4566
 ENV AWS_ACCESS_KEY=test
 ENV AWS_SECRET_KEY=test
-ENV EMULATOR=AWS
+ENV EMULATOR=
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

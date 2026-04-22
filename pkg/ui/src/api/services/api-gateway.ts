@@ -364,7 +364,7 @@ export class APIGatewayService {
     return apiGatewayV2Request('UpdateIntegration', sdkOptions)
   }
 
-  async deleteIntegration(apiId: string, integrationId: string): Promise<any> {
+  async deleteIntegrationV2(apiId: string, integrationId: string): Promise<any> {
     // Note: This uses the v2 API endpoint (ApiGatewayV2) - uses capitalized field names
     return apiGatewayV2Request('DeleteIntegration', { ApiId: apiId, IntegrationId: integrationId })
   }
@@ -440,6 +440,10 @@ export class APIGatewayService {
   async deleteStageV2(apiId: string, stageName: string): Promise<any> {
     return apiGatewayV2Request('DeleteStage', { ApiId: apiId, StageName: stageName })
   }
+
+  async getInvokeUrl(apiId: string, stageName: string, targetPrefix: string = 'APIGateway'): Promise<any> {
+    return apiGatewayRequest('GetInvokeUrl', { apiId, stageName }, targetPrefix)
+  }
 }
 
 export const apiGatewayService = new APIGatewayService()
@@ -485,7 +489,7 @@ export const deleteRestApiStage = (apiId: string, stageName: string) =>
 
 // HTTP API v2 methods
 export const getHttpApis = (options?: any) => apiGatewayService.getApis(options)
-export const createHttpApi = (options?: any) => apiGatewayService.createApi(options?.name || '', options)
+export const createHttpApi = (options?: any) => apiGatewayService.createApi(options)
 export const deleteHttpApi = (apiId: string) => apiGatewayService.deleteApi(apiId)
 export const getHttpApi = (apiId: string) => apiGatewayService.getApi(apiId)
 export const getHttpRoutes = (apiId: string) => apiGatewayService.getRoutes(apiId)
@@ -496,7 +500,7 @@ export const getHttpIntegrations = (apiId: string) => apiGatewayService.getInteg
 export const createHttpIntegration = (apiId: string, options: any) => apiGatewayService.createIntegration(apiId, options)
 export const updateHttpIntegration = (apiId: string, integrationId: string, options: any) => apiGatewayService.updateIntegration(apiId, integrationId, options)
 export const deleteHttpApiIntegration = (apiId: string, integrationId: string) =>
-  apiGatewayService.deleteIntegration(apiId, integrationId)
+  apiGatewayService.deleteIntegrationV2(apiId, integrationId)
 
 // HTTP API v2 Stages
 export const getHttpApiStages = (apiId: string) => apiGatewayService.getStagesV2(apiId)
@@ -524,5 +528,11 @@ export const updateStage = (apiId: string, stageName: string, options?: any) =>
   apiGatewayService.updateStage(apiId, stageName, options)
 export const deleteStage = (apiId: string, stageName: string) =>
   apiGatewayService.deleteStage(apiId, stageName)
+
+// Get Invoke URL
+export const getRestApiInvokeUrl = (apiId: string, stageName: string) =>
+  apiGatewayService.getInvokeUrl(apiId, stageName, 'APIGateway')
+export const getHttpApiInvokeUrl = (apiId: string, stageName: string) =>
+  apiGatewayService.getInvokeUrl(apiId, stageName, 'ApiGatewayV2')
 
 export default apiGatewayService

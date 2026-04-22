@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 
 type APIGatewayV2Adapter struct {
 	client ports.APIGatewayV2ClientPort
+	region string
 }
 
 func NewAPIGatewayV2Adapter(awsCfg aws.Config, endpoint string) ports.APIGatewayV2Port {
@@ -20,7 +22,7 @@ func NewAPIGatewayV2Adapter(awsCfg aws.Config, endpoint string) ports.APIGateway
 		o.BaseEndpoint = aws.String(endpoint)
 		o.HTTPClient = httpClient
 	})
-	return &APIGatewayV2Adapter{client: client}
+	return &APIGatewayV2Adapter{client: client, region: awsCfg.Region}
 }
 
 func (a *APIGatewayV2Adapter) GetApis(ctx context.Context, input *apigatewayv2.GetApisInput) (*apigatewayv2.GetApisOutput, error) {
@@ -90,4 +92,14 @@ func (a *APIGatewayV2Adapter) UpdateStage(ctx context.Context, input *apigateway
 
 func (a *APIGatewayV2Adapter) DeleteStage(ctx context.Context, input *apigatewayv2.DeleteStageInput) (*apigatewayv2.DeleteStageOutput, error) {
 	return a.client.DeleteStage(ctx, input)
+}
+
+func (a *APIGatewayV2Adapter) GetInvokeUrl(ctx context.Context, apiId, stageName string) (string, error) {
+	if apiId == "" {
+		return "", fmt.Errorf("apiId is required")
+	}
+	if stageName == "" {
+		return "", fmt.Errorf("stageName is required")
+	}
+	return fmt.Sprintf("https://%s.execute-api.%s.amazonaws.com/%s", apiId, a.region, stageName), nil
 }

@@ -19,7 +19,7 @@ import (
 func (h *ProxyHandler) handleRDS(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	baseEndpoint := h.svc.Config().AwsEndpoint
+	baseEndpoint := h.svc.Config().AWS.Endpoint
 
 	// Extract operation name from X-Amz-Target (e.g., "rds.DescribeDBInstances" -> "DescribeDBInstances")
 	operation := strings.Replace(xAmzTarget, "rds.", "", 1)

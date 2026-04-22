@@ -1,0 +1,8 @@
+all: true
+structname: '{{.InterfaceName}}'
+template: testify
+packages:
+  github.com/my-devstack/mydevstack/pkg/proxy/internal/ports:
+    config:
+      dir: mocks/ports
+      filename: "{{.InterfaceName}}.go"

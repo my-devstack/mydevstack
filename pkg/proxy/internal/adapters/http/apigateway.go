@@ -128,6 +128,14 @@ func (h *ProxyHandler) handleAPIGateway(c *gin.Context) {
 		h.deleteStage(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "ImportRestApi"):
 		h.importRestApi(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "GetInvokeUrl"):
+		if strings.HasPrefix(xAmzTarget, "ApiGatewayV2.") {
+			h.getInvokeUrlV2(ctx, c, bodyBytes)
+		} else if strings.HasPrefix(xAmzTarget, "APIGateway.") {
+			h.getInvokeUrl(ctx, c, bodyBytes)
+		} else {
+			h.getInvokeUrlV2(ctx, c, bodyBytes)
+		}
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown API Gateway action: " + xAmzTarget})
 	}
@@ -818,4 +826,38 @@ func (h *ProxyHandler) deleteStageV2(ctx context.Context, c *gin.Context, bodyBy
 		return
 	}
 	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) getInvokeUrl(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	var bodyData struct {
+		ApiID     string `json:"apiId"`
+		StageName string `json:"stageName"`
+	}
+	if err := json.Unmarshal(bodyBytes, &bodyData); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	url, err := h.svc.APIGateway().GetInvokeUrl(ctx, bodyData.ApiID, bodyData.StageName)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to get invoke URL", err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"invokeUrl": url})
+}
+
+func (h *ProxyHandler) getInvokeUrlV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	var bodyData struct {
+		ApiID     string `json:"apiId"`
+		StageName string `json:"stageName"`
+	}
+	if err := json.Unmarshal(bodyBytes, &bodyData); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	url, err := h.svc.APIGatewayV2().GetInvokeUrl(ctx, bodyData.ApiID, bodyData.StageName)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to get invoke URL", err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"invokeUrl": url})
 }

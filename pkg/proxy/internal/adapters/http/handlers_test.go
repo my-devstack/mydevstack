@@ -37,7 +37,11 @@ func (s *testProxyService) Kinesis() ports.KinesisPort               { return ni
 func (s *testProxyService) RDS() ports.RDSPort                       { return nil }
 func (s *testProxyService) ElastiCache() ports.ElastiCachePort       { return nil }
 func (s *testProxyService) Config() *configloader.Config {
-	return &configloader.Config{AwsEndpoint: "http://localhost:4566"}
+	return &configloader.Config{
+		AWS: configloader.AWSProxyConfig{
+			Endpoint: "http://localhost:4566",
+		},
+	}
 }
 
 func (s *testProxyService) Region() string {
@@ -196,7 +200,11 @@ func TestCORSHeaders(t *testing.T) {
 
 func TestBackendHealthCheck_Reachable(t *testing.T) {
 	svc := &testProxyService{
-		cfg: &configloader.Config{AwsEndpoint: "http://localhost:9999"},
+		cfg: &configloader.Config{
+			AWS: configloader.AWSProxyConfig{
+				Endpoint: "http://localhost:9999",
+			},
+		},
 	}
 	handler := NewProxyHandler(svc)
 	r := setupTestRouter(handler)

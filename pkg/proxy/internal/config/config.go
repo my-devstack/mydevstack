@@ -7,21 +7,29 @@ import (
 	config "github.com/beabys/ayotl"
 )
 
+var CONFIG_FILE = "CONFIG_FILE"
+
 type Config struct {
-	Port           string `mapstructure:"port"`
-	AwsEndpoint    string `mapstructure:"aws_endpoint"`
-	AwsAccessKey   string `mapstructure:"aws_access_key"`
-	AwsSecretKey   string `mapstructure:"aws_secret_key"`
-	ServicePattern string `mapstructure:"service_pattern"`
+	Port           string         `mapstructure:"port"`
+	AWS            AWSProxyConfig `mapstructure:"aws"`
+	ServicePattern string         `mapstructure:"service_pattern"`
+	Emulator       string         `mapstructure:"emulator"`
+}
+
+type AWSProxyConfig struct {
+	Endpoint  string `mapstructure:"endpoint"`
+	AccessKey string `mapstructure:"access_key"`
+	SecretKey string `mapstructure:"secret_key"`
 }
 
 func (c *Config) SetDefaults() config.ConfigMap {
 	defaults := make(config.ConfigMap)
 	defaults["port"] = "8081"
-	defaults["aws_endpoint"] = "http://localhost:4560"
-	defaults["aws_access_key"] = "test"
-	defaults["aws_secret_key"] = "test"
+	defaults["aws.endpoint"] = "http://localhost:4566"
+	defaults["aws.access_key"] = "test"
+	defaults["aws.secret_key"] = "test"
 	defaults["service_pattern"] = "root"
+	defaults["emulator"] = ""
 	return defaults
 }
 
@@ -31,9 +39,9 @@ func LoadConfig(ctx context.Context) (*Config, error) {
 
 	loader := config.New().
 		SetConfigImpl(cfg).
-		WithEnv("PORT", "AWS_ENDPOINT", "AWS_ACCESS_KEY", "AWS_SECRET_KEY", "SERVICE_PATTERN")
+		WithEnv("CONFIG_FILE", "PROXY_PORT", "AWS_ENDPOINT", "AWS_ACCESS_KEY", "AWS_SECRET_KEY", "SERVICE_PATTERN", "EMULATOR")
 
-	if err := loader.LoadConfigs("config.yaml", "config.json"); err != nil {
+	if err := loader.LoadConfigs(loader.MustString(CONFIG_FILE, "")); err != nil {
 		if !os.IsNotExist(err) {
 			return nil, err
 		}

@@ -536,15 +536,24 @@ function copyToClipboard(text: string) {
       />
 
       <!-- Keys List with Accordion -->
-      <div v-else class="space-y-4">
+      <div
+        v-else
+        class="space-y-4"
+      >
         <!-- Column Headers -->
         <div 
           class="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-semibold uppercase tracking-wider border-b"
           :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'"
         >
-          <div class="col-span-5">Key ID</div>
-          <div class="col-span-5">Status</div>
-          <div class="col-span-2 text-right">Actions</div>
+          <div class="col-span-5">
+            Key ID
+          </div>
+          <div class="col-span-5">
+            Status
+          </div>
+          <div class="col-span-2 text-right">
+            Actions
+          </div>
         </div>
 
         <!-- Key Rows with Accordion -->
@@ -568,7 +577,12 @@ function copyToClipboard(text: string) {
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
               <div class="p-1 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
                 <KeyIcon class="h-4 w-4" />
@@ -581,15 +595,28 @@ function copyToClipboard(text: string) {
                 :label="getKeyStatusLabel(key.keyMetadata?.KeyState || '')" 
               />
             </div>
-            <div class="col-span-2 text-right" @click.stop>
+            <div
+              class="col-span-2 text-right"
+              @click.stop
+            >
               <div class="flex items-center justify-end gap-1">
                 <button
                   class="p-2 text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border rounded"
                   title="Encrypt"
                   @click="selectKeyForAction(key, 'encrypt')"
                 >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
                   </svg>
                 </button>
                 <button
@@ -597,8 +624,18 @@ function copyToClipboard(text: string) {
                   title="Decrypt"
                   @click="selectKeyForAction(key, 'decrypt')"
                 >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                    />
                   </svg>
                 </button>
                 <button
@@ -606,8 +643,18 @@ function copyToClipboard(text: string) {
                   title="Delete"
                   @click="selectKeyForAction(key, 'delete')"
                 >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
                   </svg>
                 </button>
               </div>
@@ -622,7 +669,12 @@ function copyToClipboard(text: string) {
           >
             <!-- Key Details -->
             <div class="mb-6">
-              <h4 class="text-sm font-semibold mb-3" :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'">Key Details</h4>
+              <h4
+                class="text-sm font-semibold mb-3"
+                :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'"
+              >
+                Key Details
+              </h4>
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Key Usage</label>
@@ -645,8 +697,18 @@ function copyToClipboard(text: string) {
                       title="Copy ARN"
                       @click="copyToClipboard(key.keyMetadata?.Arn || key.KeyArn)"
                     >
-                      <svg class="w-4 h-4 text-light-muted dark:text-dark-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      <svg
+                        class="w-4 h-4 text-light-muted dark:text-dark-muted"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -663,7 +725,10 @@ function copyToClipboard(text: string) {
                     {{ new Date(key.keyMetadata.DeletionDate).toLocaleDateString() }}
                   </p>
                 </div>
-                <div v-if="key.keyMetadata?.Description" class="col-span-2">
+                <div
+                  v-if="key.keyMetadata?.Description"
+                  class="col-span-2"
+                >
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Description</label>
                   <p class="text-sm text-light-text dark:text-dark-text">
                     {{ key.keyMetadata.Description }}
@@ -674,7 +739,12 @@ function copyToClipboard(text: string) {
 
             <!-- Key Policy -->
             <div>
-              <h4 class="text-sm font-semibold mb-3" :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'">Key Policy</h4>
+              <h4
+                class="text-sm font-semibold mb-3"
+                :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'"
+              >
+                Key Policy
+              </h4>
               <pre class="p-4 rounded-lg bg-light-bg dark:bg-dark-bg text-xs font-mono overflow-auto max-h-48 text-light-text dark:text-dark-text">{{ keyPolicyMap[key.KeyId] || 'Loading policy...' }}</pre>
             </div>
           </div>

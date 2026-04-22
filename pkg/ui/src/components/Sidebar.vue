@@ -200,7 +200,8 @@ const handleServiceClick = (service: Service) => {
       </div>
       
       <!-- Services list -->
-      <div class="space-y-0.5 overflow-y-auto"
+      <div
+        class="space-y-0.5 overflow-y-auto"
         :class="collapsed ? 'max-h-[calc(100vh-300px)]' : 'max-h-[calc(100vh-300px\)]'"
       >
         <button

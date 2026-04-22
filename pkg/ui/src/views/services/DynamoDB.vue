@@ -980,8 +980,18 @@ watch(reloadTrigger, () => {
             title="Refresh"
             @click="loadTables"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
           </button>
         </div>
@@ -1045,7 +1055,10 @@ watch(reloadTrigger, () => {
               <TableCellsIcon class="h-5 w-5 text-primary-500" />
               <span class="font-medium text-light-text dark:text-dark-text">{{ table }}</span>
             </div>
-            <div class="col-span-4 text-right" @click.stop>
+            <div
+              class="col-span-4 text-right"
+              @click.stop
+            >
               <div class="flex items-center justify-end gap-2">
                 <button
                   class="px-3 py-1 text-sm text-green-500 hover:text-green-700 border border-green-500 rounded hover:bg-green-50"
@@ -1058,8 +1071,18 @@ watch(reloadTrigger, () => {
                   title="Delete"
                   @click="confirmDelete(table)"
                 >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
                   </svg>
                 </button>
               </div>
@@ -1072,7 +1095,10 @@ watch(reloadTrigger, () => {
             class="px-4 pb-4 border-t"
             :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
           >
-            <div v-if="tableDetailsMap[table]" class="mt-4 space-y-4">
+            <div
+              v-if="tableDetailsMap[table]"
+              class="mt-4 space-y-4"
+            >
               <!-- Table Status -->
               <div class="flex items-center gap-2">
                 <span
@@ -1098,9 +1124,11 @@ watch(reloadTrigger, () => {
                     class="flex items-center gap-2"
                   >
                     <span class="text-sm font-medium text-light-text dark:text-dark-text">{{ key.AttributeName }}</span>
-                    <span class="text-xs px-2 py-0.5 rounded" :class="key.KeyType === 'HASH' 
-                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' 
-                      : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'"
+                    <span
+                      class="text-xs px-2 py-0.5 rounded"
+                      :class="key.KeyType === 'HASH' 
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' 
+                        : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'"
                     >
                       {{ key.KeyType === 'HASH' ? 'Partition Key' : 'Sort Key' }}
                       ({{ getKeyTypeLabel(tableDetailsMap[table].AttributeDefinitions?.find((a: any) => a.AttributeName === key.AttributeName)?.AttributeType || 'S') }})
@@ -1124,14 +1152,21 @@ watch(reloadTrigger, () => {
               </div>
               
               <!-- Provisioned Throughput -->
-              <div v-if="tableDetailsMap[table].ProvisionedThroughput" class="grid grid-cols-2 gap-4">
+              <div
+                v-if="tableDetailsMap[table].ProvisionedThroughput"
+                class="grid grid-cols-2 gap-4"
+              >
                 <div>
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Read Capacity</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">{{ tableDetailsMap[table].ProvisionedThroughput.ReadCapacityUnits }}</p>
+                  <p class="text-sm text-light-text dark:text-dark-text">
+                    {{ tableDetailsMap[table].ProvisionedThroughput.ReadCapacityUnits }}
+                  </p>
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Write Capacity</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">{{ tableDetailsMap[table].ProvisionedThroughput.WriteCapacityUnits }}</p>
+                  <p class="text-sm text-light-text dark:text-dark-text">
+                    {{ tableDetailsMap[table].ProvisionedThroughput.WriteCapacityUnits }}
+                  </p>
                 </div>
               </div>
               
@@ -1139,11 +1174,15 @@ watch(reloadTrigger, () => {
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Item Count</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">{{ tableDetailsMap[table].ItemCount || 0 }}</p>
+                  <p class="text-sm text-light-text dark:text-dark-text">
+                    {{ tableDetailsMap[table].ItemCount || 0 }}
+                  </p>
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Size</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">{{ tableDetailsMap[table].TableSizeBytes ? (tableDetailsMap[table].TableSizeBytes / 1024).toFixed(2) + ' KB' : '0 KB' }}</p>
+                  <p class="text-sm text-light-text dark:text-dark-text">
+                    {{ tableDetailsMap[table].TableSizeBytes ? (tableDetailsMap[table].TableSizeBytes / 1024).toFixed(2) + ' KB' : '0 KB' }}
+                  </p>
                 </div>
               </div>
               
@@ -1155,9 +1194,14 @@ watch(reloadTrigger, () => {
                 </p>
               </div>
             </div>
-            <div v-else-if="!tableDetailsMap[table]" class="mt-4 text-center py-4">
+            <div
+              v-else-if="!tableDetailsMap[table]"
+              class="mt-4 text-center py-4"
+            >
               <div class="inline-block animate-spin rounded-full h-6 w-6 border-4 border-blue-600 border-t-transparent" />
-              <p class="mt-2 text-sm text-light-muted dark:text-dark-muted">Loading table details...</p>
+              <p class="mt-2 text-sm text-light-muted dark:text-dark-muted">
+                Loading table details...
+              </p>
             </div>
           </div>
         </div>
@@ -2059,8 +2103,18 @@ watch(reloadTrigger, () => {
                   title="Delete"
                   @click="confirmDeleteItem(item)"
                 >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
                   </svg>
                 </button>
               </td>
