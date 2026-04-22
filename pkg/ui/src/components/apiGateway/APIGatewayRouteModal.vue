@@ -9,6 +9,7 @@ const props = defineProps<{
   open: boolean
   integrations?: string[]
   loading?: boolean
+  showMockTarget?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -28,7 +29,10 @@ const targetOptions = computed(() => {
   }
   
   options.push({ value: 'http', label: 'HTTP Proxy' })
-  options.push({ value: 'mock', label: 'Mock Response' })
+  
+  if (props.showMockTarget) {
+    options.push({ value: 'mock', label: 'Mock Response' })
+  }
   
   return options
 })
@@ -42,6 +46,8 @@ function handleCreate() {
     targetValue = selectedTarget.value
   } else if (targetType.value === 'http') {
     targetValue = selectedTarget.value
+  } else if (targetType.value === 'mock') {
+    targetValue = '$mock'
   }
   
   emit('create', routeKey.value.trim(), targetValue)

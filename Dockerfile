@@ -29,6 +29,8 @@ RUN npm ci && npm run build
 # Stage 3: Final image
 FROM alpine:latest AS final
 
+ARG VERSION
+
 RUN apk add --no-cache nginx curl
 
 # Create non-root user
@@ -39,6 +41,8 @@ COPY --from=builder-proxy /mydevstack-proxy /usr/local/bin/mydevstack-proxy
 
 # Copy frontend dist from builder-frontend
 COPY --from=builder-frontend /build/ui/pkg/ui/dist /usr/share/nginx/html
+
+RUN echo "VERSION=$VERSION" >> /usr/share/nginx/html/VERSION
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf

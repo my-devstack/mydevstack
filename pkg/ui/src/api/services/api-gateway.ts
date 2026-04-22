@@ -337,6 +337,7 @@ export class APIGatewayService {
     if (options?.passthroughBehavior) sdkOptions.PassthroughBehavior = options.passthroughBehavior
     if (options?.contentHandlingStrategy) sdkOptions.ContentHandlingStrategy = options.contentHandlingStrategy
     if (options?.templateSelectionExpression) sdkOptions.TemplateSelectionExpression = options.templateSelectionExpression
+    if (options?.requestTemplates) sdkOptions.RequestTemplates = options.requestTemplates
     
     return apiGatewayV2Request('CreateIntegration', sdkOptions)
   }
