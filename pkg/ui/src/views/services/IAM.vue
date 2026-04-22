@@ -3,26 +3,38 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useUIStore } from '@/stores/ui'
 import { useContentReload } from '@/composables/useContentReload'
-import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
-import ConfirmModal from '@/components/common/ConfirmModal.vue'
-import FormInput from '@/components/common/FormInput.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import Tabs from '@/components/common/Tabs.vue'
 import {
+  IAMCreateUserModal,
+  IAMCreateRoleModal,
+  IAMCreateGroupModal,
+  IAMCreatePolicyModal,
+  IAMCreateKeyModal,
+  IAMDeleteModal,
+  IAMDeleteRoleModal,
+  IAMDeleteGroupModal,
+  IAMDeletePolicyModal,
+  IAMDeleteAccessKeyModal,
+  IAMUserKeysModal,
+  IAMRolePoliciesModal,
+  IAMAttachPolicyModal,
+  IAMPolicyDetailsModal,
+  IAMGroupUsersModal,
+  IAMAddUserToGroupModal,
+  IAMDetachPolicyModal,
+  IAMRemoveUserFromGroupModal,
+} from '@/components/iam'
+import {
   UserIcon,
   ShieldCheckIcon,
   KeyIcon,
-  TrashIcon,
-  PlusIcon,
-  PlusCircleIcon,
-  MinusCircleIcon,
-  EyeIcon,
-  ExclamationCircleIcon,
   UserGroupIcon,
-  ClipboardIcon,
+  PlusIcon,
+  TrashIcon,
   ChevronRightIcon,
 } from '@heroicons/vue/24/outline'
 import {
@@ -134,32 +146,6 @@ const userAccessKeysMap = ref<Record<string, any[]>>({})
 const rolePoliciesMap = ref<Record<string, any[]>>({})
 const userToRemove = ref<{ userName: string; groupName: string } | null>(null)
 
-// Forms
-const newUser = ref({
-  UserName: '',
-  Path: '',
-})
-
-const newRole = ref({
-  RoleName: '',
-  Description: '',
-  AssumeRolePolicyDocument: JSON.stringify({
-    Version: '2012-10-17',
-    Statement: [
-      {
-        Effect: 'Allow',
-        Principal: { Service: 'ec2.amazonaws.com' },
-        Action: 'sts:AssumeRole',
-      },
-    ],
-  }, null, 2),
-})
-
-const newGroup = ref({
-  GroupName: '',
-  Path: '',
-})
-
 // Tabs
 const tabs = [
   { id: 'users', label: 'Users', icon: UserIcon },
@@ -193,20 +179,19 @@ async function loadUsers() {
   }
 }
 
-async function handleCreateUser() {
-  if (!newUser.value.UserName.trim()) {
+async function handleCreateUser(data: { UserName: string; Path?: string }) {
+  if (!data.UserName.trim()) {
     uiStore.notifyError('Validation error', 'Username is required')
     return
   }
 
   try {
     await createUser({
-      UserName: newUser.value.UserName,
-      Path: newUser.value.Path || undefined,
+      UserName: data.UserName,
+      Path: data.Path,
     })
-    uiStore.notifySuccess('User created', `User "${newUser.value.UserName}" created successfully`)
+    uiStore.notifySuccess('User created', `User "${data.UserName}" created successfully`)
     showCreateUserModal.value = false
-    newUser.value = { UserName: '', Path: '' }
     await loadUsers()
   } catch (error) {
     uiStore.notifyError('Failed to create user', error instanceof Error ? error.message : 'Unknown error')
@@ -316,34 +301,20 @@ async function loadRoles() {
   }
 }
 
-async function handleCreateRole() {
-  if (!newRole.value.RoleName.trim()) {
+async function handleCreateRole(data: { RoleName: string; Description?: string; AssumeRolePolicyDocument: string }) {
+  if (!data.RoleName.trim()) {
     uiStore.notifyError('Validation error', 'Role name is required')
     return
   }
 
   try {
     await createRole({
-      RoleName: newRole.value.RoleName,
-      Description: newRole.value.Description || undefined,
-      AssumeRolePolicyDocument: newRole.value.AssumeRolePolicyDocument,
+      RoleName: data.RoleName,
+      Description: data.Description,
+      AssumeRolePolicyDocument: data.AssumeRolePolicyDocument,
     })
-    uiStore.notifySuccess('Role created', `Role "${newRole.value.RoleName}" created successfully`)
+    uiStore.notifySuccess('Role created', `Role "${data.RoleName}" created successfully`)
     showCreateRoleModal.value = false
-    newRole.value = {
-      RoleName: '',
-      Description: '',
-      AssumeRolePolicyDocument: JSON.stringify({
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Effect: 'Allow',
-            Principal: { Service: 'ec2.amazonaws.com' },
-            Action: 'sts:AssumeRole',
-          },
-        ],
-      }, null, 2),
-    }
     await loadRoles()
   } catch (error) {
     uiStore.notifyError('Failed to create role', error instanceof Error ? error.message : 'Unknown error')
@@ -498,21 +469,20 @@ async function togglePolicy(policyArn: string) {
 
 const creatingPolicy = ref(false)
 
-async function handleCreatePolicy() {
-  if (!newPolicy.value.PolicyName.trim() || !newPolicy.value.PolicyDocument.trim()) {
+async function handleCreatePolicy(data: { PolicyName: string; PolicyDocument: string; Description?: string }) {
+  if (!data.PolicyName.trim() || !data.PolicyDocument.trim()) {
     uiStore.notifyError('Validation error', 'Policy name and policy document are required')
     return
   }
   creatingPolicy.value = true
   try {
     await createPolicy({
-      PolicyName: newPolicy.value.PolicyName,
-      PolicyDocument: newPolicy.value.PolicyDocument,
-      Description: newPolicy.value.Description || undefined,
+      PolicyName: data.PolicyName,
+      PolicyDocument: data.PolicyDocument,
+      Description: data.Description,
     })
-    uiStore.notifySuccess('Policy created', `Policy "${newPolicy.value.PolicyName}" created successfully`)
+    uiStore.notifySuccess('Policy created', `Policy "${data.PolicyName}" created successfully`)
     showCreatePolicyModal.value = false
-    newPolicy.value = { PolicyName: '', PolicyDocument: '', Description: '' }
     await loadPolicies()
   } catch (error) {
     uiStore.notifyError('Failed to create policy', error instanceof Error ? error.message : 'Unknown error')
@@ -534,17 +504,16 @@ async function loadGroups() {
   }
 }
 
-async function handleCreateGroup() {
-  if (!newGroup.value.GroupName.trim()) {
+async function handleCreateGroup(data: { GroupName: string; Path?: string }) {
+  if (!data.GroupName.trim()) {
     uiStore.notifyError('Validation error', 'Group name is required')
     return
   }
 
   try {
-    await createGroup(newGroup.value.GroupName, newGroup.value.Path || undefined)
-    uiStore.notifySuccess('Group created', `Group "${newGroup.value.GroupName}" created successfully`)
+    await createGroup(data.GroupName, data.Path)
+    uiStore.notifySuccess('Group created', `Group "${data.GroupName}" created successfully`)
     showCreateGroupModal.value = false
-    newGroup.value = { GroupName: '', Path: '' }
     await loadGroups()
   } catch (error) {
     uiStore.notifyError('Failed to create group', error instanceof Error ? error.message : 'Unknown error')
@@ -982,7 +951,7 @@ watch(reloadTrigger, () => {
                 <Button
                   variant="primary"
                   size="sm"
-                  @click.stop="selectedRole = role; showAttachPolicyModal = true"
+                  @click.stop="selectedRole = role; openAttachPolicy()"
                 >
                   <template #icon-left>
                     <PlusIcon class="h-4 w-4" />
@@ -1278,716 +1247,155 @@ watch(reloadTrigger, () => {
     </div>
 
     <!-- Create User Modal -->
-    <Modal
+    <IAMCreateUserModal
       :open="showCreateUserModal"
-      title="Create User"
-      size="md"
       @update:open="showCreateUserModal = $event"
-    >
-      <form
-        class="space-y-4"
-        @submit.prevent="handleCreateUser"
-      >
-        <FormInput
-          v-model="newUser.UserName"
-          label="User Name"
-          placeholder="username"
-          required
-        />
-        <FormInput
-          v-model="newUser.Path"
-          label="Path"
-          placeholder="/"
-          help-text="Optional path for the user"
-        />
-      </form>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showCreateUserModal = false"
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          @click="handleCreateUser"
-        >
-          Create
-        </Button>
-      </template>
-    </Modal>
+      @create="handleCreateUser"
+    />
 
     <!-- Delete User Modal -->
-    <Modal
+    <IAMDeleteModal
       :open="showDeleteUserModal"
       title="Delete User"
-      size="md"
+      :message="`Are you sure you want to delete user '${selectedUser?.UserName}'? This action cannot be undone.`"
       @update:open="showDeleteUserModal = $event"
-    >
-      <div class="flex items-start gap-3 p-4 rounded-lg bg-red-50 dark:bg-red-900/20">
-        <ExclamationCircleIcon class="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-        <div>
-          <p class="text-sm text-red-700 dark:text-red-400">
-            Are you sure you want to delete <strong>{{ selectedUser?.UserName }}</strong>?
-          </p>
-        </div>
-      </div>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showDeleteUserModal = false"
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="danger"
-          @click="handleDeleteUser"
-        >
-          Delete
-        </Button>
-      </template>
-    </Modal>
+      @confirm="handleDeleteUser"
+    />
 
     <!-- User Access Keys Modal -->
-    <Modal
+    <IAMUserKeysModal
       :open="showUserKeysModal"
-      title="Access Keys"
-      size="lg"
+      :user-name="selectedUser?.UserName || ''"
+      :access-keys="userAccessKeys"
+      :format-date="formatDate"
       @update:open="showUserKeysModal = $event"
-    >
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="text-sm font-medium text-light-text dark:text-dark-text">
-            Access Keys for {{ selectedUser?.UserName }}
-          </h3>
-          <Button
-            variant="primary"
-            size="sm"
-            @click="showCreateKeyModal = true"
-          >
-            <template #icon-left>
-              <PlusIcon class="h-4 w-4" />
-            </template>
-            Create Key
-          </Button>
-        </div>
-
-        <EmptyState
-          v-if="userAccessKeys.length === 0"
-          icon="key"
-          title="No access keys"
-          description="Create an access key to enable programmatic access"
-          compact
-        />
-
-        <div
-          v-else
-          class="space-y-2"
-        >
-          <div
-            v-for="key in userAccessKeys"
-            :key="key.AccessKeyId"
-            class="flex items-center justify-between p-3 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg"
-          >
-            <div>
-              <p class="text-sm font-mono text-light-text dark:text-dark-text">
-                {{ key.AccessKeyId }}
-              </p>
-              <p class="text-xs text-light-muted dark:text-dark-muted">
-                Created: {{ formatDate(key.CreateDate) }}
-              </p>
-            </div>
-            <div class="flex items-center gap-2">
-              <StatusBadge
-                :status="key.Status === 'Active' ? 'active' : 'inactive'"
-                :label="key.Status"
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                @click="handleDeleteAccessKey(key.AccessKeyId)"
-              >
-                <template #icon-left>
-                  <TrashIcon class="h-4 w-4" />
-                </template>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showUserKeysModal = false"
-        >
-          Close
-        </Button>
-      </template>
-    </Modal>
+      @create-key="showCreateKeyModal = true"
+      @delete-key="handleDeleteAccessKey"
+    />
 
     <!-- Create Access Key Modal -->
-    <Modal
+    <IAMCreateKeyModal
       :open="showCreateKeyModal"
-      title="Create Access Key"
-      size="md"
-      @update:open="showCreateKeyModal = $event; newAccessKey = null"
-    >
-      <div
-        v-if="!newAccessKey"
-        class="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20"
-      >
-        <p class="text-sm text-yellow-800 dark:text-yellow-200">
-          Make sure to save the Secret Access Key. It cannot be retrieved after closing this modal.
-        </p>
-      </div>
-      <div
-        v-else
-        class="space-y-4"
-      >
-        <div>
-          <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Access Key ID</label>
-          <div class="flex items-center gap-2">
-            <code class="flex-1 p-2 rounded bg-light-bg dark:bg-dark-bg text-sm font-mono text-light-text dark:text-dark-text">{{ newAccessKey.AccessKeyId }}</code>
-            <Button
-              variant="ghost"
-              size="sm"
-              @click="navigator.clipboard.writeText(newAccessKey.AccessKeyId)"
-            >
-              <ClipboardIcon class="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Secret Access Key</label>
-          <div class="flex items-center gap-2">
-            <code class="flex-1 p-2 rounded bg-light-bg dark:bg-dark-bg text-sm font-mono text-light-text dark:text-dark-text">{{ newAccessKey.SecretAccessKey }}</code>
-            <Button
-              variant="ghost"
-              size="sm"
-              @click="navigator.clipboard.writeText(newAccessKey.SecretAccessKey)"
-            >
-              <ClipboardIcon class="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        <div class="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
-          <p class="text-sm text-yellow-800 dark:text-yellow-200">
-            Make sure to save the Secret Access Key. It cannot be retrieved after closing this modal.
-          </p>
-        </div>
-      </div>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showCreateKeyModal = false; newAccessKey = null"
-        >
-          {{ newAccessKey ? 'Close' : 'Cancel' }}
-        </Button>
-        <Button
-          v-if="!newAccessKey"
-          variant="primary"
-          @click="handleCreateAccessKey"
-        >
-          Create Key
-        </Button>
-      </template>
-    </Modal>
+      :new-access-key="newAccessKey"
+      @update:open="showCreateKeyModal = $event"
+      @create="handleCreateAccessKey"
+    />
 
     <!-- Create Role Modal -->
-    <Modal
+    <IAMCreateRoleModal
       :open="showCreateRoleModal"
-      title="Create Role"
-      size="lg"
       @update:open="showCreateRoleModal = $event"
-    >
-      <form
-        class="space-y-4"
-        @submit.prevent="handleCreateRole"
-      >
-        <FormInput
-          v-model="newRole.RoleName"
-          label="Role Name"
-          placeholder="my-role"
-          required
-        />
-        <FormInput
-          v-model="newRole.Description"
-          label="Description"
-          placeholder="Role description"
-        />
-        <div>
-          <label class="block text-sm font-medium text-light-text dark:text-dark-text mb-1.5">Assume Role Policy</label>
-          <textarea
-            v-model="newRole.AssumeRolePolicyDocument"
-            rows="10"
-            class="block w-full rounded-md shadow-sm border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-primary-500"
-          />
-        </div>
-      </form>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showCreateRoleModal = false"
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          @click="handleCreateRole"
-        >
-          Create
-        </Button>
-      </template>
-    </Modal>
+      @create="handleCreateRole"
+    />
 
     <!-- Delete Role Modal -->
-    <Modal
+    <IAMDeleteRoleModal
       :open="showDeleteRoleModal"
-      title="Delete Role"
-      size="md"
+      :role-name="selectedRole?.RoleName || ''"
       @update:open="showDeleteRoleModal = $event"
-    >
-      <div class="flex items-start gap-3 p-4 rounded-lg bg-red-50 dark:bg-red-900/20">
-        <ExclamationCircleIcon class="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-        <div>
-          <p class="text-sm text-red-700 dark:text-red-400">
-            Are you sure you want to delete <strong>{{ selectedRole?.RoleName }}</strong>?
-          </p>
-        </div>
-      </div>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showDeleteRoleModal = false"
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="danger"
-          @click="handleDeleteRole"
-        >
-          Delete
-        </Button>
-      </template>
-    </Modal>
+      @confirm="handleDeleteRole"
+    />
 
     <!-- Role Policies Modal -->
-    <Modal
+    <IAMRolePoliciesModal
       :open="showRolePoliciesModal"
-      title="Attached Policies"
-      size="lg"
+      :role-name="selectedRole?.RoleName || ''"
+      :policies="rolePolicies"
       @update:open="showRolePoliciesModal = $event"
-    >
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="text-sm font-medium text-light-text dark:text-dark-text">
-            Policies for {{ selectedRole?.RoleName }}
-          </h3>
-          <Button
-            variant="primary"
-            size="sm"
-            @click="openAttachPolicy"
-          >
-            <template #icon-left>
-              <PlusCircleIcon class="h-4 w-4" />
-            </template>
-            Attach Policy
-          </Button>
-        </div>
-
-        <EmptyState
-          v-if="rolePolicies.length === 0"
-          icon="key"
-          title="No attached policies"
-          description="Attach a policy to this role"
-          compact
-        />
-
-        <div
-          v-else
-          class="space-y-2"
-        >
-          <div
-            v-for="policy in rolePolicies"
-            :key="policy.PolicyArn"
-            class="flex items-center justify-between p-3 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg"
-          >
-            <div>
-              <p class="text-sm text-light-text dark:text-dark-text">
-                {{ policy.PolicyName }}
-              </p>
-              <p class="text-xs text-light-muted dark:text-dark-muted font-mono truncate">
-                {{ policy.PolicyArn }}
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              @click="handleDetachPolicy(policy.PolicyArn)"
-            >
-              <template #icon-left>
-                <MinusCircleIcon class="h-4 w-4" />
-              </template>
-            </Button>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showRolePoliciesModal = false"
-        >
-          Close
-        </Button>
-      </template>
-    </Modal>
+      @open-attach="openAttachPolicy"
+      @detach-policy="handleDetachPolicy"
+    />
 
     <!-- Attach Policy Modal -->
-    <Modal
+    <IAMAttachPolicyModal
       :open="showAttachPolicyModal"
-      title="Attach Policy to Role"
-      size="lg"
+      :policies="allPolicies"
       @update:open="showAttachPolicyModal = $event"
-      @open="loadAllPolicies"
-    >
-      <div class="space-y-3">
-        <EmptyState
-          v-if="allPolicies.length === 0"
-          icon="key"
-          title="No policies available"
-          description="No policies found"
-          compact
-        />
-        <div
-          v-else
-          class="max-h-96 overflow-auto"
-        >
-          <div
-            v-for="policy in allPolicies"
-            :key="policy.Arn"
-            class="flex items-center justify-between p-3 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg mb-2"
-          >
-            <div>
-              <p class="text-sm text-light-text dark:text-dark-text">
-                {{ policy.PolicyName }}
-              </p>
-              <p class="text-xs text-light-muted dark:text-dark-muted">
-                {{ policy.Arn }}
-              </p>
-            </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              @click="handleAttachPolicy(policy.Arn)"
-            >
-              Attach
-            </Button>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showAttachPolicyModal = false"
-        >
-          Cancel
-        </Button>
-      </template>
-    </Modal>
+      @attach="handleAttachPolicy"
+    />
 
     <!-- Policy Details Modal -->
-    <Modal
+    <IAMPolicyDetailsModal
       :open="showPolicyModal"
-      title="Policy Details"
-      size="xl"
+      :policy="selectedPolicy"
       @update:open="showPolicyModal = $event"
-    >
-      <div
-        v-if="selectedPolicy"
-        class="space-y-4"
-      >
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Name</label>
-            <p class="text-sm text-light-text dark:text-dark-text">
-              {{ selectedPolicy.PolicyName }}
-            </p>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">ARN</label>
-            <p class="text-sm text-light-text dark:text-dark-text font-mono">
-              {{ selectedPolicy.Arn }}
-            </p>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">ID</label>
-            <p class="text-sm text-light-text dark:text-dark-text">
-              {{ selectedPolicy.PolicyId }}
-            </p>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Attachments</label>
-            <p class="text-sm text-light-text dark:text-dark-text">
-              {{ selectedPolicy.AttachmentCount }}
-            </p>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showPolicyModal = false"
-        >
-          Close
-        </Button>
-      </template>
-    </Modal>
+    />
 
     <!-- Delete Policy Confirmation -->
-    <ConfirmModal
-      v-model:open="showDeletePolicyModal"
-      title="Delete Policy"
-      :message="`Are you sure you want to delete policy '${selectedPolicy?.PolicyName}'? This action cannot be undone.`"
-      confirm-text="Delete"
+    <IAMDeletePolicyModal
+      :open="showDeletePolicyModal"
+      :policy-name="selectedPolicy?.PolicyName || ''"
+      @update:open="showDeletePolicyModal = $event"
       @confirm="handleDeletePolicy"
     />
 
     <!-- Detach Policy Confirmation -->
-    <ConfirmModal
-      v-model:open="showDetachPolicyModal"
-      title="Detach Policy"
-      :message="`Are you sure you want to detach policy '${policyToDetach?.policyName}' from role '${policyToDetach?.roleName}'?`"
-      confirm-text="Detach"
+    <IAMDetachPolicyModal
+      :open="showDetachPolicyModal"
+      :policy-name="policyToDetach?.policyName || ''"
+      :role-name="policyToDetach?.roleName || ''"
+      @update:open="showDetachPolicyModal = $event"
       @confirm="handleDetachPolicy"
     />
 
     <!-- Delete Access Key Confirmation -->
-    <ConfirmModal
-      v-model:open="showDeleteKeyModal"
-      title="Delete Access Key"
-      :message="`Are you sure you want to delete access key '${keyToDelete?.accessKeyId}'? This action cannot be undone.`"
-      confirm-text="Delete"
+    <IAMDeleteAccessKeyModal
+      :open="showDeleteKeyModal"
+      :access-key-id="keyToDelete?.accessKeyId || ''"
+      @update:open="showDeleteKeyModal = $event"
       @confirm="handleDeleteAccessKeyConfirm"
     />
 
     <!-- Create Policy Modal -->
-    <Modal
+    <IAMCreatePolicyModal
       :open="showCreatePolicyModal"
-      title="Create Policy"
-      size="lg"
       @update:open="showCreatePolicyModal = $event"
-    >
-      <div class="space-y-4">
-        <FormInput
-          v-model="newPolicy.PolicyName"
-          label="Policy Name"
-          placeholder="MyPolicy"
-        />
-        <div>
-          <label class="block text-sm font-medium mb-1 text-light-text dark:text-dark-text">
-            Policy Document (JSON)
-          </label>
-          <textarea
-            v-model="newPolicy.PolicyDocument"
-            rows="10"
-            class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border font-mono text-sm"
-            placeholder="{&quot;Version&quot;: &quot;2012-10-17&quot;, &quot;Statement&quot;: [{&quot;Effect&quot;: &quot;Allow&quot;, &quot;Action&quot;: [&quot;s3:GetObject&quot;], &quot;Resource&quot;: &quot;*&quot;}]}"
-          />
-          <p class="text-xs text-light-muted dark:text-dark-muted mt-1">
-            Enter the IAM policy JSON document
-          </p>
-        </div>
-        <FormInput
-          v-model="newPolicy.Description"
-          label="Description (optional)"
-          placeholder="My custom policy"
-        />
-      </div>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showCreatePolicyModal = false"
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          :loading="creatingPolicy"
-          @click="handleCreatePolicy"
-        >
-          Create Policy
-        </Button>
-      </template>
-    </Modal>
+      @create="handleCreatePolicy"
+    />
 
     <!-- Add User to Group Modal -->
-    <Modal
+    <IAMAddUserToGroupModal
+      v-model:selected-user="selectedUserToAdd"
       :open="showAddUserToGroupModal"
-      title="Add User to Group"
-      size="md"
+      :group-name="selectedGroup?.GroupName || ''"
+      :users="availableUsersForGroup"
+      :loading="addingUserToGroup"
       @update:open="showAddUserToGroupModal = $event"
-    >
-      <div class="space-y-4">
-        <p class="text-sm text-light-muted dark:text-dark-muted">
-          Select a user to add to group "{{ selectedGroup?.GroupName }}"
-        </p>
-        <select
-          v-model="selectedUserToAdd"
-          class="w-full px-3 py-2 rounded-lg border bg-light-input dark:bg-dark-input border-light-border dark:border-dark-border"
-        >
-          <option value="">
-            Select a user...
-          </option>
-          <option
-            v-for="user in availableUsersForGroup"
-            :key="user.UserName"
-            :value="user.UserName"
-          >
-            {{ user.UserName }}
-          </option>
-        </select>
-      </div>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showAddUserToGroupModal = false"
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          :loading="addingUserToGroup"
-          :disabled="!selectedUserToAdd"
-          @click="handleAddUserToGroupFromList(selectedGroup?.GroupName || '')"
-        >
-          Add User
-        </Button>
-      </template>
-    </Modal>
+      @add="handleAddUserToGroupFromList(selectedGroup?.GroupName || '')"
+    />
 
     <!-- Group Users Modal -->
-    <Modal
+    <IAMGroupUsersModal
       :open="showGroupUsersModal"
-      title="Group Users"
-      size="lg"
+      :group-name="selectedGroup?.GroupName || ''"
+      :users="groupUsers"
+      :available-users="availableUsersForGroup"
       @update:open="showGroupUsersModal = $event"
-    >
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="text-sm font-medium text-light-text dark:text-dark-text">
-            Users in {{ selectedGroup?.GroupName }}
-          </h3>
-          <Button
-            v-if="availableUsersForGroup.length > 0"
-            variant="primary"
-            size="sm"
-            @click="showAddUserToGroupModal = true"
-          >
-            <template #icon-left>
-              <PlusIcon class="h-4 w-4" />
-            </template>
-            Add User
-          </Button>
-        </div>
-        <EmptyState
-          v-if="groupUsers.length === 0"
-          icon="user"
-          title="No users"
-          description="This group has no users"
-          compact
-        />
-        <div
-          v-else
-          class="space-y-2"
-        >
-          <div
-            v-for="user in groupUsers"
-            :key="user.UserName"
-            class="flex items-center justify-between p-3 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg"
-          >
-            <div>
-              <p class="text-sm text-light-text dark:text-dark-text">
-                {{ user.UserName }}
-              </p>
-              <p class="text-xs text-light-muted dark:text-dark-muted">
-                {{ user.Arn }}
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              :loading="removingUserFromGroup"
-              @click="openRemoveUserModal(selectedGroup?.GroupName || '', user.UserName)"
-            >
-              <template #icon-left>
-                <TrashIcon class="h-4 w-4" />
-              </template>
-            </Button>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showGroupUsersModal = false"
-        >
-          Close
-        </Button>
-      </template>
-    </Modal>
+      @add-user="showAddUserToGroupModal = true"
+      @remove-user="openRemoveUserModal(selectedGroup?.GroupName || '', $event)"
+    />
 
     <!-- Remove User from Group Confirmation -->
-    <ConfirmModal
-      v-model:open="showRemoveUserModal"
-      title="Remove User from Group"
-      :message="`Are you sure you want to remove user '${userToRemove?.userName}' from group '${userToRemove?.groupName}'? This action cannot be undone.`"
-      confirm-text="Remove"
+    <IAMRemoveUserFromGroupModal
+      :open="showRemoveUserModal"
+      :user-name="userToRemove?.userName || ''"
+      :group-name="userToRemove?.groupName || ''"
+      @update:open="showRemoveUserModal = $event"
       @confirm="handleRemoveUserFromGroup"
     />
 
     <!-- Create Group Modal -->
-    <Modal
+    <IAMCreateGroupModal
       :open="showCreateGroupModal"
-      title="Create Group"
-      size="md"
       @update:open="showCreateGroupModal = $event"
-    >
-      <div class="space-y-4">
-        <FormInput
-          v-model="newGroup.GroupName"
-          label="Group Name"
-          placeholder="my-group"
-          required
-        />
-        <FormInput
-          v-model="newGroup.Path"
-          label="Path (optional)"
-          placeholder="/"
-          help-text="The path for the group"
-        />
-      </div>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showCreateGroupModal = false"
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          @click="handleCreateGroup"
-        >
-          Create
-        </Button>
-      </template>
-    </Modal>
+      @create="handleCreateGroup"
+    />
 
     <!-- Delete Group Confirmation -->
-    <ConfirmModal
-      v-model:open="showDeleteGroupModal"
-      title="Delete Group"
-      :message="`Are you sure you want to delete group '${groupToDelete?.GroupName}'? This action cannot be undone.`"
-      confirm-text="Delete"
+    <IAMDeleteGroupModal
+      :open="showDeleteGroupModal"
+      :group-name="groupToDelete?.GroupName || ''"
+      @update:open="showDeleteGroupModal = $event"
       @confirm="handleDeleteGroup"
     />
   </div>
