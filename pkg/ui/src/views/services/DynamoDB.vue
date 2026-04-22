@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
-import { TableCellsIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
+import { TableCellsIcon, ChevronDownIcon, ChevronRightIcon, MagnifyingGlassCircleIcon } from '@heroicons/vue/24/outline'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
@@ -1056,10 +1056,11 @@ watch(reloadTrigger, () => {
             >
               <div class="flex items-center justify-end gap-2">
                 <button
-                  class="px-3 py-1 text-sm text-green-500 hover:text-green-700 border border-green-500 rounded hover:bg-green-50"
+                  class="p-2 text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border rounded"
+                  title="Explore Data"
                   @click="exploreTable(table)"
                 >
-                  Explore Data
+                  <MagnifyingGlassCircleIcon class="w-4 h-4" />
                 </button>
                 <button
                   class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
