@@ -1047,11 +1047,6 @@ watch(reloadTrigger, () => {
             @click="toggleTableExpansion(table)"
           >
             <div class="col-span-8 flex items-center gap-2">
-              <component
-                :is="expandedTables.has(table) ? ChevronDownIcon : ChevronRightIcon"
-                class="h-5 w-5"
-                :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-              />
               <TableCellsIcon class="h-5 w-5 text-primary-500" />
               <span class="font-medium text-light-text dark:text-dark-text">{{ table }}</span>
             </div>
@@ -1085,6 +1080,11 @@ watch(reloadTrigger, () => {
                     />
                   </svg>
                 </button>
+                <component
+                  :is="expandedTables.has(table) ? ChevronDownIcon : ChevronRightIcon"
+                  class="h-5 w-5 transition-transform"
+                  :class="expandedTables.has(table) ? 'rotate-90' : ''"
+                />
               </div>
             </div>
           </div>

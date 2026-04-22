@@ -569,27 +569,13 @@ function copyToClipboard(text: string) {
             :class="settingsStore.darkMode ? 'bg-dark-surface' : 'bg-light-surface'"
             @click="toggleKeyExpansion(key.KeyId)"
           >
-            <div class="col-span-5 flex items-center gap-2">
-              <svg
-                class="w-5 h-5 text-amber-500 transition-transform"
-                :class="{ 'rotate-90': expandedKeys.has(key.KeyId) }"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+            <div class="col-span-8 flex items-center gap-2">
               <div class="p-1 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
                 <KeyIcon class="h-4 w-4" />
               </div>
               <span class="font-medium text-light-text dark:text-dark-text">{{ key.KeyId }}</span>
             </div>
-            <div class="col-span-5">
+            <div class="col-span-2">
               <StatusBadge 
                 :status="key.keyMetadata?.KeyState === 'Enabled' ? 'active' : key.keyMetadata?.KeyState === 'PendingDeletion' ? 'pending' : 'inactive'" 
                 :label="getKeyStatusLabel(key.keyMetadata?.KeyState || '')" 
@@ -657,6 +643,20 @@ function copyToClipboard(text: string) {
                     />
                   </svg>
                 </button>
+                <svg
+                  class="w-5 h-5 transition-transform"
+                  :class="{ 'rotate-90': expandedKeys.has(key.KeyId) }"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
               </div>
             </div>
           </div>

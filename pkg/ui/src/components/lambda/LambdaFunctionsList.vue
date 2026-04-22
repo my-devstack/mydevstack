@@ -174,22 +174,7 @@ defineExpose({ updateInvokeResult })
         :class="{ 'border-b': isExpanded(func.FunctionName), 'border-dark-border': settingsStore.darkMode, 'border-light-border': !settingsStore.darkMode }"
         @click="toggleFunctionExpansion(func.FunctionName)"
       >
-        <div class="w-8 flex-shrink-0 flex items-center justify-center">
-          <svg
-            class="w-5 h-5 transition-transform text-light-muted dark:text-dark-muted"
-            :class="{ 'rotate-90': isExpanded(func.FunctionName) }"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </div>
+        <div class="w-8 flex-shrink-0" />
         <div class="flex-1 min-w-[100px] font-medium text-light-text dark:text-dark-text truncate">
           {{ func.FunctionName }}
         </div>
@@ -225,6 +210,20 @@ defineExpose({ updateInvokeResult })
               />
             </svg>
           </button>
+          <svg
+            class="w-5 h-5 transition-transform"
+            :class="{ 'rotate-90': isExpanded(func.FunctionName) }"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
         </div>
       </div>
 

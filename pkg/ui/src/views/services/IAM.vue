@@ -249,6 +249,8 @@ async function handleCreateAccessKey() {
       SecretAccessKey: accessKey.SecretAccessKey,
     }
     await loadUserAccessKeys()
+    const keysResult = await listAccessKeys(selectedUser.value.UserName)
+    userAccessKeysMap.value[selectedUser.value.UserName] = keysResult.AccessKeyMetadata || []
   } catch (error) {
     uiStore.notifyError('Failed to create access key', error instanceof Error ? error.message : 'Unknown error')
   }
@@ -833,11 +835,15 @@ watch(reloadTrigger, () => {
               <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">User ID</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">{{ user.UserId }}</p>
+                  <p class="text-sm text-light-text dark:text-dark-text">
+                    {{ user.UserId }}
+                  </p>
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Created</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">{{ formatDate(user.CreateDate) }}</p>
+                  <p class="text-sm text-light-text dark:text-dark-text">
+                    {{ formatDate(user.CreateDate) }}
+                  </p>
                 </div>
               </div>
               <div class="flex items-center justify-between mb-3">
@@ -870,7 +876,9 @@ watch(reloadTrigger, () => {
                   class="flex items-center justify-between p-2 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg"
                 >
                   <div>
-                    <p class="text-sm text-light-text dark:text-dark-text">{{ key.AccessKeyId }}</p>
+                    <p class="text-sm text-light-text dark:text-dark-text">
+                      {{ key.AccessKeyId }}
+                    </p>
                     <p class="text-xs text-light-muted dark:text-dark-muted">
                       Status: {{ key.Status }}
                     </p>
@@ -958,11 +966,15 @@ watch(reloadTrigger, () => {
               <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Role ID</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">{{ role.RoleId }}</p>
+                  <p class="text-sm text-light-text dark:text-dark-text">
+                    {{ role.RoleId }}
+                  </p>
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Created</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">{{ formatDate(role.CreateDate) }}</p>
+                  <p class="text-sm text-light-text dark:text-dark-text">
+                    {{ formatDate(role.CreateDate) }}
+                  </p>
                 </div>
               </div>
               <div class="flex items-center justify-between mb-3">
@@ -995,18 +1007,22 @@ watch(reloadTrigger, () => {
                   class="flex items-center justify-between p-2 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg"
                 >
                   <div>
-                    <p class="text-sm text-light-text dark:text-dark-text">{{ policy.PolicyName }}</p>
-                    <p class="text-xs text-light-muted dark:text-dark-muted font-mono truncate">{{ policy.PolicyArn }}</p>
+                    <p class="text-sm text-light-text dark:text-dark-text">
+                      {{ policy.PolicyName }}
+                    </p>
+                    <p class="text-xs text-light-muted dark:text-dark-muted font-mono truncate">
+                      {{ policy.PolicyArn }}
+                    </p>
                   </div>
-<Button
-                      variant="ghost"
-                      size="sm"
-                      @click.stop="openDetachPolicyModal(role.RoleName, policy.PolicyArn, policy.PolicyName)"
-                    >
-                      <template #icon-left>
-                        <TrashIcon class="h-4 w-4" />
-                      </template>
-                    </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    @click.stop="openDetachPolicyModal(role.RoleName, policy.PolicyArn, policy.PolicyName)"
+                  >
+                    <template #icon-left>
+                      <TrashIcon class="h-4 w-4" />
+                    </template>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1184,19 +1200,27 @@ watch(reloadTrigger, () => {
               <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Name</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">{{ group.GroupName }}</p>
+                  <p class="text-sm text-light-text dark:text-dark-text">
+                    {{ group.GroupName }}
+                  </p>
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">ARN</label>
-                  <p class="text-sm text-light-text dark:text-dark-text font-mono break-all">{{ group.Arn }}</p>
+                  <p class="text-sm text-light-text dark:text-dark-text font-mono break-all">
+                    {{ group.Arn }}
+                  </p>
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Group ID</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">{{ group.GroupId }}</p>
+                  <p class="text-sm text-light-text dark:text-dark-text">
+                    {{ group.GroupId }}
+                  </p>
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Created</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">{{ formatDate(group.CreateDate) }}</p>
+                  <p class="text-sm text-light-text dark:text-dark-text">
+                    {{ formatDate(group.CreateDate) }}
+                  </p>
                 </div>
               </div>
               <div class="flex items-center justify-between mb-3">
@@ -1229,8 +1253,12 @@ watch(reloadTrigger, () => {
                   class="flex items-center justify-between p-2 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg"
                 >
                   <div>
-                    <p class="text-sm text-light-text dark:text-dark-text">{{ user.UserName }}</p>
-                    <p class="text-xs text-light-muted dark:text-dark-muted">{{ user.Arn }}</p>
+                    <p class="text-sm text-light-text dark:text-dark-text">
+                      {{ user.UserName }}
+                    </p>
+                    <p class="text-xs text-light-muted dark:text-dark-muted">
+                      {{ user.Arn }}
+                    </p>
                   </div>
                   <Button
                     variant="ghost"
