@@ -7,11 +7,16 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
 )
 
+type ListUsersForGroupInput = ports.ListUsersForGroupInput
+type ListUsersForGroupOutput = ports.ListUsersForGroupOutput
+
 type IAMAdapter struct {
-	client ports.IAMClientPort
+	client       ports.IAMClientPort
+	directClient *iam.Client
 }
 
 func NewIAMAdapter(awsCfg aws.Config, endpoint string) ports.IAMPort {
@@ -20,7 +25,10 @@ func NewIAMAdapter(awsCfg aws.Config, endpoint string) ports.IAMPort {
 		o.BaseEndpoint = aws.String(endpoint)
 		o.HTTPClient = httpClient
 	})
-	return &IAMAdapter{client: client}
+	return &IAMAdapter{
+		client:       client,
+		directClient: client,
+	}
 }
 
 func (a *IAMAdapter) CreateUser(ctx context.Context, input *iam.CreateUserInput) (*iam.CreateUserOutput, error) {
@@ -63,6 +71,14 @@ func (a *IAMAdapter) GetPolicy(ctx context.Context, input *iam.GetPolicyInput) (
 	return a.client.GetPolicy(ctx, input)
 }
 
+func (a *IAMAdapter) CreatePolicy(ctx context.Context, input *iam.CreatePolicyInput) (*iam.CreatePolicyOutput, error) {
+	return a.client.CreatePolicy(ctx, input)
+}
+
+func (a *IAMAdapter) DeletePolicy(ctx context.Context, input *iam.DeletePolicyInput) (*iam.DeletePolicyOutput, error) {
+	return a.client.DeletePolicy(ctx, input)
+}
+
 func (a *IAMAdapter) CreateAccessKey(ctx context.Context, input *iam.CreateAccessKeyInput) (*iam.CreateAccessKeyOutput, error) {
 	return a.client.CreateAccessKey(ctx, input)
 }
@@ -97,6 +113,20 @@ func (a *IAMAdapter) CreateGroup(ctx context.Context, input *iam.CreateGroupInpu
 
 func (a *IAMAdapter) GetGroup(ctx context.Context, input *iam.GetGroupInput) (*iam.GetGroupOutput, error) {
 	return a.client.GetGroup(ctx, input)
+}
+
+func (a *IAMAdapter) ListUsersForGroup(ctx context.Context, input *ListUsersForGroupInput) (*ListUsersForGroupOutput, error) {
+	output, err := a.client.GetGroup(ctx, &iam.GetGroupInput{GroupName: input.GroupName})
+	if err != nil {
+		return nil, err
+	}
+	users := make([]types.User, len(output.Users))
+	copy(users, output.Users)
+	return &ListUsersForGroupOutput{
+		Users:       users,
+		IsTruncated: output.IsTruncated,
+		Marker:      output.Marker,
+	}, nil
 }
 
 func (a *IAMAdapter) ListGroups(ctx context.Context, input *iam.ListGroupsInput) (*iam.ListGroupsOutput, error) {

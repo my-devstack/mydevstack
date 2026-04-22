@@ -424,22 +424,14 @@ watch(reloadTrigger, () => {
             @click="toggleQueueExpansion(queue.url)"
           >
             <div class="col-span-10 flex items-center gap-2">
-              <component
-                :is="expandedQueues.has(queue.url) ? ChevronDownIcon : ChevronRightIcon"
-                class="h-5 w-5"
-                :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-              />
               <QueueListIcon class="h-5 w-5 text-primary-500" />
               <span class="font-medium text-light-text dark:text-dark-text">{{ queue.name }}</span>
             </div>
-            <div
-              class="col-span-2 text-right"
-              @click.stop
-            >
+            <div class="col-span-2 flex items-center justify-end gap-2">
               <button
                 class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
                 title="Delete"
-                @click="openDeleteModal(queue.url)"
+                @click.stop="openDeleteModal(queue.url)"
               >
                 <svg
                   class="w-4 h-4"
@@ -455,6 +447,10 @@ watch(reloadTrigger, () => {
                   />
                 </svg>
               </button>
+              <ChevronRightIcon
+                class="h-5 w-5 transition-transform"
+                :class="expandedQueues.has(queue.url) ? 'rotate-90' : ''"
+              />
             </div>
           </div>
           

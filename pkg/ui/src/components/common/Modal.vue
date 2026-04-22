@@ -28,6 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'update:open': [value: boolean]
   close: []
+  open: [value: boolean]
 }>()
 
 const modalRef = ref<HTMLElement | null>(null)
@@ -124,10 +125,12 @@ watch(
       document.body.style.overflow = 'hidden'
       setupFocusTrap()
       document.addEventListener('keydown', handleKeydown)
+      emit('open', true)
     } else {
       document.body.style.overflow = ''
       restoreFocus()
       document.removeEventListener('keydown', handleKeydown)
+      emit('open', false)
     }
   }
 )

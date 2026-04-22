@@ -226,9 +226,11 @@ export async function listGroupsForUser(UserName: string): Promise<{ Groups: IAM
 }
 
 export async function listUsersForGroup(GroupName: string): Promise<{ Users: any[]; IsTruncated: boolean }> {
-  // Note: This operation is not available in AWS SDK v2 Go
-  // Return empty response for now
-  return { Users: [], IsTruncated: false }
+  const result = await iamRequest('GetGroup', { GroupName })
+  return {
+    Users: result.Users || [],
+    IsTruncated: result.IsTruncated || false,
+  }
 }
 
 // Inline policy operations
@@ -242,4 +244,18 @@ export async function listRolePolicies(RoleName: string): Promise<any> {
 
 export async function getRolePolicy(RoleName: string, PolicyName: string): Promise<any> {
   return iamRequest('GetRolePolicy', { RoleName, PolicyName })
+}
+
+export async function deletePolicy(PolicyArn: string): Promise<void> {
+  return iamRequest('DeletePolicy', { PolicyArn })
+}
+
+export interface CreatePolicyInput {
+  PolicyName: string
+  PolicyDocument: string
+  Description?: string
+}
+
+export async function createPolicy(input: CreatePolicyInput): Promise<any> {
+  return iamRequest('CreatePolicy', input)
 }

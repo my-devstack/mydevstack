@@ -35,6 +35,10 @@ func (h *ProxyHandler) handleIAM(c *gin.Context) {
 		h.listPolicies(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "GetPolicy"):
 		h.getPolicy(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "DeletePolicy"):
+		h.deletePolicy(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "CreatePolicy"):
+		h.createPolicy(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "CreateAccessKey"):
 		h.createAccessKey(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "ListAccessKeys"):
@@ -63,6 +67,8 @@ func (h *ProxyHandler) handleIAM(c *gin.Context) {
 		h.removeUserFromGroup(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "ListGroupsForUser"):
 		h.listGroupsForUser(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "ListUsersForGroup"):
+		h.listUsersForGroup(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "ListUserPolicies"):
 		h.listUserPolicies(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "ListRolePolicies"):
@@ -209,6 +215,34 @@ func (h *ProxyHandler) getPolicy(ctx context.Context, c *gin.Context, bodyBytes 
 	result, err := h.svc.IAM().GetPolicy(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get policy", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) createPolicy(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &iam.CreatePolicyInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.IAM().CreatePolicy(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to create policy", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) deletePolicy(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &iam.DeletePolicyInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.IAM().DeletePolicy(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to delete policy", err)
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -408,6 +442,24 @@ func (h *ProxyHandler) listGroupsForUser(ctx context.Context, c *gin.Context, bo
 		return
 	}
 	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) listUsersForGroup(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &iam.GetGroupInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.IAM().GetGroup(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to get group", err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"Users":       result.Users,
+		"IsTruncated": result.IsTruncated,
+		"Marker":      result.Marker,
+	})
 }
 
 func (h *ProxyHandler) listUserPolicies(ctx context.Context, c *gin.Context, bodyBytes []byte) {

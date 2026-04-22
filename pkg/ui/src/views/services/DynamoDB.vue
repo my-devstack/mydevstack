@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
-import { TableCellsIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
+import { TableCellsIcon, ChevronDownIcon, ChevronRightIcon, MagnifyingGlassCircleIcon } from '@heroicons/vue/24/outline'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
@@ -1047,11 +1047,6 @@ watch(reloadTrigger, () => {
             @click="toggleTableExpansion(table)"
           >
             <div class="col-span-8 flex items-center gap-2">
-              <component
-                :is="expandedTables.has(table) ? ChevronDownIcon : ChevronRightIcon"
-                class="h-5 w-5"
-                :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-              />
               <TableCellsIcon class="h-5 w-5 text-primary-500" />
               <span class="font-medium text-light-text dark:text-dark-text">{{ table }}</span>
             </div>
@@ -1061,10 +1056,11 @@ watch(reloadTrigger, () => {
             >
               <div class="flex items-center justify-end gap-2">
                 <button
-                  class="px-3 py-1 text-sm text-green-500 hover:text-green-700 border border-green-500 rounded hover:bg-green-50"
+                  class="p-2 text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border rounded"
+                  title="Explore Data"
                   @click="exploreTable(table)"
                 >
-                  Explore Data
+                  <MagnifyingGlassCircleIcon class="w-4 h-4" />
                 </button>
                 <button
                   class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
@@ -1085,6 +1081,11 @@ watch(reloadTrigger, () => {
                     />
                   </svg>
                 </button>
+                <component
+                  :is="expandedTables.has(table) ? ChevronDownIcon : ChevronRightIcon"
+                  class="h-5 w-5 transition-transform"
+                  :class="expandedTables.has(table) ? 'rotate-90' : ''"
+                />
               </div>
             </div>
           </div>

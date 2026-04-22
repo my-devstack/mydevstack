@@ -42,7 +42,7 @@ COPY --from=builder-proxy /mydevstack-proxy /usr/local/bin/mydevstack-proxy
 # Copy frontend dist from builder-frontend
 COPY --from=builder-frontend /build/ui/pkg/ui/dist /usr/share/nginx/html
 
-RUN echo "VERSION=$VERSION" >> /usr/share/nginx/html/VERSION
+RUN echo "$VERSION" >> /usr/share/nginx/html/VERSION
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf

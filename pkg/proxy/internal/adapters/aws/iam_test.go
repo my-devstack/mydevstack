@@ -254,3 +254,54 @@ func TestIAMAdapter_DeleteGroup(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedOutput, output)
 }
+
+func TestIAMAdapter_DeletePolicy(t *testing.T) {
+	mockClient := iammocks.NewIAMClientPort(t)
+	ctx := context.Background()
+	input := &iam.DeletePolicyInput{PolicyArn: aws.String("arn:aws:iam::123456789:policy/test-policy")}
+	expectedOutput := &iam.DeletePolicyOutput{}
+
+	mockClient.EXPECT().DeletePolicy(ctx, input).Return(expectedOutput, nil)
+	adapter := &IAMAdapter{client: mockClient}
+
+	output, err := adapter.DeletePolicy(ctx, input)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestIAMAdapter_CreatePolicy(t *testing.T) {
+	mockClient := iammocks.NewIAMClientPort(t)
+	ctx := context.Background()
+	input := &iam.CreatePolicyInput{
+		PolicyName:     aws.String("test-policy"),
+		PolicyDocument: aws.String(`{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:*","Resource":"*"}]}`),
+		Description:    aws.String("Test policy"),
+	}
+	expectedOutput := &iam.CreatePolicyOutput{Policy: &types.Policy{PolicyName: aws.String("test-policy")}}
+
+	mockClient.EXPECT().CreatePolicy(ctx, input).Return(expectedOutput, nil)
+	adapter := &IAMAdapter{client: mockClient}
+
+	output, err := adapter.CreatePolicy(ctx, input)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestIAMAdapter_ListUsersForGroup(t *testing.T) {
+	mockClient := iammocks.NewIAMClientPort(t)
+	ctx := context.Background()
+	input := &ListUsersForGroupInput{GroupName: aws.String("test-group")}
+	expectedOutput := &iam.GetGroupOutput{
+		Group:       &types.Group{GroupName: aws.String("test-group")},
+		Users:       []types.User{{UserName: aws.String("user1")}},
+		IsTruncated: false,
+	}
+
+	mockClient.EXPECT().GetGroup(ctx, &iam.GetGroupInput{GroupName: input.GroupName}).Return(expectedOutput, nil)
+	adapter := &IAMAdapter{client: mockClient}
+
+	output, err := adapter.ListUsersForGroup(ctx, input)
+	assert.NoError(t, err)
+	assert.Len(t, output.Users, 1)
+	assert.Equal(t, "user1", *output.Users[0].UserName)
+}

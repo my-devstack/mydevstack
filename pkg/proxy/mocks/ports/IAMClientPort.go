@@ -370,6 +370,89 @@ func (_c *IAMClientPort_CreateGroup_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// CreatePolicy provides a mock function for the type IAMClientPort
+func (_mock *IAMClientPort) CreatePolicy(ctx context.Context, input *iam.CreatePolicyInput, opts ...func(*iam.Options)) (*iam.CreatePolicyOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreatePolicy")
+	}
+
+	var r0 *iam.CreatePolicyOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *iam.CreatePolicyInput, ...func(*iam.Options)) (*iam.CreatePolicyOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *iam.CreatePolicyInput, ...func(*iam.Options)) *iam.CreatePolicyOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.CreatePolicyOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *iam.CreatePolicyInput, ...func(*iam.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// IAMClientPort_CreatePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreatePolicy'
+type IAMClientPort_CreatePolicy_Call struct {
+	*mock.Call
+}
+
+// CreatePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *iam.CreatePolicyInput
+//   - opts ...func(*iam.Options)
+func (_e *IAMClientPort_Expecter) CreatePolicy(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_CreatePolicy_Call {
+	return &IAMClientPort_CreatePolicy_Call{Call: _e.mock.On("CreatePolicy",
+		append([]interface{}{ctx, input}, opts...)...)}
+}
+
+func (_c *IAMClientPort_CreatePolicy_Call) Run(run func(ctx context.Context, input *iam.CreatePolicyInput, opts ...func(*iam.Options))) *IAMClientPort_CreatePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *iam.CreatePolicyInput
+		if args[1] != nil {
+			arg1 = args[1].(*iam.CreatePolicyInput)
+		}
+		var arg2 []func(*iam.Options)
+		var variadicArgs []func(*iam.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*iam.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *IAMClientPort_CreatePolicy_Call) Return(createPolicyOutput *iam.CreatePolicyOutput, err error) *IAMClientPort_CreatePolicy_Call {
+	_c.Call.Return(createPolicyOutput, err)
+	return _c
+}
+
+func (_c *IAMClientPort_CreatePolicy_Call) RunAndReturn(run func(ctx context.Context, input *iam.CreatePolicyInput, opts ...func(*iam.Options)) (*iam.CreatePolicyOutput, error)) *IAMClientPort_CreatePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateRole provides a mock function for the type IAMClientPort
 func (_mock *IAMClientPort) CreateRole(ctx context.Context, input *iam.CreateRoleInput, opts ...func(*iam.Options)) (*iam.CreateRoleOutput, error) {
 	var tmpRet mock.Arguments
@@ -698,6 +781,89 @@ func (_c *IAMClientPort_DeleteGroup_Call) Return(deleteGroupOutput *iam.DeleteGr
 }
 
 func (_c *IAMClientPort_DeleteGroup_Call) RunAndReturn(run func(ctx context.Context, input *iam.DeleteGroupInput, opts ...func(*iam.Options)) (*iam.DeleteGroupOutput, error)) *IAMClientPort_DeleteGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeletePolicy provides a mock function for the type IAMClientPort
+func (_mock *IAMClientPort) DeletePolicy(ctx context.Context, input *iam.DeletePolicyInput, opts ...func(*iam.Options)) (*iam.DeletePolicyOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePolicy")
+	}
+
+	var r0 *iam.DeletePolicyOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *iam.DeletePolicyInput, ...func(*iam.Options)) (*iam.DeletePolicyOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *iam.DeletePolicyInput, ...func(*iam.Options)) *iam.DeletePolicyOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.DeletePolicyOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *iam.DeletePolicyInput, ...func(*iam.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// IAMClientPort_DeletePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePolicy'
+type IAMClientPort_DeletePolicy_Call struct {
+	*mock.Call
+}
+
+// DeletePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *iam.DeletePolicyInput
+//   - opts ...func(*iam.Options)
+func (_e *IAMClientPort_Expecter) DeletePolicy(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_DeletePolicy_Call {
+	return &IAMClientPort_DeletePolicy_Call{Call: _e.mock.On("DeletePolicy",
+		append([]interface{}{ctx, input}, opts...)...)}
+}
+
+func (_c *IAMClientPort_DeletePolicy_Call) Run(run func(ctx context.Context, input *iam.DeletePolicyInput, opts ...func(*iam.Options))) *IAMClientPort_DeletePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *iam.DeletePolicyInput
+		if args[1] != nil {
+			arg1 = args[1].(*iam.DeletePolicyInput)
+		}
+		var arg2 []func(*iam.Options)
+		var variadicArgs []func(*iam.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*iam.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *IAMClientPort_DeletePolicy_Call) Return(deletePolicyOutput *iam.DeletePolicyOutput, err error) *IAMClientPort_DeletePolicy_Call {
+	_c.Call.Return(deletePolicyOutput, err)
+	return _c
+}
+
+func (_c *IAMClientPort_DeletePolicy_Call) RunAndReturn(run func(ctx context.Context, input *iam.DeletePolicyInput, opts ...func(*iam.Options)) (*iam.DeletePolicyOutput, error)) *IAMClientPort_DeletePolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -11,6 +11,8 @@ services:
       AWS_ENDPOINT: http://ministack:4566
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
+      PROXY_PORT: 8081
+      EMULATOR: MINISTACK
     # volumes:
       # Optional: override nginx config
       # - ./nginx.conf:/etc/nginx/nginx.conf:ro
