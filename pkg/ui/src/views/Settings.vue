@@ -60,22 +60,7 @@ const regions = [
 // Tab definitions
 const tabs = [
   { id: 'advanced', label: 'Advanced' },
-  { id: 'shortcuts', label: 'Shortcuts' },
   { id: 'about', label: 'About' },
-]
-
-// Keyboard shortcuts
-const keyboardShortcuts = [
-  { keys: 'Ctrl + K', action: 'Open search' },
-  { keys: 'Ctrl + /', action: 'Show shortcuts' },
-  { keys: 'Ctrl + S', action: 'Save settings' },
-  { keys: 'Ctrl + ,', action: 'Open settings' },
-  { keys: 'Ctrl + B', action: 'Toggle sidebar' },
-  { keys: 'Ctrl + D', action: 'Toggle dark mode' },
-  { keys: 'Esc', action: 'Close modal/dialog' },
-  { keys: 'Enter', action: 'Confirm action' },
-  { keys: '↑ / ↓', action: 'Navigate list' },
-  { keys: 'Ctrl + R', action: 'Refresh data' },
 ]
 
 // Save advanced settings
@@ -242,45 +227,6 @@ const clearLocalStorage = () => {
         >
           Clear All Settings
         </button>
-      </div>
-    </div>
-
-    <!-- Shortcuts Tab -->
-    <div
-      v-if="activeTab === 'shortcuts'"
-      class="space-y-6"
-    >
-      <div
-        class="rounded-lg border p-6"
-        :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border' : 'bg-light-surface border-light-border'"
-      >
-        <h2
-          class="text-lg font-semibold mb-4"
-          :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-        >
-          Keyboard Shortcuts
-        </h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div 
-            v-for="shortcut in keyboardShortcuts" 
-            :key="shortcut.keys"
-            class="flex items-center justify-between py-2"
-          >
-            <span
-              :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-              class="text-sm"
-            >
-              {{ shortcut.action }}
-            </span>
-            <kbd
-              class="px-2 py-1 bg-gray-100 dark:bg-dark-bg rounded text-xs font-mono"
-              :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-            >
-              {{ shortcut.keys }}
-            </kbd>
-          </div>
-        </div>
       </div>
     </div>
 
