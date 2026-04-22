@@ -76,23 +76,35 @@ async function checkConnection(): Promise<boolean> {
   // Try to get target and region from health endpoint
   let backendTarget = ''
   let backendRegion = ''
+  let backendEmulator = ''
   try {
     const healthResponse = await fetch(`${targetEndpoint}/health`, { method: 'GET' })
     if (healthResponse.ok) {
       const healthData = await healthResponse.json()
       backendTarget = healthData.target || healthData.endpoint_url || ''
       backendRegion = healthData.region || ''
+      backendEmulator = healthData.emulator || ''
     }
   } catch {
     // Ignore - will use default
   }
 
-  // Sync region from backend response
+  // Sync region and emulator from backend response
   if (backendRegion) {
     const settingsStore = useSettingsStore()
     if (settingsStore.region !== backendRegion) {
       settingsStore.setRegion(backendRegion)
     }
+  }
+
+  // Set default region to us-east-1 for MINISTACK emulator
+  if (backendEmulator === 'MINISTACK') {
+    const settingsStore = useSettingsStore()
+    settingsStore.setRegion('us-east-1')
+    settingsStore.setEmulator(backendEmulator)
+  } else if (backendEmulator) {
+    const settingsStore = useSettingsStore()
+    settingsStore.setEmulator(backendEmulator)
   }
 
   for (const strategy of strategies) {

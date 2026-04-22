@@ -16,7 +16,7 @@ import (
 func (h *ProxyHandler) handleElastiCache(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	baseEndpoint := h.svc.Config().AwsEndpoint
+	baseEndpoint := h.svc.Config().AWS.Endpoint
 
 	// Extract operation name from X-Amz-Target (e.g., "elasticache.DescribeCacheClusters" -> "DescribeCacheClusters")
 	operation := strings.Replace(xAmzTarget, "elasticache.", "", 1)

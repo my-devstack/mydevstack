@@ -155,6 +155,7 @@ type APIGatewayPort interface {
 	GetStages(ctx context.Context, input *apigateway.GetStagesInput) (*apigateway.GetStagesOutput, error)
 	UpdateStage(ctx context.Context, input *apigateway.UpdateStageInput) (*apigateway.UpdateStageOutput, error)
 	DeleteStage(ctx context.Context, input *apigateway.DeleteStageInput) (*apigateway.DeleteStageOutput, error)
+	GetInvokeUrl(ctx context.Context, apiId, stageName string) (string, error)
 }
 
 type APIGatewayV2Port interface {
@@ -176,6 +177,7 @@ type APIGatewayV2Port interface {
 	CreateStage(ctx context.Context, input *apigatewayv2.CreateStageInput) (*apigatewayv2.CreateStageOutput, error)
 	UpdateStage(ctx context.Context, input *apigatewayv2.UpdateStageInput) (*apigatewayv2.UpdateStageOutput, error)
 	DeleteStage(ctx context.Context, input *apigatewayv2.DeleteStageInput) (*apigatewayv2.DeleteStageOutput, error)
+	GetInvokeUrl(ctx context.Context, apiId, stageName string) (string, error)
 }
 
 type SSMPort interface {

@@ -14,3 +14,5 @@ node_modules/
 pkg/ui/public/VERSION
 pkg/ui/coverage/
 pkg/ui/test-coverage/
+config.yaml
+.env

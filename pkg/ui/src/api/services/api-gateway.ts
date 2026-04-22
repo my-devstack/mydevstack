@@ -440,6 +440,10 @@ export class APIGatewayService {
   async deleteStageV2(apiId: string, stageName: string): Promise<any> {
     return apiGatewayV2Request('DeleteStage', { ApiId: apiId, StageName: stageName })
   }
+
+  async getInvokeUrl(apiId: string, stageName: string, targetPrefix: string = 'APIGateway'): Promise<any> {
+    return apiGatewayRequest('GetInvokeUrl', { apiId, stageName }, targetPrefix)
+  }
 }
 
 export const apiGatewayService = new APIGatewayService()
@@ -524,5 +528,11 @@ export const updateStage = (apiId: string, stageName: string, options?: any) =>
   apiGatewayService.updateStage(apiId, stageName, options)
 export const deleteStage = (apiId: string, stageName: string) =>
   apiGatewayService.deleteStage(apiId, stageName)
+
+// Get Invoke URL
+export const getRestApiInvokeUrl = (apiId: string, stageName: string) =>
+  apiGatewayService.getInvokeUrl(apiId, stageName, 'APIGateway')
+export const getHttpApiInvokeUrl = (apiId: string, stageName: string) =>
+  apiGatewayService.getInvokeUrl(apiId, stageName, 'ApiGatewayV2')
 
 export default apiGatewayService

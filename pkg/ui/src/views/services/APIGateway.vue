@@ -15,7 +15,6 @@ import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import Tabs from '@/components/common/Tabs.vue'
 import * as apigateway from '@/api/services/api-gateway'
-import { refreshAPIGatewayClient } from '@/api/services/api-gateway'
 import { listFunctions } from '@/api/services/lambda'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import type { APIGatewayRestAPI, APIGatewayResource, APIGatewayMethod } from '@/api/types/aws'
@@ -41,6 +40,7 @@ import APIGatewayEditStageModal from '@/components/apiGateway/APIGatewayEditStag
 import APIGatewayViewDetailsModal from '@/components/apiGateway/APIGatewayViewDetailsModal.vue'
 import APIGatewayViewRestModal from '@/components/apiGateway/APIGatewayViewRestModal.vue'
 import APIGatewaySetupIntegrationModal from '@/components/apiGateway/APIGatewaySetupIntegrationModal.vue'
+import APIGatewayInvokeUrlModal from '@/components/apiGateway/APIGatewayInvokeUrlModal.vue'
 
 const settingsStore = useSettingsStore()
 const uiStore = useUIStore()
@@ -275,6 +275,13 @@ const showCreateDeploymentModal = ref(false)
 const showCreateStageModal = ref(false)
 const showCreateHttpStageModal = ref(false)
 
+// Invoke URL modal state
+const showInvokeUrlModal = ref(false)
+const invokeUrlLoading = ref(false)
+const invokeUrl = ref('')
+const selectedInvokeUrlApi = ref<any>(null)
+const selectedInvokeUrlStage = ref('')
+
 // Edit modals state
 const showEditRouteModal = ref(false)
 const showEditIntegrationModal = ref(false)
@@ -357,6 +364,10 @@ const newRestStageDescription = ref('')
 const newHttpStageName = ref('')
 const newHttpStageDescription = ref('')
 const newHttpStageAutoDeploy = ref(true)
+
+// Invoke URL stages dropdown
+const restStagesForInvoke = ref<any[]>([])
+const httpStagesForInvoke = ref<any[]>([])
 
 // HTTP API Route form state
 const newRouteAuthType = ref('NONE')
@@ -719,7 +730,6 @@ const resourceColumns = computed(() => [
 const httpApiColumns = computed(() => [
   { key: 'name', label: 'Name', sortable: true },
   { key: 'apiId', label: 'API ID', sortable: false },
-  { key: 'apiEndpoint', label: 'Endpoint', sortable: false },
   { key: 'createdDate', label: 'Created', sortable: true },
 ])
 
@@ -1292,9 +1302,6 @@ async function createIntegration(passedIntegrationType?: string, passedUri?: str
   const integrationTypeToUse = passedIntegrationType || httpApiIntegrationType.value
   const uriToUse = passedUri || httpApiIntegrationUri.value
 
-  console.log('[createIntegration] received:', { passedIntegrationType, passedUri, passedPayloadFormat })
-  console.log('[createIntegration] using:', { integrationTypeToUse, uriToUse })
-
   if (!selectedHttpApi.value) {
     toast.error('HTTP API is required')
     return
@@ -1434,13 +1441,95 @@ async function createRestApiStage(passedStageName?: string, passedDeploymentId?:
   }
 }
 
+// Get Invoke URL for REST API
+async function openInvokeUrlModalForRestApi(api: APIGatewayRestAPI) {
+  selectedInvokeUrlApi.value = api
+  selectedInvokeUrlStage.value = ''
+  invokeUrl.value = ''
+  showInvokeUrlModal.value = true
+  
+  try {
+    const response = await apigateway.getStages(api.id)
+    restStagesForInvoke.value = response?.items || []
+    if (restStagesForInvoke.value.length > 0) {
+      selectedInvokeUrlStage.value = restStagesForInvoke.value[0].stageName
+      await fetchRestApiInvokeUrl()
+    }
+  } catch (error) {
+    console.error('Error loading stages:', error)
+    restStagesForInvoke.value = []
+  }
+}
+
+// Get Invoke URL for HTTP API
+async function openInvokeUrlModalForHttpApi(api: any) {
+  selectedInvokeUrlApi.value = api
+  selectedInvokeUrlStage.value = ''
+  invokeUrl.value = ''
+  showInvokeUrlModal.value = true
+  
+  try {
+    const response = await apigateway.getHttpApiStages(api.apiId)
+    httpStagesForInvoke.value = response?.items || []
+    if (httpStagesForInvoke.value.length > 0) {
+      selectedInvokeUrlStage.value = httpStagesForInvoke.value[0].stageName
+      await fetchHttpApiInvokeUrl()
+    }
+  } catch (error) {
+    console.error('Error loading stages:', error)
+    httpStagesForInvoke.value = []
+  }
+}
+
+async function fetchRestApiInvokeUrl() {
+  if (!selectedInvokeUrlApi.value || !selectedInvokeUrlStage.value) {
+    invokeUrl.value = ''
+    return
+  }
+  
+  invokeUrlLoading.value = true
+  try {
+    const response = await apigateway.getRestApiInvokeUrl(selectedInvokeUrlApi.value.id, selectedInvokeUrlStage.value)
+    invokeUrl.value = response?.invokeUrl || ''
+  } catch (error) {
+    console.error('Error getting invoke URL:', error)
+    invokeUrl.value = ''
+  } finally {
+    invokeUrlLoading.value = false
+  }
+}
+
+async function fetchHttpApiInvokeUrl() {
+  if (!selectedInvokeUrlApi.value || !selectedInvokeUrlStage.value) {
+    invokeUrl.value = ''
+    return
+  }
+  
+  invokeUrlLoading.value = true
+  try {
+    const response = await apigateway.getHttpApiInvokeUrl(selectedInvokeUrlApi.value.apiId, selectedInvokeUrlStage.value)
+    invokeUrl.value = response?.invokeUrl || ''
+  } catch (error) {
+    console.error('Error getting invoke URL:', error)
+    invokeUrl.value = ''
+  } finally {
+    invokeUrlLoading.value = false
+  }
+}
+
+function onStageChange() {
+  if (activeTab.value === 'rest') {
+    fetchRestApiInvokeUrl()
+  } else {
+    fetchHttpApiInvokeUrl()
+  }
+}
+
 // Create HTTP API stage
 async function createHttpApiStage(passedStageName?: string, passedAutoDeploy?: boolean, passedDescription?: string) {
-  console.log('[createHttpApiStage] received:', { passedStageName, passedAutoDeploy, passedDescription })
   const stageToUse = passedStageName || newHttpStageName.value
   const autoDeployToUse = passedAutoDeploy ?? newHttpStageAutoDeploy.value
   const descToUse = passedDescription ?? newHttpStageDescription.value
-  console.log('[createHttpApiStage] using:', { stageToUse, autoDeployToUse, descToUse, selectedHttpApi: selectedHttpApi.value })
 
   if (!selectedHttpApi.value) {
     toast.error('HTTP API is required')
@@ -1840,6 +1929,25 @@ onMounted(() => {
               </span>
             </div>
             <div class="flex items-center gap-2">
+              <button
+                class="px-2 py-1 text-sm rounded hover:bg-light-border dark:hover:bg-dark-border"
+                title="Get Invoke URL"
+                @click.stop="openInvokeUrlModalForRestApi(api)"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                  />
+                </svg>
+              </button>
               <button
                 class="px-2 py-1 text-sm rounded hover:bg-light-border dark:hover:bg-dark-border"
                 title="View Details"
@@ -2503,6 +2611,25 @@ onMounted(() => {
               @click.stop
             >
               <button
+                class="px-2 py-1 text-sm rounded hover:bg-light-border dark:hover:bg-dark-border"
+                title="Get Invoke URL"
+                @click="openInvokeUrlModalForHttpApi(api)"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                  />
+                </svg>
+              </button>
+              <button
                 class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
                 title="Delete"
                 @click="deleteHttpApi(api)"
@@ -2840,16 +2967,13 @@ onMounted(() => {
                     class="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-semibold uppercase tracking-wider border-b"
                     :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border' : 'text-light-muted border-light-border'"
                   >
-                    <div class="col-span-2">
+                    <div class="col-span-3">
                       Stage Name
                     </div>
                     <div class="col-span-3">
-                      Invoke URL
-                    </div>
-                    <div class="col-span-2">
                       Auto Deploy
                     </div>
-                    <div class="col-span-2">
+                    <div class="col-span-3">
                       Description
                     </div>
                     <div class="col-span-3 text-right">
@@ -2861,15 +2985,10 @@ onMounted(() => {
                     :key="stage.stageName"
                     class="grid grid-cols-12 gap-4 px-3 py-3 items-center rounded-lg bg-light-border/30 dark:bg-dark-border/30"
                   >
-                    <div class="col-span-2">
+                    <div class="col-span-3">
                       <span class="text-sm font-medium">{{ stage.stageName }}</span>
                     </div>
                     <div class="col-span-3">
-                      <code class="text-xs bg-light-border dark:bg-dark-border px-2 py-0.5 rounded break-all">
-                        http://localhost:4566/restapis/{{ api.apiId }}/{{ stage.stageName }}/_user_request_/{route_key}
-                      </code>
-                    </div>
-                    <div class="col-span-2">
                       <span
                         :class="stage.autoDeploy ? 'text-green-500' : 'text-gray-400'"
                         class="text-xs"
@@ -2877,7 +2996,7 @@ onMounted(() => {
                         {{ stage.autoDeploy ? 'Yes' : 'No' }}
                       </span>
                     </div>
-                    <div class="col-span-2">
+                    <div class="col-span-3">
                       <span
                         v-if="stage.description"
                         class="text-xs text-light-muted dark:text-dark-muted truncate block"
@@ -3082,16 +3201,6 @@ onMounted(() => {
       @delete="() => openDeleteModal(viewRestApiDetails!)"
     />
 
-    <!-- Edit REST API Modal -->
-    <APIGatewayEditConfigModal
-      v-model:open="showEditRestModal"
-      title="Edit REST API"
-      :name="editRestApiName"
-      :description="editRestApiDescription"
-      :loading="editing"
-      @update-config="updateRestApi"
-    />
-
     <!-- Delete REST API Confirmation -->
     <APIGatewayDeleteModal
       v-model:open="showDeleteRestModal"
@@ -3217,6 +3326,20 @@ onMounted(() => {
       :item-name="deleteStageName"
       item-type="Stage"
       @delete="confirmDeleteRestStage"
+    />
+
+    <!-- Invoke URL Modal -->
+    <APIGatewayInvokeUrlModal
+      :show="showInvokeUrlModal"
+      :title="`Invoke URL - ${activeTab === 'rest' ? 'REST' : 'HTTP'} API`"
+      :invoke-url="invokeUrl"
+      :loading="invokeUrlLoading"
+      :stages="activeTab === 'rest' ? restStagesForInvoke : httpStagesForInvoke"
+      :api-type="activeTab"
+      :api-id="selectedInvokeUrlApi?.id || selectedInvokeUrlApi?.apiId || ''"
+      @close="showInvokeUrlModal = false"
+      @update:selected-stage="selectedInvokeUrlStage = $event"
+      @fetch-url="onStageChange"
     />
 
     <!-- Usage Examples -->

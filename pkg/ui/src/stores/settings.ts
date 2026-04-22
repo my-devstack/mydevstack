@@ -9,6 +9,7 @@ export type Provider = 'aws' | 'localstack' | 'ministack'
 
 export interface SettingsState {
   region: string
+  emulator: string
   accessKey: string
   secretKey: string
   darkMode: boolean
@@ -28,6 +29,7 @@ export const useSettingsStore = defineStore('settings', () => {
   // State - Connection
   const endpoint = computed(() => PROXY_BACKEND)
   const region = ref<string>(localStorage.getItem('region') || 'us-east-1')
+  const emulator = ref<string>('')
   const accessKey = ref<string>(localStorage.getItem('accessKey') || 'test')
   const secretKey = ref<string>(localStorage.getItem('secretKey') || 'test')
   const provider = ref<Provider>(
@@ -85,6 +87,7 @@ export const useSettingsStore = defineStore('settings', () => {
   // Persist to localStorage
   watch(endpoint, (val) => localStorage.setItem('endpoint', val))
   watch(region, (val) => localStorage.setItem('region', val))
+  watch(emulator, (val) => localStorage.setItem('emulator', val))
   watch(accessKey, (val) => localStorage.setItem('accessKey', val))
   watch(secretKey, (val) => localStorage.setItem('secretKey', val))
   watch(provider, (val) => localStorage.setItem('provider', val))
@@ -103,6 +106,10 @@ export const useSettingsStore = defineStore('settings', () => {
   // Actions
   function setRegion(newRegion: string) {
     region.value = newRegion
+  }
+
+  function setEmulator(newEmulator: string) {
+    emulator.value = newEmulator
   }
 
   function setCredentials(key: string, secret: string) {
@@ -207,6 +214,7 @@ export const useSettingsStore = defineStore('settings', () => {
     // State - Connection
     endpoint,
     region,
+    emulator,
     accessKey,
     secretKey,
     provider,
@@ -228,6 +236,7 @@ export const useSettingsStore = defineStore('settings', () => {
     isDarkMode,
     // Actions - Connection
     setRegion,
+    setEmulator,
     setCredentials,
     setProvider,
     // Actions - Appearance

@@ -8,8 +8,10 @@ import (
 
 func TestNewProxyService(t *testing.T) {
 	cfg := &configloader.Config{
-		AwsAccessKey: "test",
-		AwsSecretKey: "test",
+		AWS: configloader.AWSProxyConfig{
+			AccessKey: "test",
+			SecretKey: "test",
+		},
 	}
 
 	svc := NewProxyService(cfg)
@@ -25,9 +27,11 @@ func TestNewProxyService(t *testing.T) {
 
 func TestProxyService_Config(t *testing.T) {
 	cfg := &configloader.Config{
-		AwsAccessKey: "test",
-		AwsSecretKey: "test",
-		AwsEndpoint:  "http://localhost:4566",
+		AWS: configloader.AWSProxyConfig{
+			AccessKey: "test",
+			SecretKey: "test",
+			Endpoint:  "http://localhost:4566",
+		},
 	}
 
 	svc := NewProxyService(cfg)
@@ -50,9 +54,11 @@ func TestProxyService_Region(t *testing.T) {
 
 func TestProxyService_SetRegion(t *testing.T) {
 	cfg := &configloader.Config{
-		AwsAccessKey: "test",
-		AwsSecretKey: "test",
-		AwsEndpoint:  "http://localhost:4566",
+		AWS: configloader.AWSProxyConfig{
+			AccessKey: "test",
+			SecretKey: "test",
+			Endpoint:  "http://localhost:4566",
+		},
 	}
 	svc := NewProxyService(cfg)
 

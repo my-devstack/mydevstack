@@ -68,28 +68,28 @@ func (s *ProxyService) SetServices() error {
 	awsCfg, err := awsconfig.LoadDefaultConfig(context.Background(),
 		awsconfig.WithRegion(s.region),
 		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			s.cfg.AwsAccessKey,
-			s.cfg.AwsSecretKey,
+			s.cfg.AWS.AccessKey,
+			s.cfg.AWS.SecretKey,
 			"",
 		)),
 	)
 	if err != nil {
 		return err
 	}
-	s.secretsManager = awsadapter.NewSecretsManagerAdapter(awsCfg, s.cfg.AwsEndpoint)
-	s.s3 = awsadapter.NewS3Adapter(awsCfg, s.cfg.AwsEndpoint)
-	s.lambda = awsadapter.NewLambdaAdapter(awsCfg, s.cfg.AwsEndpoint)
-	s.sqs = awsadapter.NewSQSAdapter(awsCfg, s.cfg.AwsEndpoint)
-	s.sns = awsadapter.NewSNSAdapter(awsCfg, s.cfg.AwsEndpoint)
-	s.kms = awsadapter.NewKMSAdapter(awsCfg, s.cfg.AwsEndpoint)
-	s.dynamodb = awsadapter.NewDynamoDBAdapter(awsCfg, s.cfg.AwsEndpoint)
-	s.apigateway = awsadapter.NewAPIGatewayAdapter(awsCfg, s.cfg.AwsEndpoint)
-	s.apigatewayv2 = awsadapter.NewAPIGatewayV2Adapter(awsCfg, s.cfg.AwsEndpoint)
-	s.ssm = awsadapter.NewSSMAdapter(awsCfg, s.cfg.AwsEndpoint)
-	s.iam = awsadapter.NewIAMAdapter(awsCfg, s.cfg.AwsEndpoint)
-	s.kinesis = awsadapter.NewKinesisAdapter(awsCfg, s.cfg.AwsEndpoint)
-	s.rds = awsadapter.NewRDSAdapter(awsCfg, s.cfg.AwsEndpoint)
-	s.elasticache = awsadapter.NewElastiCacheAdapter(awsCfg, s.cfg.AwsEndpoint)
+	s.secretsManager = awsadapter.NewSecretsManagerAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.s3 = awsadapter.NewS3Adapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.lambda = awsadapter.NewLambdaAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.sqs = awsadapter.NewSQSAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.sns = awsadapter.NewSNSAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.kms = awsadapter.NewKMSAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.dynamodb = awsadapter.NewDynamoDBAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.apigateway = awsadapter.NewAPIGatewayAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.apigatewayv2 = awsadapter.NewAPIGatewayV2Adapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.ssm = awsadapter.NewSSMAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.iam = awsadapter.NewIAMAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.kinesis = awsadapter.NewKinesisAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.rds = awsadapter.NewRDSAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.elasticache = awsadapter.NewElastiCacheAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	return nil
 }
 

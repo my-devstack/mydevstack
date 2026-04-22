@@ -59,9 +59,10 @@ func (h *ProxyHandler) HealthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":       "healthy",
 		"proxy":        "aws-proxy",
-		"target":       h.svc.Config().AwsEndpoint,
-		"endpoint_url": h.svc.Config().AwsEndpoint,
+		"target":       h.svc.Config().AWS.Endpoint,
+		"endpoint_url": h.svc.Config().AWS.Endpoint,
 		"region":       h.svc.Region(),
+		"emulator":     h.svc.Config().Emulator,
 	})
 }
 
@@ -90,9 +91,9 @@ func (h *ProxyHandler) SetRegion(c *gin.Context) {
 
 func (h *ProxyHandler) BackendHealthCheck(c *gin.Context) {
 	testURLs := []string{
-		h.svc.Config().AwsEndpoint + "/",
-		h.svc.Config().AwsEndpoint + "/_health",
-		h.svc.Config().AwsEndpoint + "/health",
+		h.svc.Config().AWS.Endpoint + "/",
+		h.svc.Config().AWS.Endpoint + "/_health",
+		h.svc.Config().AWS.Endpoint + "/health",
 	}
 
 	for _, targetURL := range testURLs {
@@ -113,9 +114,10 @@ func (h *ProxyHandler) BackendHealthCheck(c *gin.Context) {
 				c.JSON(http.StatusOK, gin.H{
 					"status":     "healthy",
 					"backend":    "reachable",
-					"target":     h.svc.Config().AwsEndpoint,
+					"target":     h.svc.Config().AWS.Endpoint,
 					"statusCode": resp.StatusCode,
 					"region":     h.svc.Region(),
+					"emulator":   h.svc.Config().Emulator,
 				})
 				return
 			}
@@ -123,10 +125,11 @@ func (h *ProxyHandler) BackendHealthCheck(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusServiceUnavailable, gin.H{
-		"status":  "unhealthy",
-		"backend": "unreachable",
-		"target":  h.svc.Config().AwsEndpoint,
-		"region":  h.svc.Region(),
+		"status":   "unhealthy",
+		"backend":  "unreachable",
+		"target":   h.svc.Config().AWS.Endpoint,
+		"region":   h.svc.Region(),
+		"emulator": h.svc.Config().Emulator,
 	})
 }
 

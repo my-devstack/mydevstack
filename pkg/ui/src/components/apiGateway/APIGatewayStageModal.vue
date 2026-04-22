@@ -49,7 +49,6 @@ const deploymentOptions = computed(() => {
 })
 
 function handleCreate() {
-  console.log('[StageModal] handleCreate:', { type: props.type, stageName: stageName.value, autoDeploy: autoDeploy.value, description: description.value })
   if (!stageName.value.trim()) return
   if (props.type === 'rest') {
     emit('create-rest', stageName.value.trim(), selectedDeploymentId.value)

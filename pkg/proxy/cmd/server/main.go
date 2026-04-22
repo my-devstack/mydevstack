@@ -22,7 +22,7 @@ func main() {
 
 	log.Printf("Starting AWS Proxy Server...")
 	log.Printf("  Port: %s", cfg.Port)
-	log.Printf("  AWS Endpoint: %s", cfg.AwsEndpoint)
+	log.Printf("  AWS Endpoint: %s", cfg.AWS.Endpoint)
 
 	container, err := bootstrap.NewContainer(cfg)
 	if err != nil {
@@ -57,10 +57,12 @@ func loadConfig() (*configloader.Config, error) {
 
 func defaultConfig() *configloader.Config {
 	return &configloader.Config{
-		Port:           getEnv("PROXY_PORT", "8081"),
-		AwsEndpoint:    getEnv("AWS_ENDPOINT", "http://localhost:4566"),
-		AwsAccessKey:   getEnv("AWS_ACCESS_KEY", "test"),
-		AwsSecretKey:   getEnv("AWS_SECRET_KEY", "test"),
+		Port: getEnv("PROXY_PORT", "8081"),
+		AWS: configloader.AWSProxyConfig{
+			Endpoint:  getEnv("AWS_ENDPOINT", "http://localhost:4566"),
+			AccessKey: getEnv("AWS_ACCESS_KEY", "test"),
+			SecretKey: getEnv("AWS_SECRET_KEY", "test"),
+		},
 		ServicePattern: getEnv("SERVICE_PATTERN", "root"),
 	}
 }

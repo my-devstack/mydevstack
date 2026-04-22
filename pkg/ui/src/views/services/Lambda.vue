@@ -8,7 +8,6 @@ import * as lambda from '@/api/services/lambda'
 import type { LambdaFunction } from '@/api/types/aws'
 import LambdaFunctionsList from '@/components/lambda/LambdaFunctionsList.vue'
 import LambdaCreateModal from '@/components/lambda/LambdaCreateModal.vue'
-import LambdaInvokeModal from '@/components/lambda/LambdaInvokeModal.vue'
 import LambdaEditModal from '@/components/lambda/LambdaEditModal.vue'
 import LambdaDeleteModal from '@/components/lambda/LambdaDeleteModal.vue'
 import LambdaCodeExamples from '@/components/lambda/LambdaCodeExamples.vue'
@@ -21,10 +20,10 @@ const { reloadTrigger } = useContentReload()
 const functions = ref<LambdaFunction[]>([])
 const loading = ref(false)
 const selectedFunction = ref<LambdaFunction | null>(null)
+const functionsListRef = ref<InstanceType<typeof LambdaFunctionsList> | null>(null)
 
 // Modal state
 const showCreateModal = ref(false)
-const showInvokeModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 
@@ -38,9 +37,6 @@ const editForm = ref({
   memory: 128,
   timeout: 30,
 })
-
-// Invoke result
-const invokeResult = ref('')
 
 const DEFAULT_ROLE_ARN = 'arn:aws:iam::123456789012:role/test'
 
@@ -110,17 +106,10 @@ async function handleCreate(data: {
   }
 }
 
-// Open invoke modal
-function openInvokeModal(func: LambdaFunction) {
-  selectedFunction.value = func
-  invokeResult.value = ''
-  showInvokeModal.value = true
-}
-
-// Invoke function
-async function handleInvoke(payload: string, invocationType: string) {
+// Invoke function (moved from modal to inline)
+async function handleInvokeFromList(func: LambdaFunction, payload: string, invocationType: string) {
   invokeLoading.value = true
-  invokeResult.value = ''
+  let result = ''
   try {
     let finalPayload: string
     try {
@@ -130,17 +119,19 @@ async function handleInvoke(payload: string, invocationType: string) {
     }
 
     const response = await lambda.invoke(
-      selectedFunction.value!.FunctionName,
+      func.FunctionName,
       finalPayload,
       { invocationType }
     )
-    invokeResult.value = response?.payload || response?.Payload || 'Success (no output)'
+    result = response?.payload || response?.Payload || 'Success (no output)'
   } catch (error) {
     console.error('Error invoking function:', error)
-    invokeResult.value = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+    result = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
   } finally {
     invokeLoading.value = false
   }
+  // Update result in the list
+  functionsListRef.value?.updateInvokeResult(func.FunctionName, result)
 }
 
 // Open edit modal
@@ -256,10 +247,11 @@ watch(reloadTrigger, () => {
 
     <!-- Functions List -->
     <LambdaFunctionsList
+      ref="functionsListRef"
       :functions="functions"
       :loading="loading"
-      @select-function="openInvokeModal"
       @delete-function="openDeleteModal"
+      @invoke-function="handleInvokeFromList"
     />
 
     <!-- Create Modal -->
@@ -268,16 +260,6 @@ watch(reloadTrigger, () => {
       :loading="creating"
       @update:open="showCreateModal = $event"
       @create="handleCreate"
-    />
-
-    <!-- Invoke Modal -->
-    <LambdaInvokeModal
-      :open="showInvokeModal"
-      :function-name="selectedFunction?.FunctionName || ''"
-      :loading="invokeLoading"
-      :result="invokeResult"
-      @update:open="showInvokeModal = $event"
-      @invoke="handleInvoke"
     />
 
     <!-- Edit Modal -->
