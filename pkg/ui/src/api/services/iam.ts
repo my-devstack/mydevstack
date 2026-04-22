@@ -147,10 +147,15 @@ export async function listPolicies(param1?: string | { Scope?: string; OnlyAttac
   }
   
   const response = await iamRequest('ListPolicies', body)
+  // Map Arn to PolicyArn to match the interface, handle both lowercase and uppercase
+  const policies = (response.Policies || response.policies || []).map((p: any) => ({
+    ...p,
+    PolicyArn: p.Arn || p.PolicyArn,
+  }))
   return {
-    Policies: response.Policies || [],
-    IsTruncated: response.IsTruncated || false,
-    Marker: response.Marker,
+    Policies: policies,
+    IsTruncated: response.IsTruncated || response.isTruncated || false,
+    Marker: response.Marker || response.marker,
   }
 }
 

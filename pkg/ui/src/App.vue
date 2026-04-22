@@ -3,9 +3,9 @@ import { computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useUIStore } from '@/stores/ui'
 import { useToast } from '@/composables/useToast'
-import Sidebar from '@/components/Sidebar.vue'
-import TopBar from '@/components/TopBar.vue'
-import NotificationToast from '@/components/NotificationToast.vue'
+import Sidebar from '@/components/layout/Sidebar.vue'
+import TopBar from '@/components/layout/TopBar.vue'
+import NotificationToast from '@/components/common/NotificationToast.vue'
 import Toast from '@/components/common/Toast.vue'
 
 const settingsStore = useSettingsStore()

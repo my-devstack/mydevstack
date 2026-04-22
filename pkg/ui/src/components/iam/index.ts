@@ -1,0 +1,21 @@
+// IAM Components
+// Re-export all IAM components for easy importing
+
+export { default as IAMCreateUserModal } from './IAMCreateUserModal.vue'
+export { default as IAMCreateRoleModal } from './IAMCreateRoleModal.vue'
+export { default as IAMCreateGroupModal } from './IAMCreateGroupModal.vue'
+export { default as IAMCreatePolicyModal } from './IAMCreatePolicyModal.vue'
+export { default as IAMCreateKeyModal } from './IAMCreateKeyModal.vue'
+export { default as IAMDeleteModal } from './IAMDeleteModal.vue'
+export { default as IAMDeleteRoleModal } from './IAMDeleteRoleModal.vue'
+export { default as IAMDeleteGroupModal } from './IAMDeleteGroupModal.vue'
+export { default as IAMDeletePolicyModal } from './IAMDeletePolicyModal.vue'
+export { default as IAMDeleteAccessKeyModal } from './IAMDeleteAccessKeyModal.vue'
+export { default as IAMUserKeysModal } from './IAMUserKeysModal.vue'
+export { default as IAMRolePoliciesModal } from './IAMRolePoliciesModal.vue'
+export { default as IAMAttachPolicyModal } from './IAMAttachPolicyModal.vue'
+export { default as IAMPolicyDetailsModal } from './IAMPolicyDetailsModal.vue'
+export { default as IAMGroupUsersModal } from './IAMGroupUsersModal.vue'
+export { default as IAMAddUserToGroupModal } from './IAMAddUserToGroupModal.vue'
+export { default as IAMDetachPolicyModal } from './IAMDetachPolicyModal.vue'
+export { default as IAMRemoveUserFromGroupModal } from './IAMRemoveUserFromGroupModal.vue'
