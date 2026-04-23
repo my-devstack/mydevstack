@@ -8,12 +8,14 @@ import Modal from '@/components/common/Modal.vue'
 import FormInput from '@/components/common/FormInput.vue'
 import Button from '@/components/common/Button.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
 import * as sqsApi from '@/api/services/sqs'
 
 const settingsStore = useSettingsStore()
 const toast = useToast()
 const { reloadTrigger } = useContentReload()
-const { listQueues, createQueue: sqsCreateQueue, deleteQueue: sqsDeleteQueue, getQueueAttributes } = sqsApi
+const { listQueues, createQueue: sqsCreateQueue, deleteQueue: sqsDeleteQueue, getQueueAttributes, receiveMessage, deleteMessage } = sqsApi
 
 const queues = ref<any[]>([])
 const loading = ref(false)
@@ -26,6 +28,13 @@ const newQueue = ref({
 // Delete confirmation state
 const showDeleteModal = ref(false)
 const queueToDelete = ref('')
+
+// Messages view state
+const showMessagesModal = ref(false)
+const selectedQueueUrl = ref('')
+const selectedQueueName = ref('')
+const messages = ref<any[]>([])
+const loadingMessages = ref(false)
 
 // Accordion state for queues
 const expandedQueues = ref<Set<string>>(new Set())
@@ -72,6 +81,55 @@ async function loadQueueAttributesForAccordion(url: string) {
   } catch (e: any) {
     console.error('Failed to load queue attributes:', e)
     queueAttributesMap.value[url] = []
+  }
+}
+
+// Helper to format JSON
+function formatBody(body: string) {
+  try {
+    const parsed = JSON.parse(body)
+    return JSON.stringify(parsed, null, 2)
+  } catch {
+    return body
+  }
+}
+
+// Messages functions
+function openMessagesModal(queueUrl: string, queueName: string) {
+  selectedQueueUrl.value = queueUrl
+  selectedQueueName.value = queueName
+  showMessagesModal.value = true
+  loadMessages()
+}
+
+async function loadMessages() {
+  if (!selectedQueueUrl.value) return
+  loadingMessages.value = true
+  try {
+    const result = await receiveMessage(selectedQueueUrl.value, {
+      MaxNumberOfMessages: 10,
+      VisibilityTimeout: 30,
+      WaitTimeSeconds: 0,
+    })
+    messages.value = result || []
+  } catch (e: any) {
+    console.error('Failed to receive messages:', e)
+    toast.error('Failed to load messages', e.message || 'Unknown error')
+    messages.value = []
+  } finally {
+    loadingMessages.value = false
+  }
+}
+
+async function handleDeleteMessage(receiptHandle: string) {
+  if (!selectedQueueUrl.value || !receiptHandle) return
+  try {
+    await deleteMessage(selectedQueueUrl.value, receiptHandle)
+    toast.success('Message deleted')
+    await loadMessages()
+  } catch (e: any) {
+    console.error('Failed to delete message:', e)
+    toast.error('Failed to delete message', e.message || 'Unknown error')
   }
 }
 
@@ -429,6 +487,25 @@ watch(reloadTrigger, () => {
             </div>
             <div class="col-span-2 flex items-center justify-end gap-2">
               <button
+                class="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded"
+                title="View Messages"
+                @click.stop="openMessagesModal(queue.url, queue.name)"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8-1.173 0-2.656-.304-3.667-.867C14.758 18.542 13 17 13 17s-1.758-1.542-3.333-2.867C9.626 13.304 8.173 13 7 13c-4.97 0-9 3.582-9 8z"
+                  />
+                </svg>
+              </button>
+              <button
                 class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
                 title="Delete"
                 @click.stop="openDeleteModal(queue.url)"
@@ -558,6 +635,68 @@ watch(reloadTrigger, () => {
       confirm-text="Delete"
       @confirm="confirmDeleteQueue"
     />
+
+    <!-- Messages Modal -->
+    <Modal
+      v-model:open="showMessagesModal"
+      :title="`Messages - ${selectedQueueName}`"
+      size="lg"
+    >
+      <div class="space-y-4">
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-light-muted dark:text-dark-muted">
+            {{ messages.length }} message(s) available
+          </span>
+          <Button variant="secondary" size="sm" @click="loadMessages">
+            Refresh
+          </Button>
+        </div>
+
+        <div v-if="loadingMessages" class="flex justify-center py-8">
+          <LoadingSpinner />
+        </div>
+
+        <EmptyState
+          v-else-if="messages.length === 0"
+          icon="inbox"
+          title="No Messages"
+          description="This queue is empty or messages have already been received."
+        />
+
+        <div v-else class="space-y-3 max-h-96 overflow-auto">
+          <div
+            v-for="(msg, index) in messages"
+            :key="msg.MessageId || index"
+            class="p-3 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg"
+          >
+            <div class="flex justify-between items-start gap-2">
+              <div class="flex-1 min-w-0">
+                <div class="text-xs font-medium text-light-muted dark:text-dark-muted mb-1">
+                  Message ID: {{ msg.MessageId }}
+                </div>
+                <div class="text-xs text-light-muted dark:text-dark-muted mb-2">
+                  Receipt Handle: <code class="text-xs">{{ msg.ReceiptHandle }}</code>
+                </div>
+                <pre class="text-sm text-light-text dark:text-dark-text whitespace-pre-wrap break-all font-mono">{{ formatBody(msg.Body) }}</pre>
+              </div>
+              <Button
+                variant="danger"
+                size="sm"
+                @click="handleDeleteMessage(msg.ReceiptHandle)"
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <Button variant="secondary" @click="showMessagesModal = false">
+          Close
+        </Button>
+      </template>
+    </Modal>
 
     <!-- Usage Examples Section -->
     <div class="mt-8">

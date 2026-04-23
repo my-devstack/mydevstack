@@ -6,12 +6,16 @@ import { useContentReload } from '@/composables/useContentReload'
 import { MegaphoneIcon } from '@heroicons/vue/24/outline'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
-import FormInput from '@/components/common/FormInput.vue'
-import FormSelect from '@/components/common/FormSelect.vue'
 import DataTable from '@/components/common/DataTable.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
+import {
+  SNSCreateTopicModal,
+  SNSSubscribeModal,
+  SNSPublishModal,
+  SNSDeleteModal,
+} from '@/components/sns'
 import * as sns from '@/api/services/sns'
 import type { SNSTopic, SNSSubscription } from '@/api/types/aws'
 
@@ -322,15 +326,15 @@ async function loadTopics() {
   }
 }
 
-async function createTopic() {
-  if (!topicForm.value.name.trim()) {
+async function createTopic(name: string, displayName: string) {
+  if (!name.trim()) {
     toast.error('Topic name is required')
     return
   }
 
   try {
-    await sns.createTopic(topicForm.value.name, {
-      DisplayName: topicForm.value.displayName,
+    await sns.createTopic(name, {
+      DisplayName: displayName,
     })
     toast.success('Topic created successfully')
     showCreateTopicModal.value = false
@@ -356,8 +360,8 @@ async function loadSubscriptions(topicArn: string) {
   }
 }
 
-async function subscribe() {
-  if (!selectedTopic.value || !subscribeForm.value.endpoint.trim()) {
+async function subscribe(protocol: string, endpoint: string) {
+  if (!selectedTopic.value || !endpoint.trim()) {
     toast.error('Endpoint is required')
     return
   }
@@ -365,8 +369,8 @@ async function subscribe() {
   try {
     await sns.subscribe(
       selectedTopic.value.TopicArn,
-      subscribeForm.value.protocol,
-      subscribeForm.value.endpoint
+      protocol,
+      endpoint
     )
     toast.success('Subscription created successfully')
     showSubscribeModal.value = false
@@ -377,18 +381,18 @@ async function subscribe() {
   }
 }
 
-async function publishMessage() {
-  if (!selectedTopic.value || !publishForm.value.message.trim()) {
+async function publishMessage(subject: string, message: string) {
+  if (!selectedTopic.value || !message.trim()) {
     toast.error('Message is required')
     return
   }
 
   try {
-    await sns.publish({
-      TopicArn: selectedTopic.value.TopicArn,
-      Message: publishForm.value.message,
-      Subject: publishForm.value.subject || undefined,
-    })
+    await sns.publish(
+      selectedTopic.value.TopicArn,
+      message,
+      { Subject: subject || undefined }
+    )
     toast.success('Message published successfully')
     showPublishModal.value = false
     publishForm.value = { subject: '', message: '' }
@@ -583,113 +587,29 @@ watch(reloadTrigger, () => {
       </DataTable>
     </div>
 
-    <!-- Create Topic Modal -->
-    <Modal
+<!-- Create Topic Modal -->
+    <SNSCreateTopicModal
       v-model:open="showCreateTopicModal"
-      title="Create SNS Topic"
-      size="md"
-    >
-      <div class="space-y-4">
-        <FormInput
-          v-model="topicForm.name"
-          label="Topic Name"
-          placeholder="my-topic"
-          required
-        />
-        <FormInput
-          v-model="topicForm.displayName"
-          label="Display Name"
-          placeholder="My Topic (optional)"
-        />
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showCreateTopicModal = false"
-          >
-            Cancel
-          </Button>
-          <Button @click="createTopic">
-            Create
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      v-model:form="topicForm"
+      @create="createTopic"
+    />
 
     <!-- Subscribe Modal -->
-    <Modal
+    <SNSSubscribeModal
       v-model:open="showSubscribeModal"
-      :title="`Subscribe to: ${selectedTopic?.TopicName || ''}`"
-      size="md"
-    >
-      <div class="space-y-4">
-        <FormSelect
-          v-model="subscribeForm.protocol"
-          label="Protocol"
-          :options="protocolOptions"
-        />
-        <FormInput
-          v-model="subscribeForm.endpoint"
-          label="Endpoint"
-          :placeholder="subscribeForm.protocol === 'http' || subscribeForm.protocol === 'https' ? 'https://your-endpoint.com/webhook' : subscribeForm.protocol === 'email' ? 'your@email.com' : 'ARN or endpoint'"
-          required
-        />
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showSubscribeModal = false"
-          >
-            Cancel
-          </Button>
-          <Button @click="subscribe">
-            Subscribe
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      v-model:form="subscribeForm"
+      :topic="selectedTopic"
+      :protocol-options="protocolOptions"
+      @subscribe="subscribe"
+    />
 
     <!-- Publish Message Modal -->
-    <Modal
+    <SNSPublishModal
       v-model:open="showPublishModal"
-      :title="`Publish to: ${selectedTopic?.TopicName || ''}`"
-      size="lg"
-    >
-      <div class="space-y-4">
-        <FormInput
-          v-model="publishForm.subject"
-          label="Subject (optional)"
-          placeholder="Notification Subject"
-        />
-        <div>
-          <label class="block text-sm font-medium text-light-text dark:text-dark-text mb-1.5">
-            Message *
-          </label>
-          <textarea
-            v-model="publishForm.message"
-            rows="6"
-            class="w-full px-3 py-2 rounded-lg border bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border text-light-text dark:text-dark-text font-mono text-sm"
-            placeholder="Enter your message..."
-            required
-          />
-        </div>
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showPublishModal = false"
-          >
-            Cancel
-          </Button>
-          <Button @click="publishMessage">
-            Publish
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      v-model:form="publishForm"
+      :topic="selectedTopic"
+      @publish="publishMessage"
+    />
 
     <!-- Subscriptions Modal -->
     <Modal
@@ -743,53 +663,11 @@ watch(reloadTrigger, () => {
     </Modal>
 
     <!-- Delete Topic Modal -->
-    <Modal
+    <SNSDeleteModal
       v-model:open="showDeleteModal"
-      title="Delete SNS Topic"
-      size="md"
-    >
-      <div class="space-y-4">
-        <div class="flex items-start gap-3 p-4 rounded-lg bg-red-50 dark:bg-red-900/20">
-          <svg
-            class="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
-          <div>
-            <p class="text-sm text-red-800 dark:text-red-200">
-              Are you sure you want to delete the topic "{{ selectedTopic?.TopicName }}"?
-            </p>
-            <p class="text-xs text-red-700 dark:text-red-300 mt-1">
-              This will delete the topic and all its subscriptions. This action cannot be undone.
-            </p>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showDeleteModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            @click="deleteTopic"
-          >
-            Delete
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      :topic="selectedTopic"
+      @delete="deleteTopic"
+    />
 
     <!-- Usage Examples Section -->
     <div
