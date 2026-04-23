@@ -20,6 +20,10 @@ import FormSelect from '@/components/common/FormSelect.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import {
+  RDSCreateInstanceModal,
+  RDSDeleteModal,
+} from '@/components/rds'
 
 // Stores
 const settingsStore = useSettingsStore()
@@ -59,6 +63,18 @@ const newDBInstanceClass = ref('db.t3.micro')
 const newAllocatedStorage = ref(20)
 const showCreateModal = ref(false)
 const creating = ref(false)
+
+// Form model for create modal
+const createForm = ref({
+  instanceId: '',
+  dbEngine: 'mysql',
+  dbVersion: '8.0.36',
+  masterUsername: 'root',
+  masterPassword: '',
+  instanceClass: 'db.t3.micro',
+  port: '3306',
+  allocatedStorage: '20'
+})
 
 // Confirmation modals
 const showDeleteConfirm = ref(false)
@@ -285,19 +301,8 @@ function confirmReboot(instance: RDSInstance) {
   showRebootConfirm.value = true
 }
 
-function resetForm() {
-  newInstanceId.value = ''
-  newDBEngine.value = 'mysql'
-  newDBVersion.value = '8.0.36'
-  newDBPort.value = 3306
-  newMasterUsername.value = 'root'
-  newMasterPassword.value = ''
-  newDBInstanceClass.value = 'db.t3.micro'
-  newAllocatedStorage.value = 20
-}
-
 async function createInstance() {
-  if (!newInstanceId.value || !newMasterPassword.value) {
+  if (!createForm.value.instanceId || !createForm.value.masterPassword) {
     uiStore.notifyWarning('Validation', 'Instance ID and password are required')
     return
   }
@@ -305,24 +310,38 @@ async function createInstance() {
   creating.value = true
   try {
     await apiCreateDBInstance({
-      DBInstanceIdentifier: newInstanceId.value,
-      DBInstanceClass: newDBInstanceClass.value,
-      Engine: newDBEngine.value,
-      EngineVersion: newDBVersion.value,
-      MasterUsername: newMasterUsername.value,
-      MasterUserPassword: newMasterPassword.value,
-      Port: newDBPort.value,
-      AllocatedStorage: newAllocatedStorage.value,
+      DBInstanceIdentifier: createForm.value.instanceId,
+      DBInstanceClass: createForm.value.instanceClass,
+      Engine: createForm.value.dbEngine,
+      EngineVersion: createForm.value.dbVersion,
+      MasterUsername: createForm.value.masterUsername,
+      MasterUserPassword: createForm.value.masterPassword,
+      Port: createForm.value.port,
+      AllocatedStorage: Number(createForm.value.allocatedStorage),
     })
     
     await loadInstances()
-    uiStore.notifySuccess('Success', `Instance ${newInstanceId.value} is being created`)
+    uiStore.notifySuccess('Success', `Instance ${createForm.value.instanceId} is being created`)
     showCreateModal.value = false
     resetForm()
   } catch (error) {
     uiStore.notifyError('Error', `Failed to create instance: ${error}`)
   } finally {
     creating.value = false
+  }
+}
+
+// Reset form
+function resetForm() {
+  createForm.value = {
+    instanceId: '',
+    dbEngine: 'mysql',
+    dbVersion: '8.0.36',
+    masterUsername: 'root',
+    masterPassword: '',
+    instanceClass: 'db.t3.micro',
+    port: '3306',
+    allocatedStorage: '20'
   }
 }
 
@@ -640,135 +659,19 @@ watch(reloadTrigger, () => {
     </div>
     
     <!-- Create Instance Modal -->
-    <Modal
+    <RDSCreateInstanceModal
       v-model:open="showCreateModal"
-      title="Create DB Instance"
-      size="md"
-    >
-      <div class="space-y-4">
-        <FormInput
-          v-model="newInstanceId"
-          label="Instance Identifier"
-          placeholder="my-db-instance"
-          required
-        />
-        
-        <FormSelect
-          v-model="newDBEngine"
-          label="Database Engine"
-          :options="[
-            { value: 'mysql', label: 'MySQL' },
-            { value: 'postgres', label: 'PostgreSQL' },
-            { value: 'mariadb', label: 'MariaDB' },
-          ]"
-        />
-        
-        <FormInput
-          v-model="newDBVersion"
-          label="Engine Version"
-          :placeholder="newDBEngine === 'mysql' ? '8.0.36' : '15.3'"
-        />
-        
-        <FormInput
-          v-model="newMasterUsername"
-          label="Master Username"
-          placeholder="root"
-        />
-        
-        <FormInput
-          v-model="newMasterPassword"
-          label="Master Password"
-          type="password"
-          placeholder="Enter password"
-          required
-        />
-        
-        <FormSelect
-          v-model="newDBInstanceClass"
-          label="Instance Class"
-          :options="[
-            { value: 'db.t3.micro', label: 't3.micro (2 vCPU, 1 GB)' },
-            { value: 'db.t3.small', label: 't3.small (2 vCPU, 2 GB)' },
-            { value: 'db.t3.medium', label: 't3.medium (2 vCPU, 4 GB)' },
-          ]"
-        />
-        
-        <FormInput
-          v-model="newDBPort"
-          label="Port"
-          type="number"
-          :placeholder="newDBEngine === 'mysql' ? '3306' : '5432'"
-        />
-        
-        <FormInput
-          v-model="newAllocatedStorage"
-          label="Allocated Storage (GB)"
-          type="number"
-          placeholder="20"
-        />
-      </div>
-      
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showCreateModal = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :loading="creating"
-            @click="createInstance"
-          >
-            Create
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      v-model:form="createForm"
+      :creating="creating"
+      @create="createInstance"
+    />
 
     <!-- Delete Confirmation Modal -->
-    <Modal
+    <RDSDeleteModal
       v-model:open="showDeleteConfirm"
-      title="Delete DB Instance"
-      size="sm"
-    >
-      <div class="py-4">
-        <p
-          class="mb-4"
-          :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-        >
-          Are you sure you want to delete the database instance
-          <span class="font-semibold">{{ instanceToDelete?.DBInstanceIdentifier }}</span>?
-        </p>
-        <div
-          class="p-3 rounded bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800"
-        >
-          <p
-            class="text-sm"
-            :class="settingsStore.darkMode ? 'text-yellow-400' : 'text-yellow-700'"
-          >
-            ⚠️ This action cannot be undone. The instance will be permanently deleted.
-          </p>
-        </div>
-      </div>
-      
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            @click="showDeleteConfirm = false; instanceToDelete = null"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            @click="deleteInstance"
-          >
-            Delete
-          </Button>
-        </div>
-      </template>
-    </Modal>
+      :instance="instanceToDelete"
+      @delete="deleteInstance"
+    />
 
     <!-- Reboot Confirmation Modal -->
     <Modal
