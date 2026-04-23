@@ -1,0 +1,6 @@
+export { default as S3BucketsList } from './S3BucketsList.vue'
+export { default as S3ObjectsList } from './S3ObjectsList.vue'
+export { default as S3CreateModal } from './S3CreateModal.vue'
+export { default as S3DeleteModal } from './S3DeleteModal.vue'
+export { default as S3ViewModal } from './S3ViewModal.vue'
+export { default as S3CodeExamples } from './S3CodeExamples.vue'

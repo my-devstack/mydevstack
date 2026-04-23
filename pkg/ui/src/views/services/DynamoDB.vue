@@ -1365,7 +1365,7 @@ watch(reloadTrigger, () => {
   <DynamoDBPutItemModal
     v-model="newItemJson"
     v-model:open="showPutItemModal"
-    :key-schema="exploreTableDetails?.KeySchema"
+    :key-schema="exploreTableDetails?.KeySchema || []"
     :loading="putItemLoading"
     :error="putItemError"
     @submit="putItem"

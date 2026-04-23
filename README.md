@@ -242,6 +242,84 @@ services:
 | Kinesis | ✅ | Streams, Shards |
 | CloudFormation | ✅ | Stacks, Templates |
 
+## Development
+
+### Project Structure
+
+```
+pkg/
+├── proxy/              # Go backend (hexagonal architecture)
+│   ├── cmd/server/    # Entry point
+│   ├── internal/
+│   │   ├── adapters/  # AWS & HTTP adapters
+│   │   ├── application/  # Business logic
+│   │   ├── config/   # Configuration
+│   │   └── ports/   # Interfaces
+│   └── mocks/ports/  # Generated mocks
+└── ui/               # Vue 3 frontend
+    └── src/
+        ├── api/          # API clients
+        ├── components/    # Vue components
+        │   ├── common/   # Shared (Modal, Table, FormInput, Button)
+        │   ├── layout/   # Layout (Sidebar, TopBar, ServiceCard)
+        │   └── <service>/ # Service-specific components
+        ├── composables/  # Vue composables (useToast, useTheme)
+        ├── stores/      # Pinia stores
+        ├── types/      # TypeScript types
+        └── views/      # Page views
+```
+
+### Adding a New AWS Service
+
+See [ADDING_SERVICES.md](ADDING_SERVICES.md) for detailed instructions.
+
+Quick steps:
+1. Create API client in `api/services/<service>.ts`
+2. Create components in `components/<service>/` (create `index.ts` barrel export!)
+3. Create view in `views/services/<Service>.vue`
+4. Add route in `router/index.ts`
+5. Add navigation in `layout/Sidebar.vue`
+
+Typical files per service: 5-7 files
+
+### Running Tests
+
+```bash
+# Go backend
+go test ./pkg/proxy/...
+
+# Vue frontend
+cd pkg/ui && npm run test:run
+
+# Single test file
+cd pkg/ui && npm run test:run src/stores/settings.test.ts
+```
+
+### Building
+
+```bash
+# Full build (Go + Vue)
+make build
+
+# Go only
+make run-proxy
+
+# Vue only
+cd pkg/ui && npm run dev
+```
+
+### Linting
+
+```bash
+# All linters
+make lint
+
+# Go only
+make lint-proxy
+
+# Vue only
+cd pkg/ui && npm run lint
+```
 
 ## License
 

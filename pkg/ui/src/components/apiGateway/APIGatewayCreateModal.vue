@@ -15,6 +15,8 @@ const emit = defineEmits<{
   'update:open': [value: boolean]
   'create-rest': [name: string, description: string]
   'create-http': [name: string, description: string]
+  'create': [name: string, description: string]
+  'update': [name: string, description: string]
 }>()
 
 const settingsStore = useSettingsStore()
@@ -38,9 +40,11 @@ function handleCreate() {
   if (props.type === 'rest') {
     if (!restName.value.trim()) return
     emit('create-rest', restName.value.trim(), restDescription.value.trim())
+    emit('create', restName.value.trim(), restDescription.value.trim())
   } else {
     if (!httpName.value.trim()) return
     emit('create-http', httpName.value.trim(), httpDescription.value.trim())
+    emit('create', httpName.value.trim(), httpDescription.value.trim())
   }
 }
 
