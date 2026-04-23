@@ -1,0 +1,6 @@
+export { default as DynamoDBDeleteTableModal } from './DynamoDBDeleteTableModal.vue'
+export { default as DynamoDBDeleteItemModal } from './DynamoDBDeleteItemModal.vue'
+export { default as DynamoDBCreateTableModal } from './DynamoDBCreateTableModal.vue'
+export { default as DynamoDBViewTableModal } from './DynamoDBViewTableModal.vue'
+export { default as DynamoDBPutItemModal } from './DynamoDBPutItemModal.vue'
+export { default as DynamoDBExploreModal } from './DynamoDBExploreModal.vue'

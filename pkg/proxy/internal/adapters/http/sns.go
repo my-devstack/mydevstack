@@ -2,6 +2,7 @@ package httphandlers
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -25,10 +26,10 @@ func (h *ProxyHandler) handleSNS(c *gin.Context) {
 		h.subscribe(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "Unsubscribe"):
 		h.unsubscribe(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "ListSubscriptions"):
-		h.listSubscriptions(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "ListSubscriptionsByTopic"):
 		h.listSubscriptionsByTopic(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "ListSubscriptions"):
+		h.listSubscriptions(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "Publish"):
 		h.publish(ctx, c, bodyBytes)
 	default:
@@ -121,10 +122,17 @@ func (h *ProxyHandler) listSubscriptions(ctx context.Context, c *gin.Context, bo
 }
 
 func (h *ProxyHandler) listSubscriptionsByTopic(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &sns.ListSubscriptionsByTopicInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
+	type requestBody struct {
+		TopicArn string `json:"TopicArn"`
+	}
+	var body requestBody
+	if err := json.Unmarshal(bodyBytes, &body); err != nil {
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
+	}
+	input := &sns.ListSubscriptionsByTopicInput{}
+	if body.TopicArn != "" {
+		input.TopicArn = &body.TopicArn
 	}
 	result, err := h.svc.SNS().ListSubscriptionsByTopic(ctx, input)
 	if err != nil {

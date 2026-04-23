@@ -37,6 +37,36 @@ const showPublishModal = ref(false)
 const showSubscriptionsModal = ref(false)
 const showDeleteModal = ref(false)
 const showExamples = ref(false)
+const expandedTopics = ref<Set<string>>(new Set())
+const topicSubscriptions = ref<any[]>([])
+const loadingTopicSubscriptions = ref(false)
+
+function toggleTopic(arn: string) {
+  if (expandedTopics.value.has(arn)) {
+    expandedTopics.value.clear()
+  } else {
+    expandedTopics.value.clear()
+    expandedTopics.value.add(arn)
+    loadTopicSubscriptions(arn)
+  }
+  expandedTopics.value = new Set(expandedTopics.value)
+}
+
+async function loadTopicSubscriptions(arn: string) {
+  loadingTopicSubscriptions.value = true
+  try {
+    topicSubscriptions.value = await sns.listSubscriptionsByTopic(arn)
+  } catch (error) {
+    console.error('Error loading subscriptions:', error)
+  } finally {
+    loadingTopicSubscriptions.value = false
+  }
+}
+
+function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text)
+  toast.success('Copied', 'Copied to clipboard')
+}
 
 // Form state
 const topicForm = ref({
@@ -69,7 +99,6 @@ const protocolOptions = [
 
 // Columns
 const topicColumns = computed(() => [
-  { key: 'TopicName', label: 'Topic Name', sortable: true },
   { key: 'TopicArn', label: 'ARN', sortable: false },
 ])
 
@@ -502,74 +531,33 @@ watch(reloadTrigger, () => {
       <!-- Empty State -->
       <EmptyState
         v-else-if="topics.length === 0"
-        icon="topic"
+        icon="megaphone"
         title="No SNS Topics"
         description="Create your first SNS topic to get started."
         action-label="Create Topic"
         @action="showCreateTopicModal = true"
       />
 
-      <!-- Topics Table -->
-      <DataTable
-        v-else
-        :columns="topicColumns"
-        :data="topics"
-        :loading="loading"
-        empty-title="No SNS Topics"
-        empty-text="No topics found."
+      <!-- Topics List -->
+      <div
+        v-if="topics.length > 0"
+        class="space-y-4"
       >
-        <template #cell-TopicName="{ value, row }">
-          <div class="flex items-center gap-2">
-            <svg
-              class="w-5 h-5 text-orange-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H5a4 4 0 110-6z"
-              />
-            </svg>
-            <span class="font-medium text-light-text dark:text-dark-text">{{ value }}</span>
-          </div>
-        </template>
-
-        <template #cell-TopicArn="{ value }">
-          <div class="flex items-center gap-2">
-            <code class="text-xs text-light-muted dark:text-dark-muted bg-light-border dark:bg-dark-border px-2 py-1 rounded truncate max-w-xs">{{ value }}</code>
-          </div>
-        </template>
-
-        <template #row-actions="{ row }">
-          <div class="flex items-center gap-1">
-            <button
-              class="px-2 py-1 text-sm rounded hover:bg-light-border dark:hover:bg-dark-border"
-              @click="loadSubscriptions(row.TopicArn)"
-            >
-              Subscriptions
-            </button>
-            <button
-              class="px-2 py-1 text-sm rounded hover:bg-light-border dark:hover:bg-dark-border"
-              @click="openSubscribeModal(row)"
-            >
-              Subscribe
-            </button>
-            <button
-              class="px-2 py-1 text-sm rounded hover:bg-light-border dark:hover:bg-dark-border"
-              @click="openPublishModal(row)"
-            >
-              Publish
-            </button>
-            <button
-              class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
-              title="Delete"
-              @click="openDeleteModal(row)"
-            >
+        <div
+          v-for="topic in topics"
+          :key="topic.TopicArn"
+          class="border rounded-lg overflow-hidden"
+          :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
+        >
+          <!-- Accordion Header -->
+          <div 
+            class="grid grid-cols-12 gap-4 px-4 py-4 items-center cursor-pointer hover:bg-light-bg dark:hover:bg-dark-bg"
+            :class="settingsStore.darkMode ? 'bg-dark-surface' : 'bg-light-surface'"
+            @click="toggleTopic(topic.TopicArn)"
+          >
+            <div class="col-span-10 flex items-center gap-2">
               <svg
-                class="w-4 h-4"
+                class="w-5 h-5 text-orange-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -578,16 +566,144 @@ watch(reloadTrigger, () => {
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H5a4 4 0 110-6z"
                 />
               </svg>
-            </button>
+              <code class="text-xs text-light-text dark:text-dark-text truncate">{{ topic.TopicArn }}</code>
+            </div>
+            <div class="col-span-2 flex items-center justify-end gap-2">
+              <button
+                class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                title="Delete"
+                @click.stop="selectedTopic = topic; showDeleteModal = true"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+              <svg
+                class="w-5 h-5 text-light-muted dark:text-dark-muted transition-transform"
+                :class="expandedTopics.has(topic.TopicArn) ? 'rotate-90' : ''"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </div>
           </div>
-        </template>
-      </DataTable>
+          
+          <!-- Accordion Content -->
+          <div
+            v-if="expandedTopics.has(topic.TopicArn)"
+            class="px-4 pb-4 border-t"
+            :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
+          >
+            <div class="mt-4 space-y-4">
+              <!-- Topic ARN -->
+              <div>
+                <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Topic ARN</label>
+                <div class="flex items-center gap-2">
+                  <code class="text-xs text-light-muted dark:text-dark-muted bg-light-border dark:bg-dark-border px-2 py-1 rounded flex-1 break-all">{{ topic.TopicArn }}</code>
+                  <button
+                    class="p-2 rounded hover:bg-light-border dark:hover:bg-dark-border"
+                    title="Copy ARN"
+                    @click="copyToClipboard(topic.TopicArn)"
+                  >
+                    <svg
+                      class="w-4 h-4 text-light-muted dark:text-dark-muted"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Subscribe & Publish Buttons -->
+              <div class="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  @click="selectedTopic = topic; showSubscribeModal = true"
+                >
+                  Subscribe
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  @click="selectedTopic = topic; showPublishModal = true"
+                >
+                  Publish
+                </Button>
+              </div>
+
+              <!-- Subscriptions -->
+              <div>
+                <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Subscriptions</label>
+                <div
+                  v-if="loadingTopicSubscriptions"
+                  class="flex justify-center py-4"
+                >
+                  <LoadingSpinner size="sm" />
+                </div>
+                <div
+                  v-else-if="topicSubscriptions.length === 0"
+                  class="text-sm text-light-muted dark:text-dark-muted py-2"
+                >
+                  No subscriptions
+                </div>
+                <div
+                  v-else
+                  class="divide-y divide-light-border dark:divide-dark-border"
+                >
+                  <div
+                    v-for="(sub, idx) in topicSubscriptions"
+                    :key="idx"
+                    class="py-2 flex items-center justify-between"
+                  >
+                    <div>
+                      <span class="text-xs text-light-text dark:text-dark-text">{{ sub.Protocol }}</span>
+                      <span class="text-xs text-light-muted dark:text-dark-muted ml-2">{{ sub.Endpoint }}</span>
+                    </div>
+                    <span
+                      class="text-xs px-2 py-0.5 rounded"
+                      :class="sub.SubscriptionArn?.includes('Pending') ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'"
+                    >
+                      {{ sub.SubscriptionArn?.includes('Pending') ? 'Pending' : 'Confirmed' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-<!-- Create Topic Modal -->
+    <!-- Create Topic Modal -->
     <SNSCreateTopicModal
       v-model:open="showCreateTopicModal"
       v-model:form="topicForm"
@@ -671,7 +787,7 @@ watch(reloadTrigger, () => {
 
     <!-- Usage Examples Section -->
     <div
-      v-if="!loading && topics.length > 0"
+      v-if="!loading"
       class="mt-8"
     >
       <h2

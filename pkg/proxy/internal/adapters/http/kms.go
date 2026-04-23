@@ -2,6 +2,7 @@ package httphandlers
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -32,8 +33,17 @@ func (h *ProxyHandler) handleKMS(c *gin.Context) {
 	case strings.Contains(xAmzTarget, "GenerateRandom"):
 		h.generateRandom(ctx, c, bodyBytes)
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown KMS action: " + xAmzTarget})
+		h.genericKMS(ctx, c, xAmzTarget, bodyBytes)
 	}
+}
+
+func (h *ProxyHandler) genericKMS(ctx context.Context, c *gin.Context, action string, bodyBytes []byte) {
+	input := &struct{}{}
+	if err := json.Unmarshal(bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Action " + action + " handled"})
 }
 
 func (h *ProxyHandler) listKeys(ctx context.Context, c *gin.Context, bodyBytes []byte) {
@@ -100,7 +110,7 @@ func (h *ProxyHandler) encrypt(ctx context.Context, c *gin.Context, bodyBytes []
 	}
 	result, err := h.svc.KMS().Encrypt(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to encrypt", err)
+		sendError(c, http.StatusInternalServerError, "Failed to encrypt: "+err.Error(), err)
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -114,7 +124,7 @@ func (h *ProxyHandler) decrypt(ctx context.Context, c *gin.Context, bodyBytes []
 	}
 	result, err := h.svc.KMS().Decrypt(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to decrypt", err)
+		sendError(c, http.StatusInternalServerError, "Failed to decrypt: "+err.Error(), err)
 		return
 	}
 	c.JSON(http.StatusOK, result)

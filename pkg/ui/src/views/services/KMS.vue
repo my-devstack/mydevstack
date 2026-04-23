@@ -26,6 +26,10 @@ import EmptyState from '@/components/common/EmptyState.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import DataTable from '@/components/common/DataTable.vue'
+import {
+  KMSCreateKeyModal,
+  KMSDeleteModal,
+} from '@/components/kms'
 
 // Icons
 import {
@@ -400,11 +404,7 @@ async function handleEncrypt() {
   if (!selectedKey.value || !encryptForm.value.plaintext) return
 
   try {
-    const plaintext = btoa(encryptForm.value.plaintext)
-    const result = await encrypt({
-      KeyId: selectedKey.value.KeyId,
-      Plaintext: plaintext,
-    })
+    const result = await encrypt(selectedKey.value.KeyId, encryptForm.value.plaintext)
     encryptedResult.value = result.CiphertextBlob
     toast.success('Data encrypted', 'Data encrypted successfully')
   } catch (error) {
@@ -416,10 +416,8 @@ async function handleDecrypt() {
   if (!decryptForm.value.ciphertext) return
 
   try {
-    const result = await decrypt({
-      CiphertextBlob: decryptForm.value.ciphertext,
-    })
-    decryptedResult.value = atob(result.Plaintext)
+    const result = await decrypt(decryptForm.value.ciphertext)
+    decryptedResult.value = result.Plaintext
     toast.success('Data decrypted', 'Data decrypted successfully')
   } catch (error) {
     toast.error('Decryption failed', error instanceof Error ? error.message : 'Unknown error')
@@ -753,73 +751,12 @@ function copyToClipboard(text: string) {
     </div>
 
     <!-- Create Key Modal -->
-    <Modal
-      :open="showCreateModal"
-      title="Create KMS Key"
-      size="md"
-      @update:open="showCreateModal = $event"
-    >
-      <form
-        class="space-y-4"
-        @submit.prevent="handleCreateKey"
-      >
-        <FormInput
-          v-model="newKey.description"
-          label="Description"
-          placeholder="Key description"
-        />
-
-        <div>
-          <label class="block text-sm font-medium text-light-text dark:text-dark-text mb-1.5">
-            Key Usage
-          </label>
-          <select
-            v-model="newKey.keyUsage"
-            class="block w-full rounded-md shadow-sm border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary-500"
-          >
-            <option value="ENCRYPT_DECRYPT">
-              Encrypt and Decrypt
-            </option>
-            <option value="SIGN_VERIFY">
-              Sign and Verify
-            </option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-light-text dark:text-dark-text mb-1.5">
-            Key Spec
-          </label>
-          <select
-            v-model="newKey.keySpec"
-            class="block w-full rounded-md shadow-sm border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary-500"
-          >
-            <option
-              v-for="spec in keySpecs"
-              :key="spec.value"
-              :value="spec.value"
-            >
-              {{ spec.label }}
-            </option>
-          </select>
-        </div>
-      </form>
-
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showCreateModal = false"
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          @click="handleCreateKey"
-        >
-          Create Key
-        </Button>
-      </template>
-    </Modal>
+    <KMSCreateKeyModal
+      v-model:open="showCreateModal"
+      v-model:form="newKey"
+      :key-specs="keySpecs"
+      @create="handleCreateKey"
+    />
 
     <!-- Key Details Modal -->
     <Modal
@@ -1074,41 +1011,10 @@ function copyToClipboard(text: string) {
     </Modal>
 
     <!-- Delete Key Modal -->
-    <Modal
-      :open="showDeleteModal"
-      title="Schedule Key Deletion"
-      size="md"
-      @update:open="showDeleteModal = $event"
-    >
-      <div class="space-y-4">
-        <div class="flex items-start gap-3 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
-          <ExclamationCircleIcon class="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p class="text-sm text-yellow-800 dark:text-yellow-200">
-              Are you sure you want to schedule deletion of this key?
-            </p>
-            <p class="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-              The key will be scheduled for deletion and cannot be recovered after the waiting period (7-30 days).
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showDeleteModal = false"
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="danger"
-          @click="handleDeleteKey"
-        >
-          Schedule Deletion
-        </Button>
-      </template>
-    </Modal>
+    <KMSDeleteModal
+      v-model:open="showDeleteModal"
+      @delete="handleDeleteKey"
+    />
 
     <!-- Usage Examples Section -->
     <div

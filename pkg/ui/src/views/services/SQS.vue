@@ -647,12 +647,19 @@ watch(reloadTrigger, () => {
           <span class="text-sm text-light-muted dark:text-dark-muted">
             {{ messages.length }} message(s) available
           </span>
-          <Button variant="secondary" size="sm" @click="loadMessages">
+          <Button
+            variant="secondary"
+            size="sm"
+            @click="loadMessages"
+          >
             Refresh
           </Button>
         </div>
 
-        <div v-if="loadingMessages" class="flex justify-center py-8">
+        <div
+          v-if="loadingMessages"
+          class="flex justify-center py-8"
+        >
           <LoadingSpinner />
         </div>
 
@@ -663,7 +670,10 @@ watch(reloadTrigger, () => {
           description="This queue is empty or messages have already been received."
         />
 
-        <div v-else class="space-y-3 max-h-96 overflow-auto">
+        <div
+          v-else
+          class="space-y-3 max-h-96 overflow-auto"
+        >
           <div
             v-for="(msg, index) in messages"
             :key="msg.MessageId || index"
@@ -692,7 +702,10 @@ watch(reloadTrigger, () => {
       </div>
 
       <template #footer>
-        <Button variant="secondary" @click="showMessagesModal = false">
+        <Button
+          variant="secondary"
+          @click="showMessagesModal = false"
+        >
           Close
         </Button>
       </template>
