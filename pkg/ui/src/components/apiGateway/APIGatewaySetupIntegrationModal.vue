@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import { useSettingsStore } from '@/stores/settings'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
 import FormSelect from '@/components/common/FormSelect.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+
+interface LambdaInput {
+  FunctionName: string
+  FunctionArn?: string
+}
 
 const props = defineProps<{
   open: boolean
@@ -13,8 +19,10 @@ const props = defineProps<{
   initialType?: string
   initialUri?: string
   initialHttpMethod?: string
-  lambdaFunctions?: string[]
+  lambdaFunctions?: (string | LambdaInput)[]
 }>()
+
+const settingsStore = useSettingsStore()
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
@@ -47,13 +55,24 @@ const localHttpMethod = ref(props.initialHttpMethod || 'POST')
 const selectedLambda = ref('')
 
 const lambdaOptions = computed(() => {
-  return (props.lambdaFunctions || []).map(fn => ({ value: fn, label: fn }))
+  const funcs = props.lambdaFunctions || []
+  return funcs.map((fn: string | LambdaInput) => {
+    const name = typeof fn === 'string' ? fn : fn.FunctionName
+    const arn = typeof fn === 'string' ? '' : fn.FunctionArn || ''
+    return { value: name, label: name, arn }
+  })
 })
 
 watch(selectedLambda, (val) => {
   if (val) {
-    // For HTTP API, just the function name works. Try same for REST API
-    localUri.value = val
+    const selected = lambdaOptions.value.find(f => f.value === val)
+    const arn = selected?.arn || ''
+    const region = settingsStore.region
+    if (arn) {
+      localUri.value = `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${arn}/invocations`
+    } else {
+      localUri.value = val
+    }
   }
 })
 
@@ -62,6 +81,8 @@ watch(() => props.open, (isOpen) => {
     localType.value = props.initialType || 'MOCK'
     localUri.value = props.initialUri || ''
     localHttpMethod.value = props.initialHttpMethod || 'POST'
+  } else {
+    selectedLambda.value = ''
   }
 })
 

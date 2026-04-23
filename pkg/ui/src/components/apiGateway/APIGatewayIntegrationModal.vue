@@ -6,13 +6,20 @@ import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
 import FormSelect from '@/components/common/FormSelect.vue'
 
-const props = defineProps<{
+interface LambdaInput {
+  FunctionName: string
+  FunctionArn?: string
+}
+
+const props = withDefaults(defineProps<{
   open: boolean
   type: 'rest' | 'http' | string
-  'lambda-functions': string[]
+  lambdaFunctions: (string | LambdaInput)[]
   integrationId?: string
   loading?: boolean
-}>()
+}>(), {
+  lambdaFunctions: () => [],
+})
 
 const _props = props // workaround
 
@@ -26,8 +33,15 @@ const settingsStore = useSettingsStore()
 
 const integrationType = ref('lambda')
 const uri = ref('')
-const payloadFormat = ref('1.0')
+const payloadFormat = ref('2.0')
 const selectedLambdaFunction = ref('')
+const selectedLambdaArn = ref('')
+
+interface LambdaFunctionOption {
+  value: string
+  label: string
+  arn?: string
+}
 
 const allIntegrationTypes = [
   { value: 'lambda', label: 'Lambda Function' },
@@ -48,13 +62,30 @@ const payloadFormats = [
 ]
 
 const lambdaFunctionOptions = computed(() => {
-  const funcs = props['lambda-functions'] || []
-  return funcs.map(fn => ({ value: fn, label: fn }))
+  const funcs = props.lambdaFunctions || []
+  return funcs.map((fn: string | LambdaInput) => {
+    const name = typeof fn === 'string' ? fn : fn.FunctionName
+    const arn = typeof fn === 'string' ? '' : fn.FunctionArn || ''
+    return { value: name, label: name, arn }
+  })
 })
 
 watch(selectedLambdaFunction, (newVal) => {
   if (newVal) {
-    uri.value = newVal
+    const selected = lambdaFunctionOptions.value.find(f => f.value === newVal)
+    const arn = selected?.arn || ''
+    if (arn) {
+      if (props.type === 'http') {
+        uri.value = arn
+      } else {
+        const region = settingsStore.region
+        uri.value = `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${arn}/invocations`
+      }
+      selectedLambdaArn.value = arn
+    } else {
+      uri.value = newVal
+      selectedLambdaArn.value = ''
+    }
   }
 })
 
@@ -62,8 +93,8 @@ watch(() => props.open, (newVal) => {
   if (!newVal) {
     selectedLambdaFunction.value = ''
     uri.value = ''
-    integrationType.value = 'lambda'
-    payloadFormat.value = '1.0'
+    integrationType.value = props.type === 'http' ? 'lambda' : 'lambda'
+    payloadFormat.value = props.type === 'http' ? '2.0' : '1.0'
   }
 })
 

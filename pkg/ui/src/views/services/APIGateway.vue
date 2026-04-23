@@ -3135,7 +3135,7 @@ onMounted(() => {
     <APIGatewayIntegrationModal
       v-model:open="showCreateIntegrationModal"
       type="http"
-      :lambda-functions="availableLambdas.map(l => l.FunctionName)"
+      :lambda-functions="availableLambdas"
       :loading="creatingIntegration"
       @create="createHttpApiIntegration"
     />
@@ -3249,7 +3249,7 @@ onMounted(() => {
       :initial-type="newIntegrationType"
       :initial-uri="newIntegrationUri"
       :initial-http-method="newIntegrationHttpMethod"
-      :lambda-functions="availableLambdas.map(fn => fn.FunctionName)"
+      :lambda-functions="availableLambdas"
       @update:type="newIntegrationType = $event"
       @update:uri="newIntegrationUri = $event"
       @update:http-method="newIntegrationHttpMethod = $event"
