@@ -661,10 +661,18 @@ export interface APIGatewayResource {
 
 export interface APIGatewayMethod {
   httpMethod: string
+  HttpMethod?: string
   authorizationType: string
+  AuthorizationType?: string
   authorizerId?: string
   apiKeyRequired: boolean
+  ApiKeyRequired?: boolean
   methodResponses: Record<string, unknown>[]
+  uri?: string
+  type?: string
+  Uri?: string
+  Type?: string
+  integrationId?: string
 }
 
 // REST API Deployment

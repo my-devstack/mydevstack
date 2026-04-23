@@ -13,6 +13,7 @@ import {
   StarIcon,
   ArrowPathIcon,
   BellIcon,
+  MegaphoneIcon,
 } from '@heroicons/vue/24/outline'
 
 interface Props {
@@ -48,7 +49,7 @@ const iconMap: Record<string, unknown> = {
   'refresh': ArrowPathIcon,
   'loading': ArrowPathIcon,
   'table-cells': DocumentTextIcon,
-  'megaphone': BellIcon,
+  'megaphone': MegaphoneIcon,
 }
 
 const IconComponent = computed(() => {
