@@ -9,6 +9,7 @@ const props = defineProps<{
   open: boolean
   type: 'rest' | 'http'
   loading?: boolean
+  api?: any
 }>()
 
 const emit = defineEmits<{
@@ -17,6 +18,7 @@ const emit = defineEmits<{
   'create-http': [name: string, description: string]
   'create': [name: string, description: string]
   'update': [name: string, description: string]
+  'update-rest': [name: string, description: string]
 }>()
 
 const settingsStore = useSettingsStore()
@@ -26,18 +28,31 @@ const restDescription = ref('')
 const httpName = ref('')
 const httpDescription = ref('')
 
-// Reset form when modal opens
+// Reset form when modal opens or api changes
 watch(() => props.open, (isOpen) => {
   if (isOpen) {
-    restName.value = ''
-    restDescription.value = ''
-    httpName.value = ''
-    httpDescription.value = ''
+    if (props.api) {
+      restName.value = props.api.name || ''
+      restDescription.value = props.api.description || ''
+      httpName.value = props.api.name || ''
+      httpDescription.value = props.api.description || ''
+    } else {
+      restName.value = ''
+      restDescription.value = ''
+      httpName.value = ''
+      httpDescription.value = ''
+    }
   }
-})
+}, { immediate: true })
 
 function handleCreate() {
-  if (props.type === 'rest') {
+  if (props.api) {
+    if (props.type === 'rest') {
+      emit('update', restName.value.trim(), restDescription.value.trim())
+    } else {
+      emit('update', httpName.value.trim(), httpDescription.value.trim())
+    }
+  } else if (props.type === 'rest') {
     if (!restName.value.trim()) return
     emit('create-rest', restName.value.trim(), restDescription.value.trim())
     emit('create', restName.value.trim(), restDescription.value.trim())
@@ -56,7 +71,7 @@ function handleClose() {
 <template>
   <Modal
     :open="open"
-    :title="type === 'rest' ? 'Create REST API' : 'Create HTTP API'"
+    :title="api ? (type === 'rest' ? 'Edit REST API' : 'Edit HTTP API') : (type === 'rest' ? 'Create REST API' : 'Create HTTP API')"
     size="md"
     @update:open="emit('update:open', $event)"
     @close="handleClose"
@@ -113,7 +128,7 @@ function handleClose() {
           :disabled="loading || (type === 'rest' ? !restName.trim() : !httpName.trim())"
           @click="handleCreate"
         >
-          {{ loading ? 'Creating...' : 'Create' }}
+          {{ loading ? (api ? 'Updating...' : 'Creating...') : (api ? 'Update' : 'Create') }}
         </Button>
       </div>
     </template>

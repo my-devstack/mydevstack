@@ -33,8 +33,8 @@ const emit = defineEmits<{
 }>()
 
 const integrationTypes = [
-  { value: 'MOCK', label: 'Mock (works in LocalStack)' },
-  { value: 'AWS', label: 'AWS (Lambda) - production only' },
+  { value: 'MOCK', label: 'Mock' },
+  { value: 'AWS_PROXY', label: 'Lambda (AWS_PROXY)' },
   { value: 'HTTP', label: 'HTTP' },
   { value: 'HTTP_PROXY', label: 'HTTP Proxy' },
 ]
@@ -70,8 +70,8 @@ watch(selectedLambda, (val) => {
     const region = settingsStore.region
     if (arn) {
       localUri.value = `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${arn}/invocations`
-    } else {
-      localUri.value = val
+    } else if (val) {
+      localUri.value = `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${val}/invocations`
     }
   }
 })

@@ -5,7 +5,9 @@ import Modal from './Modal.vue'
 
 const TestModal = defineComponent({
   components: { Modal },
-  props: ['open'],
+  props: {
+    open: { type: Boolean, required: true }
+  },
   emits: ['update:open'],
   template: `
     <Modal :open="open" @update:open="$emit('update:open', $event)">

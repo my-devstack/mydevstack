@@ -156,6 +156,56 @@ Keep files focused and under 200 lines. Break large components into smaller, reu
 2. **Never commit secrets**: Never add credentials, API keys to repo
 3. **Run lint before commit**: Always run `make lint`
 4. **Verify tests pass**: Ensure tests pass before submitting
+5. **Test in browser after UI changes**: Always verify changes in the browser (npm run dev + browser) to check for console warnings/errors. Look for:
+   - Vue warnings about missing props
+   - Vue warnings about missing emits
+   - JavaScript errors
+   - Network errors (failed API calls)
+   - Click buttons and verify functionality works end-to-end
+
+---
+
+## Testing UI Changes (Required - End to End)
+
+Every time you make changes to Vue components or implement features, you MUST verify them in the browser with an end-to-end test:
+
+### Step 1: Start servers if needed
+```bash
+# Check if servers are running
+curl -s -o /dev/null -w "%{http_code}" http://localhost:5173
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8081/health
+
+# Start if not running
+cd pkg/ui && npm run dev &
+cd pkg/proxy && go run ./cmd/server &
+```
+
+### Step 2: Open browser and navigate to the relevant page
+- Navigate to the specific feature page
+- Example: http://localhost:5173/services/apigateway#/services/api-gateway
+
+### Step 3: Open browser console (F12) - Check BOTH tabs:
+- **Console tab**: Look for `[Vue warn]`, `[error]`, JavaScript errors
+- **Network tab**: Look for failed requests (4xx, 5xx status codes)
+
+### Step 4: Test the feature end-to-end (click through the entire flow)
+- **For modals**: Open modal → Fill form → Submit → Verify success/error toast
+- **For lists**: Create item → Verify it appears → Edit → Delete
+- **For forms**: Fill all fields → Submit → Check backend received correct data
+- **For integrations**: Set up integration → Verify no 500 errors
+
+### Step 5: Verify NO warnings or errors
+- No console warnings (check for `[Vue warn]`)
+- No JavaScript errors
+- No network 500/4xx errors (except expected API failures)
+- Test multiple flows to ensure full coverage
+
+**ALWAYS verify in browser after changes. Do not assume changes work without testing.**
+
+If the feature doesn't work correctly in the browser:
+1. Check the backend logs (`tail -f /tmp/server.log`)
+2. Check network requests to see what data is sent/received
+3. Test with curl to verify backend API works
 
 ---
 
