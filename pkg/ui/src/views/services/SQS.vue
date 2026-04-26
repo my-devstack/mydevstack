@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
+import { useSQS } from '@/composables/useSQS'
 import { QueueListIcon, ChevronDownIcon, ChevronRightIcon, ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 import Modal from '@/components/common/Modal.vue'
 import FormInput from '@/components/common/FormInput.vue'
@@ -10,51 +11,37 @@ import Button from '@/components/common/Button.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
-import * as sqsApi from '@/api/services/sqs'
 
 const settingsStore = useSettingsStore()
 const toast = useToast()
 const { reloadTrigger } = useContentReload()
-const { listQueues, createQueue: sqsCreateQueue, deleteQueue: sqsDeleteQueue, getQueueAttributes, receiveMessage, deleteMessage } = sqsApi
 
-const queues = ref<any[]>([])
-const loading = ref(false)
+const {
+  queues,
+  loading,
+  expandedQueues,
+  queueAttributesMap,
+  queueArnMap,
+  messages,
+  loadingMessages,
+  loadQueues,
+  createQueue: createQueueFromComposable,
+  deleteQueue: deleteQueueFromComposable,
+  loadQueueAttributes,
+  toggleQueue,
+  formatBody,
+} = useSQS()
+
 const showCreateModal = ref(false)
-const newQueue = ref({
-  name: '',
-  isFifo: false,
-})
+const newQueue = ref({ name: '', isFifo: false })
 
-// Delete confirmation state
 const showDeleteModal = ref(false)
 const queueToDelete = ref('')
 
-// Messages view state
 const showMessagesModal = ref(false)
 const selectedQueueUrl = ref('')
 const selectedQueueName = ref('')
-const messages = ref<any[]>([])
-const loadingMessages = ref(false)
 
-// Accordion state for queues
-const expandedQueues = ref<Set<string>>(new Set())
-const queueAttributesMap = ref<Record<string, { name: string; value: string }[]>>({})
-const queueArnMap = ref<Record<string, string>>({})
-
-function toggleQueueExpansion(url: string) {
-  if (expandedQueues.value.has(url)) {
-    expandedQueues.value.delete(url)
-  } else {
-    expandedQueues.value.add(url)
-    // Load attributes if not already loaded
-    if (!queueAttributesMap.value[url]) {
-      loadQueueAttributesForAccordion(url)
-    }
-  }
-  expandedQueues.value = new Set(expandedQueues.value)
-}
-
-// Copy to clipboard function
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text).then(() => {
     toast.success('Copied', 'Copied to clipboard')
@@ -63,38 +50,6 @@ function copyToClipboard(text: string) {
   })
 }
 
-async function loadQueueAttributesForAccordion(url: string) {
-  try {
-    const attributes = await getQueueAttributes(url, ['All'])
-    const parsedAttributes: { name: string; value: string }[] = []
-    for (const [key, value] of Object.entries(attributes)) {
-      if (key !== 'QueueUrl' && key !== 'QueueArn' && value !== undefined) {
-        parsedAttributes.push({
-          name: key,
-          value: String(value)
-        })
-      }
-    }
-    queueAttributesMap.value[url] = parsedAttributes
-    // Also store the ARN separately if available
-    queueArnMap.value[url] = attributes.QueueArn || ''
-  } catch (e: any) {
-    console.error('Failed to load queue attributes:', e)
-    queueAttributesMap.value[url] = []
-  }
-}
-
-// Helper to format JSON
-function formatBody(body: string) {
-  try {
-    const parsed = JSON.parse(body)
-    return JSON.stringify(parsed, null, 2)
-  } catch {
-    return body
-  }
-}
-
-// Messages functions
 function openMessagesModal(queueUrl: string, queueName: string) {
   selectedQueueUrl.value = queueUrl
   selectedQueueName.value = queueName
@@ -133,7 +88,9 @@ async function handleDeleteMessage(receiptHandle: string) {
   }
 }
 
-// Example code tabs
+import * as sqsApi from '@/api/services/sqs'
+const { receiveMessage, deleteMessage } = sqsApi
+
 const selectedExample = ref(0)
 
 // Code examples
@@ -298,21 +255,23 @@ if len(receiveOutput.Messages) > 0 {
   },
 ])
 
-async function loadQueues() {
-  loading.value = true
-  
+function toggleQueueExpansion(url: string) {
+  toggleQueue(url)
+}
+
+function openDeleteModal(url: string) {
+  queueToDelete.value = url
+  showDeleteModal.value = true
+}
+
+async function confirmDeleteQueue() {
+  if (!queueToDelete.value) return
   try {
-    const urls = await listQueues()
-    const queueList = urls.map((url: string) => ({
-      url,
-      name: url.split('/').pop() || url
-    }))
-    queues.value = queueList
+    await deleteQueueFromComposable(queueToDelete.value)
+    showDeleteModal.value = false
+    queueToDelete.value = ''
   } catch (e: any) {
-    toast.error('Failed to load queues', e.message || 'Unknown error')
-    queues.value = []
-  } finally {
-    loading.value = false
+    toast.error('Failed to delete queue', e.message || 'Unknown error')
   }
 }
 
@@ -321,40 +280,12 @@ async function createQueue() {
     toast.error('Queue name is required')
     return
   }
-  
-  loading.value = true
   try {
-    await sqsCreateQueue(newQueue.value.name.trim(), newQueue.value.isFifo)
-    toast.success('Queue created', 'Queue created successfully')
+    await createQueueFromComposable(newQueue.value.name.trim(), newQueue.value.isFifo)
     showCreateModal.value = false
     newQueue.value = { name: '', isFifo: false }
-    await loadQueues()
   } catch (e: any) {
     toast.error('Failed to create queue', e.message || 'Unknown error')
-  } finally {
-    loading.value = false
-  }
-}
-
-async function openDeleteModal(url: string) {
-  queueToDelete.value = url
-  showDeleteModal.value = true
-}
-
-async function confirmDeleteQueue() {
-  if (!queueToDelete.value) return
-  
-  loading.value = true
-  try {
-    await sqsDeleteQueue(queueToDelete.value)
-    toast.success('Queue deleted', 'Queue deleted successfully')
-    showDeleteModal.value = false
-    queueToDelete.value = ''
-    await loadQueues()
-  } catch (e: any) {
-    toast.error('Failed to delete queue', e.message || 'Unknown error')
-  } finally {
-    loading.value = false
   }
 }
 

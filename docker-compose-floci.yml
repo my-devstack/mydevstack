@@ -28,6 +28,7 @@ services:
 
   floci:
     image: hectorvent/floci:latest
+    container_name: floci
     ports:
       - "4566:4566"
       - "5100-5199:5100-5199" # ECR registry ports for docker push/pull

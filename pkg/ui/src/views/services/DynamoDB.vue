@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useToast } from '@/composables/useToast'
+import { useDynamoDB } from '@/composables/useDynamoDB'
 import { useContentReload } from '@/composables/useContentReload'
 import { TableCellsIcon, ChevronDownIcon, ChevronRightIcon, MagnifyingGlassCircleIcon } from '@heroicons/vue/24/outline'
 import Modal from '@/components/common/Modal.vue'
@@ -9,6 +10,7 @@ import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
 import FormSelect from '@/components/common/FormSelect.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import CodeSnippet from '@/components/common/CodeSnippet.vue'
 import {
   DynamoDBDeleteTableModal,
   DynamoDBDeleteItemModal,
@@ -23,9 +25,41 @@ const settingsStore = useSettingsStore()
 const toast = useToast()
 const { reloadTrigger } = useContentReload()
 
-const tables = ref<any[]>([])
-const loading = ref(false)
-const error = ref<string | null>(null)
+const {
+  tables,
+  loading,
+  error,
+  tableDetailsMap,
+  loadTables,
+  loadTableDetails,
+  createTable,
+  deleteTable,
+  putItem,
+  deleteItem,
+  getKeyTypeLabel,
+  getBillingModeLabel,
+  formatAttributeValue,
+  streams,
+  streamLoading,
+  streamError,
+  loadStreams,
+  getStreamShards,
+  getRecordsFromShard,
+  scanLoading,
+  scanError,
+  scanItems,
+  scanLastKey,
+  scanTableData,
+  queryTableData,
+  getAttributeType,
+  convertValueToAttr,
+  getSortKeyCondition,
+  formatEventName,
+  formatRecordData,
+  getPartitionKeyName,
+  getSortKeyName,
+  getAllUniqueAttributes,
+} = useDynamoDB()
 
 // Create table modal state
 const showCreateModal = ref(false)
@@ -56,7 +90,6 @@ const deleting = ref(false)
 
 // Accordion state for tables
 const expandedTables = ref<Set<string>>(new Set())
-const tableDetailsMap = ref<Record<string, any>>({})
 
 function toggleTableExpansion(tableName: string) {
   if (expandedTables.value.has(tableName)) {
@@ -72,13 +105,7 @@ function toggleTableExpansion(tableName: string) {
 }
 
 async function loadTableDetailsForAccordion(tableName: string) {
-  try {
-    const data = await describeTable(tableName)
-    tableDetailsMap.value[tableName] = data.Table
-  } catch (e: any) {
-    console.error('Failed to load table details:', e)
-    tableDetailsMap.value[tableName] = null
-  }
+  await loadTableDetails(tableName)
 }
 
 // Explore data modal state
@@ -109,13 +136,10 @@ const deleteItemLoading = ref(false)
 
 // Stream viewer modal state
 const showStreamModal = ref(false)
-const streamLoading = ref(false)
-const streamError = ref<string | null>(null)
-const streams = ref<any[]>([])
+const loadingRecords = ref(false)
 const selectedStream = ref<any>(null)
 const streamRecords = ref<any[]>([])
 const shardIterator = ref<string | null>(null)
-const loadingRecords = ref(false)
 
 // Code examples
 const codeExamples = computed(() => [
@@ -438,21 +462,6 @@ fmt.Printf("Records: %d\\n", len(recordsOutput.Records))`
   },
 ])
 
-async function loadTables() {
-  loading.value = true
-  error.value = null
-  
-  try {
-    const data = await listTables({})
-    tables.value = data.TableNames || []
-  } catch (e: any) {
-    error.value = e.message
-    tables.value = []
-  } finally {
-    loading.value = false
-  }
-}
-
 // Open create modal
 function openCreateModal() {
   newTableName.value = ''
@@ -468,53 +477,25 @@ function openCreateModal() {
 }
 
 // Create table
-async function createTable() {
+async function handleCreateTable() {
   if (!newTableName.value.trim() || !partitionKeyName.value.trim()) return
   
   creating.value = true
   try {
-    const attributeDefinitions = [
-      { AttributeName: partitionKeyName.value.trim(), AttributeType: partitionKeyType.value }
-    ]
-    
-    const keySchema = [
-      { AttributeName: partitionKeyName.value.trim(), KeyType: 'HASH' }
-    ]
-    
-    if (hasSortKey.value && sortKeyName.value.trim()) {
-      attributeDefinitions.push({ AttributeName: sortKeyName.value.trim(), AttributeType: sortKeyType.value })
-      keySchema.push({ AttributeName: sortKeyName.value.trim(), KeyType: 'RANGE' })
-    }
-    
-    const tableInput: any = {
-      TableName: newTableName.value.trim(),
-      KeySchema: keySchema,
-      AttributeDefinitions: attributeDefinitions
-    }
-    
-    if (billingMode.value === 'PAY_PER_REQUEST') {
-      tableInput.BillingMode = 'PAY_PER_REQUEST'
-    } else {
-      tableInput.BillingMode = 'PROVISIONED'
-      tableInput.ProvisionedThroughput = {
-        ReadCapacityUnits: readCapacity.value,
-        WriteCapacityUnits: writeCapacity.value
-      }
-    }
-    
-    // Add stream specification if enabled
-    if (enableStreams.value) {
-      tableInput.StreamSpecification = {
-        StreamEnabled: true,
-        StreamViewType: streamViewType.value
-      }
-    }
-    
-    await dbCreateTable(tableInput)
-    
-    toast.success('Table created successfully')
+    await createTable({
+      tableName: newTableName.value.trim(),
+      partitionKeyName: partitionKeyName.value.trim(),
+      partitionKeyType: partitionKeyType.value,
+      hasSortKey: hasSortKey.value,
+      sortKeyName: sortKeyName.value.trim(),
+      sortKeyType: sortKeyType.value,
+      billingMode: billingMode.value,
+      readCapacity: readCapacity.value,
+      writeCapacity: writeCapacity.value,
+      enableStreams: enableStreams.value,
+      streamViewType: streamViewType.value,
+    })
     showCreateModal.value = false
-    await loadTables()
   } catch (e: any) {
     toast.error('Failed to create table: ' + e.message)
   } finally {
@@ -543,21 +524,10 @@ async function viewTable(tableName: string) {
 // View table streams
 async function viewStreams(tableName: string) {
   selectedTable.value = { TableName: tableName }
-  streams.value = []
   streamRecords.value = []
   selectedStream.value = null
-  streamError.value = null
   showStreamModal.value = true
-  streamLoading.value = true
-  
-  try {
-    const response = await listStreams(tableName)
-    streams.value = response.Streams || []
-  } catch (e: any) {
-    streamError.value = 'Failed to load streams: ' + e.message
-  } finally {
-    streamLoading.value = false
-  }
+  await loadStreams(tableName)
 }
 
 // Get stream records
@@ -576,26 +546,16 @@ async function selectStream(stream: any) {
   
   try {
     const streamArn = stream.StreamArn
+    const shards = await getStreamShards(streamArn)
     
-    // Get shard iterator
-    const shards = await describeStream(streamArn)
-    
-    if (shards.StreamDescription && shards.StreamDescription.Shards && shards.StreamDescription.Shards.length > 0) {
-      const shard = shards.StreamDescription.Shards[0]
-      
-      // Get shard iterator
-      const iterator = await getShardIterator(
-        streamArn,
-        shard.ShardId,
-        'TRIM_HORIZON'
-      )
-      
+    if (shards.length > 0) {
+      const shard = shards[0]
+      const iterator = await getShardIterator(streamArn, shard.ShardId, 'TRIM_HORIZON')
       shardIterator.value = iterator.ShardIterator
       
-      // Get records
       if (shardIterator.value) {
-        const records = await getRecords(shardIterator.value)
-        streamRecords.value = records.Records || []
+        const records = await getRecordsFromShard(shardIterator.value)
+        streamRecords.value = records
         shardIterator.value = records.NextShardIterator
       }
     }
@@ -628,35 +588,6 @@ async function loadMoreRecords() {
   } finally {
     loadingRecords.value = false
   }
-}
-
-// Format stream event name
-function formatEventName(eventName: string): string {
-  const colors: Record<string, string> = {
-    INSERT: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-    MODIFY: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-    REMOVE: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-  }
-  return colors[eventName] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-}
-
-// Format DynamoDB record data
-function formatRecordData(record: any): string {
-  if (!record.dynamodb) return '{}'
-  const data = record.dynamodb
-  let result = ''
-  
-  if (data.NewImage) {
-    result += `NEW_IMAGE:\n${JSON.stringify(data.NewImage, null, 2)}`
-  }
-  if (data.OldImage) {
-    result += `\n\nOLD_IMAGE:\n${JSON.stringify(data.OldImage, null, 2)}`
-  }
-  if (data.Keys) {
-    result += `\n\nKEYS:\n${JSON.stringify(data.Keys, null, 2)}`
-  }
-  
-  return result || '{}'
 }
 
 // Explore table data
@@ -706,13 +637,13 @@ async function scanOrQueryTable(tableName: string, mode?: 'scan' | 'query') {
       
       const keyCondition = [pkAttr.AttributeName + ' = :pk']
       body.ExpressionAttributeValues = {
-        ':pk': convertToAttributeValue(partitionKeyValue.value, pkAttr.AttributeName)
+        ':pk': convertValueToAttr(partitionKeyValue.value, pkAttr.AttributeName)
       }
       
       if (skAttr && sortKeyValue.value.trim()) {
         const skCondition = getSortKeyCondition(sortKeyCondition.value)
         keyCondition.push(skAttr.AttributeName + ' ' + skCondition.expression + ' :sk')
-        body.ExpressionAttributeValues[':sk'] = convertToAttributeValue(sortKeyValue.value, skAttr.AttributeName)
+        body.ExpressionAttributeValues[':sk'] = convertValueToAttr(sortKeyValue.value, skAttr.AttributeName)
       }
       
       body.KeyConditionExpression = keyCondition.join(' AND ')
@@ -748,35 +679,6 @@ async function scanOrQueryTable(tableName: string, mode?: 'scan' | 'query') {
   }
 }
 
-// Get sort key condition expression
-function getSortKeyCondition(condition: string): { expression: string, dynamodb: string } {
-  const conditions: Record<string, { expression: string, dynamodb: string }> = {
-    'eq': { expression: '=', dynamodb: '=' },
-    'begins_with': { expression: 'begins_with(#sk, :sk)', dynamodb: 'begins_with' },
-    'lt': { expression: '<', dynamodb: '<' },
-    'lte': { expression: '<=', dynamodb: '<=' },
-    'gt': { expression: '>', dynamodb: '>' },
-    'gte': { expression: '>=', dynamodb: '>=' },
-    'between': { expression: 'BETWEEN :sk1 AND :sk2', dynamodb: 'between' },
-  }
-  return conditions[condition] || conditions['eq']
-}
-
-// Convert value string to DynamoDB attribute value
-function convertToAttributeValue(value: string, attrName: string): any {
-  const attrDef = exploreTableDetails.value?.AttributeDefinitions?.find((a: any) => a.AttributeName === attrName)
-  const type = attrDef?.AttributeType || 'S'
-  
-  switch (type) {
-    case 'N':
-      return { N: value }
-    case 'B':
-      return { B: value }
-    default:
-      return { S: value }
-  }
-}
-
 // Load more items
 async function loadMoreItems() {
   if (lastEvaluatedKey.value) {
@@ -792,18 +694,13 @@ function openPutItemModal() {
 }
 
 // Parse JSON and put item
-async function putItem() {
+async function handlePutItem() {
   putItemLoading.value = true
   putItemError.value = null
   
   try {
     const item = JSON.parse(newItemJson.value)
-    
-    await dbPutItem({
-      TableName: exploreTableName.value,
-      Item: item
-    })
-    
+    await putItem(exploreTableName.value, item)
     showPutItemModal.value = false
     lastEvaluatedKey.value = null
     await scanOrQueryTable(exploreTableName.value, 'scan')
@@ -823,7 +720,7 @@ function confirmDeleteItem(item: any) {
 }
 
 // Delete item
-async function deleteItem() {
+async function handleDeleteItem() {
   if (!itemToDelete.value) return
   
   deleteItemLoading.value = true
@@ -836,12 +733,7 @@ async function deleteItem() {
         key[attr.AttributeName] = itemAttr
       }
     }
-    
-    await dbDeleteItem({
-      TableName: exploreTableName.value,
-      Key: key
-    })
-    
+    await deleteItem(exploreTableName.value, key)
     showDeleteItemModal.value = false
     itemToDelete.value = null
     lastEvaluatedKey.value = null
@@ -860,15 +752,14 @@ function confirmDelete(tableName: string) {
 }
 
 // Delete table
-async function deleteTable() {
+async function handleDeleteTable() {
   if (!tableToDelete.value) return
   
   deleting.value = true
   try {
-    await dbDeleteTable(tableToDelete.value)
+    await deleteTable(tableToDelete.value)
     showDeleteModal.value = false
     tableToDelete.value = null
-    await loadTables()
   } catch (e: any) {
     error.value = 'Failed to delete table: ' + e.message
   } finally {
@@ -876,81 +767,16 @@ async function deleteTable() {
   }
 }
 
-// Get key type label
-function getKeyTypeLabel(type: string): string {
-  const types: Record<string, string> = {
-    'S': 'String',
-    'N': 'Number',
-    'B': 'Binary'
-  }
-  return types[type] || type
-}
-
-// Get billing mode label
-function getBillingModeLabel(mode: string): string {
-  const modes: Record<string, string> = {
-    'PAY_PER_REQUEST': 'On-Demand',
-    'PROVISIONED': 'Provisioned'
-  }
-  return modes[mode] || mode
-}
-
-// Format attribute value for display
-function formatAttributeValue(attr: any): string {
-  if (!attr) return ''
-  if (attr.S !== undefined) return attr.S
-  if (attr.N !== undefined) return attr.N
-  if (attr.B !== undefined) return '[Binary]'
-  if (attr.BOOL !== undefined) return attr.BOOL ? 'true' : 'false'
-  if (attr.NULL !== undefined) return 'null'
-  if (attr.L !== undefined) return `[List: ${attr.L.length} items]`
-  if (attr.M !== undefined) return `[Map: ${Object.keys(attr.M).length} keys]`
-  if (attr.SS !== undefined) return `[StringSet: ${attr.SS.length} items]`
-  if (attr.NS !== undefined) return `[NumberSet: ${attr.NS.length} items]`
-  if (attr.BS !== undefined) return `[BinarySet: ${attr.BS.length} items]`
-  return JSON.stringify(attr)
-}
-
-// Get attribute type label
-function getAttributeType(attr: any): string {
-  if (attr.S !== undefined) return 'S'
-  if (attr.N !== undefined) return 'N'
-  if (attr.B !== undefined) return 'B'
-  if (attr.BOOL !== undefined) return 'BOOL'
-  if (attr.NULL !== undefined) return 'NULL'
-  if (attr.L !== undefined) return 'L'
-  if (attr.M !== undefined) return 'M'
-  if (attr.SS !== undefined) return 'SS'
-  if (attr.NS !== undefined) return 'NS'
-  if (attr.BS !== undefined) return 'BS'
-  return '?'
-}
-
 // Get partition key name for explore query
-const explorePKName = computed(() => {
-  if (!exploreTableDetails.value) return ''
-  const pk = exploreTableDetails.value.KeySchema?.find((k: any) => k.KeyType === 'HASH')
-  return pk?.AttributeName || ''
-})
+const explorePKName = computed(() => getPartitionKeyName(exploreTableDetails.value))
 
 // Get sort key name for explore query
-const exploreSKName = computed(() => {
-  if (!exploreTableDetails.value) return ''
-  const sk = exploreTableDetails.value.KeySchema?.find((k: any) => k.KeyType === 'RANGE')
-  return sk?.AttributeName || ''
-})
+const exploreSKName = computed(() => getSortKeyName(exploreTableDetails.value))
 
 // Get all unique attribute names from items
-const allAttributes = computed(() => {
-  const attrs = new Set<string>()
-  items.value.forEach(item => {
-    Object.keys(item).forEach(key => attrs.add(key))
-  })
-  return Array.from(attrs)
-})
+const allAttributes = computed(() => getAllUniqueAttributes(items.value))
 
 // Example code tabs
-const selectedExample = ref(0)
 const exampleType = ref<'table' | 'stream'>('table')
 
 onMounted(() => {
@@ -1233,7 +1059,7 @@ watch(reloadTrigger, () => {
           :class="exampleType === 'table'
             ? 'bg-blue-600 text-white'
             : settingsStore.darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-          @click="exampleType = 'table'; selectedExample = 0"
+          @click="exampleType = 'table'"
         >
           Table Operations
         </button>
@@ -1242,75 +1068,25 @@ watch(reloadTrigger, () => {
           :class="exampleType === 'stream'
             ? 'bg-blue-600 text-white'
             : settingsStore.darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-          @click="exampleType = 'stream'; selectedExample = 0"
+          @click="exampleType = 'stream'"
         >
           DynamoDB Streams
         </button>
       </div>
       
       <!-- Table Operations Examples -->
-      <div
+      <CodeSnippet
         v-if="exampleType === 'table'"
-        class="rounded-lg border overflow-hidden"
-        :class="settingsStore.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
-      >
-        <div
-          class="flex border-b overflow-x-auto"
-          :class="settingsStore.darkMode ? 'border-gray-700' : 'border-gray-200'"
-        >
-          <button
-            v-for="(example, index) in codeExamples"
-            :key="example.language"
-            class="px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap"
-            :class="[
-              selectedExample === index
-                ? settingsStore.darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'
-                : settingsStore.darkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-            ]"
-            @click="selectedExample = index"
-          >
-            {{ example.label }}
-          </button>
-        </div>
-        <div class="p-4 overflow-x-auto">
-          <pre
-            class="text-sm font-mono"
-            :class="settingsStore.darkMode ? 'text-gray-300' : 'text-gray-700'"
-          >{{ codeExamples[selectedExample]?.code || '' }}</pre>
-        </div>
-      </div>
+        :snippets="codeExamples"
+        :disable-highlight="true"
+      />
       
       <!-- DynamoDB Streams Examples -->
-      <div
+      <CodeSnippet
         v-if="exampleType === 'stream'"
-        class="rounded-lg border overflow-hidden"
-        :class="settingsStore.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
-      >
-        <div
-          class="flex border-b overflow-x-auto"
-          :class="settingsStore.darkMode ? 'border-gray-700' : 'border-gray-200'"
-        >
-          <button
-            v-for="(example, index) in streamExamples"
-            :key="example.language"
-            class="px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap"
-            :class="[
-              selectedExample === index
-                ? settingsStore.darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'
-                : settingsStore.darkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-            ]"
-            @click="selectedExample = index"
-          >
-            {{ example.label }}
-          </button>
-        </div>
-        <div class="p-4 overflow-x-auto">
-          <pre
-            class="text-sm font-mono"
-            :class="settingsStore.darkMode ? 'text-gray-300' : 'text-gray-700'"
-          >{{ streamExamples[selectedExample]?.code || '' }}</pre>
-        </div>
-      </div>
+        :snippets="streamExamples"
+        :disable-highlight="true"
+      />
     </div>
   </div>
 
@@ -1329,7 +1105,7 @@ watch(reloadTrigger, () => {
     v-model:enable-streams="enableStreams"
     v-model:stream-view-type="streamViewType"
     :creating="creating"
-    @create="createTable"
+    @create="handleCreateTable"
   />
 
   <!-- View Table Details Modal -->
@@ -1368,19 +1144,19 @@ watch(reloadTrigger, () => {
     :key-schema="exploreTableDetails?.KeySchema || []"
     :loading="putItemLoading"
     :error="putItemError"
-    @submit="putItem"
+    @submit="handlePutItem"
   />
 
   <!-- Delete Item Confirmation Modal -->
   <DynamoDBDeleteItemModal
     v-model:open="showDeleteItemModal"
-    @delete="deleteItem"
+    @delete="handleDeleteItem"
   />
 
   <!-- Delete Table Confirmation Modal -->
   <DynamoDBDeleteTableModal
     v-model:open="showDeleteModal"
-    @delete="deleteTable"
+    @delete="handleDeleteTable"
   />
 
   <!-- Stream Viewer Modal -->
