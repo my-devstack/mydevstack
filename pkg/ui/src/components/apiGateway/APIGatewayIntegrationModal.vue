@@ -14,28 +14,35 @@ interface LambdaInput {
 const props = withDefaults(defineProps<{
   open: boolean
   type: 'rest' | 'http' | string
-  lambdaFunctions: (string | LambdaInput)[]
+  lambdaFunctions?: any
+  lambdaLoading?: boolean
   integrationId?: string
+  integrationData?: any
   loading?: boolean
 }>(), {
   lambdaFunctions: () => [],
+  lambdaLoading: false,
 })
 
 const _props = props // workaround
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  'create': [integrationType: string, uri: string, payloadFormat: string]
+  'create': [integrationType: string, httpMethod: string, uri: string]
+  'update': [integrationType: string, httpMethod: string, uri: string, payloadFormat: string]
   'confirm': []
 }>()
 
 const settingsStore = useSettingsStore()
 
-const integrationType = ref('lambda')
+const integrationType = ref('MOCK')
+const integrationHttpMethod = ref('POST')
 const uri = ref('')
 const payloadFormat = ref('2.0')
 const selectedLambdaFunction = ref('')
 const selectedLambdaArn = ref('')
+
+const isEditMode = computed(() => !!props.integrationId)
 
 interface LambdaFunctionOption {
   value: string
@@ -44,14 +51,16 @@ interface LambdaFunctionOption {
 }
 
 const allIntegrationTypes = [
-  { value: 'lambda', label: 'Lambda Function' },
-  { value: 'http', label: 'HTTP' },
-  { value: 'mock', label: 'Mock' },
+  { value: 'AWS_PROXY', label: 'Lambda (AWS_PROXY)' },
+  { value: 'MOCK', label: 'Mock' },
 ]
 
 const integrationTypes = computed(() => {
   if (props.type === 'http') {
-    return allIntegrationTypes.filter(t => t.value !== 'mock')
+    return [
+      { value: 'lambda', label: 'Lambda Function' },
+      { value: 'http', label: 'HTTP' },
+    ]
   }
   return allIntegrationTypes
 })
@@ -61,8 +70,28 @@ const payloadFormats = [
   { value: '2.0', label: 'Lambda (2.0)' },
 ]
 
+const httpMethods = [
+  { value: 'GET', label: 'GET' },
+  { value: 'POST', label: 'POST' },
+  { value: 'PUT', label: 'PUT' },
+  { value: 'PATCH', label: 'PATCH' },
+  { value: 'DELETE', label: 'DELETE' },
+  { value: 'HEAD', label: 'HEAD' },
+  { value: 'OPTIONS', label: 'OPTIONS' },
+]
+
 const lambdaFunctionOptions = computed(() => {
-  const funcs = props.lambdaFunctions || []
+  let funcs: any[] = []
+  if (!props.lambdaFunctions) {
+    return []
+  }
+  if (Array.isArray(props.lambdaFunctions)) {
+    funcs = props.lambdaFunctions
+  } else if (props.lambdaFunctions?.functions) {
+    funcs = props.lambdaFunctions.functions
+  } else if (props.lambdaFunctions?.Functions) {
+    funcs = props.lambdaFunctions.Functions
+  }
   return funcs.map((fn: string | LambdaInput) => {
     const name = typeof fn === 'string' ? fn : fn.FunctionName
     const arn = typeof fn === 'string' ? '' : fn.FunctionArn || ''
@@ -82,8 +111,13 @@ watch(selectedLambdaFunction, (newVal) => {
         uri.value = `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${arn}/invocations`
       }
       selectedLambdaArn.value = arn
-    } else {
-      uri.value = newVal
+    } else if (newVal) {
+      if (props.type === 'http') {
+        uri.value = newVal
+      } else {
+        const region = settingsStore.region
+        uri.value = `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${newVal}/invocations`
+      }
       selectedLambdaArn.value = ''
     }
   }
@@ -93,14 +127,53 @@ watch(() => props.open, (newVal) => {
   if (!newVal) {
     selectedLambdaFunction.value = ''
     uri.value = ''
-    integrationType.value = props.type === 'http' ? 'lambda' : 'lambda'
-    payloadFormat.value = props.type === 'http' ? '2.0' : '1.0'
+    integrationType.value = 'MOCK'
+    integrationHttpMethod.value = 'POST'
+    payloadFormat.value = '2.0'
+  } else if (props.integrationId && props.integrationData) {
+    const data = props.integrationData
+    integrationType.value = data.integrationType || data.integrationType || (props.type === 'http' ? 'lambda' : 'AWS_PROXY')
+    uri.value = data.integrationUri || data.IntegrationUri || ''
+    if (data.integrationType === 'AWS_PROXY' || data.IntegrationType === 'AWS_PROXY') {
+      integrationType.value = 'AWS_PROXY'
+    }
+    if (data.integrationType === 'lambda' || data.IntegrationType === 'lambda') {
+      integrationType.value = 'lambda'
+    }
   }
 })
 
 function handleCreate() {
-  if (integrationType.value !== 'mock' && !uri.value.trim()) return
-  emit('create', integrationType.value, uri.value, payloadFormat.value)
+  if (integrationType.value !== 'MOCK' && !selectedLambdaFunction.value && !uri.value.trim()) return
+  if (integrationType.value === 'MOCK' && isEditMode.value) {
+    emit('update', 'MOCK', 'POST', '', '')
+    return
+  }
+  if (integrationType.value === 'MOCK' && !isEditMode.value) {
+    emit('create', 'MOCK', 'POST', '')
+    return
+  }
+  
+  const httpMethod = integrationHttpMethod.value || 'POST'
+  let integrationTypeStr = integrationType.value
+  
+  // Transform type for HTTP APIs (v2)
+  if (props.type === 'http') {
+    if (integrationType.value === 'AWS_PROXY') {
+      integrationTypeStr = 'lambda'
+    } else {
+      integrationTypeStr = integrationType.value.toLowerCase()
+    }
+  }
+  
+  // For REST APIs, use AWS_PROXY as-is (don't transform)
+  
+  const payloadFmt = payloadFormat.value || '2.0'
+  if (isEditMode.value) {
+    emit('update', integrationTypeStr, httpMethod, uri.value, payloadFmt)
+  } else {
+    emit('create', integrationTypeStr, httpMethod, uri.value)
+  }
 }
 
 function handleClose() {
@@ -123,22 +196,26 @@ function handleClose() {
         :options="integrationTypes"
       />
       
-      <!-- Lambda dropdown for lambda type -->
-      <div v-if="integrationType === 'lambda' && lambdaFunctionOptions.length > 0">
+      <!-- Lambda dropdown for lambda type - show when we have functions OR loading -->
+      <div v-if="(integrationType === 'lambda' || integrationType === 'AWS_PROXY') && (props.lambdaLoading || lambdaFunctionOptions.length > 0)">
         <FormSelect
           v-model="selectedLambdaFunction"
           label="Lambda Function"
           :options="lambdaFunctionOptions"
+          :loading="props.lambdaLoading"
           placeholder="Select a Lambda function"
         />
-        <p class="text-xs text-light-muted dark:text-dark-muted mt-1">
+        <p
+          v-if="!props.lambdaLoading"
+          class="text-xs text-light-muted dark:text-dark-muted mt-1"
+        >
           Select a Lambda function to use as the integration target
         </p>
       </div>
       
-      <!-- Manual URI input for lambda when no functions available -->
+      <!-- Manual URI input for lambda/AWS_PROXY - always show so users can type manually -->
       <FormInput
-        v-else-if="integrationType === 'lambda'"
+        v-if="integrationType === 'lambda' || integrationType === 'AWS_PROXY'"
         v-model="uri"
         label="URI"
         placeholder="arn:aws:apigateway:region:lambda:path/function_name"
@@ -146,17 +223,18 @@ function handleClose() {
       
       <!-- URI input for HTTP -->
       <FormInput
-        v-if="integrationType === 'http'"
+        v-if="integrationType === 'HTTP'"
         v-model="uri"
         label="URI"
         placeholder="https://api.example.com"
       />
-      
+
+      <!-- HTTP Method for non-Mock integrations -->
       <FormSelect
-        v-if="integrationType === 'lambda'"
-        v-model="payloadFormat"
-        label="Payload Format"
-        :options="payloadFormats"
+        v-if="integrationType !== 'MOCK'"
+        v-model="integrationHttpMethod"
+        label="Integration HTTP Method"
+        :options="httpMethods"
       />
     </div>
     <template #footer>
@@ -169,10 +247,10 @@ function handleClose() {
         </Button>
         <Button
           :loading="loading"
-          :disabled="integrationType !== 'mock' && !uri.trim()"
+          :disabled="integrationType !== 'MOCK' && !uri.trim()"
           @click="handleCreate"
         >
-          {{ loading ? 'Creating...' : 'Create' }}
+          {{ loading ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update' : 'Create') }}
         </Button>
       </div>
     </template>

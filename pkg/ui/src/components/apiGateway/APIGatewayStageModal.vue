@@ -23,7 +23,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:open': [value: boolean]
   'create-rest': [stageName: string, deploymentId: string]
-  'create-http': [stageName: string, autoDeploy?: boolean, description?: string]
+  'create-http': [stageName: string, options: { autoDeploy?: boolean; description?: string }]
+  'close': []
 }>()
 
 const settingsStore = useSettingsStore()
@@ -53,7 +54,11 @@ function handleCreate() {
   if (props.type === 'rest') {
     emit('create-rest', stageName.value.trim(), selectedDeploymentId.value)
   } else {
-    emit('create-http', stageName.value.trim(), autoDeploy.value, description.value)
+    const options = {
+      autoDeploy: autoDeploy.value,
+      description: description.value
+    }
+    emit('create-http', stageName.value.trim(), options)
   }
 }
 

@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -146,10 +147,37 @@ func parseBody(c *gin.Context, bodyBytes []byte, target interface{}) error {
 	if len(bodyBytes) == 0 {
 		return nil
 	}
+	// Transform keys to TitleCase for AWS SDK compatibility
+	transformed := transformJSONKeys(string(bodyBytes))
+	bodyBytes = []byte(transformed)
 	if err := json.Unmarshal(bodyBytes, target); err != nil {
 		return fmt.Errorf("failed to parse request body: %w", err)
 	}
 	return nil
+}
+
+func transformJSONKeys(s string) string {
+	var result strings.Builder
+	result.Grow(len(s))
+	inString := false
+	capitalizeNext := false
+
+	for _, ch := range s {
+		if ch == '"' {
+			inString = !inString
+			result.WriteRune(ch)
+			if !inString {
+				capitalizeNext = true
+			}
+		} else if inString && capitalizeNext && ch >= 'a' && ch <= 'z' {
+			result.WriteRune(ch - 'a' + 'A')
+			capitalizeNext = false
+		} else {
+			result.WriteRune(ch)
+			capitalizeNext = false
+		}
+	}
+	return result.String()
 }
 
 func sendError(c *gin.Context, status int, message string, err error) {

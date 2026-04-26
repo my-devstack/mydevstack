@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSettingsStore } from '@/stores/settings'
 import { useConnectionStatus } from '@/composables/useConnectionStatus'
 import { useContentReload } from '@/composables/useContentReload'
 import { setRegion as apiSetRegion } from '@/api/services/region'
+import AboutModal from '@/components/common/AboutModal.vue'
 
 const route = useRoute()
 const settingsStore = useSettingsStore()
 const { isReachable, checkConnection } = useConnectionStatus()
 const { triggerReload } = useContentReload()
+
+const showAboutModal = ref(false)
 
 const pageTitle = computed(() => {
   const title = route.meta.title as string | undefined
@@ -293,6 +296,34 @@ async function handleRegionChange() {
           />
         </svg>
       </button>
+
+      <!-- About -->
+      <button
+        class="p-2 rounded-lg transition-colors"
+        :class="settingsStore.darkMode ? 'hover:bg-dark-border text-dark-muted' : 'hover:bg-light-border text-light-muted'"
+        title="About"
+        @click="showAboutModal = true"
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      </button>
+
+      <AboutModal
+        :open="showAboutModal"
+        @update:open="showAboutModal = $event"
+        @close="showAboutModal = false"
+      />
     </div>
   </header>
 </template>

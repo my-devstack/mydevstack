@@ -8,6 +8,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
+  'delete': []
 }>()
 
 function handleClose() {

@@ -112,13 +112,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/services/RDS.vue'),
     meta: { title: 'RDS', service: 'rds' },
   },
-  // Settings
-  {
-    path: '/settings',
-    name: 'Settings',
-    component: () => import('@/views/Settings.vue'),
-    meta: { title: 'Settings', icon: 'cog' },
-  },
+  
   // Explicit redirect for /services to dashboard
   {
     path: '/services',

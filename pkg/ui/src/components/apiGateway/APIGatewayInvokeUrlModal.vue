@@ -10,13 +10,12 @@ interface Stage {
 }
 
 const props = defineProps<{
-  show: boolean
-  title: string
+  open: boolean
+  api: { id?: string; apiId?: string; name: string }
+  apiType: 'rest' | 'http'
   invokeUrl: string
   loading?: boolean
   stages: Stage[]
-  apiType: 'rest' | 'http'
-  apiId: string
 }>()
 
 const emit = defineEmits<{
@@ -24,31 +23,34 @@ const emit = defineEmits<{
   'copy': []
   'update:selectedStage': [stage: string]
   'fetch-url': []
+  'update:open': [value: boolean]
 }>()
 
 const settingsStore = useSettingsStore()
 const copied = ref(false)
 const selectedStage = ref('')
 
-const emulatorType = computed(() => settingsStore.emulator?.toUpperCase() || '')
+const apiId = computed(() => props.api?.id || props.api?.apiId || '')
+const title = computed(() => props.api?.name ? `Invoke URL - ${props.api.name}` : 'Invoke URL')
+
+const emulatorType = computed(() => settingsStore.emulator?.toUpperCase() || 'FLOCI')
 
 const emulatorUrl = computed(() => {
-  if (!emulatorType.value || !props.apiId || !selectedStage.value) {
+  if (!apiId.value || !selectedStage.value) {
     return ''
   }
   
-  if (emulatorType.value === 'FLOCI') {
-    return `http://localhost:4566/restapis/${props.apiId}/${selectedStage.value}/_user_request_/`
+  const emulator = emulatorType.value
+  
+  if (emulator === 'FLOCI') {
+    return `http://localhost:4566/restapis/${apiId.value}/${selectedStage.value}/_user_request_/`
   }
   
-  if (emulatorType.value === 'LOCALSTACK') {
-    return `http://${props.apiId}.execute-api.localhost.localstack.cloud:4566/${selectedStage.value}/`
+  if (emulator === 'LOCALSTACK' || emulator === 'MINISTACK') {
+    return `http://localhost:4566/restapis/${apiId.value}/${selectedStage.value}/_user_request_/`
   }
   
-  if (emulatorType.value === 'MINISTACK') {
-    return `http://localhost:4566/_aws/execute-api/${props.apiId}/${selectedStage.value}/`
-  }
-  
+  // Default: don't show emulator URL for unknown emulator types
   return ''
 })
 
@@ -60,7 +62,7 @@ watch(() => props.stages, (newStages) => {
   }
 })
 
-watch(() => props.show, (isOpen) => {
+watch(() => props.open, (isOpen) => {
   if (isOpen && props.stages?.length > 0) {
     selectedStage.value = props.stages[0].stageName
     emit('update:selectedStage', selectedStage.value)
@@ -108,9 +110,10 @@ function copyEmulatorUrl() {
 
 <template>
   <Modal
-    :open="show"
+    :open="open"
     :title="title"
     @close="emit('close')"
+    @update:open="emit('update:open', $event)"
   >
     <div class="space-y-4">
       <!-- Stage Select -->

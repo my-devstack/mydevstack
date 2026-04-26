@@ -22,16 +22,19 @@ async function apiGatewayRequest(action: string, body: object = {}, targetPrefix
     })
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return null
-      }
       const errorText = await response.clone().text()
+      if (response.status === 404) {
+        return { error: errorText, notFound: true }
+      }
+      if (response.status >= 500) {
+        throw new Error(errorText || `HTTP ${response.status}`)
+      }
       return { Items: [], items: [], error: errorText }
     }
 
     return response.json()
   } catch (error: any) {
-    return { Items: [], items: [], error: error?.message }
+    throw new Error(error?.message || 'Request failed')
   }
 }
 
@@ -152,7 +155,9 @@ export class APIGatewayService {
       restApiId,
       resourceId,
       httpMethod: httpMethod.toUpperCase(),
-      ...options,
+      integrationHttpMethod: options?.integrationHttpMethod?.toUpperCase(),
+      type: options?.type,
+      uri: options?.uri,
     })
   }
 
@@ -176,8 +181,13 @@ export class APIGatewayService {
     return apiGatewayRequest('DeleteDeployment', { restApiId, deploymentId })
   }
 
-  async createStage(restApiId: string, deploymentId: string, stageName: string): Promise<any> {
-    return apiGatewayRequest('CreateStage', { RestApiId: restApiId, DeploymentId: deploymentId, StageName: stageName })
+  async createStage(restApiId: string, deploymentId: string, stageName: string, stageDescription?: string): Promise<any> {
+    return apiGatewayRequest('CreateStage', { 
+      RestApiId: restApiId, 
+      DeploymentId: deploymentId, 
+      StageName: stageName,
+      Description: stageDescription || '',
+    })
   }
 
   async getStages(restApiId: string): Promise<any> {

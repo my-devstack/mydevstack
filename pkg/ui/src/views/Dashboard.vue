@@ -1,327 +1,65 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSettingsStore } from '@/stores/settings'
 import { useConnectionStatus } from '@/composables/useConnectionStatus'
-import ServiceCard from '@/components/layout/ServiceCard.vue'
-import DataTable from '@/components/common/DataTable.vue'
-import type { Service } from '@/types/services'
-
-// Import service APIs
-import { listBuckets } from '@/api/services/s3'
-import { listFunctions } from '@/api/services/lambda'
-import { listTables } from '@/api/services/dynamodb'
-import { listQueues } from '@/api/services/sqs'
-import { listTopics } from '@/api/services/sns'
-import { listUsers, listRoles } from '@/api/services/iam'
+import { useServiceRegistry, SERVICE_COLORS } from '@/composables/useServiceRegistry'
 
 const router = useRouter()
 const settingsStore = useSettingsStore()
+const {
+  quickStats,
+  allServices,
+  isLoading,
+  lastChecked,
+  fetchStats,
+} = useServiceRegistry()
 const { status: connectionStatus, checkConnection } = useConnectionStatus()
 
-// Types
-interface ServiceStats {
-  name: string
-  value: number
-  icon: string
-  route: string
-  serviceId: string
-  loading: boolean
+const icons: Record<string, string> = {
+  S3: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" /></svg>`,
+  Lambda: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>`,
+  DynamoDB: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" /></svg>`,
+  SQS: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>`,
+  SNS: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.282m3.102.069a18.03 18.03 0 01-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 018.835 2.535M10.34 6.66a23.847 23.847 0 008.835-2.535m0 0A23.74 23.74 0 0018.795 3m.38 1.125a23.91 23.91 0 011.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 001.014-5.395m0-3.46c.495.413.811 1.035.811 1.73 0 .695-.316 1.317-.811 1.73m0-3.46a24.347 24.347 0 010 3.46" /></svg>`,
+  IAM: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" /></svg>`,
+  EC2: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z" /></svg>`,
+  RDS: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" /></svg>`,
+  APIGateway: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75a2.25 2.25 0 012.25-2.25h.75a2.25 2.25 0 012.25 2.25V9.75H6.75V6.75zm0 6.75V6.75a2.25 2.25 0 012.25-2.25h.75a2.25 2.25 0 012.25 2.25V13.5H6.75v-.75zm0 6.75V13.5h7.5v6.75a2.25 2.25 0 01-2.25 2.25h-3.75a2.25 2.25 0 01-2.25-2.25zm7.5-6.75a2.25 2.25 0 00-2.25-2.25h-3.75a2.25 2.25 0 00-2.25 2.25v.75h7.5v-.75zm0 6.75a2.25 2.25 0 00-2.25-2.25h-3.75a2.25 2.25 0 00-2.25 2.25v3.75h7.5v-3.75z" /></svg>`,
+  Cognito: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" /></svg>`,
+  KMS: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" /></svg>`,
+  CloudWatch: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z" /></svg>`,
+  EventBridge: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z" /></svg>`,
+  SecretsManager: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /></svg>`,
+  StepFunctions: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" /></svg>`,
 }
 
-interface ActivityItem {
-  id: string
-  service: string
-  action: string
-  resource: string
-  timestamp: Date
-  type: 's3' | 'lambda' | 'dynamodb' | 'sqs' | 'sns' | 'iam' | 'info' | 'success' | 'error'
+function getIcon(serviceId: string): string {
+  return icons[serviceId] || `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>`
 }
 
-interface ServiceHealth {
-  id: string
-  name: string
-  icon: string
-  count: number
-  status: 'healthy' | 'warning' | 'error' | 'unknown'
-  loading: boolean
-}
-
-// State
-const isLoading = ref(true)
-const connectionLoading = ref(false)
-const lastChecked = ref<Date | null>(null)
-
-const stats = ref<ServiceStats[]>([
-  { name: 'S3 Buckets', value: 0, icon: 'ArchiveBoxIcon', route: '/services/s3', serviceId: 's3', loading: false },
-  { name: 'Lambda Functions', value: 0, icon: 'BoltIcon', route: '/services/lambda', serviceId: 'lambda', loading: false },
-  { name: 'DynamoDB Tables', value: 0, icon: 'TableCellsIcon', route: '/services/dynamodb', serviceId: 'dynamodb', loading: false },
-  { name: 'SQS Queues', value: 0, icon: 'QueueListIcon', route: '/services/sqs', serviceId: 'sqs', loading: false },
-  { name: 'SNS Topics', value: 0, icon: 'MegaphoneIcon', route: '/services/sns', serviceId: 'sns', loading: false },
-  { name: 'IAM Users', value: 0, icon: 'UserGroupIcon', route: '/services/iam', serviceId: 'iam', loading: false },
-])
-
-const recentActivity = ref<ActivityItem[]>([])
-
-const allServices = ref<ServiceHealth[]>([
-  { id: 's3', name: 'S3', icon: 'ArchiveBoxIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'lambda', name: 'Lambda', icon: 'BoltIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'dynamodb', name: 'DynamoDB', icon: 'TableCellsIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'sqs', name: 'SQS', icon: 'QueueListIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'sns', name: 'SNS', icon: 'MegaphoneIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'iam', name: 'IAM', icon: 'UserGroupIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'ec2', name: 'EC2', icon: 'ServerIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'rds', name: 'RDS', icon: 'DatabaseIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'vpc', name: 'VPC', icon: 'GlobeAltIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'cloudwatch', name: 'CloudWatch', icon: 'ChartBarIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'apigateway', name: 'API Gateway', icon: 'GlobeAltIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'eventbridge', name: 'EventBridge', icon: 'WaveformIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'kinesis', name: 'Kinesis', icon: 'WaveformIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'stepfunctions', name: 'Step Functions', icon: 'ArrowsRightLeftIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'cognito', name: 'Cognito', icon: 'IdentificationIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'secretsmanager', name: 'Secrets Manager', icon: 'LockClosedIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'kms', name: 'KMS', icon: 'KeyIcon', count: 0, status: 'unknown', loading: false },
-  // { id: 'cloudformation', name: 'CloudFormation', icon: 'DocumentTextIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'elasticache', name: 'ElastiCache', icon: 'ServerIcon', count: 0, status: 'unknown', loading: false },
-  { id: 'ssm', name: 'SSM', icon: 'Cog6ToothIcon', count: 0, status: 'unknown', loading: false },
-])
-
-// Computed
 const isConnected = computed(() => connectionStatus.value.isConnected)
 const endpoint = computed(() => connectionStatus.value.endpoint || settingsStore.endpoint)
 const region = computed(() => settingsStore.region)
 
+onMounted(async () => {
+  await checkConnection()
+  if (connectionStatus.value.isConnected) {
+    await fetchStats()
+  }
+})
+
 const formattedLastChecked = computed(() => {
-  if (!connectionStatus.value.lastChecked) return 'Never'
+  if (!lastChecked.value) return 'Never'
   return new Intl.DateTimeFormat('en-US', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-  }).format(connectionStatus.value.lastChecked)
+  }).format(lastChecked.value)
 })
 
-const activityColumns = [
-  { key: 'service', label: 'Service', sortable: true },
-  { key: 'action', label: 'Action', sortable: true },
-  { key: 'resource', label: 'Resource', sortable: false },
-  { key: 'timestamp', label: 'Time', sortable: true },
-]
-
-const activityData = computed(() => 
-  recentActivity.value.map(activity => ({
-    ...activity,
-    timestamp: formatTimestamp(activity.timestamp),
-  }))
-)
-
-// Functions
-async function fetchStats() {
-  isLoading.value = true
-  
-  // Reset all services loading state
-  stats.value.forEach(s => s.loading = true)
-  allServices.value.forEach(s => s.loading = true)
-  
-  // Fetch S3 stats
-  try {
-    const result = await listBuckets()
-    const count = result.length || 0
-    stats.value[0].value = count
-    allServices.value[0].count = count
-    allServices.value[0].status = count > 0 ? 'healthy' : 'warning'
-  } catch {
-    stats.value[0].value = 0
-    allServices.value[0].count = 0
-    allServices.value[0].status = 'error'
-  }
-  stats.value[0].loading = false
-  allServices.value[0].loading = false
-
-  // Fetch Lambda stats
-  try {
-    const result = await listFunctions()
-    const count = result.Functions?.length || 0
-    const idx1 = stats.value.findIndex(s => s.serviceId === 'lambda')
-    const idx2 = allServices.value.findIndex(s => s.id === 'lambda')
-    if (idx1 >= 0) stats.value[idx1].value = count
-    if (idx2 >= 0) {
-      allServices.value[idx2].count = count
-      allServices.value[idx2].status = count > 0 ? 'healthy' : 'warning'
-    }
-  } catch {
-    const idx1 = stats.value.findIndex(s => s.serviceId === 'lambda')
-    const idx2 = allServices.value.findIndex(s => s.id === 'lambda')
-    if (idx1 >= 0) stats.value[idx1].value = 0
-    if (idx2 >= 0) {
-      allServices.value[idx2].count = 0
-      allServices.value[idx2].status = 'error'
-    }
-  }
-  const idx1 = stats.value.findIndex(s => s.serviceId === 'lambda')
-  const idx2 = allServices.value.findIndex(s => s.id === 'lambda')
-  if (idx1 >= 0) stats.value[idx1].loading = false
-  if (idx2 >= 0) allServices.value[idx2].loading = false
-
-  // Fetch DynamoDB stats
-  try {
-    const result = await listTables()
-    const count = result.TableNames?.length || 0
-    const idx1 = stats.value.findIndex(s => s.serviceId === 'dynamodb')
-    const idx2 = allServices.value.findIndex(s => s.id === 'dynamodb')
-    if (idx1 >= 0) stats.value[idx1].value = count
-    if (idx2 >= 0) {
-      allServices.value[idx2].count = count
-      allServices.value[idx2].status = count > 0 ? 'healthy' : 'warning'
-    }
-  } catch {
-    const idx1 = stats.value.findIndex(s => s.serviceId === 'dynamodb')
-    const idx2 = allServices.value.findIndex(s => s.id === 'dynamodb')
-    if (idx1 >= 0) stats.value[idx1].value = 0
-    if (idx2 >= 0) {
-      allServices.value[idx2].count = 0
-      allServices.value[idx2].status = 'error'
-    }
-  }
-  const idx1d = stats.value.findIndex(s => s.serviceId === 'dynamodb')
-  const idx2d = allServices.value.findIndex(s => s.id === 'dynamodb')
-  if (idx1d >= 0) stats.value[idx1d].loading = false
-  if (idx2d >= 0) allServices.value[idx2d].loading = false
-
-  // Fetch SQS stats
-  try {
-    const result = await listQueues()
-    const count = result.QueueUrls?.length || result.length || 0
-    const idx1 = stats.value.findIndex(s => s.serviceId === 'sqs')
-    const idx2 = allServices.value.findIndex(s => s.id === 'sqs')
-    if (idx1 >= 0) stats.value[idx1].value = count
-    if (idx2 >= 0) {
-      allServices.value[idx2].count = count
-      allServices.value[idx2].status = count > 0 ? 'healthy' : 'warning'
-    }
-  } catch {
-    const idx1 = stats.value.findIndex(s => s.serviceId === 'sqs')
-    const idx2 = allServices.value.findIndex(s => s.id === 'sqs')
-    if (idx1 >= 0) stats.value[idx1].value = 0
-    if (idx2 >= 0) {
-      allServices.value[idx2].count = 0
-      allServices.value[idx2].status = 'error'
-    }
-  }
-  const idx1s = stats.value.findIndex(s => s.serviceId === 'sqs')
-  const idx2s = allServices.value.findIndex(s => s.id === 'sqs')
-  if (idx1s >= 0) stats.value[idx1s].loading = false
-  if (idx2s >= 0) allServices.value[idx2s].loading = false
-
-  // Fetch SNS stats
-  try {
-    const result = await listTopics()
-    const count = result.length || 0
-    const idx1 = stats.value.findIndex(s => s.serviceId === 'sns')
-    const idx2 = allServices.value.findIndex(s => s.id === 'sns')
-    if (idx1 >= 0) stats.value[idx1].value = count
-    if (idx2 >= 0) {
-      allServices.value[idx2].count = count
-      allServices.value[idx2].status = count > 0 ? 'healthy' : 'warning'
-    }
-  } catch {
-    const idx1 = stats.value.findIndex(s => s.serviceId === 'sns')
-    const idx2 = allServices.value.findIndex(s => s.id === 'sns')
-    if (idx1 >= 0) stats.value[idx1].value = 0
-    if (idx2 >= 0) {
-      allServices.value[idx2].count = 0
-      allServices.value[idx2].status = 'error'
-    }
-  }
-  const idx1n = stats.value.findIndex(s => s.serviceId === 'sns')
-  const idx2n = allServices.value.findIndex(s => s.id === 'sns')
-  if (idx1n >= 0) stats.value[idx1n].loading = false
-  if (idx2n >= 0) allServices.value[idx2n].loading = false
-
-  // Fetch IAM stats
-  try {
-    const [usersResult, rolesResult] = await Promise.all([
-      listUsers(),
-      listRoles(),
-    ])
-    const count = (usersResult.Users?.length || 0) + (rolesResult.Roles?.length || 0)
-    const idx1 = stats.value.findIndex(s => s.serviceId === 'iam')
-    const idx2 = allServices.value.findIndex(s => s.id === 'iam')
-    if (idx1 >= 0) stats.value[idx1].value = count
-    if (idx2 >= 0) {
-      allServices.value[idx2].count = count
-      allServices.value[idx2].status = count > 0 ? 'healthy' : 'warning'
-    }
-  } catch {
-    const idx1 = stats.value.findIndex(s => s.serviceId === 'iam')
-    const idx2 = allServices.value.findIndex(s => s.id === 'iam')
-    if (idx1 >= 0) stats.value[idx1].value = 0
-    if (idx2 >= 0) {
-      allServices.value[idx2].count = 0
-      allServices.value[idx2].status = 'error'
-    }
-  }
-  const idx1i = stats.value.findIndex(s => s.serviceId === 'iam')
-  const idx2i = allServices.value.findIndex(s => s.id === 'iam')
-  if (idx1i >= 0) stats.value[idx1i].loading = false
-  if (idx2i >= 0) allServices.value[idx2i].loading = false
-
-  // Mark remaining services as unknown
-  const knownServices = ['s3', 'lambda', 'dynamodb', 'sqs', 'sns', 'iam']
-  for (let i = 0; i < allServices.value.length; i++) {
-    if (!knownServices.includes(allServices.value[i].id)) {
-      allServices.value[i].status = 'unknown'
-      allServices.value[i].loading = false
-    }
-  }
-
-  isLoading.value = false
-  lastChecked.value = new Date()
-}
-
-function formatTimestamp(date: Date): string {
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
-
-  if (minutes < 1) return 'Just now'
-  if (minutes < 60) return `${minutes}m ago`
-  if (hours < 24) return `${hours}h ago`
-  return `${days}d ago`
-}
-
-function getServiceColor(serviceId: string): string {
-  const colors: Record<string, string> = {
-    s3: 'text-orange-500',
-    lambda: 'text-yellow-500',
-    dynamodb: 'text-blue-500',
-    sqs: 'text-red-500',
-    sns: 'text-purple-500',
-    iam: 'text-green-500',
-  }
-  return colors[serviceId] || 'text-gray-500'
-}
-
-function getActivityTypeColor(type: string): string {
-  const colors: Record<string, string> = {
-    s3: 'bg-orange-500',
-    lambda: 'bg-yellow-500',
-    dynamodb: 'bg-blue-500',
-    sqs: 'bg-red-500',
-    sns: 'bg-purple-500',
-    iam: 'bg-green-500',
-    info: 'bg-blue-500',
-    success: 'bg-green-500',
-    error: 'bg-red-500',
-  }
-  return colors[type] || 'bg-gray-500'
-}
-
 async function testConnection() {
-  connectionLoading.value = true
   await checkConnection()
-  connectionLoading.value = false
   if (connectionStatus.value.isConnected) {
     await fetchStats()
   }
@@ -331,37 +69,13 @@ function navigateToService(route: string) {
   router.push(route)
 }
 
-function addActivity(activity: Omit<ActivityItem, 'id'>) {
-  recentActivity.value.unshift({
-    ...activity,
-    id: crypto.randomUUID(),
-  })
-  // Keep only last 10
-  if (recentActivity.value.length > 10) {
-    recentActivity.value = recentActivity.value.slice(0, 10)
-  }
+function getColor(serviceId: string): string {
+  return SERVICE_COLORS[serviceId]?.text || 'text-gray-500'
 }
-
-// Initial load
-onMounted(async () => {
-  if (connectionStatus.value.isConnected) {
-    await fetchStats()
-  } else {
-    isLoading.value = false
-  }
-})
-
-// Watch for connection changes
-watch(() => connectionStatus.value.isConnected, async (connected) => {
-  if (connected) {
-    await fetchStats()
-  }
-})
 </script>
 
 <template>
   <div class="space-y-6 animate-fade-in">
-    <!-- Header -->
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
       <div>
         <h1
@@ -376,7 +90,6 @@ watch(() => connectionStatus.value.isConnected, async (connected) => {
       </div>
     </div>
 
-    <!-- Connection Status Panel -->
     <div 
       class="rounded-xl border p-6 transition-all duration-300"
       :class="[
@@ -390,10 +103,9 @@ watch(() => connectionStatus.value.isConnected, async (connected) => {
     >
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="flex items-center gap-4">
-          <!-- Status Indicator -->
           <div 
             class="w-16 h-16 rounded-xl flex items-center justify-center transition-all duration-300"
-            :class="isConnected 
+            :class="isConnected
               ? 'bg-green-500/20 dark:bg-green-500/30' 
               : 'bg-red-500/20 dark:bg-red-500/30'"
           >
@@ -448,15 +160,18 @@ watch(() => connectionStatus.value.isConnected, async (connected) => {
           </div>
           
           <button
-            :disabled="connectionLoading"
-            class="px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50"
-            :class="isConnected
-              ? 'bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-500/30'
-              : 'bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/30'"
+            class="px-4 py-2 rounded-lg font-medium transition-all duration-200"
+            :class="[
+              isConnected
+                ? 'bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-500/30'
+                : 'bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/30',
+              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+            ]"
+            :disabled="isLoading"
             @click="testConnection"
           >
             <span
-              v-if="connectionLoading"
+              v-if="isLoading"
               class="flex items-center gap-2"
             >
               <svg
@@ -478,7 +193,7 @@ watch(() => connectionStatus.value.isConnected, async (connected) => {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              Testing...
+              Loading...
             </span>
             <span v-else>{{ isConnected ? 'Test Connection' : 'Retry Connection' }}</span>
           </button>
@@ -486,7 +201,6 @@ watch(() => connectionStatus.value.isConnected, async (connected) => {
       </div>
     </div>
 
-    <!-- Quick Stats Cards -->
     <div>
       <h2 
         class="text-lg font-semibold mb-4"
@@ -496,7 +210,7 @@ watch(() => connectionStatus.value.isConnected, async (connected) => {
       </h2>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <div
-          v-for="stat in stats"
+          v-for="stat in quickStats"
           :key="stat.name"
           class="group p-4 rounded-xl border cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
           :class="[
@@ -509,119 +223,13 @@ watch(() => connectionStatus.value.isConnected, async (connected) => {
           <div class="flex items-center justify-between mb-2">
             <div 
               class="w-10 h-10 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110"
-              :class="getServiceColor(stat.serviceId) + '/20'"
+              :class="stat.color + '/20'"
             >
-              <!-- S3 Icon -->
-              <svg
-                v-if="stat.icon === 'ArchiveBoxIcon'"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                :class="'w-5 h-5 ' + getServiceColor(stat.serviceId)"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
-                />
-              </svg>
-              <!-- Lambda Icon -->
-              <svg
-                v-else-if="stat.icon === 'BoltIcon'"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                :class="'w-5 h-5 ' + getServiceColor(stat.serviceId)"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"
-                />
-              </svg>
-              <!-- DynamoDB Icon -->
-              <svg
-                v-else-if="stat.icon === 'TableCellsIcon'"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                :class="'w-5 h-5 ' + getServiceColor(stat.serviceId)"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5A1.125 1.125 0 0118 18.375M20.625 4.5H3.375m17.25 0c.621 0 1.125.504 1.125 1.125M20.625 4.5h-1.5C18.504 4.5 18 5.004 18 5.625m3.75 0v1.5c0 .621-.504 1.125-1.125 1.125M3.375 4.5c-.621 0-1.125.504-1.125 1.125M3.375 4.5h1.5C5.496 4.5 6 5.004 6 5.625m-3.75 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m1.5-3.75C5.496 8.25 6 7.746 6 7.125v-1.5M4.875 8.25C5.496 8.25 6 8.754 6 9.375v1.5m0-5.25v5.25m0-5.25C6 5.004 6.504 4.5 7.125 4.5h9.75c.621 0 1.125.504 1.125 1.125m1.125 2.625h1.5m-1.5 0A1.125 1.125 0 0118 7.125v-1.5m1.125 2.625c-.621 0-1.125.504-1.125 1.125v1.5m2.625-2.625c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125M18 5.625v5.25M7.125 12h9.75m-9.75 0A1.125 1.125 0 016 10.875M7.125 12C6.504 12 6 12.504 6 13.125m0-2.25C6 11.496 5.496 12 4.875 12M18 10.875c0 .621-.504 1.125-1.125 1.125M18 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m-12 5.25v-5.25m0 5.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125m-12 0v-1.5c0-.621-.504-1.125-1.125-1.125M18 18.375v-5.25m0 5.25v-1.5c0-.621.504-1.125 1.125-1.125M18 13.125v1.5c0 .621.504 1.125 1.125 1.125M18 13.125c0-.621.504-1.125 1.125-1.125M6 13.125v1.5c0 .621-.504 1.125-1.125 1.125M6 13.125C6 12.504 5.496 12 4.875 12m-1.5 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M19.125 12h1.5m0 0c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h1.5m14.25 0h1.5"
-                />
-              </svg>
-              <!-- SQS Icon -->
-              <svg
-                v-else-if="stat.icon === 'QueueListIcon'"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                :class="'w-5 h-5 ' + getServiceColor(stat.serviceId)"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-                />
-              </svg>
-              <!-- SNS Icon -->
-              <svg
-                v-else-if="stat.icon === 'MegaphoneIcon'"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                :class="'w-5 h-5 ' + getServiceColor(stat.serviceId)"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.282m3.102.069a18.03 18.03 0 01-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 018.835 2.535M10.34 6.66a23.847 23.847 0 008.835-2.535m0 0A23.74 23.74 0 0018.795 3m.38 1.125a23.91 23.91 0 011.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 001.014-5.395m0-3.46c.495.413.811 1.035.811 1.73 0 .695-.316 1.317-.811 1.73m0-3.46a24.347 24.347 0 010 3.46"
-                />
-              </svg>
-              <!-- IAM Icon -->
-              <svg
-                v-else-if="stat.icon === 'UserGroupIcon'"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                :class="'w-5 h-5 ' + getServiceColor(stat.serviceId)"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
-                />
-              </svg>
-            </div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"
+              <span
+                :class="stat.color"
+                v-html="getIcon(stat.serviceId)"
               />
-            </svg>
+            </div>
           </div>
           <p 
             class="text-sm font-medium"
@@ -634,18 +242,16 @@ watch(() => connectionStatus.value.isConnected, async (connected) => {
             :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
           >
             <span
-              v-if="isLoading"
+              v-if="stat.loading"
               class="animate-pulse"
             >-</span>
-            <span v-else-if="stat.value > 0">{{ stat.value }}</span>
+            <span v-else>{{ stat.value }}</span>
           </p>
         </div>
       </div>
     </div>
 
-    <!-- Quick Actions & Recent Activity -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Quick Actions -->
       <div 
         class="p-6 rounded-xl border"
         :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border' : 'bg-light-surface border-light-border'"
@@ -799,7 +405,6 @@ watch(() => connectionStatus.value.isConnected, async (connected) => {
         </div>
       </div>
 
-      <!-- Recent Activity -->
       <div 
         class="p-6 rounded-xl border"
         :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border' : 'bg-light-surface border-light-border'"
@@ -808,167 +413,38 @@ watch(() => connectionStatus.value.isConnected, async (connected) => {
           class="text-lg font-semibold mb-4"
           :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
         >
-          Recent Activity
+          All Services
         </h3>
-        <div
-          v-if="recentActivity.length > 0"
-          class="space-y-3 max-h-64 overflow-y-auto"
-        >
+        <div class="space-y-2 max-h-64 overflow-y-auto">
           <div
-            v-for="activity in recentActivity"
-            :key="activity.id"
-            class="flex items-start gap-3 p-2 rounded-lg transition-colors hover:bg-opacity-50"
+            v-for="service in allServices"
+            :key="service.id"
+            class="flex items-center justify-between p-2 rounded-lg transition-colors"
             :class="settingsStore.darkMode ? 'hover:bg-dark-bg' : 'hover:bg-light-bg'"
           >
-            <div
-              class="w-2 h-2 rounded-full mt-2 flex-shrink-0"
-              :class="getActivityTypeColor(activity.type)"
-            />
-            <div class="flex-1 min-w-0">
-              <p
-                class="text-sm font-medium truncate"
+            <div class="flex items-center gap-3">
+              <div
+                class="w-2 h-2 rounded-full"
+                :class="{
+                  'bg-green-500': service.status === 'healthy',
+                  'bg-yellow-500': service.status === 'warning',
+                  'bg-red-500': service.status === 'error',
+                  'bg-gray-400': service.status === 'unknown',
+                }"
+              />
+              <span
                 :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                class="text-sm"
               >
-                {{ activity.action }}
-              </p>
-              <p
-                class="text-xs truncate"
-                :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-              >
-                {{ activity.service }} · {{ activity.resource }}
-              </p>
+                {{ service.name }}
+              </span>
             </div>
             <span
-              class="text-xs flex-shrink-0"
               :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+              class="text-xs"
             >
-              {{ formatTimestamp(activity.timestamp) }}
+              {{ service.count }}
             </span>
-          </div>
-        </div>
-        <div
-          v-else
-          class="text-center py-8"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <p
-            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-            class="text-sm"
-          >
-            No recent activity yet
-          </p>
-          <p
-            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-            class="text-xs mt-1"
-          >
-            Start using services to see activity here
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Getting Started Panel -->
-    <div 
-      class="rounded-xl border p-6 overflow-hidden relative"
-      :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border' : 'bg-light-surface border-light-border'"
-    >
-      <!-- Background gradient -->
-      <div 
-        class="absolute inset-0 opacity-10 dark:opacity-5"
-        :class="settingsStore.darkMode ? 'bg-gradient-to-br from-primary-500 to-purple-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'"
-      />
-      
-      <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        <div class="flex items-center gap-4">
-          <!-- Logo -->
-          <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="w-8 h-8 text-white"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0l4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0l-5.571 3-5.571-3"
-              />
-            </svg>
-          </div>
-          
-          <div>
-            <h3 
-              class="text-lg font-semibold"
-              :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-            >
-              Configure AWS Connection
-            </h3>
-            <p
-              :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-              class="text-sm"
-            >
-              Use real AWS credentials or connect to a local emulator
-            </p>
-          </div>
-        </div>
-
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1">
-            <p 
-              class="text-xs uppercase tracking-wide mb-2"
-              :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-            >
-              Quick Setup (Local Emulator)
-            </p>
-            <div 
-              class="p-3 rounded-lg font-mono text-sm"
-              :class="settingsStore.darkMode ? 'bg-dark-bg' : 'bg-light-bg'"
-            >
-              <span class="text-green-500">docker run</span>
-              <span :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"> --rm -p 4566:4566</span>
-              <span class="text-primary-500"> your-aws-emulator</span>
-            </div>
-          </div>
-          
-          <div class="flex items-end">
-            <button
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-              :class="settingsStore.darkMode 
-                ? 'bg-primary-500/20 text-primary-400 hover:bg-primary-500/30' 
-                : 'bg-primary-500/20 text-primary-600 hover:bg-primary-500/30'"
-              @click="router.push('/settings')"
-            >
-              <span>Go to Settings</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="w-4 h-4"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
-                />
-              </svg>
-            </button>
           </div>
         </div>
       </div>
@@ -992,7 +468,6 @@ watch(() => connectionStatus.value.isConnected, async (connected) => {
   }
 }
 
-/* Scrollbar styling for activity feed */
 .max-h-64::-webkit-scrollbar {
   width: 4px;
 }

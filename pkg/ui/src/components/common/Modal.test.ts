@@ -1,11 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
+import { createPinia, setActivePinia } from 'pinia'
 import Modal from './Modal.vue'
 
 const TestModal = defineComponent({
   components: { Modal },
-  props: ['open'],
+  props: {
+    open: { type: Boolean, required: true }
+  },
   emits: ['update:open'],
   template: `
     <Modal :open="open" @update:open="$emit('update:open', $event)">
@@ -20,6 +23,7 @@ const TestModal = defineComponent({
 describe('Modal', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    setActivePinia(createPinia())
   })
 
   it('should render when open is true', async () => {

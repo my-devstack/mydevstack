@@ -2,6 +2,9 @@
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
 import { TransitionRoot, TransitionChild } from '@headlessui/vue'
+import { useSettingsStore } from '@/stores/settings'
+
+const settingsStore = useSettingsStore()
 
 type Size = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | 'full'
 
@@ -190,7 +193,7 @@ onUnmounted(() => {
             aria-modal="true"
             :aria-labelledby="title ? 'modal-title' : undefined"
             :class="[
-              'relative w-full rounded-lg shadow-xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border',
+              'relative w-full rounded-lg shadow-xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border text-light-text dark:text-dark-text',
               sizeClasses[size],
             ]"
           >
