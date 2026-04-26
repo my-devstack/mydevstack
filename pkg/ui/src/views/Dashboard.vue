@@ -449,7 +449,6 @@ function getColor(serviceId: string): string {
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
