@@ -35,9 +35,7 @@ describe('useSQS', () => {
   })
 
   it('loadQueues success', async () => {
-    const mockQueues = {
-      QueueUrls: ['http://localhost:4566/000000000000/test-queue', 'http://localhost:4566/000000000000/another-queue']
-    }
+    const mockQueues = ['http://localhost:4566/000000000000/test-queue', 'http://localhost:4566/000000000000/another-queue']
     vi.mocked(sqsApi.listQueues).mockResolvedValue(mockQueues)
 
     const { loadQueues, queues, loading } = useSQS()
@@ -52,7 +50,7 @@ describe('useSQS', () => {
   })
 
   it('loadQueues handles empty result', async () => {
-    vi.mocked(sqsApi.listQueues).mockResolvedValue({})
+    vi.mocked(sqsApi.listQueues).mockResolvedValue([])
 
     const { loadQueues, queues } = useSQS()
     
@@ -73,19 +71,31 @@ describe('useSQS', () => {
 
   it('createQueue calls API and reloads', async () => {
     vi.mocked(sqsApi.createQueue).mockResolvedValue({})
-    vi.mocked(sqsApi.listQueues).mockResolvedValue({ QueueUrls: [] })
+    vi.mocked(sqsApi.listQueues).mockResolvedValue([])
 
     const { createQueue } = useSQS()
     
     await createQueue('test-queue', false)
     
-    expect(sqsApi.createQueue).toHaveBeenCalledWith('test-queue', false)
+    expect(sqsApi.createQueue).toHaveBeenCalledWith('test-queue', undefined)
+    expect(sqsApi.listQueues).toHaveBeenCalled()
+  })
+
+  it('createQueue passes FIFO attribute for FIFO queues', async () => {
+    vi.mocked(sqsApi.createQueue).mockResolvedValue({})
+    vi.mocked(sqsApi.listQueues).mockResolvedValue([])
+
+    const { createQueue } = useSQS()
+    
+    await createQueue('test-queue', true)
+    
+    expect(sqsApi.createQueue).toHaveBeenCalledWith('test-queue.fifo', { Attributes: { QueueFifoQueue: 'true' } })
     expect(sqsApi.listQueues).toHaveBeenCalled()
   })
 
   it('deleteQueue calls API and reloads', async () => {
     vi.mocked(sqsApi.deleteQueue).mockResolvedValue({})
-    vi.mocked(sqsApi.listQueues).mockResolvedValue({ QueueUrls: [] })
+    vi.mocked(sqsApi.listQueues).mockResolvedValue([])
 
     const { deleteQueue, expandedQueues } = useSQS()
     expandedQueues.value.add('http://localhost:4566/000000000000/test')
@@ -98,7 +108,7 @@ describe('useSQS', () => {
 
   it('deleteQueue removes from expanded', async () => {
     vi.mocked(sqsApi.deleteQueue).mockResolvedValue({})
-    vi.mocked(sqsApi.listQueues).mockResolvedValue({ QueueUrls: [] })
+    vi.mocked(sqsApi.listQueues).mockResolvedValue([])
 
     const { deleteQueue, expandedQueues } = useSQS()
     expandedQueues.value.add('http://localhost:4566/000000000000/test')
@@ -137,12 +147,10 @@ describe('useSQS', () => {
   })
 
   it('loadMessages fetches and stores messages', async () => {
-    const mockMessages = {
-      Messages: [
-        { ReceiptHandle: 'rh1', Body: '{"test": "data"}', MessageId: 'msg1' },
-        { ReceiptHandle: 'rh2', Body: 'plain text', MessageId: 'msg2' },
-      ]
-    }
+    const mockMessages = [
+      { ReceiptHandle: 'rh1', Body: '{"test": "data"}', MessageId: 'msg1' },
+      { ReceiptHandle: 'rh2', Body: 'plain text', MessageId: 'msg2' },
+    ]
     vi.mocked(sqsApi.receiveMessage).mockResolvedValue(mockMessages)
 
     const { loadMessages, messages, loadingMessages } = useSQS()
@@ -155,7 +163,7 @@ describe('useSQS', () => {
   })
 
   it('loadMessages handles empty', async () => {
-    vi.mocked(sqsApi.receiveMessage).mockResolvedValue({})
+    vi.mocked(sqsApi.receiveMessage).mockResolvedValue([])
 
     const { loadMessages, messages } = useSQS()
     
@@ -167,7 +175,7 @@ describe('useSQS', () => {
 
   it('deleteMessageFromQueue calls API and reloads', async () => {
     vi.mocked(sqsApi.deleteMessage).mockResolvedValue({})
-    vi.mocked(sqsApi.receiveMessage).mockResolvedValue({})
+    vi.mocked(sqsApi.receiveMessage).mockResolvedValue([])
 
     const { deleteMessageFromQueue } = useSQS()
     
