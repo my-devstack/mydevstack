@@ -244,5 +244,6 @@ _, _ = client.DeleteTopic(context.Background(), &sns.DeleteTopicInput{
     title="Usage Examples"
     :snippets="snippets"
     default-tab="aws-cli"
+    :disable-highlight="true"
   />
 </template>

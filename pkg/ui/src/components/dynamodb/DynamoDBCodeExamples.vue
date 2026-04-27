@@ -340,5 +340,6 @@ const snippets = computed(() => props.type === 'stream' ? streamExamples.value :
     title="Usage Examples"
     :snippets="snippets"
     default-tab="aws-cli"
+    :disable-highlight="true"
   />
 </template>

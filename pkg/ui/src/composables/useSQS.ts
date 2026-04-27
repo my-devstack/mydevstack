@@ -29,8 +29,8 @@ export function useSQS() {
   async function loadQueues() {
     loading.value = true
     try {
-      const result = await sqsApi.listQueues()
-      const queueList: Queue[] = (result.QueueUrls || []).map((url: string) => ({
+      const queueUrls = await sqsApi.listQueues()
+      const queueList: Queue[] = queueUrls.map((url: string) => ({
         url,
         name: url.split('/').pop() || url
       }))
@@ -43,7 +43,8 @@ export function useSQS() {
   }
 
   async function createQueue(name: string, isFifo: boolean) {
-    await sqsApi.createQueue(name, isFifo)
+    const queueName = isFifo && !name.endsWith('.fifo') ? `${name}.fifo` : name
+    await sqsApi.createQueue(queueName, isFifo ? { Attributes: { QueueFifoQueue: 'true' } } : undefined)
     uiStore.notifySuccess('Queue created', `Queue "${name}" created successfully`)
     await loadQueues()
   }
@@ -80,8 +81,7 @@ export function useSQS() {
   async function loadMessages(url: string): Promise<SQSMessage[]> {
     loadingMessages.value = true
     try {
-      const result = await sqsApi.receiveMessage(url)
-      const msgs = result.Messages || []
+      const msgs = await sqsApi.receiveMessage(url)
       messagesByQueue.value[url] = msgs
       messages.value = msgs
       return msgs

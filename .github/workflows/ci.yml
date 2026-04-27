@@ -101,6 +101,62 @@ jobs:
           path: unit.html
           retention-days: 7
 
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Start Floci
+        run: |
+          docker run -d --name floci -p 4566:4566 floci/floci:latest
+          sleep 5
+          for i in {1..30}; do
+            curl -s http://localhost:4566/_localstack/health | grep -q '"available"' && break
+            sleep 2
+          done
+
+      - name: Install Go dependencies
+        run: go mod download
+        working-directory: pkg/proxy
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+        working-directory: pkg/ui
+
+      - name: Build and start servers
+        run: |
+          pkill -f "go run" 2>/dev/null || true
+          pkill -f vite 2>/dev/null || true
+          sleep 2
+          cd pkg/proxy && PROXY_PORT=8083 go run ./cmd/server &
+          sleep 3
+          cd pkg/ui && npm run build
+          pkill -f vite 2>/dev/null || true
+          npx vite preview --port 3010 &
+          sleep 5
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        working-directory: pkg/ui
+        env:
+          BASE_URL: http://localhost:3010
+          PROXY_URL: http://localhost:8083
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop floci 2>/dev/null || true
+          docker rm floci 2>/dev/null || true
+          pkill -f "go run" 2>/dev/null || true
+          pkill -f vite 2>/dev/null || true
+
   build-release:
     name: Build Release Binary
     runs-on: ubuntu-latest
@@ -110,7 +166,8 @@ jobs:
       - lint-ui
       - test-proxy
       - test-ui
-    
+      - e2e
+
     strategy:
       matrix:
         include:
@@ -177,6 +234,7 @@ jobs:
     needs:
       - lint-ui
       - test-ui
+      - e2e
 
     steps:
       - name: Checkout code
