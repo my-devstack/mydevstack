@@ -19,7 +19,7 @@ test.describe('SNS', () => {
     await page.goto('/#/services/sns')
     await page.waitForTimeout(2000)
     
-    await page.getByRole('button', { name: '+ Create Topic' }).click()
+    await page.locator('.flex-shrink-0 button').filter({ hasText: 'Create Topic' }).click()
     await page.waitForTimeout(1000)
     
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })

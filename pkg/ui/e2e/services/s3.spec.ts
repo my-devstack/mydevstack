@@ -27,6 +27,6 @@ test.describe('S3', () => {
     await page.getByRole('button', { name: '+ Create Bucket' }).click()
     await page.waitForTimeout(1000)
     
-    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText('Create New Bucket')).toBeVisible({ timeout: 5000 })
   })
 })

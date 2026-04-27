@@ -26,6 +26,6 @@ test.describe('Lambda', () => {
     await page.getByRole('button', { name: '+ Create Function' }).click()
     await page.waitForTimeout(1000)
     
-    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText('Create Lambda Function')).toBeVisible({ timeout: 5000 })
   })
 })
