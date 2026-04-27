@@ -13,7 +13,6 @@ export default defineConfig({
   },
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:3010',
-    proxyURL: process.env.PROXY_URL || 'http://localhost:8083',
     trace: 'on-first-retry',
   },
   projects: [

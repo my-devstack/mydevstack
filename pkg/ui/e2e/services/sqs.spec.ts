@@ -1,32 +1,51 @@
-import { test, expect } from '../fixtures'
-import { cleanupS3Buckets } from '../fixtures'
+import { test, expect } from '@playwright/test'
 
-test.describe('SQS', () => {
-  test.beforeEach(async () => {
-    // No cleanup - SQS queues persist for test session
-  })
+test('create FIFO queue and verify in list and attributes', async ({ page }) => {
+  const queueName = 'test-fifo-' + Date.now()
+  
+  await page.goto('/#/services/sqs')
+  await page.waitForTimeout(1500)
+  
+  await page.getByRole('button', { name: '+ Create Queue' }).click()
+  await page.waitForTimeout(500)
+  
+  await page.getByPlaceholder('my-queue').fill(queueName)
+  await page.getByLabel('FIFO Queue').check()
+  
+  await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+  await page.waitForTimeout(2000)
+  
+  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5000 })
+  
+  await expect(page.getByText(queueName + '.fifo')).toBeVisible({ timeout: 5000 })
+  
+  await page.getByText(queueName + '.fifo').click()
+  await page.waitForTimeout(1500)
+  
+  const fifoValue = page.locator('td:text("FifoQueue") ~ td').first()
+  await expect(fifoValue).toContainText('true')
+})
 
-  test('navigate to SQS', async ({ page }) => {
-    await page.goto('/#/services/sqs')
-    await page.waitForTimeout(2000)
-    
-    await expect(page.getByRole('main').locator('h1')).toContainText('SQS', { timeout: 10000 })
-  })
+test('create standard queue and verify in list', async ({ page }) => {
+  const queueName = 'test-std-' + Date.now()
   
-  test('load queue list', async ({ page }) => {
-    await page.goto('/#/services/sqs')
-    await page.waitForTimeout(2000)
-    
-    await expect(page.getByText('queues').first()).toBeVisible({ timeout: 10000 })
-  })
+  await page.goto('/#/services/sqs')
+  await page.waitForTimeout(1500)
   
-  test('open create queue modal', async ({ page }) => {
-    await page.goto('/#/services/sqs')
-    await page.waitForTimeout(2000)
-    
-    await page.getByRole('button', { name: '+ Create Queue' }).click()
-    await page.waitForTimeout(1000)
-    
-    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
-  })
+  await page.getByRole('button', { name: '+ Create Queue' }).click()
+  await page.waitForTimeout(500)
+  
+  await page.getByPlaceholder('my-queue').fill(queueName)
+  
+  await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+  await page.waitForTimeout(2000)
+  
+  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5000 })
+  
+  await expect(page.getByText(queueName, { exact: true })).toBeVisible({ timeout: 5000 })
+  
+  await page.getByText(queueName, { exact: true }).click()
+  await page.waitForTimeout(1500)
+  
+  await expect(page.getByText('ApproximateNumberOfMessages').first()).toBeVisible({ timeout: 3000 })
 })

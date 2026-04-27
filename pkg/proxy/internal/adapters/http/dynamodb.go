@@ -93,7 +93,12 @@ func (h *ProxyHandler) describeTable(ctx context.Context, c *gin.Context, bodyBy
 	}
 	result, err := h.svc.DynamoDB().DescribeTable(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to describe table", err)
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "InvalidParameterValue") && strings.Contains(errMsg, "TableName") {
+			sendError(c, http.StatusBadRequest, "Invalid table name format", err)
+		} else {
+			sendError(c, http.StatusInternalServerError, "Failed to describe table", err)
+		}
 		return
 	}
 	c.JSON(http.StatusOK, result)
