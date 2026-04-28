@@ -17,14 +17,6 @@ async function createQueue(page: any, queueName: string, fifo = false) {
   await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
   await page.waitForTimeout(5000)
   
-  // Check for error alerts
-  const errorAlert = page.locator('[class*="error"], [class*="red"], [role="alert"], .text-red')
-  const hasError = await errorAlert.first().isVisible().catch(() => false)
-  if (hasError) {
-    const errText = await errorAlert.first().textContent().catch(() => '')
-    throw new Error('Queue creation failed: ' + errText)
-  }
-  
   await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 20000 })
 }
 

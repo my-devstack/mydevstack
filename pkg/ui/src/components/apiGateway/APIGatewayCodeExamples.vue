@@ -189,7 +189,7 @@ aws apigatewayv2 delete-api --api-id <api-id> --endpoint-url http://127.0.0.1:45
     language: 'javascript',
     label: 'JavaScript',
     code: `// Using AWS SDK v3 - ApiGatewayV2
-import { ApiGatewayV2Client, GetApisCommand, CreateApiCommand, DeleteApiCommand } from "@aws-sdk/client-api-gatewayv2";
+import { ApiGatewayV2Client, GetApisCommand, CreateApiCommand, DeleteApiCommand } from "@aws-sdk/client-apigatewayv2";
 
 const client = new ApiGatewayV2Client({
   region: '${props.region}',

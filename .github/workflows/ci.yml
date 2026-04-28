@@ -152,19 +152,19 @@ jobs:
           pkill -f "go run" 2>/dev/null || true
           pkill -f vite 2>/dev/null || true
           sleep 2
-          cd pkg/proxy && PROXY_PORT=8083 go run ./cmd/server &
+          cd pkg/proxy && go run ./cmd/server &
           sleep 3
           cd pkg/ui && npm run build
           pkill -f vite 2>/dev/null || true
-          npx vite preview --port 3010 &
+          npx vite preview --port 3000 &
           sleep 5
 
       - name: Run E2E tests
         run: npm run test:e2e
         working-directory: pkg/ui
-        env:
-          BASE_URL: http://localhost:3010
-          PROXY_URL: http://localhost:8083
+        # env:
+        #   BASE_URL: http://localhost:3000
+        #   PROXY_URL: http://localhost:8081
 
       - name: Cleanup
         if: always()

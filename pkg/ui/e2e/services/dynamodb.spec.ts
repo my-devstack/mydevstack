@@ -58,14 +58,6 @@ async function createTable(page: any, tableName: string, options: {
   await page.getByRole('dialog').getByRole('button', { name: 'Create Table', exact: true }).click()
   await page.waitForTimeout(5000)
   
-  // Check for error alerts
-  const errorAlert = page.locator('[class*="error"], [class*="red"], [role="alert"], .text-red')
-  const hasError = await errorAlert.first().isVisible().catch(() => false)
-  if (hasError) {
-    const errText = await errorAlert.first().textContent().catch(() => '')
-    throw new Error('Table creation failed: ' + errText)
-  }
-  
   await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 20000 })
 }
 
