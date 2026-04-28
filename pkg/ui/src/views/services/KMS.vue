@@ -1,115 +1,73 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
-import { useUiStore } from '@/stores/ui'
-import { useToast } from '@/composables/useToast'
-import { useContentReload } from '@/composables/useContentReload'
-import {
-  listKeys,
-  createKey,
-  describeKey,
-  encrypt,
-  decrypt,
-  enableKey,
-  disableKey,
-  scheduleKeyDeletion,
-  getKeyPolicy,
-  listKeyPolicies,
-} from '@/api/services/kms'
-import type { KMSKey } from '@/api/types/aws'
+import { useKMS } from '@/composables/useKMS'
 
 // Components
-import Modal from '@/components/common/Modal.vue'
+import {
+  KMSCreateKeyModal,
+  KMSDeleteModal,
+  KMSViewDetailsModal,
+  KMSEncryptModal,
+  KMSDecryptModal,
+  KMSPolicyModal,
+} from '@/components/kms'
 import Button from '@/components/common/Button.vue'
-import FormInput from '@/components/common/FormInput.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import DataTable from '@/components/common/DataTable.vue'
-import {
-  KMSCreateKeyModal,
-  KMSDeleteModal,
-} from '@/components/kms'
 
 // Icons
 import {
   PlusIcon,
-  TrashIcon,
   KeyIcon,
-  EyeIcon,
-  ShieldCheckIcon,
-  ShieldExclamationIcon,
-  LockClosedIcon,
-  LockOpenIcon,
-  ExclamationCircleIcon,
-  PencilIcon,
 } from '@heroicons/vue/24/outline'
+
+// Use KMS composable
+const {
+  keys,
+  isLoading,
+  selectedKey,
+  showCreateModal,
+  showDetailsModal,
+  showEncryptModal,
+  showDecryptModal,
+  showDeleteModal,
+  showPolicyModal,
+  expandedKeys,
+  newKey,
+  encryptForm,
+  decryptForm,
+  encryptedResult,
+  decryptedResult,
+  keyPolicy,
+  keyPolicyMap,
+  keySpecs,
+  keyCount,
+  loadKeys,
+  handleCreateKey,
+  handleEnableKey,
+  handleDisableKey,
+  handleDeleteKey,
+  handleEncrypt,
+  handleDecrypt,
+  toggleKeyExpansion,
+  getKeyStatus,
+  getKeyStatusLabel,
+  copyToClipboard,
+  viewKeyDetails,
+  viewKeyPolicy,
+  selectKeyForAction,
+  setupReloadWatcher,
+} = useKMS()
 
 // Stores
 const settingsStore = useSettingsStore()
-const toast = useToast()
-const { reloadTrigger } = useContentReload()
 
-// Types
-interface KeyInfo {
-  KeyId: string
-  KeyArn: string
-  keyMetadata?: KMSKey
-}
-
-// State
-const keys = ref<KeyInfo[]>([])
-const isLoading = ref(false)
-const selectedKey = ref<KeyInfo | null>(null)
+// UI-specific refs (not extracted to composable)
 const showExamples = ref(false)
-
-// Modals
-const showCreateModal = ref(false)
-const showDetailsModal = ref(false)
-const showEncryptModal = ref(false)
-const showDecryptModal = ref(false)
-const showDeleteModal = ref(false)
-const showPolicyModal = ref(false)
-
-// Accordion state
-const expandedKeys = ref<Set<string>>(new Set())
-
-function toggleKeyExpansion(keyId: string) {
-  if (expandedKeys.value.has(keyId)) {
-    expandedKeys.value.delete(keyId)
-  } else {
-    expandedKeys.value.add(keyId)
-  }
-  expandedKeys.value = new Set(expandedKeys.value)
-}
-
-// Forms
-const newKey = ref({
-  description: '',
-  keyUsage: 'ENCRYPT_DECRYPT',
-  keySpec: 'SYMMETRIC_DEFAULT',
-})
-
-const encryptForm = ref({
-  plaintext: '',
-})
-
-const decryptForm = ref({
-  ciphertext: '',
-})
-
-const encryptedResult = ref('')
-const decryptedResult = ref('')
-const keyPolicy = ref('')
-const keyPolicyMap = ref<Record<string, string>>({})
-
-// Key specs
-const keySpecs = [
-  { value: 'SYMMETRIC_DEFAULT', label: 'Symmetric Key (Default)' },
-  { value: 'RSA_2048', label: 'RSA 2048' },
-  { value: 'RSA_3072', label: 'RSA 3072' },
-  { value: 'RSA_4096', label: 'RSA 4096' },
-]
+const selectedExample = ref(0)
 
 // Columns
 const columns = computed(() => [
@@ -120,14 +78,14 @@ const columns = computed(() => [
 
 onMounted(() => {
   loadKeys()
-})
-
-watch(reloadTrigger, () => {
-  loadKeys()
+  
+  // Watch for reload trigger
+  watch(setupReloadWatcher(), () => {
+    loadKeys()
+  })
 })
 
 // Code examples
-const selectedExample = ref(0)
 const codeExamples = computed(() => [
   {
     language: 'aws-cli',
@@ -297,192 +255,6 @@ decryptOutput, _ := client.Decrypt(context.Background(), &kms.DecryptInput{
 fmt.Println(string(decryptOutput.Plaintext))`
   },
 ])
-
-// Computed
-const keyCount = computed(() => keys.value.length)
-
-async function loadKeys() {
-  isLoading.value = true
-  try {
-    const result = await listKeys()
-    const keysList = (result.Keys || []).map((key) => ({
-      KeyId: key.KeyId,
-      KeyArn: key.KeyArn,
-    }))
-    
-    // Load metadata and policy for each key
-    for (const key of keysList) {
-      try {
-        const metaResult = await describeKey(key.KeyId)
-        key.keyMetadata = metaResult.KeyMetadata
-      } catch {
-        key.keyMetadata = null
-      }
-      
-      try {
-        const policyResult = await getKeyPolicy(key.KeyId, 'default')
-        keyPolicyMap.value[key.KeyId] = policyResult.Policy || 'No policy'
-      } catch {
-        keyPolicyMap.value[key.KeyId] = 'No policy'
-      }
-    }
-    
-    keys.value = keysList
-  } catch (error) {
-    toast.error('Failed to load keys', error instanceof Error ? error.message : 'Unknown error')
-  } finally {
-    isLoading.value = false
-  }
-}
-
-async function handleCreateKey() {
-  try {
-    const result = await createKey({
-      Description: newKey.value.description || undefined,
-      KeyUsage: newKey.value.keyUsage as 'SIGN_VERIFY' | 'ENCRYPT_DECRYPT',
-      CustomerMasterKeySpec: newKey.value.keySpec as 'SYMMETRIC_DEFAULT' | 'RSA_2048' | 'RSA_3072' | 'RSA_4096',
-    })
-    toast.success('Key created', `Key created successfully`)
-    showCreateModal.value = false
-    newKey.value = { description: '', keyUsage: 'ENCRYPT_DECRYPT', keySpec: 'SYMMETRIC_DEFAULT' }
-    await loadKeys()
-  } catch (error) {
-    toast.error('Failed to create key', error instanceof Error ? error.message : 'Unknown error')
-  }
-}
-
-async function loadKeyDetails() {
-  if (!selectedKey.value) return
-
-  try {
-    const result = await describeKey(selectedKey.value.KeyId)
-    selectedKey.value = { ...selectedKey.value, keyMetadata: result.KeyMetadata }
-  } catch (error) {
-    toast.error('Failed to load key details', error instanceof Error ? error.message : 'Unknown error')
-  }
-}
-
-async function handleEnableKey() {
-  if (!selectedKey.value) return
-
-  try {
-    await enableKey(selectedKey.value.KeyId)
-    toast.success('Key enabled', 'Key enabled successfully')
-    await loadKeyDetails()
-  } catch (error) {
-    toast.error('Failed to enable key', error instanceof Error ? error.message : 'Unknown error')
-  }
-}
-
-async function handleDisableKey() {
-  if (!selectedKey.value) return
-
-  try {
-    await disableKey(selectedKey.value.KeyId)
-    toast.success('Key disabled', 'Key disabled successfully')
-    await loadKeyDetails()
-  } catch (error) {
-    toast.error('Failed to disable key', error instanceof Error ? error.message : 'Unknown error')
-  }
-}
-
-async function handleDeleteKey() {
-  if (!selectedKey.value) return
-
-  try {
-    await scheduleKeyDeletion(selectedKey.value.KeyId)
-    toast.success('Key deletion scheduled', 'Key will be deleted in 7 days')
-    showDeleteModal.value = false
-    selectedKey.value = null
-    await loadKeys()
-  } catch (error) {
-    toast.error('Failed to schedule deletion', error instanceof Error ? error.message : 'Unknown error')
-  }
-}
-
-async function handleEncrypt() {
-  if (!selectedKey.value || !encryptForm.value.plaintext) return
-
-  try {
-    const result = await encrypt(selectedKey.value.KeyId, encryptForm.value.plaintext)
-    encryptedResult.value = result.CiphertextBlob
-    toast.success('Data encrypted', 'Data encrypted successfully')
-  } catch (error) {
-    toast.error('Encryption failed', error instanceof Error ? error.message : 'Unknown error')
-  }
-}
-
-async function handleDecrypt() {
-  if (!decryptForm.value.ciphertext) return
-
-  try {
-    const result = await decrypt(decryptForm.value.ciphertext)
-    decryptedResult.value = result.Plaintext
-    toast.success('Data decrypted', 'Data decrypted successfully')
-  } catch (error) {
-    toast.error('Decryption failed', error instanceof Error ? error.message : 'Unknown error')
-  }
-}
-
-async function loadKeyPolicy() {
-  if (!selectedKey.value) return
-
-  try {
-    const result = await getKeyPolicy(selectedKey.value.KeyId, 'default')
-    keyPolicy.value = result.Policy || ''
-  } catch (error) {
-    toast.error('Failed to load key policy', error instanceof Error ? error.message : 'Unknown error')
-  }
-}
-
-function viewKeyDetails(key: KeyInfo) {
-  selectedKey.value = key
-  loadKeyDetails()
-  showDetailsModal.value = true
-}
-
-function viewKeyPolicy(key: KeyInfo) {
-  selectedKey.value = key
-  loadKeyPolicy()
-  showPolicyModal.value = true
-}
-
-function selectKeyForAction(key: KeyInfo, action: 'encrypt' | 'decrypt' | 'delete') {
-  selectedKey.value = key
-  switch (action) {
-    case 'encrypt':
-      showEncryptModal.value = true
-      break
-    case 'decrypt':
-      showDecryptModal.value = true
-      break
-    case 'delete':
-      showDeleteModal.value = true
-      break
-  }
-}
-
-function getKeyStatus(key: KeyInfo): 'enabled' | 'disabled' | 'pending' | 'unknown' {
-  return key.keyMetadata?.KeyState as 'Enabled' | 'Disabled' | 'PendingDeletion' | 'unknown' || 'unknown'
-}
-
-function getKeyStatusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    Enabled: 'Enabled',
-    Disabled: 'Disabled',
-    PendingDeletion: 'Pending Deletion',
-    PendingReplicaDeletion: 'Pending Replica Deletion',
-  }
-  return labels[status] || status
-}
-
-function copyToClipboard(text: string) {
-  navigator.clipboard.writeText(text).then(() => {
-    toast.success('Copied', 'Copied to clipboard')
-  }).catch(() => {
-    toast.error('Failed to copy', 'Could not copy to clipboard')
-  })
-}
 </script>
 
 <template>
@@ -759,256 +531,41 @@ function copyToClipboard(text: string) {
     />
 
     <!-- Key Details Modal -->
-    <Modal
+    <KMSViewDetailsModal
       :open="showDetailsModal"
-      title="Key Details"
-      size="lg"
+      :selected-key="selectedKey"
       @update:open="showDetailsModal = $event"
-    >
-      <div
-        v-if="selectedKey?.keyMetadata"
-        class="space-y-6"
-      >
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Key ID</label>
-            <p class="text-sm text-light-text dark:text-dark-text font-mono">
-              {{ selectedKey.keyMetadata.KeyId }}
-            </p>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Status</label>
-            <StatusBadge
-              :status="getKeyStatus(selectedKey) === 'Enabled' ? 'active' : getKeyStatus(selectedKey) === 'Pending Deletion' ? 'pending' : 'inactive'"
-              :label="getKeyStatusLabel(selectedKey.keyMetadata.KeyState || '')"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Key Usage</label>
-            <p class="text-sm text-light-text dark:text-dark-text">
-              {{ selectedKey.keyMetadata.KeyUsage }}
-            </p>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Origin</label>
-            <p class="text-sm text-light-text dark:text-dark-text">
-              {{ selectedKey.keyMetadata.Origin }}
-            </p>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Creation Date</label>
-            <p class="text-sm text-light-text dark:text-dark-text">
-              {{ selectedKey.keyMetadata.CreationDate ? new Date(selectedKey.keyMetadata.CreationDate).toLocaleDateString() : '-' }}
-            </p>
-          </div>
-          <div v-if="selectedKey.keyMetadata.DeletionDate">
-            <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Deletion Date</label>
-            <p class="text-sm text-light-text dark:text-dark-text">
-              {{ new Date(selectedKey.keyMetadata.DeletionDate).toLocaleDateString() }}
-            </p>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">ARN</label>
-          <p class="text-sm text-light-text dark:text-dark-text font-mono break-all">
-            {{ selectedKey.keyMetadata.Arn }}
-          </p>
-        </div>
-
-        <div v-if="selectedKey.keyMetadata.Description">
-          <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Description</label>
-          <p class="text-sm text-light-text dark:text-dark-text">
-            {{ selectedKey.keyMetadata.Description }}
-          </p>
-        </div>
-
-        <div class="flex items-center gap-2 pt-4 border-t border-light-border dark:border-dark-border">
-          <Button
-            v-if="selectedKey.keyMetadata.KeyState === 'Disabled'"
-            variant="primary"
-            @click="handleEnableKey"
-          >
-            <template #icon-left>
-              <ShieldCheckIcon class="h-4 w-4" />
-            </template>
-            Enable Key
-          </Button>
-          <Button
-            v-else-if="selectedKey.keyMetadata.KeyState === 'Enabled'"
-            variant="secondary"
-            @click="handleDisableKey"
-          >
-            <template #icon-left>
-              <ShieldExclamationIcon class="h-4 w-4" />
-            </template>
-            Disable Key
-          </Button>
-          <Button
-            variant="danger"
-            :disabled="selectedKey.keyMetadata.KeyState === 'PendingDeletion'"
-            @click="showDeleteModal = true"
-          >
-            <template #icon-left>
-              <TrashIcon class="h-4 w-4" />
-            </template>
-            Schedule Deletion
-          </Button>
-        </div>
-      </div>
-      <div
-        v-else
-        class="flex items-center justify-center py-8"
-      >
-        <LoadingSpinner size="lg" />
-      </div>
-
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showDetailsModal = false"
-        >
-          Close
-        </Button>
-      </template>
-    </Modal>
+      @enable-key="handleEnableKey"
+      @disable-key="handleDisableKey"
+      @delete-key="showDeleteModal = true"
+    />
 
     <!-- Key Policy Modal -->
-    <Modal
+    <KMSPolicyModal
       :open="showPolicyModal"
-      title="Key Policy"
-      size="lg"
+      :selected-key="selectedKey"
+      :policy="keyPolicy"
       @update:open="showPolicyModal = $event"
-    >
-      <div class="space-y-4">
-        <div>
-          <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Key ID</label>
-          <p class="text-sm text-light-text dark:text-dark-text font-mono">
-            {{ selectedKey?.KeyId }}
-          </p>
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Policy</label>
-          <pre class="p-4 rounded-lg bg-light-bg dark:bg-dark-bg text-sm font-mono overflow-auto max-h-96 text-light-text dark:text-dark-text">{{ keyPolicy || 'No policy found' }}</pre>
-        </div>
-      </div>
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showPolicyModal = false"
-        >
-          Close
-        </Button>
-      </template>
-    </Modal>
+    />
 
     <!-- Encrypt Modal -->
-    <Modal
+    <KMSEncryptModal
+      v-model:encrypt-form="encryptForm"
+      v-model:encrypted-result="encryptedResult"
       :open="showEncryptModal"
-      title="Encrypt Data"
-      size="lg"
+      :selected-key="selectedKey"
       @update:open="showEncryptModal = $event"
-    >
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-light-text dark:text-dark-text mb-1.5">
-            Plaintext
-          </label>
-          <textarea
-            v-model="encryptForm.plaintext"
-            rows="4"
-            placeholder="Enter text to encrypt..."
-            class="block w-full rounded-md shadow-sm border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-primary-500"
-          />
-        </div>
-
-        <div
-          v-if="encryptedResult"
-          class="space-y-2"
-        >
-          <label class="block text-sm font-medium text-light-text dark:text-dark-text">
-            Encrypted Result
-          </label>
-          <div class="p-4 rounded-lg bg-light-bg dark:bg-dark-bg">
-            <p class="text-sm font-mono text-light-text dark:text-dark-text break-all">
-              {{ encryptedResult }}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="encryptedResult = ''; showEncryptModal = false"
-        >
-          Close
-        </Button>
-        <Button
-          variant="primary"
-          @click="handleEncrypt"
-        >
-          <template #icon-left>
-            <LockClosedIcon class="h-4 w-4" />
-          </template>
-          Encrypt
-        </Button>
-      </template>
-    </Modal>
+      @encrypt="handleEncrypt"
+    />
 
     <!-- Decrypt Modal -->
-    <Modal
+    <KMSDecryptModal
+      v-model:decrypt-form="decryptForm"
+      v-model:decrypted-result="decryptedResult"
       :open="showDecryptModal"
-      title="Decrypt Data"
-      size="lg"
       @update:open="showDecryptModal = $event"
-    >
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-light-text dark:text-dark-text mb-1.5">
-            Ciphertext
-          </label>
-          <textarea
-            v-model="decryptForm.ciphertext"
-            rows="4"
-            placeholder="Enter ciphertext to decrypt..."
-            class="block w-full rounded-md shadow-sm border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-primary-500"
-          />
-        </div>
-
-        <div
-          v-if="decryptedResult"
-          class="space-y-2"
-        >
-          <label class="block text-sm font-medium text-light-text dark:text-dark-text">
-            Decrypted Result
-          </label>
-          <div class="p-4 rounded-lg bg-light-bg dark:bg-dark-bg">
-            <p class="text-sm font-mono text-light-text dark:text-dark-text break-all">
-              {{ decryptedResult }}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="decryptedResult = ''; showDecryptModal = false"
-        >
-          Close
-        </Button>
-        <Button
-          variant="primary"
-          @click="handleDecrypt"
-        >
-          <template #icon-left>
-            <LockOpenIcon class="h-4 w-4" />
-          </template>
-          Decrypt
-        </Button>
-      </template>
-    </Modal>
+      @decrypt="handleDecrypt"
+    />
 
     <!-- Delete Key Modal -->
     <KMSDeleteModal
