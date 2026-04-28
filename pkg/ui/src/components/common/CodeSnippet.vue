@@ -16,10 +16,12 @@ interface Props {
   snippets: Snippet[]
   title?: string
   defaultTab?: string
+  disableHighlight?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   defaultTab: '',
+  disableHighlight: false,
 })
 
 const activeTab = ref(props.defaultTab || (props.snippets[0]?.language ?? ''))
@@ -210,7 +212,7 @@ function highlightCode(code: string, language: string): string {
         </button>
       </div>
 
-      <pre class="p-4 pt-10 overflow-x-auto text-sm font-mono leading-relaxed bg-light-bg/50 dark:bg-dark-bg/50"><code v-html="highlightCode(activeSnippet?.code || '', activeSnippet?.language || 'text')" /></pre>
+      <pre class="p-4 pt-10 overflow-x-auto text-sm font-mono leading-relaxed bg-light-bg/50 dark:bg-dark-bg/50"><code v-html="props.disableHighlight ? activeSnippet?.code?.replace(/</g, '&lt;').replace(/>/g, '&gt;') : highlightCode(activeSnippet?.code || '', activeSnippet?.language || 'text')" /></pre>
     </div>
   </div>
 </template>

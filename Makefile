@@ -5,7 +5,7 @@ ifneq ("$(wildcard $(FILE))","")
 	export $(shell sed 's/=.*//' $(FILE))
 endif
 
-.PHONY: help run-proxy run-ui build dist lint lint-proxy lint-ui test clean unit unit-coverage
+.PHONY: help run-proxy run-ui build dist lint lint-proxy lint-ui test clean unit unit-coverage test-e2e
 
 .DEFAULT_GOAL := help
 
@@ -19,6 +19,8 @@ help:
 	@echo "  make lint-proxy - Run golangci-lint on proxy"
 	@echo "  make lint-ui  - Run ESLint on UI"
 	@echo "  make test     - Run tests on proxy"
+	@echo "  make unit    - Run unit tests on proxy"
+	@echo "  make test-e2e  - Run E2E tests on UI"
 	@echo "  make mockery - Generate mocks for proxy"
 
 run-proxy:
@@ -49,6 +51,9 @@ test:
 
 mockery:
 	cd pkg/proxy && mockery && go mod tidy
+
+test-e2e:
+	cd pkg/ui && npm run test:e2e
 
 unit:
 	go mod tidy

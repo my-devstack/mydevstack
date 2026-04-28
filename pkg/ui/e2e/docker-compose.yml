@@ -1,0 +1,49 @@
+services:
+  floci:
+    image: floci/floci:latest
+    container_name: floci
+    ports:
+      - "4566:4566"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  proxy:
+    image: mydevstack/proxy:latest
+    container_name: mydevstack-proxy
+    ports:
+      - "8083:8081"
+    environment:
+      - PROXY_PORT=8081
+      - AWS_ENDPOINT=http://floci:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    depends_on:
+      floci:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ui:
+    build:
+      context: ../..
+      dockerfile: pkg/ui/Dockerfile
+    container_name: mydevstack-ui
+    ports:
+      - "3010:3000"
+    environment:
+      - VITE_API_BASE_URL=http://proxy:8081
+    depends_on:
+      proxy:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

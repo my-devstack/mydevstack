@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
-import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
 import { CodeBracketIcon } from '@heroicons/vue/24/outline'
-import * as lambda from '@/api/services/lambda'
+import { useLambda } from '@/composables/useLambda'
 import type { LambdaFunction } from '@/api/types/aws'
 import LambdaFunctionsList from '@/components/lambda/LambdaFunctionsList.vue'
 import LambdaCreateModal from '@/components/lambda/LambdaCreateModal.vue'
@@ -13,13 +12,25 @@ import LambdaDeleteModal from '@/components/lambda/LambdaDeleteModal.vue'
 import LambdaCodeExamples from '@/components/lambda/LambdaCodeExamples.vue'
 
 const settingsStore = useSettingsStore()
-const toast = useToast()
 const { reloadTrigger } = useContentReload()
 
-// State
-const functions = ref<LambdaFunction[]>([])
-const loading = ref(false)
-const selectedFunction = ref<LambdaFunction | null>(null)
+// Use composable for Lambda functions
+const {
+  functions,
+  loading,
+  selectedFunction,
+  creating,
+  updating,
+  invokeLoading,
+  DEFAULT_ROLE_ARN,
+  loadFunctions: loadFunctionsFromComposable,
+  createFunction: createFunctionFromComposable,
+  updateFunctionConfiguration,
+  deleteFunction: deleteFunctionFromComposable,
+  invokeFunction,
+} = useLambda()
+
+// Ref for functions list
 const functionsListRef = ref<InstanceType<typeof LambdaFunctionsList> | null>(null)
 
 // Modal state
@@ -27,34 +38,13 @@ const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 
-// Form state
-const creating = ref(false)
-const invokeLoading = ref(false)
-const updating = ref(false)
-
 // Edit form
 const editForm = ref({
   memory: 128,
   timeout: 30,
 })
 
-const DEFAULT_ROLE_ARN = 'arn:aws:iam::123456789012:role/test'
-
-// Load functions
-async function loadFunctions() {
-  loading.value = true
-  try {
-    const result = await lambda.listFunctions()
-    functions.value = result.functions || []
-  } catch (error) {
-    console.error('Error loading functions:', error)
-    toast.error('Failed to load Lambda functions')
-  } finally {
-    loading.value = false
-  }
-}
-
-// Create function
+// Create function handler
 async function handleCreate(data: {
   functionName: string
   runtime: string
@@ -66,49 +56,26 @@ async function handleCreate(data: {
   architecture: string
   environment: string
 }) {
-  creating.value = true
   try {
-    let zipFileData: Uint8Array | undefined
-    if (data.zipFile) {
-      zipFileData = await data.zipFile.arrayBuffer().then(buf => new Uint8Array(buf))
-    }
-
-    let environment: { Variables: Record<string, string> } | undefined
-    if (data.environment.trim()) {
-      try {
-        environment = { Variables: JSON.parse(data.environment) }
-      } catch {
-        toast.error('Invalid environment JSON format')
-        creating.value = false
-        return
-      }
-    }
-
-    await lambda.createFunction({
-      FunctionName: data.functionName,
-      Runtime: data.runtime,
-      Handler: data.handler,
-      MemorySize: data.memory,
-      Timeout: data.timeout,
-      Role: data.roleArn,
-      Code: zipFileData ? { ZipFile: zipFileData } : undefined,
-      Architectures: [data.architecture],
-      Environment: environment,
+    await createFunctionFromComposable({
+      functionName: data.functionName,
+      runtime: data.runtime,
+      handler: data.handler,
+      memory: data.memory,
+      timeout: data.timeout,
+      roleArn: data.roleArn,
+      zipFile: data.zipFile,
+      architecture: data.architecture,
+      environment: data.environment,
     })
-    toast.success('Function created successfully')
     showCreateModal.value = false
-    loadFunctions()
   } catch (error) {
-    console.error('Error creating function:', error)
-    toast.error('Failed to create function')
-  } finally {
-    creating.value = false
+    // Error handling is done in composable
   }
 }
 
-// Invoke function (moved from modal to inline)
+// Invoke function handler
 async function handleInvokeFromList(func: LambdaFunction, payload: string, invocationType: string) {
-  invokeLoading.value = true
   let result = ''
   try {
     let finalPayload: string
@@ -118,17 +85,11 @@ async function handleInvokeFromList(func: LambdaFunction, payload: string, invoc
       finalPayload = payload
     }
 
-    const response = await lambda.invoke(
-      func.FunctionName,
-      finalPayload,
-      { invocationType }
-    )
+    const response = await invokeFunction(func.FunctionName, finalPayload)
     result = response?.payload || response?.Payload || 'Success (no output)'
   } catch (error) {
     console.error('Error invoking function:', error)
     result = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
-  } finally {
-    invokeLoading.value = false
   }
   // Update result in the list
   functionsListRef.value?.updateInvokeResult(func.FunctionName, result)
@@ -144,25 +105,19 @@ function openEditModal(func: LambdaFunction) {
   showEditModal.value = true
 }
 
-// Update function configuration
+// Update function configuration handler
 async function handleUpdateConfig(memory: number, timeout: number) {
   if (!selectedFunction.value) return
 
-  updating.value = true
   try {
-    await lambda.updateFunctionConfiguration({
-      FunctionName: selectedFunction.value.FunctionName,
-      MemorySize: memory,
-      Timeout: timeout,
-    })
-    toast.success('Function configuration updated')
+    await updateFunctionConfiguration(
+      selectedFunction.value.FunctionName,
+      memory,
+      timeout
+    )
     showEditModal.value = false
-    loadFunctions()
   } catch (error) {
-    console.error('Error updating function:', error)
-    toast.error('Failed to update function configuration')
-  } finally {
-    updating.value = false
+    // Error handling is done in composable
   }
 }
 
@@ -172,31 +127,25 @@ function openDeleteModal(func: LambdaFunction) {
   showDeleteModal.value = true
 }
 
-// Delete function
-async function deleteFunction() {
+// Delete function handler
+async function deleteFunctionHandler() {
   if (!selectedFunction.value) return
 
-  loading.value = true
   try {
-    await lambda.deleteFunction(selectedFunction.value.FunctionName)
-    toast.success('Function deleted')
+    await deleteFunctionFromComposable(selectedFunction.value.FunctionName)
     showDeleteModal.value = false
     selectedFunction.value = null
-    loadFunctions()
   } catch (error) {
-    console.error('Error deleting function:', error)
-    toast.error('Failed to delete function')
-  } finally {
-    loading.value = false
+    // Error handling is done in composable
   }
 }
 
 onMounted(() => {
-  loadFunctions()
+  loadFunctionsFromComposable()
 })
 
 watch(reloadTrigger, () => {
-  loadFunctions()
+  loadFunctionsFromComposable()
 })
 </script>
 
@@ -219,7 +168,7 @@ watch(reloadTrigger, () => {
           <button
             class="p-2 text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border rounded"
             title="Refresh"
-            @click="loadFunctions"
+            @click="loadFunctionsFromComposable"
           >
             <svg
               class="w-4 h-4"
@@ -279,7 +228,7 @@ watch(reloadTrigger, () => {
       :function-name="selectedFunction?.FunctionName || ''"
       :loading="loading"
       @update:open="showDeleteModal = $event"
-      @delete="deleteFunction"
+      @delete="deleteFunctionHandler"
     />
 
     <!-- Code Examples -->

@@ -16,3 +16,5 @@ pkg/ui/coverage/
 pkg/ui/test-coverage/
 config.yaml
 .env
+test-results/
+AGENTS.md

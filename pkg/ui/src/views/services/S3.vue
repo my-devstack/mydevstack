@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
-import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
+import { useS3 } from '@/composables/useS3'
 import { ArchiveBoxIcon } from '@heroicons/vue/24/outline'
-import { s3Service } from '@/api/services/s3'
 import S3BucketsList from '@/components/s3/S3BucketsList.vue'
 import S3ObjectsList from '@/components/s3/S3ObjectsList.vue'
 import S3CreateModal from '@/components/s3/S3CreateModal.vue'
@@ -15,15 +14,25 @@ import S3CodeExamples from '@/components/s3/S3CodeExamples.vue'
 const { reloadTrigger } = useContentReload()
 
 const settingsStore = useSettingsStore()
-const toast = useToast()
 
-// State
-const buckets = ref<any[]>([])
-const objects = ref<any[]>([])
-const selectedBucket = ref<string | null>(null)
-const loading = ref(false)
+// Composable state and functions
+const {
+  buckets,
+  objects,
+  selectedBucket,
+  loading,
+  uploading,
+  loadBuckets,
+  loadObjects: loadObjectsFromComposable,
+  createBucket,
+  deleteBucket: deleteBucketFromComposable,
+  deleteObject: deleteObjectFromComposable,
+  uploadObject,
+  getObject,
+} = useS3()
+
+// UI State - error handling
 const error = ref<string | null>(null)
-const uploading = ref(false)
 
 // Modals
 const showCreateModal = ref(false)
@@ -40,52 +49,22 @@ const viewError = ref<string | null>(null)
 // Delete modal state
 const itemToDelete = ref<{ type: 'bucket' | 'object', name: string } | null>(null)
 
-// Load buckets from S3
-async function loadBuckets() {
-  loading.value = true
-  error.value = null
-  
-  try {
-    const response = await s3Service.listBuckets()
-    buckets.value = response
-  } catch (e: any) {
-    error.value = 'Failed to load buckets: ' + e.message
-  } finally {
-    loading.value = false
-  }
-}
-
 // Load objects in a bucket
 async function loadObjects(bucketName: string) {
-  selectedBucket.value = bucketName
-  loading.value = true
   error.value = null
-  
-  try {
-    const response = await s3Service.listObjects(bucketName)
-    objects.value = response.objects
-  } catch (e: any) {
-    error.value = 'Failed to load objects: ' + e.message
-  } finally {
-    loading.value = false
-  }
+  await loadObjectsFromComposable(bucketName)
 }
 
 // Create bucket
 async function handleCreateBucket(name: string, options?: { enableCors?: boolean }) {
   if (!name.trim()) return
   
-  loading.value = true
   error.value = null
-  
   try {
-    await s3Service.createBucket(name.trim(), options)
+    await createBucket(name.trim(), options)
     showCreateModal.value = false
-    await loadBuckets()
   } catch (e: any) {
     error.value = 'Failed to create bucket: ' + e.message
-  } finally {
-    loading.value = false
   }
 }
 
@@ -94,15 +73,12 @@ async function deleteBucket() {
   if (!itemToDelete.value || itemToDelete.value.type !== 'bucket') return
   
   const name = itemToDelete.value.name
-  loading.value = true
   error.value = null
   
   try {
-    await s3Service.deleteBucket(name)
+    await deleteBucketFromComposable(name)
     showDeleteModal.value = false
     itemToDelete.value = null
-    toast.success(`Bucket "${name}" deleted successfully`)
-    await loadBuckets()
   } catch (e: any) {
     const errMsg = e.message || ''
     if (e.name === 'BucketNotEmpty' || e.statusCode === 409 || errMsg.includes('not empty') || errMsg.includes('BucketNotEmpty')) {
@@ -110,8 +86,6 @@ async function deleteBucket() {
     } else {
       error.value = 'Failed to delete bucket: ' + errMsg
     }
-  } finally {
-    loading.value = false
   }
 }
 
@@ -121,22 +95,22 @@ async function uploadFile(event: Event) {
   if (!input.files?.length || !selectedBucket.value) return
   
   const file = input.files[0]
-  uploading.value = true
   error.value = null
   
   try {
     const arrayBuffer = await file.arrayBuffer()
-    await s3Service.putObject(
+    const uint8Array = new Uint8Array(arrayBuffer)
+    // Convert Uint8Array to string for uploadObject (it expects string body)
+    const bodyStr = new TextDecoder().decode(uint8Array)
+    await uploadObject(
       selectedBucket.value,
       file.name,
-      new Uint8Array(arrayBuffer),
+      bodyStr,
       file.type || 'application/octet-stream'
     )
-    await loadObjects(selectedBucket.value)
   } catch (e: any) {
     error.value = 'Failed to upload: ' + e.message
   } finally {
-    uploading.value = false
     input.value = ''
   }
 }
@@ -146,19 +120,14 @@ async function deleteObject() {
   if (!itemToDelete.value || itemToDelete.value.type !== 'object' || !selectedBucket.value) return
   
   const key = itemToDelete.value.name
-  loading.value = true
   error.value = null
   
   try {
-    await s3Service.deleteObject(selectedBucket.value, key)
+    await deleteObjectFromComposable(selectedBucket.value, key)
     showDeleteModal.value = false
     itemToDelete.value = null
-    toast.success('Object deleted')
-    await loadObjects(selectedBucket.value)
   } catch (e: any) {
     error.value = 'Failed to delete: ' + e.message
-  } finally {
-    loading.value = false
   }
 }
 
@@ -172,7 +141,7 @@ async function viewObject(key: string) {
   viewLoading.value = true
 
   try {
-    const response = await s3Service.getObject(selectedBucket.value!, key)
+    const response = await getObject(selectedBucket.value!, key)
     viewContentType.value = response.contentType
     
     if (response.contentType.startsWith('text/') || response.contentType === 'application/json' || response.contentType.includes('json')) {
@@ -191,7 +160,7 @@ async function viewObject(key: string) {
 // Download object
 async function downloadObject(key: string) {
   try {
-    const response = await s3Service.getObject(selectedBucket.value!, key)
+    const response = await getObject(selectedBucket.value!, key)
     
     const blob = new Blob([response.body], { type: response.contentType })
     const url = window.URL.createObjectURL(blob)
@@ -204,7 +173,7 @@ async function downloadObject(key: string) {
     window.URL.revokeObjectURL(url)
     document.body.removeChild(a)
   } catch (e: any) {
-    toast.error('Failed to download object: ' + e.message)
+    error.value = 'Failed to download object: ' + e.message
   }
 }
 
