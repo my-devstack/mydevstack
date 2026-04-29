@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useUIStore } from '@/stores/ui'
 import { useSettingsStore } from '@/stores/settings'
-import { TransitionRoot, TransitionChild } from '@headlessui/vue'
 
 const uiStore = useUIStore()
 const settingsStore = useSettingsStore()
-
-const notifications = computed(() => uiStore.notifications)
 
 const iconMap = {
   success: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
@@ -26,64 +22,19 @@ const colorMap = {
 
 <template>
   <div class="fixed top-4 right-4 z-50 space-y-2 w-80">
-    <TransitionRoot
-      v-for="notification in notifications"
+    <div
+      v-for="notification in uiStore.notifications"
       :key="notification.id"
-      appear
-      show
-      enter="transform transition duration-300 ease-out"
-      enter-from="translate-x-full opacity-0"
-      enter-to="translate-x-0 opacity-100"
-      leave="transform transition duration-200 ease-in"
-      leave-from="translate-x-0 opacity-100"
-      leave-to="translate-x-full opacity-0"
+      class="flex items-start gap-3 p-4 rounded-lg shadow-lg border"
+      :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border' : 'bg-light-surface border-light-border'"
     >
-      <div
-        class="flex items-start gap-3 p-4 rounded-lg shadow-lg border"
-        :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border' : 'bg-light-surface border-light-border'"
-      >
-        <div class="flex-shrink-0">
-          <div
-            class="w-8 h-8 rounded-full flex items-center justify-center"
-            :class="colorMap[notification.type]"
-          >
-            <svg
-              class="w-5 h-5 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                :d="iconMap[notification.type]"
-              />
-            </svg>
-          </div>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p
-            class="text-sm font-medium"
-            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-          >
-            {{ notification.title }}
-          </p>
-          <p
-            v-if="notification.message"
-            class="mt-1 text-sm"
-            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-          >
-            {{ notification.message }}
-          </p>
-        </div>
-        <button
-          class="flex-shrink-0 p-1 rounded hover:bg-opacity-10 transition-colors"
-          :class="settingsStore.darkMode ? 'hover:bg-dark-border text-dark-muted' : 'hover:bg-light-border text-light-muted'"
-          @click="uiStore.removeNotification(notification.id)"
+      <div class="flex-shrink-0">
+        <div
+          class="w-8 h-8 rounded-full flex items-center justify-center"
+          :class="colorMap[notification.type]"
         >
           <svg
-            class="w-4 h-4"
+            class="w-5 h-5 text-white"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -92,11 +43,45 @@ const colorMap = {
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
+              :d="iconMap[notification.type]"
             />
           </svg>
-        </button>
+        </div>
       </div>
-    </TransitionRoot>
+      <div class="flex-1 min-w-0">
+        <p
+          class="text-sm font-medium"
+          :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+        >
+          {{ notification.title }}
+        </p>
+        <p
+          v-if="notification.message"
+          class="mt-1 text-sm"
+          :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+        >
+          {{ notification.message }}
+        </p>
+      </div>
+      <button
+        class="flex-shrink-0 p-1 rounded hover:bg-opacity-10 transition-colors"
+        :class="settingsStore.darkMode ? 'hover:bg-dark-border text-dark-muted' : 'hover:bg-light-border text-light-muted'"
+        @click="uiStore.removeNotification(notification.id)"
+      >
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
   </div>
 </template>
