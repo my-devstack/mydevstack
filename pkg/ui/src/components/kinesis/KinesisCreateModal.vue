@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
@@ -13,7 +14,17 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
   (e: 'create'): void
+  (e: 'update:newStream', value: StreamForm): void
 }>()
+
+const newStreamModel = computed({
+  get: () => props.newStream,
+  set: (value: StreamForm) => emit('update:newStream', value)
+})
+
+function updateStreamField(field: keyof StreamForm, value: string | number) {
+  emit('update:newStream', { ...props.newStream, [field]: value })
+}
 </script>
 
 <template>
@@ -25,17 +36,19 @@ const emit = defineEmits<{
   >
     <div class="space-y-4">
       <FormInput
-        v-model="newStream.name"
+        :model-value="newStream.name"
         label="Stream Name"
         placeholder="my-stream"
         required
+        @update:model-value="updateStreamField('name', $event)"
       />
       <FormInput
-        v-model="newStream.shardCount"
+        :model-value="newStream.shardCount"
         label="Number of Shards"
         type="number"
         placeholder="1"
         help-text="Each shard can handle up to 1,000 records per second or 1 MB per second"
+        @update:model-value="updateStreamField('shardCount', $event)"
       />
     </div>
     

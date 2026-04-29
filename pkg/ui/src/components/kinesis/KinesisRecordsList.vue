@@ -6,6 +6,7 @@ import DataTable from '@/components/common/DataTable.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import type { KinesisRecord } from '@/composables/useKinesis'
+import type { KinesisShard } from '@/api/types/aws'
 
 const settingsStore = useSettingsStore()
 
