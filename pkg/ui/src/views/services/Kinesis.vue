@@ -224,7 +224,7 @@ watch(reloadTrigger, () => {
     <KinesisCreateModal
       :open="showCreateModal"
       :is-loading="isLoading"
-      :new-stream="newStream"
+      v-model:new-stream="newStream"
       @update:open="showCreateModal = $event"
       @create="createStream"
     />

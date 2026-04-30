@@ -8,7 +8,7 @@ test.describe('Kinesis', () => {
   test('navigate to Kinesis page', async ({ page }) => {
     await page.goto('/#/services/kinesis')
     await page.waitForLoadState('networkidle')
-    await expect(page.getByRole('main').getByRole('heading', { name: 'Kinesis' })).toBeVisible()
+    await expect(page.getByRole('main').getByRole('heading', { name: 'Kinesis', exact: true })).toBeVisible()
   })
 
   test('show empty state when no streams', async ({ page }) => {
