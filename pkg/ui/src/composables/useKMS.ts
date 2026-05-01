@@ -92,14 +92,16 @@ export function useKMS() {
         try {
           const metaResult = await kmsApi.describeKey(key.KeyId)
           key.keyMetadata = metaResult.KeyMetadata
-        } catch {
+        } catch (error) {
+          uiStore.notifyError('Error', `Failed to load key metadata: ${error}`)
           key.keyMetadata = undefined
         }
 
         try {
           const policyResult = await kmsApi.getKeyPolicy(key.KeyId, 'default')
           keyPolicyMap.value[key.KeyId] = policyResult.Policy || 'No policy'
-        } catch {
+        } catch (error) {
+          uiStore.notifyError('Error', `Failed to load key policy: ${error}`)
           keyPolicyMap.value[key.KeyId] = 'No policy'
         }
       }

@@ -43,7 +43,7 @@ export function useSNS() {
     try {
       topics.value = await snsApi.listTopics()
     } catch (error) {
-      console.error('Error loading topics:', error)
+
       toast.error('Failed to load SNS topics')
     } finally {
       loading.value = false
@@ -73,7 +73,7 @@ export function useSNS() {
       const subs = await snsApi.listSubscriptionsByTopic(topicArn)
       topicSubscriptions.value[topicArn] = subs
     } catch (error) {
-      console.error('Error loading subscriptions:', error)
+      toast.error('Failed to load subscriptions')
     } finally {
       loadingTopicSubscriptions.value = false
     }
@@ -103,7 +103,6 @@ export function useSNS() {
       subscriptions.value = await snsApi.listSubscriptionsByTopic(topicArn)
       return subscriptions.value
     } catch (error) {
-      console.error('Error loading subscriptions:', error)
       toast.error('Failed to load subscriptions')
       return []
     }
