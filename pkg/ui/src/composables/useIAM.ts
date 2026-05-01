@@ -63,7 +63,7 @@ export function useIAM() {
       userAccessKeysMap.value[userName] = keys
       return keys
     } catch (error) {
-      console.error('Failed to load access keys:', error)
+      uiStore.notifyError('Error', `Failed to load access keys: ${error}`)
       return []
     }
   }
@@ -119,7 +119,7 @@ export function useIAM() {
       rolePoliciesMap.value[roleName] = policies
       return policies
     } catch (error) {
-      console.error('Failed to load role policies:', error)
+      uiStore.notifyError('Error', `Failed to load role policies: ${error}`)
       return []
     }
   }
@@ -159,7 +159,7 @@ export function useIAM() {
       const result = await iamApi.getPolicy(policyArn)
       policyDocuments.value[policyArn] = result.Policy
     } catch (error) {
-      console.error('Failed to load policy document:', error)
+      uiStore.notifyError('Error', `Failed to load policy document: ${error}`)
     }
   }
 
@@ -212,7 +212,7 @@ export function useIAM() {
       groupUsersMap.value[groupName] = users
       return users
     } catch (error) {
-      console.error('Failed to load group users:', error)
+      uiStore.notifyError('Error', `Failed to load group users: ${error}`)
       return []
     }
   }

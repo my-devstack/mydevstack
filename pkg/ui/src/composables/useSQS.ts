@@ -72,7 +72,7 @@ export function useSQS() {
       queueArnMap.value[url] = attributes.QueueArn || ''
       return parsedAttributes
     } catch (error) {
-      console.error('Failed to load queue attributes:', error)
+      uiStore.notifyError('Error', `Failed to load queue attributes: ${error}`)
       queueAttributesMap.value[url] = []
       return []
     }

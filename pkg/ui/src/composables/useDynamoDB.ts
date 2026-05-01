@@ -73,7 +73,7 @@ export function useDynamoDB() {
       tableDetailsMap.value[tableName] = data.Table
       return data.Table as TableInfo
     } catch (e: any) {
-      console.error('Failed to load table details:', e)
+      toast.error('Failed to load table details')
       tableDetailsMap.value[tableName] = null
       return null
     }
@@ -220,7 +220,7 @@ export function useDynamoDB() {
       const shards = await describeStream(streamArn)
       return shards.StreamDescription?.Shards || []
     } catch (e: any) {
-      console.error('Failed to get stream shards:', e)
+      toast.error('Failed to get stream shards')
       return []
     }
   }
@@ -230,7 +230,7 @@ export function useDynamoDB() {
       const records = await getRecords(shardIterator)
       return records.Records || []
     } catch (e: any) {
-      console.error('Failed to get records:', e)
+      toast.error('Failed to get records')
       return []
     }
   }

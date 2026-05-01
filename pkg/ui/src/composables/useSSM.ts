@@ -107,7 +107,7 @@ export function useSSM() {
         selectedParameter.value.Value = result.Parameter.Value
       }
     } catch (error) {
-      console.error('Failed to load parameter value:', error)
+      uiStore.notifyError('Error', `Failed to load parameter value: ${error}`)
     }
   }
 

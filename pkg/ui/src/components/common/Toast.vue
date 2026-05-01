@@ -143,7 +143,7 @@ onUnmounted(() => {
         leave-to="translate-x-full opacity-0"
       >
         <div
-          v-if="toast"
+          v-if="toast && toast.message"
           class="pointer-events-auto w-80 rounded-lg shadow-lg overflow-hidden"
           :class="[currentConfig().bgColor, currentConfig().borderColor, 'border']"
           @mouseenter="stopProgress"

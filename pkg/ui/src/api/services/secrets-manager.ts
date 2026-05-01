@@ -30,7 +30,6 @@ async function secretsRequest(action: string, body: object = {}): Promise<any> {
     return response.json()
   } catch (error) {
     if (error instanceof APIError) throw error
-    console.error(`Secrets Manager ${action} error:`, error)
     throw new APIError(`Failed to ${action}`, 500, 'secrets-manager')
   }
 }
