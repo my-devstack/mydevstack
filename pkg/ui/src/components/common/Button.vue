@@ -12,6 +12,7 @@ interface Props {
   disabled?: boolean
   type?: 'button' | 'submit' | 'reset'
   fullWidth?: boolean
+  ariaLabel?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -67,6 +68,7 @@ function handleClick(event: MouseEvent) {
   <button
     :type="type"
     :disabled="isDisabled"
+    :aria-label="ariaLabel || $attrs['aria-label']"
     :class="[
       'inline-flex items-center justify-center font-medium rounded-md shadow-sm transition-all duration-150',
       'focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-dark-surface',
