@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	configloader "github.com/my-devstack/mydevstack/pkg/proxy/internal/config"
@@ -16,6 +17,7 @@ import (
 
 type testProxyService struct {
 	s3Port ports.S3Port
+	cfPort ports.CloudFormationPort
 	cfg    *configloader.Config
 }
 
@@ -36,6 +38,7 @@ func (s *testProxyService) IAM() ports.IAMPort                       { return ni
 func (s *testProxyService) Kinesis() ports.KinesisPort               { return nil }
 func (s *testProxyService) RDS() ports.RDSPort                       { return nil }
 func (s *testProxyService) ElastiCache() ports.ElastiCachePort       { return nil }
+func (s *testProxyService) CloudFormation() ports.CloudFormationPort { return s.cfPort }
 func (s *testProxyService) Config() *configloader.Config {
 	return &configloader.Config{
 		AWS: configloader.AWSProxyConfig{
@@ -130,14 +133,36 @@ func TestServiceRouter(t *testing.T) {
 			target:     "",
 			wantStatus: http.StatusBadRequest,
 		},
+		{
+			name:       "cloudformation service routes correctly",
+			method:     "POST",
+			path:       "/cloudformation/",
+			target:     "cloudformation.ListStacks",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:       "cloudformation unknown action",
+			method:     "POST",
+			path:       "/cloudformation/",
+			target:     "cloudformation.UnknownAction",
+			wantStatus: http.StatusBadRequest,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockS3 := mockports.NewS3Port(t)
 			mockS3.EXPECT().ListBuckets(mock.Anything).Return(&s3.ListBucketsOutput{}, nil).Maybe()
+
+			var mockCF *mockports.CloudFormationPort
+			if tt.path == "/cloudformation/" {
+				mockCF = mockports.NewCloudFormationPort(t)
+				mockCF.EXPECT().ListStacks(mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{}, nil).Maybe()
+			}
+
 			svc := &testProxyService{
 				s3Port: mockS3,
+				cfPort: mockCF,
 			}
 			handler := NewProxyHandler(svc)
 			r := setupTestRouter(handler)

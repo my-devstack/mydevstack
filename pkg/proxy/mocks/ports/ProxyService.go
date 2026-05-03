@@ -129,6 +129,52 @@ func (_c *ProxyService_APIGatewayV2_Call) RunAndReturn(run func() ports.APIGatew
 	return _c
 }
 
+// CloudFormation provides a mock function for the type ProxyService
+func (_mock *ProxyService) CloudFormation() ports.CloudFormationPort {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for CloudFormation")
+	}
+
+	var r0 ports.CloudFormationPort
+	if returnFunc, ok := ret.Get(0).(func() ports.CloudFormationPort); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ports.CloudFormationPort)
+		}
+	}
+	return r0
+}
+
+// ProxyService_CloudFormation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CloudFormation'
+type ProxyService_CloudFormation_Call struct {
+	*mock.Call
+}
+
+// CloudFormation is a helper method to define mock.On call
+func (_e *ProxyService_Expecter) CloudFormation() *ProxyService_CloudFormation_Call {
+	return &ProxyService_CloudFormation_Call{Call: _e.mock.On("CloudFormation")}
+}
+
+func (_c *ProxyService_CloudFormation_Call) Run(run func()) *ProxyService_CloudFormation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ProxyService_CloudFormation_Call) Return(cloudFormationPort ports.CloudFormationPort) *ProxyService_CloudFormation_Call {
+	_c.Call.Return(cloudFormationPort)
+	return _c
+}
+
+func (_c *ProxyService_CloudFormation_Call) RunAndReturn(run func() ports.CloudFormationPort) *ProxyService_CloudFormation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Config provides a mock function for the type ProxyService
 func (_mock *ProxyService) Config() *configloader.Config {
 	ret := _mock.Called()
