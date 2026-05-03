@@ -13,6 +13,9 @@ export default defineConfig({
     globals: true,
     environment: 'happy-dom',
     include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
+    onConsoleLog(log) {
+      if (log.includes('[Vue warn]:')) return false
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
