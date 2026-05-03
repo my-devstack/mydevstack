@@ -45,6 +45,7 @@ func main() {
 	log.Printf("  KMS:             http://localhost:%s/kms/", cfg.Port)
 	log.Printf("  DynamoDB:        http://localhost:%s/dynamodb/", cfg.Port)
 	log.Printf("  RDS:             http://localhost:%s/rds/", cfg.Port)
+	log.Printf("  CloudFormation:  http://localhost:%s/cloudformation/", cfg.Port)
 
 	if err := r.Run(addr); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

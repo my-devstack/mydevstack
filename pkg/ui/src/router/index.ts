@@ -85,12 +85,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: 'Kinesis', service: 'kinesis' },
   },
   // CloudFormation
-  // {
-  //   path: '/services/cloudformation',
-  //   name: 'CloudFormation',
-  //   component: () => import('@/views/services/CloudFormation.vue'),
-  //   meta: { title: 'CloudFormation', service: 'cloudformation' },
-  // },
+  {
+    path: '/services/cloudformation',
+    name: 'CloudFormation',
+    component: () => import('@/views/services/CloudFormation.vue'),
+    meta: { title: 'CloudFormation', service: 'cloudformation' },
+  },
   // SSM
   {
     path: '/services/ssm',

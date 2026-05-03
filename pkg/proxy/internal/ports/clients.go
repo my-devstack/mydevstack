@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
@@ -258,4 +259,14 @@ type SSMClientPort interface {
 	ListTagsForResource(ctx context.Context, input *ssm.ListTagsForResourceInput, opts ...func(*ssm.Options)) (*ssm.ListTagsForResourceOutput, error)
 	AddTagsToResource(ctx context.Context, input *ssm.AddTagsToResourceInput, opts ...func(*ssm.Options)) (*ssm.AddTagsToResourceOutput, error)
 	RemoveTagsFromResource(ctx context.Context, input *ssm.RemoveTagsFromResourceInput, opts ...func(*ssm.Options)) (*ssm.RemoveTagsFromResourceOutput, error)
+}
+
+// CloudFormationClientPort defines the interface for the AWS CloudFormation client
+type CloudFormationClientPort interface {
+	ListStacks(ctx context.Context, input *cloudformation.ListStacksInput, opts ...func(*cloudformation.Options)) (*cloudformation.ListStacksOutput, error)
+	CreateStack(ctx context.Context, input *cloudformation.CreateStackInput, opts ...func(*cloudformation.Options)) (*cloudformation.CreateStackOutput, error)
+	DeleteStack(ctx context.Context, input *cloudformation.DeleteStackInput, opts ...func(*cloudformation.Options)) (*cloudformation.DeleteStackOutput, error)
+	DescribeStacks(ctx context.Context, input *cloudformation.DescribeStacksInput, opts ...func(*cloudformation.Options)) (*cloudformation.DescribeStacksOutput, error)
+	GetTemplate(ctx context.Context, input *cloudformation.GetTemplateInput, opts ...func(*cloudformation.Options)) (*cloudformation.GetTemplateOutput, error)
+	ListStackResources(ctx context.Context, input *cloudformation.ListStackResourcesInput, opts ...func(*cloudformation.Options)) (*cloudformation.ListStackResourcesOutput, error)
 }

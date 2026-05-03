@@ -41,7 +41,7 @@ dist:
 lint: lint-proxy lint-ui
 
 lint-proxy:
-	cd pkg/proxy && golangci-lint run
+	cd pkg/proxy && $$(go env GOPATH)/bin/golangci-lint run
 
 lint-ui:
 	cd pkg/ui && npm run lint
