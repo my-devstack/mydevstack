@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures.js'
 
 async function createTable(page: any, tableName: string, options: {
   pkName?: string,
@@ -12,7 +12,7 @@ async function createTable(page: any, tableName: string, options: {
   enableStreams?: boolean
 } = {}) {
   await page.goto('/#/services/dynamodb')
-  await page.waitForTimeout(2000)
+  await page.waitForLoadState('networkidle')
   
   await page.getByRole('button', { name: '+ Create Table' }).click()
   await page.waitForTimeout(1500)
@@ -63,14 +63,14 @@ async function createTable(page: any, tableName: string, options: {
 
 test('navigate to DynamoDB', async ({ page }) => {
   await page.goto('/#/services/dynamodb')
-  await page.waitForTimeout(2000)
+  await page.waitForLoadState('networkidle')
   
   await expect(page.getByRole('heading', { name: 'DynamoDB', exact: true })).toBeVisible()
 })
 
 test('partition key type options are String, Number, Binary', async ({ page }) => {
   await page.goto('/#/services/dynamodb')
-  await page.waitForTimeout(2000)
+  await page.waitForLoadState('networkidle')
   
   await page.getByRole('button', { name: '+ Create Table' }).click()
   await page.waitForTimeout(1000)
@@ -88,7 +88,7 @@ test('partition key type options are String, Number, Binary', async ({ page }) =
 
 test('sort key type options are String, Number, Binary', async ({ page }) => {
   await page.goto('/#/services/dynamodb')
-  await page.waitForTimeout(2000)
+  await page.waitForLoadState('networkidle')
   
   await page.getByRole('button', { name: '+ Create Table' }).click()
   await page.waitForTimeout(1000)
@@ -109,7 +109,7 @@ test('sort key type options are String, Number, Binary', async ({ page }) => {
 
 test('create button disabled when required fields empty', async ({ page }) => {
   await page.goto('/#/services/dynamodb')
-  await page.waitForTimeout(2000)
+  await page.waitForLoadState('networkidle')
   
   await page.getByRole('button', { name: '+ Create Table' }).click()
   await page.waitForTimeout(1000)
@@ -158,4 +158,35 @@ test('create table with stream enabled', async ({ page }) => {
     onDemand: true,
     enableStreams: true
   })
+})
+
+test('view stream records', async ({ page }) => {
+  const tableName = 'test-stream-' + Date.now()
+
+  await createTable(page, tableName, {
+    pkName: 'pk',
+    hasSortKey: true,
+    skName: 'sk',
+    onDemand: true,
+    enableStreams: true
+  })
+
+  await page.keyboard.press('Escape').catch(() => {})
+  const streamTable = page.getByText('test-stream-').first()
+  await expect(streamTable).toBeVisible({ timeout: 10000 })
+
+  await streamTable.click()
+  await page.waitForLoadState('networkidle')
+  await page.getByRole('button', { name: 'View Streams' }).click()
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
+
+  // Click "View Stream Events" button - if exists
+  const viewEventsBtn = page.getByRole('button', { name: 'View Stream Events' })
+  if (await viewEventsBtn.isVisible().catch(() => false)) {
+    await viewEventsBtn.click()
+    await page.waitForTimeout(2000)
+  }
+
+  // Verify dialog still open
+  await expect(page.getByRole('dialog')).toBeVisible()
 })
