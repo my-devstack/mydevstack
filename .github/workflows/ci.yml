@@ -139,13 +139,16 @@ jobs:
         run: go mod download
         working-directory: pkg/proxy
 
+      - name: Install root dependencies
+        run: npm ci
+        working-directory: .
+
       - name: Install UI dependencies
         run: npm ci
         working-directory: pkg/ui
 
       - name: Install Playwright browsers
         run: npx playwright install chromium
-        working-directory: pkg/ui
 
       - name: Build and start servers
         run: |
@@ -161,7 +164,6 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:e2e
-        working-directory: pkg/ui
         # env:
         #   BASE_URL: http://localhost:3000
         #   PROXY_URL: http://localhost:8081
