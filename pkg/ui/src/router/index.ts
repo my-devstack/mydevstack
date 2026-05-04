@@ -28,13 +28,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/services/DynamoDB.vue'),
     meta: { title: 'DynamoDB', service: 'dynamodb' },
   },
-  // DynamoDB Streams
-  {
-    path: '/services/dynamodb-streams',
-    name: 'DynamoDBStreams',
-    component: () => import('@/views/services/DynamoDBStreams.vue'),
-    meta: { title: 'DynamoDB Streams', service: 'dynamodbstreams' },
-  },
   // SQS
   {
     path: '/services/sqs',

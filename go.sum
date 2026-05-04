@@ -24,6 +24,8 @@ github.com/aws/aws-sdk-go-v2/service/cloudformation v1.71.11 h1:gIRdzLv98ugE0nvM
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.71.11/go.mod h1:BMpnKVWK+343lUuI2ZM5bm282z+p61ZK9kwRg6/wBm4=
 github.com/aws/aws-sdk-go-v2/service/dynamodb v1.57.1 h1:Vk+a1j2pXZHkkYqHmEdpwe8eX6NDtFSBGfzuauMEWYQ=
 github.com/aws/aws-sdk-go-v2/service/dynamodb v1.57.1/go.mod h1:wHrWCwhXZrl2PuCP5t36UTacy9fCHDJ+vw1r3qxTL5M=
+github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.32.16 h1:nWMRNW3SFeJCdK7OsZ9lmbl1AAEAs8s6w5Gsa3MQqNo=
+github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.32.16/go.mod h1:IMigEAstzWVC+mYsWLjZB/ZBJBLWON/Fl0zLHxZ18Qk=
 github.com/aws/aws-sdk-go-v2/service/elasticache v1.52.0 h1:inluxH5ArTlQNGrFxP7RN5o5DEfP8bRbkPC/408Esgs=
 github.com/aws/aws-sdk-go-v2/service/elasticache v1.52.0/go.mod h1:DxywiXnEB21757xcql9xCqgt8vyTxSB7tVEIOdfKIY8=
 github.com/aws/aws-sdk-go-v2/service/iam v1.53.7 h1:n9YLiWtX3+6pTLZWvRJmtq5JIB9NA/KFelyCg5fOlTU=

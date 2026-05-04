@@ -25,19 +25,20 @@ func (s *testProxyService) S3() ports.S3Port {
 	return s.s3Port
 }
 
-func (s *testProxyService) Lambda() ports.LambdaPort                 { return nil }
-func (s *testProxyService) SecretsManager() ports.SecretsManagerPort { return nil }
-func (s *testProxyService) SQS() ports.SQSPort                       { return nil }
-func (s *testProxyService) SNS() ports.SNSPort                       { return nil }
-func (s *testProxyService) KMS() ports.KMSPort                       { return nil }
-func (s *testProxyService) DynamoDB() ports.DynamoDBPort             { return nil }
-func (s *testProxyService) APIGateway() ports.APIGatewayPort         { return nil }
-func (s *testProxyService) APIGatewayV2() ports.APIGatewayV2Port     { return nil }
-func (s *testProxyService) SSM() ports.SSMPort                       { return nil }
-func (s *testProxyService) IAM() ports.IAMPort                       { return nil }
-func (s *testProxyService) Kinesis() ports.KinesisPort               { return nil }
-func (s *testProxyService) RDS() ports.RDSPort                       { return nil }
-func (s *testProxyService) ElastiCache() ports.ElastiCachePort       { return nil }
+func (s *testProxyService) Lambda() ports.LambdaPort                  { return nil }
+func (s *testProxyService) SecretsManager() ports.SecretsManagerPort    { return nil }
+func (s *testProxyService) SQS() ports.SQSPort                        { return nil }
+func (s *testProxyService) SNS() ports.SNSPort                        { return nil }
+func (s *testProxyService) KMS() ports.KMSPort                        { return nil }
+func (s *testProxyService) DynamoDB() ports.DynamoDBPort                  { return nil }
+func (s *testProxyService) DynamoDBStreams() ports.DynamoDBStreamsPort    { return nil }
+func (s *testProxyService) APIGateway() ports.APIGatewayPort          { return nil }
+func (s *testProxyService) APIGatewayV2() ports.APIGatewayV2Port      { return nil }
+func (s *testProxyService) SSM() ports.SSMPort                        { return nil }
+func (s *testProxyService) IAM() ports.IAMPort                        { return nil }
+func (s *testProxyService) Kinesis() ports.KinesisPort                { return nil }
+func (s *testProxyService) RDS() ports.RDSPort                        { return nil }
+func (s *testProxyService) ElastiCache() ports.ElastiCachePort        { return nil }
 func (s *testProxyService) CloudFormation() ports.CloudFormationPort { return s.cfPort }
 func (s *testProxyService) Config() *configloader.Config {
 	return &configloader.Config{

@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
@@ -99,6 +100,14 @@ type DynamoDBClientPort interface {
 	BatchGetItem(ctx context.Context, input *dynamodb.BatchGetItemInput, opts ...func(*dynamodb.Options)) (*dynamodb.BatchGetItemOutput, error)
 	DescribeTimeToLive(ctx context.Context, input *dynamodb.DescribeTimeToLiveInput, opts ...func(*dynamodb.Options)) (*dynamodb.DescribeTimeToLiveOutput, error)
 	UpdateTimeToLive(ctx context.Context, input *dynamodb.UpdateTimeToLiveInput, opts ...func(*dynamodb.Options)) (*dynamodb.UpdateTimeToLiveOutput, error)
+}
+
+// DynamoDBStreamsClientPort defines the interface for the AWS DynamoDB Streams client
+type DynamoDBStreamsClientPort interface {
+	ListStreams(ctx context.Context, input *dynamodbstreams.ListStreamsInput, opts ...func(*dynamodbstreams.Options)) (*dynamodbstreams.ListStreamsOutput, error)
+	DescribeStream(ctx context.Context, input *dynamodbstreams.DescribeStreamInput, opts ...func(*dynamodbstreams.Options)) (*dynamodbstreams.DescribeStreamOutput, error)
+	GetShardIterator(ctx context.Context, input *dynamodbstreams.GetShardIteratorInput, opts ...func(*dynamodbstreams.Options)) (*dynamodbstreams.GetShardIteratorOutput, error)
+	GetRecords(ctx context.Context, input *dynamodbstreams.GetRecordsInput, opts ...func(*dynamodbstreams.Options)) (*dynamodbstreams.GetRecordsOutput, error)
 }
 
 // ElastiCacheClientPort defines the interface for the AWS ElastiCache client

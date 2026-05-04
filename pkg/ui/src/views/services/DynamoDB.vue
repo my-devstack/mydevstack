@@ -4,7 +4,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { useToast } from '@/composables/useToast'
 import { useDynamoDB } from '@/composables/useDynamoDB'
 import { useContentReload } from '@/composables/useContentReload'
-import { TableCellsIcon, ChevronDownIcon, ChevronRightIcon, MagnifyingGlassCircleIcon } from '@heroicons/vue/24/outline'
+import { TableCellsIcon, ChevronDownIcon, ChevronRightIcon, MagnifyingGlassCircleIcon, RssIcon } from '@heroicons/vue/24/outline'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
@@ -895,6 +895,14 @@ watch(reloadTrigger, () => {
                   @click="exploreTable(table)"
                 >
                   <MagnifyingGlassCircleIcon class="w-4 h-4" />
+                </button>
+                <button
+                  v-if="tableDetailsMap[table]?.StreamSpecification?.StreamEnabled"
+                  class="p-2 text-purple-500 hover:text-purple-700 hover:bg-light-border dark:hover:bg-dark-border rounded"
+                  title="View Streams"
+                  @click="viewStreams(table)"
+                >
+                  <RssIcon class="w-4 h-4" />
                 </button>
                 <button
                   class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"

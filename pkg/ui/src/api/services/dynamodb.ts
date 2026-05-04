@@ -534,21 +534,78 @@ export const updateTimeToLive = (tableName: string, enabled: boolean, attributeN
 export const getStreamSpecification = (tableName: string) =>
   dynamodbService.getStreamSpecification(tableName)
 
-// DynamoDB Streams exports - stubs for compatibility
+async function dynamoDBStreamsRequest(action: string, body: object = {}): Promise<any> {
+  const endpoint = PROXY_BACKEND.replace(/\/$/, '')
+
+  const url = `${endpoint}/dynamodbstreams/`
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Amz-Target': `DynamoDBStreams_20120810.${action}`,
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new APIError(`DynamoDBStreams ${action} failed: ${errorText}`, response.status, 'dynamodbstreams')
+    }
+
+    return response.json()
+  } catch (error) {
+    if (error instanceof APIError) throw error
+    console.error(`DynamoDBStreams ${action} error:`, error)
+    throw new APIError(`Failed to ${action}`, 500, 'dynamodbstreams')
+  }
+}
+
+// DynamoDB Streams exports
 export const listStreams = async (tableName?: string): Promise<{ Streams: any[] }> => {
-  return { Streams: [] }
+  if (!tableName) {
+    return { Streams: [] }
+  }
+  return dynamoDBStreamsRequest('ListStreams', { TableName: tableName })
 }
 
 export const describeStream = async (streamArn: string): Promise<any> => {
-  throw new APIError('DynamoDB Streams not implemented', 500, 'dynamodb')
+  return dynamoDBStreamsRequest('DescribeStream', { StreamArn: streamArn })
 }
 
 export const getShardIterator = async (streamArn: string, shardId: string, iteratorType?: string): Promise<any> => {
-  throw new APIError('DynamoDB Streams not implemented', 500, 'dynamodb')
+  return dynamoDBStreamsRequest('GetShardIterator', {
+    StreamArn: streamArn,
+    ShardId: shardId,
+    ShardIteratorType: iteratorType || 'TRIM_HORIZON',
+  })
 }
 
 export const getRecords = async (shardIterator: string, limit?: number): Promise<any> => {
-  throw new APIError('DynamoDB Streams not implemented', 500, 'dynamodb')
+  const response = await dynamoDBStreamsRequest('GetRecords', {
+    ShardIterator: shardIterator,
+    Limit: limit || 100,
+  })
+  // Normalize response: convert DynamoDBStreams format to expected format
+  // API returns: { Records: [{ Dynamodb: {...} }] }
+  // Code expects: { Records: [{ dynamodb: {...} ] }
+  if (response.Records) {
+    response.Records = response.Records.map((record: any) => {
+      if (record.Dynamodb) {
+        // Convert ISO date to Unix timestamp
+        const isoDate = record.Dynamodb.ApproximateCreationDateTime
+        if (isoDate && typeof isoDate === 'string') {
+          record.Dynamodb.ApproximateCreationDateTime = new Date(isoDate).getTime() / 1000
+        }
+        // Normalize case: Dynamoodb -> dynamodb
+        record.dynamodb = record.Dynamodb
+        delete record.Dynamodb
+      }
+      return record
+    })
+  }
+  return response
 }
 
 export default dynamodbService
