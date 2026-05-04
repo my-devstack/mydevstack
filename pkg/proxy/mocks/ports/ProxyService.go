@@ -267,6 +267,52 @@ func (_c *ProxyService_DynamoDB_Call) RunAndReturn(run func() ports.DynamoDBPort
 	return _c
 }
 
+// DynamoDBStreams provides a mock function for the type ProxyService
+func (_mock *ProxyService) DynamoDBStreams() ports.DynamoDBStreamsPort {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DynamoDBStreams")
+	}
+
+	var r0 ports.DynamoDBStreamsPort
+	if returnFunc, ok := ret.Get(0).(func() ports.DynamoDBStreamsPort); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ports.DynamoDBStreamsPort)
+		}
+	}
+	return r0
+}
+
+// ProxyService_DynamoDBStreams_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DynamoDBStreams'
+type ProxyService_DynamoDBStreams_Call struct {
+	*mock.Call
+}
+
+// DynamoDBStreams is a helper method to define mock.On call
+func (_e *ProxyService_Expecter) DynamoDBStreams() *ProxyService_DynamoDBStreams_Call {
+	return &ProxyService_DynamoDBStreams_Call{Call: _e.mock.On("DynamoDBStreams")}
+}
+
+func (_c *ProxyService_DynamoDBStreams_Call) Run(run func()) *ProxyService_DynamoDBStreams_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ProxyService_DynamoDBStreams_Call) Return(dynamoDBStreamsPort ports.DynamoDBStreamsPort) *ProxyService_DynamoDBStreams_Call {
+	_c.Call.Return(dynamoDBStreamsPort)
+	return _c
+}
+
+func (_c *ProxyService_DynamoDBStreams_Call) RunAndReturn(run func() ports.DynamoDBStreamsPort) *ProxyService_DynamoDBStreams_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ElastiCache provides a mock function for the type ProxyService
 func (_mock *ProxyService) ElastiCache() ports.ElastiCachePort {
 	ret := _mock.Called()

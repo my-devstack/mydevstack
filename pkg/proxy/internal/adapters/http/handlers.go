@@ -39,6 +39,8 @@ func (h *ProxyHandler) ServiceRouter(c *gin.Context) {
 		h.handleKMS(c)
 	case "dynamodb":
 		h.handleDynamoDB(c)
+	case "dynamodbstreams":
+		h.handleDynamoDBStreams(c)
 	case "apigateway":
 		h.handleAPIGateway(c)
 	case "ssm":

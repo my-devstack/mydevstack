@@ -12,24 +12,25 @@ import (
 )
 
 type ProxyService struct {
-	cfg            *configloader.Config
-	region         string
-	secretsManager ports.SecretsManagerPort
-	s3             ports.S3Port
-	lambda         ports.LambdaPort
-	sqs            ports.SQSPort
-	sns            ports.SNSPort
-	kms            ports.KMSPort
-	dynamodb       ports.DynamoDBPort
-	apigateway     ports.APIGatewayPort
-	apigatewayv2   ports.APIGatewayV2Port
-	ssm            ports.SSMPort
-	iam            ports.IAMPort
-	kinesis        ports.KinesisPort
-	rds            ports.RDSPort
-	elasticache    ports.ElastiCachePort
-	cloudformation ports.CloudFormationPort
-	mu             sync.RWMutex
+	cfg               *configloader.Config
+	region            string
+	secretsManager    ports.SecretsManagerPort
+	s3                ports.S3Port
+	lambda            ports.LambdaPort
+	sqs               ports.SQSPort
+	sns               ports.SNSPort
+	kms               ports.KMSPort
+	dynamodb          ports.DynamoDBPort
+	dynamodbstreams   ports.DynamoDBStreamsPort
+	apigateway       ports.APIGatewayPort
+	apigatewayv2     ports.APIGatewayV2Port
+	ssm              ports.SSMPort
+	iam              ports.IAMPort
+	kinesis          ports.KinesisPort
+	rds              ports.RDSPort
+	elasticache      ports.ElastiCachePort
+	cloudformation   ports.CloudFormationPort
+	mu              sync.RWMutex
 }
 
 func NewProxyService(cfg *configloader.Config) ports.ProxyService {
@@ -84,6 +85,7 @@ func (s *ProxyService) SetServices() error {
 	s.sns = awsadapter.NewSNSAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.kms = awsadapter.NewKMSAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.dynamodb = awsadapter.NewDynamoDBAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.dynamodbstreams = awsadapter.NewDynamoDBStreamsAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.apigateway = awsadapter.NewAPIGatewayAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.apigatewayv2 = awsadapter.NewAPIGatewayV2Adapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.ssm = awsadapter.NewSSMAdapter(awsCfg, s.cfg.AWS.Endpoint)
@@ -121,6 +123,10 @@ func (s *ProxyService) KMS() ports.KMSPort {
 
 func (s *ProxyService) DynamoDB() ports.DynamoDBPort {
 	return s.dynamodb
+}
+
+func (s *ProxyService) DynamoDBStreams() ports.DynamoDBStreamsPort {
+	return s.dynamodbstreams
 }
 
 func (s *ProxyService) APIGateway() ports.APIGatewayPort {
