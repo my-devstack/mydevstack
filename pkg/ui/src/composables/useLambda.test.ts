@@ -134,7 +134,7 @@ describe('useLambda', () => {
     })
     
     expect(lambdaApi.createFunction).toHaveBeenCalledWith(
-      expect.objectContaining({ roleArn: 'arn:aws:iam::123456789012:role/test' })
+      expect.objectContaining({ Role: 'arn:aws:iam::123456789012:role/test' })
     )
   })
 
@@ -146,7 +146,11 @@ describe('useLambda', () => {
     
     await updateFunctionConfiguration('test-func', 256, 60)
     
-    expect(lambdaApi.updateFunctionConfiguration).toHaveBeenCalledWith('test-func', 256, 60)
+    expect(lambdaApi.updateFunctionConfiguration).toHaveBeenCalledWith({
+      FunctionName: 'test-func',
+      MemorySize: 256,
+      Timeout: 60,
+    })
     expect(lambdaApi.listFunctions).toHaveBeenCalled()
     expect(updating.value).toBe(false)
   })
