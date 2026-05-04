@@ -53,7 +53,7 @@ mockery:
 	cd pkg/proxy && mockery && go mod tidy
 
 test-e2e:
-	cd pkg/ui && npm run test:e2e
+	npx playwright test
 
 unit:
 	go mod tidy
