@@ -2,9 +2,8 @@
 import { ref } from 'vue'
 import { CodeBracketSquareIcon } from '@heroicons/vue/24/outline'
 import { useSettingsStore } from '@/stores/settings'
-import { useToast } from '@/composables/useToast'
+import { useApiGateway } from '@/composables/useApiGateway'
 import Tabs from '@/components/common/Tabs.vue'
-import * as apigateway from '@/api/services/api-gateway'
 
 import APIGatewayRestApis from './APIGatewayRestApis.vue'
 import APIGatewayHttpApis from './APIGatewayHttpApis.vue'
@@ -13,7 +12,8 @@ import APIGatewayInvokeUrlModal from '@/components/apiGateway/APIGatewayInvokeUr
 import APIGatewayCodeExamples from '@/components/apiGateway/APIGatewayCodeExamples.vue'
 
 const settingsStore = useSettingsStore()
-const toast = useToast()
+
+const { loadRestStages, loadHttpStages, getRestInvokeUrl, getHttpInvokeUrl, createRestApi: callCreateRestApi, createHttpApi: callCreateHttpApi } = useApiGateway()
 
 const activeTab = ref<'rest' | 'http'>('rest')
 const restApisKey = ref(0)
@@ -38,14 +38,14 @@ function handleCreateApi() {
   showCreateModal.value = true
 }
 
-function handleGetInvokeUrl(api: any) {
+async function handleGetInvokeUrl(api: any) {
   selectedApi.value = api
   showInvokeUrlModal.value = true
   invokeUrl.value = ''
   const apiId = api.id || api.apiId
-  const stagesPromise = activeTab.value === 'rest' 
-    ? apigateway.getStages(apiId)
-    : apigateway.getHttpApiStages(apiId)
+  const stagesPromise = activeTab.value === 'rest'
+    ? loadRestStages(apiId)
+    : loadHttpStages(apiId)
   stagesPromise.then(result => {
     stagesList.value = result?.items || result?.Items || []
     if (stagesList.value.length > 0) {
@@ -58,25 +58,23 @@ async function fetchInvokeUrl(apiId: string, stageName: string) {
   if (!stageName) return
   const apiIdVal = apiId
   try {
-    const result = activeTab.value === 'rest' 
-      ? await apigateway.getRestApiInvokeUrl(apiIdVal, stageName)
-      : await apigateway.getHttpApiInvokeUrl(apiIdVal, stageName)
-    invokeUrl.value = result?.invokeUrl || `https://${apiIdVal}.execute-api.${settingsStore.region || 'us-east-1'}.amazonaws.com/${stageName}`
+    const result = activeTab.value === 'rest'
+      ? await getRestInvokeUrl(apiIdVal, stageName)
+      : await getHttpInvokeUrl(apiIdVal, stageName)
+    invokeUrl.value = result || `https://${apiIdVal}.execute-api.${settingsStore.region || 'us-east-1'}.amazonaws.com/${stageName}`
   } catch {
     invokeUrl.value = `https://${apiIdVal}.execute-api.${settingsStore.region || 'us-east-1'}.amazonaws.com/${stageName}`
   }
 }
 
 async function createRestApi(name: string, desc?: string) {
-  await apigateway.createRestApi(name, { Description: desc })
-  toast.success('REST API created successfully')
+  await callCreateRestApi(name, desc)
   showCreateModal.value = false
   restApisKey.value++
 }
 
 async function createHttpApi(name: string, desc?: string) {
-  await apigateway.createHttpApi({ name, description: desc })
-  toast.success('HTTP API created successfully')
+  await callCreateHttpApi(name, desc)
   showCreateModal.value = false
   httpApisKey.value++
 }

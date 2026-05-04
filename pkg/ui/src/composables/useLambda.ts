@@ -56,15 +56,15 @@ export function useLambda() {
       }
 
       await lambdaApi.createFunction({
-        functionName: data.functionName,
-        runtime: data.runtime,
-        handler: data.handler,
-        memory: data.memory,
-        timeout: data.timeout,
-        roleArn: data.roleArn || DEFAULT_ROLE_ARN,
-        zipFile: zipFileData,
-        architecture: data.architecture,
-        environment,
+        FunctionName: data.functionName,
+        Runtime: data.runtime,
+        Handler: data.handler,
+        MemorySize: data.memory,
+        Timeout: data.timeout,
+        Role: data.roleArn || DEFAULT_ROLE_ARN,
+        Code: zipFileData ? { ZipFile: zipFileData } : undefined,
+        Architectures: [data.architecture],
+        Environment: environment,
       })
 
       uiStore.notifySuccess('Function created', `Function "${data.functionName}" created successfully`)
@@ -80,7 +80,11 @@ export function useLambda() {
   async function updateFunctionConfiguration(functionName: string, memory: number, timeout: number) {
     updating.value = true
     try {
-      await lambdaApi.updateFunctionConfiguration(functionName, memory, timeout)
+      await lambdaApi.updateFunctionConfiguration({
+        FunctionName: functionName,
+        MemorySize: memory,
+        Timeout: timeout,
+      })
       uiStore.notifySuccess('Configuration updated', 'Function configuration updated successfully')
       await loadFunctions()
     } catch (error) {
@@ -95,7 +99,10 @@ export function useLambda() {
     updating.value = true
     try {
       const zipFileData = await zipFile.arrayBuffer().then(buf => new Uint8Array(buf))
-      await lambdaApi.updateFunctionCode(functionName, zipFileData)
+      await lambdaApi.updateFunctionCode({
+        FunctionName: functionName,
+        ZipFile: zipFileData,
+      })
       uiStore.notifySuccess('Code updated', 'Function code updated successfully')
       await loadFunctions()
     } catch (error) {
