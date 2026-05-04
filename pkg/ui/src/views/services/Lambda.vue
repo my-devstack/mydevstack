@@ -5,11 +5,13 @@ import { useContentReload } from '@/composables/useContentReload'
 import { CodeBracketIcon } from '@heroicons/vue/24/outline'
 import { useLambda } from '@/composables/useLambda'
 import type { LambdaFunction } from '@/api/types/aws'
-import LambdaFunctionsList from '@/components/lambda/LambdaFunctionsList.vue'
-import LambdaCreateModal from '@/components/lambda/LambdaCreateModal.vue'
+import {
+  LambdaFunctionsList,
+  LambdaCreateModal,
+  LambdaCodeExamples,
+} from '@/components/lambda'
 import LambdaEditModal from '@/components/lambda/LambdaEditModal.vue'
 import LambdaDeleteModal from '@/components/lambda/LambdaDeleteModal.vue'
-import LambdaCodeExamples from '@/components/lambda/LambdaCodeExamples.vue'
 
 const settingsStore = useSettingsStore()
 const { reloadTrigger } = useContentReload()

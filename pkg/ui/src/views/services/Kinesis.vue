@@ -6,13 +6,15 @@ import EmptyState from '@/components/common/EmptyState.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useKinesis } from '@/composables/useKinesis'
-import KinesisStreamsList from '@/components/kinesis/KinesisStreamsList.vue'
+import {
+  KinesisStreamsList,
+  KinesisShardsList,
+  KinesisRecordsList,
+  KinesisCreateModal,
+  KinesisPutRecordModal,
+  KinesisViewRecordModal,
+} from '@/components/kinesis'
 import KinesisStreamInfo from '@/components/kinesis/KinesisStreamInfo.vue'
-import KinesisShardsList from '@/components/kinesis/KinesisShardsList.vue'
-import KinesisRecordsList from '@/components/kinesis/KinesisRecordsList.vue'
-import KinesisCreateModal from '@/components/kinesis/KinesisCreateModal.vue'
-import KinesisPutRecordModal from '@/components/kinesis/KinesisPutRecordModal.vue'
-import KinesisViewRecordModal from '@/components/kinesis/KinesisViewRecordModal.vue'
 
 const settingsStore = useSettingsStore()
 const selectedExample = ref(0)

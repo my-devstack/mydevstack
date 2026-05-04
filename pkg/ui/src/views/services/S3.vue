@@ -4,12 +4,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { useContentReload } from '@/composables/useContentReload'
 import { useS3 } from '@/composables/useS3'
 import { ArchiveBoxIcon } from '@heroicons/vue/24/outline'
-import S3BucketsList from '@/components/s3/S3BucketsList.vue'
-import S3ObjectsList from '@/components/s3/S3ObjectsList.vue'
-import S3CreateModal from '@/components/s3/S3CreateModal.vue'
-import S3ViewModal from '@/components/s3/S3ViewModal.vue'
-import S3DeleteModal from '@/components/s3/S3DeleteModal.vue'
-import S3CodeExamples from '@/components/s3/S3CodeExamples.vue'
+import { S3BucketsList, S3ObjectsList, S3CreateModal, S3ViewModal, S3DeleteModal, S3CodeExamples } from '@/components/s3'
 
 const { reloadTrigger } = useContentReload()
 

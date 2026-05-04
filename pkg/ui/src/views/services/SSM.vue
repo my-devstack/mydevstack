@@ -5,11 +5,13 @@ import { PlusIcon, ArrowPathIcon, KeyIcon, BeakerIcon } from '@heroicons/vue/24/
 import Button from '@/components/common/Button.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import { useSSM } from '@/composables/useSSM'
-import SSMParametersList from '@/components/ssm/SSMParametersList.vue'
-import SSMCreateModal from '@/components/ssm/SSMCreateModal.vue'
-import SSMValueModal from '@/components/ssm/SSMValueModal.vue'
-import SSMHistoryModal from '@/components/ssm/SSMHistoryModal.vue'
-import SSMDeleteModal from '@/components/ssm/SSMDeleteModal.vue'
+import {
+  SSMParametersList,
+  SSMCreateModal,
+  SSMValueModal,
+  SSMHistoryModal,
+  SSMDeleteModal,
+} from '@/components/ssm'
 
 const settingsStore = useSettingsStore()
 const selectedExample = ref(0)
