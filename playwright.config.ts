@@ -2,10 +2,10 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: true,
+  fullyParallel: false,  // Tests within file run serially
   forbidOnly: false,
   retries: 1,
-  workers: 1,
+  workers: process.env.CI ? 4 : 3,  // Files run in parallel
   reporter: 'list',
   timeout: 30000,
   expect: {

@@ -19,19 +19,20 @@ This repository builds a unified Docker image that combines:
 ```
 mydevstack/
 ├── .github/                 # GitHub workflows
+├── build/                   # Docker build assets
+│   ├── Dockerfile           # Multi-platform Docker image
+│   └── nginx.conf          # Nginx configuration
 ├── pkg/
 │   ├── proxy/              # Go backend API proxy
-│   │   ├── cmd/           # Entry points
-│   │   ├── internal/       # Business logic
+│   │   ├── cmd/            # Entry points
+│   │   ├── internal/        # Business logic
 │   │   └── bootstrap/      # DI setup
 │   └── ui/                 # Vue 3 frontend
 │       ├── src/            # Vue source code
 │       └── package.json    # Dependencies
-├── docker-compose.yml       # Docker Compose for LocalStack
 ├── docker-compose-floci.yml # Docker Compose for FloCi
 ├── docker-compose-ministack.yml # Docker Compose for MiniStack
-├── Dockerfile              # Multi-platform Docker image
-└── nginx.conf             # Nginx configuration
+└── e2e/                    # Playwright E2E tests
 ```
 
 ## Features
@@ -239,8 +240,10 @@ services:
 | Secrets Manager | ✅ | Secrets management |
 | SSM | ✅ | Parameter Store |
 | API Gateway | ✅ | REST APIs, HTTP APIs |
-| Kinesis | ✅ | Streams, Shards |
+| Kinesis | ✅ | Streams, Shards, Records |
 | CloudFormation | ✅ | Stacks, Templates |
+| ElastiCache | ✅ | Redis Server Groups |
+| RDS | ✅ | Databases, Instances |
 
 ## Development
 
@@ -258,15 +261,18 @@ pkg/
 │   └── mocks/ports/  # Generated mocks
 └── ui/               # Vue 3 frontend
     └── src/
-        ├── api/          # API clients
+        ├── api/          # API clients & services
         ├── components/    # Vue components
         │   ├── common/   # Shared (Modal, Table, FormInput, Button)
-        │   ├── layout/   # Layout (Sidebar, TopBar, ServiceCard)
-        │   └── <service>/ # Service-specific components
-        ├── composables/  # Vue composables (useToast, useTheme)
-        ├── stores/      # Pinia stores
-        ├── types/      # TypeScript types
-        └── views/      # Page views
+        │   ├── layout/   # Layout (Sidebar, TopBar)
+        │   ├── s3/      # S3 components
+        │   ├── dynamodb/ # DynamoDB components
+        │   ├── lambda/   # Lambda components
+        │   └── ...other services
+        ├── composables/  # Vue composables (useToast, useTheme, useS3...)
+        ├── stores/       # Pinia stores (settings, ui)
+        ├── types/        # TypeScript types
+        └── views/        # Page views (services/)
 ```
 
 ### Adding a New AWS Service

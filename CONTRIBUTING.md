@@ -12,24 +12,106 @@ Thank you for your interest in contributing!
 
 ### Prerequisites
 
-- Docker 24.0+
-- Git
+- Go 1.26+
+- Node 20+
+- Docker 24.0+ (for running the application)
+- Docker Compose (for local development)
+
+### Project Structure
+
+```
+mydevstack/
+├── pkg/
+│   ├── proxy/          # Go backend (Gin, AWS SDK v2)
+│   │   ├── cmd/server  # Entry point
+│   │   └── internal/
+│   │       ├── adapters/    # AWS implementations
+│   │       └── ports/        # Interfaces
+│   └── ui/             # Vue 3 frontend
+│       ├── src/
+│       │   ├── api/services/    # API clients
+│       │   ├── components/      # Vue components
+│       │   ├── composables/     # Vue composables
+│       │   ├── views/           # Page views
+│       │   └── router/          # Vue Router
+│       └── e2e/             # Playwright E2E tests
+├── e2e/                # Service E2E tests
+└── Makefile            # Build & test commands
+```
+
+### Available Services
+
+The following AWS services are currently implemented:
+
+| Service | Frontend Path | API Client |
+|---------|---------------|------------|
+| API Gateway | `/services/api-gateway` | `api/services/api-gateway.ts` |
+| CloudFormation | `/services/cloudformation` | `api/services/cloudformation.ts` |
+| DynamoDB | `/services/dynamodb` | `api/services/dynamodb.ts` |
+| ElastiCache | `/services/elasticache` | `api/services/elasticache.ts` |
+| IAM | `/services/iam` | `api/services/iam.ts` |
+| Kinesis | `/services/kinesis` | `api/services/kinesis.ts` |
+| KMS | `/services/kms` | `api/services/kms.ts` |
+| Lambda | `/services/lambda` | `api/services/lambda.ts` |
+| RDS | `/services/rds` | `api/services/rds.ts` |
+| S3 | `/services/s3` | `api/services/s3.ts` |
+| Secrets Manager | `/services/secrets-manager` | `api/services/secrets-manager.ts` |
+| SNS | `/services/sns` | `api/services/sns.ts` |
+| SQS | `/services/sqs` | `api/services/sqs.ts` |
+| SSM | `/services/ssm` | `api/services/ssm.ts` |
+
+### Running Locally
+
+```bash
+# Run Go backend (port 8080)
+make run-proxy
+
+# Run Vue dev server (port 3000)
+cd pkg/ui && npm run dev
+```
 
 ### Building
 
 ```bash
-# Clone the repository
-git clone https://github.com/my-devstack/mydevstack.git
-cd mydevstack
+# Build both Go and Vue
+make build
 
-# Update release.json
-# {"frontend": "1.0.0", "backend": "1.0.0"}
-
-# Build the Docker image
+# Build Docker image
 docker build -t beabys/mydevstack:latest .
+```
 
-# Run with docker-compose
-docker-compose up -d
+## Testing
+
+### Go Tests
+
+```bash
+# Unit tests (excludes mocks)
+make unit
+
+# Include mocks
+go test ./pkg/proxy/...
+```
+
+### Vue Tests
+
+```bash
+# Run all unit tests
+cd pkg/ui && npm run test:run
+
+# Run single test file
+cd pkg/ui && npx vitest run <file>
+```
+
+### E2E Tests
+
+E2E tests require Floci/LocalStack running on port 4566:
+
+```bash
+# Run all E2E tests
+make test-e2e
+
+# Run specific service E2E test
+cd pkg/ui && npx playwright test e2e/services/iam.spec.ts
 ```
 
 ## Release Process
@@ -47,15 +129,26 @@ docker-compose up -d
 ## Submitting Changes
 
 1. **Test** your changes locally
-2. **Commit** with clear, descriptive messages
-3. **Push** to your fork
-4. **Open** a Pull Request against `main` branch
+2. **Lint** your code:
+   ```bash
+   make lint              # All
+   make lint-proxy        # Go only
+   make lint-ui           # Vue only
+   ```
+3. **Commit** with clear, descriptive messages
+4. **Push** to your fork
+5. **Open** a Pull Request against `main` branch
 
 ### Pull Request Guidelines
 
 - Describe the changes and the motivation
 - Link to any related issues
 - Include any documentation updates
+- Ensure all tests pass
+
+### Adding a New Service
+
+See [ADDING_SERVICES.md](./ADDING_SERVICES.md) for detailed instructions.
 
 ## Reporting Bugs
 
@@ -64,7 +157,7 @@ docker-compose up -d
    - Clear title and description
    - Steps to reproduce
    - Expected vs actual behavior
-   - Docker version and environment details
+   - Go/Node/Docker version and environment details
 
 ## Questions?
 

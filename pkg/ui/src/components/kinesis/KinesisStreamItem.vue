@@ -184,7 +184,10 @@ function formatData(data: string): string {
         </div>
 
         <!-- Shards -->
-        <div v-if="shards.length > 0" class="mt-4">
+        <div
+          v-if="shards.length > 0"
+          class="mt-4"
+        >
           <h4
             class="text-sm font-medium mb-2"
             :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
@@ -211,11 +214,17 @@ function formatData(data: string): string {
                   Get Records
                 </button>
               </div>
-              <div class="text-xs mt-1" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">
+              <div
+                class="text-xs mt-1"
+                :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+              >
                 <span v-if="shard.SequenceNumberRange?.StartingSequenceNumber">
                   Seq: {{ shard.SequenceNumberRange.StartingSequenceNumber.slice(-10) }}...
                 </span>
-                <span v-if="shard.ParentShardId" class="ml-2">
+                <span
+                  v-if="shard.ParentShardId"
+                  class="ml-2"
+                >
                   Parent: {{ shard.ParentShardId.slice(-10) }}...
                 </span>
               </div>

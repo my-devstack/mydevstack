@@ -169,8 +169,15 @@ function selectStream(stream: { StreamArn?: string; StreamStatus?: string; Strea
             </div>
           </div>
           <!-- Shards -->
-          <div v-if="shards.length > 0" class="mt-4 pt-4 border-t" :class="settingsStore.darkMode ? 'border-gray-600' : 'border-gray-200'">
-            <h4 class="text-sm font-medium mb-2" :class="settingsStore.darkMode ? 'text-gray-300' : 'text-gray-700'">
+          <div
+            v-if="shards.length > 0"
+            class="mt-4 pt-4 border-t"
+            :class="settingsStore.darkMode ? 'border-gray-600' : 'border-gray-200'"
+          >
+            <h4
+              class="text-sm font-medium mb-2"
+              :class="settingsStore.darkMode ? 'text-gray-300' : 'text-gray-700'"
+            >
               Shards ({{ shards.length }})
             </h4>
             <div class="space-y-1">

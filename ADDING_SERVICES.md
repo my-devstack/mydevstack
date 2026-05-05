@@ -187,15 +187,58 @@ Add to `pkg/ui/src/components/layout/Sidebar.vue`:
 }
 ```
 
+## Current Services
+
+The following services are currently implemented:
+
+- API Gateway (api-gateway)
+- CloudFormation (cloudformation)
+- DynamoDB (dynamodb)
+- ElastiCache (elasticache)
+- IAM (iam)
+- Kinesis (kinesis)
+- KMS (kms)
+- Lambda (lambda)
+- RDS (rds)
+- S3 (s3)
+- Secrets Manager (secrets-manager)
+- SNS (sns)
+- SQS (sqs)
+- SSM (ssm)
+
 ## File Summary
 
 | What | Files | Description |
 |------|-------|-------------|
 | API Client | 1 | `api/services/<service>.ts` |
-| Components | 2-4 | List, Modal, optionally CodeExamples |
+| Composable | 1 | `composables/use<Service>.ts` (+ unit test) |
+| Components | 2-4 | List, Modal, optionally CodeExamples (+ integration test) |
 | View | 1 | Container component |
 | Router | 1 | Add route entry |
-| **Total** | **5-7** | Per service |
+| E2E Test | 1 | `e2e/services/<service>.spec.ts` |
+| **Total** | **7-10** | Per service |
+
+## Testing Requirements
+
+Every service MUST include:
+
+1. **Composable** (`composables/use<Service>.ts`)
+   - Unit tests (`composables/use<Service>.test.ts`)
+2. **Components** (`components/<service>/`)
+   - Integration tests (`components/<service>/integration.test.ts`)
+3. **E2E Tests** (`e2e/services/<service>.spec.ts`)
+
+Run tests:
+```bash
+# Vue unit tests
+cd pkg/ui && npm run test:run
+
+# Vue single test file
+cd pkg/ui && npx vitest run <file>
+
+# E2E tests (requires Floci/LocalStack on :4566)
+make test-e2e
+```
 
 ## Best Practices
 
@@ -205,6 +248,7 @@ Add to `pkg/ui/src/components/layout/Sidebar.vue`:
 4. **Reuse generic components** - Use ServiceModal and ServiceTable
 5. **Consistent naming** - PascalCase for components, camelCase for files
 6. **Keep under 200 lines** - Break large components into smaller reusable parts
+7. **Always write tests** - Unit + integration for frontend, unit for backend
 
 ## Using Generic Components
 
