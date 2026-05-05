@@ -152,7 +152,7 @@ test.describe('IAM - Policies', () => {
     await createPolicy(page, policyName)
     const policyRow = page.locator('.rounded-lg').filter({ hasText: policyName }).first()
     await policyRow.locator('h3').click()
-    await expect(policyRow.getByText('Name')).toBeVisible({ timeout: 15000 })
+    await expect(policyRow.getByText('Name', { exact: true })).toBeVisible({ timeout: 15000 })
   })
 })
 

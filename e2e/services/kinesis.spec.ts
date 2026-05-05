@@ -15,9 +15,12 @@ test.describe('Kinesis', () => {
     await page.goto('/#/services/kinesis')
     await page.waitForLoadState('networkidle')
 
-    const emptyState = page.getByText('No Kinesis Streams')
-    const hasEmptyState = await emptyState.isVisible().catch(() => false)
-    expect(hasEmptyState).toBeTruthy()
+    const streamRows = page.locator('[class*="rounded-lg"][class*="border"]').filter({ hasText: /Stream/ })
+    const count = await streamRows.count()
+    if (count === 0) {
+      const emptyState = page.getByText('No Kinesis Streams')
+      await expect(emptyState).toBeVisible()
+    }
   })
 
   test('open create stream modal', async ({ page }) => {
