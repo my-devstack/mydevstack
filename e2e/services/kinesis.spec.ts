@@ -15,15 +15,9 @@ test.describe('Kinesis', () => {
     await page.goto('/#/services/kinesis')
     await page.waitForLoadState('networkidle')
 
-    // Check if empty state or streams list is shown
     const emptyState = page.getByText('No Kinesis Streams')
-    const streamsList = page.getByText('Data Streams')
-
-    // At least one should be visible
     const hasEmptyState = await emptyState.isVisible().catch(() => false)
-    const hasStreamsList = await streamsList.isVisible().catch(() => false)
-
-    expect(hasEmptyState || hasStreamsList).toBeTruthy()
+    expect(hasEmptyState).toBeTruthy()
   })
 
   test('open create stream modal', async ({ page }) => {
@@ -68,18 +62,15 @@ test.describe('Kinesis', () => {
     // Wait for stream to appear in the list
     await expect(page.getByText(streamName).first()).toBeVisible({ timeout: 20000 })
 
-    // Click on the eye icon button (View Details)
-    await page.getByTitle('View Details').first().click()
+    // Click on the stream row to expand accordion
+    await page.getByText(streamName).first().click()
 
-    // Wait for stream details to load
+    // Wait for stream details to load in accordion
     await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(3000)
+    await page.waitForTimeout(2000)
 
-    // Verify stream details section is visible - check for stream name
-    await expect(page.getByText(streamName).first()).toBeVisible({ timeout: 15000 })
-
-    // Check for "Stream:" text (case insensitive)
-    await expect(page.getByText(/Stream:/i)).toBeVisible({ timeout: 15000 })
+    // Verify stream details section is visible in accordion
+    await expect(page.getByText('Stream Details').first()).toBeVisible({ timeout: 15000 })
   })
 
   test('put record flow', async ({ page }) => {
@@ -94,11 +85,11 @@ test.describe('Kinesis', () => {
     await page.getByRole('button', { name: 'Create' }).last().click()
     await expect(page.getByText(streamName).first()).toBeVisible({ timeout: 20000 })
 
-    // Click on the eye icon to view details
-    await page.getByTitle('View Details').first().click()
+    // Click on the stream row to expand accordion
+    await page.getByText(streamName).first().click()
     await page.waitForTimeout(2000)
 
-    // Click Put Record button
+    // Click Put Record button in accordion
     await page.getByRole('button', { name: 'Put Record' }).first().click()
     await expect(page.getByRole('heading', { name: 'Put Record' })).toBeVisible({ timeout: 15000 })
 

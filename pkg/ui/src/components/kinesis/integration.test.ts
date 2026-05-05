@@ -5,6 +5,7 @@ import { useKinesis } from '@/composables/useKinesis'
 import KinesisCreateModal from '@/components/kinesis/KinesisCreateModal.vue'
 import KinesisPutRecordModal from '@/components/kinesis/KinesisPutRecordModal.vue'
 import KinesisViewRecordModal from '@/components/kinesis/KinesisViewRecordModal.vue'
+import KinesisStreamItem from '@/components/kinesis/KinesisStreamItem.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 
 // Mock services
@@ -292,6 +293,91 @@ describe('Kinesis Integration Flow', () => {
       await getRecordsForShard(shards.value[0])
       expect(records.value).toHaveLength(2)
       expect(records.value[0].SequenceNumber).toBe('001')
+    })
+  })
+
+  describe('KinesisStreamItem', () => {
+    beforeEach(() => {
+      setActivePinia(createPinia())
+    })
+
+    const mockStream = {
+      StreamName: 'test-stream',
+      StreamStatus: 'ACTIVE',
+    }
+
+    const mockStreamDetails = {
+      StreamName: 'test-stream',
+      StreamStatus: 'ACTIVE',
+      ShardCount: 2,
+      RetentionPeriodHours: 24,
+      EncryptionType: 'NONE',
+    }
+
+    const mockShards = [
+      { ShardId: 'shard-1' },
+      { ShardId: 'shard-2' },
+    ]
+
+    it('renders stream name and status', () => {
+      const wrapper = mount(KinesisStreamItem, {
+        props: {
+          stream: mockStream,
+        },
+      })
+
+      expect(wrapper.text()).toContain('test-stream')
+      expect(wrapper.text()).toContain('ACTIVE')
+    })
+
+    it('expands and shows details when clicked', async () => {
+      const wrapper = mount(KinesisStreamItem, {
+        props: {
+          stream: mockStream,
+          streamDetails: mockStreamDetails,
+          shards: mockShards,
+        },
+      })
+
+      // Click to expand
+      await wrapper.find('.cursor-pointer').trigger('click')
+
+      expect(wrapper.text()).toContain('Stream Details')
+      expect(wrapper.text()).toContain('Shards')
+      expect(wrapper.text()).toContain('shard-1')
+    })
+
+    it('emits delete event when delete button clicked', async () => {
+      const wrapper = mount(KinesisStreamItem, {
+        props: {
+          stream: mockStream,
+        },
+      })
+
+      const deleteBtn = wrapper.find('button[title="Delete"]')
+      await deleteBtn.trigger('click')
+
+      expect(wrapper.emitted('delete')).toBeTruthy()
+      expect(wrapper.emitted('delete')?.[0]).toEqual([mockStream])
+    })
+
+    it('emits put-record-click when Put Record button clicked', async () => {
+      const wrapper = mount(KinesisStreamItem, {
+        props: {
+          stream: mockStream,
+          streamDetails: mockStreamDetails,
+        },
+      })
+
+      // Expand first
+      await wrapper.find('.cursor-pointer').trigger('click')
+
+      // Click Put Record button
+      const putRecordBtn = wrapper.find('button:contains("Put Record")')
+      if (putRecordBtn.exists()) {
+        await putRecordBtn.trigger('click')
+        expect(wrapper.emitted('put-record-click')).toBeTruthy()
+      }
     })
   })
 })

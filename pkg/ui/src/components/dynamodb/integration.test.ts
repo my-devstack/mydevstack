@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
-import { DynamoDBCreateTableModal, DynamoDBDeleteTableModal, DynamoDBViewTableModal } from './index'
+import { DynamoDBCreateTableModal, DynamoDBDeleteTableModal, DynamoDBViewTableModal, DynamoDBTableStats } from './index'
 
 vi.mock('@/stores/settings', () => ({
   useSettingsStore: vi.fn(() => ({
@@ -610,6 +610,110 @@ describe('DynamoDB Components Integration', () => {
       if (viewStreamsButton) {
         await viewStreamsButton.trigger('click')
         expect(wrapper.emitted('viewStreams')).toBeTruthy()
+      }
+    })
+  })
+
+  describe('DynamoDBTableStats', () => {
+    beforeEach(() => {
+      setActivePinia(createPinia())
+      vi.mock('@/composables/useDynamoDB', () => ({
+        useDynamoDB: vi.fn(() => ({
+          getKeyTypeLabel: vi.fn((type) => type),
+          getBillingModeLabel: vi.fn((mode) => mode),
+        })),
+      }))
+    })
+
+    const mockDetails = {
+      TableStatus: 'ACTIVE',
+      BillingModeSummary: { BillingMode: 'PAY_PER_REQUEST' },
+      KeySchema: [
+        { AttributeName: 'pk', KeyType: 'HASH' },
+      ],
+      AttributeDefinitions: [
+        { AttributeName: 'pk', AttributeType: 'S' },
+      ],
+      ProvisionedThroughput: {
+        ReadCapacityUnits: 5,
+        WriteCapacityUnits: 5,
+      },
+      ItemCount: 100,
+      TableSizeBytes: 1024,
+    }
+
+    it('shows stream icon and text in status row when stream enabled', () => {
+      const tableWithStreams = {
+        ...mockDetails,
+        StreamSpecification: {
+          StreamEnabled: true,
+          StreamViewType: 'NEW_AND_OLD_IMAGES',
+        },
+      }
+
+      const wrapper = mount(DynamoDBTableStats, {
+        props: {
+          tableName: 'test-table',
+          details: tableWithStreams,
+          loading: false,
+        },
+        global: {
+          stubs: {
+            RssIcon: true,
+          },
+        },
+      })
+
+      expect(wrapper.html()).toContain('Stream')
+      expect(wrapper.html()).toContain('Write Capacity')
+    })
+
+    it('does not show stream icon when stream not enabled', () => {
+      const wrapper = mount(DynamoDBTableStats, {
+        props: {
+          tableName: 'test-table',
+          details: mockDetails,
+          loading: false,
+        },
+        global: {
+          stubs: {
+            RssIcon: true,
+          },
+        },
+      })
+
+      expect(wrapper.html()).not.toContain('Stream')
+    })
+
+    it('emits viewStreams when stream clicked', async () => {
+      const tableWithStreams = {
+        ...mockDetails,
+        StreamSpecification: {
+          StreamEnabled: true,
+          StreamViewType: 'NEW_AND_OLD_IMAGES',
+        },
+      }
+
+      const wrapper = mount(DynamoDBTableStats, {
+        props: {
+          tableName: 'test-table',
+          details: tableWithStreams,
+          loading: false,
+        },
+        global: {
+          stubs: {
+            RssIcon: true,
+          },
+        },
+      })
+
+      const streamButton = wrapper.findAll('span').find(span => span.text().includes('Stream'))
+      expect(streamButton).toBeTruthy()
+
+      if (streamButton) {
+        await streamButton.trigger('click')
+        expect(wrapper.emitted('viewStreams')).toBeTruthy()
+        expect(wrapper.emitted('viewStreams')?.[0]).toEqual(['test-table'])
       }
     })
   })

@@ -1,4 +1,5 @@
 export { default as KinesisStreamsList } from './KinesisStreamsList.vue'
+export { default as KinesisStreamItem } from './KinesisStreamItem.vue'
 export { default as KinesisShardsList } from './KinesisShardsList.vue'
 export { default as KinesisRecordsList } from './KinesisRecordsList.vue'
 export { default as KinesisCreateModal } from './KinesisCreateModal.vue'

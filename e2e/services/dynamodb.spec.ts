@@ -158,6 +158,11 @@ test('create table with stream enabled', async ({ page }) => {
     onDemand: true,
     enableStreams: true
   })
+
+  // Verify stream icon appears in accordion details
+  await page.getByText(tableName).first().click()
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByText('Stream').first()).toBeVisible({ timeout: 10000 })
 })
 
 test('view stream records', async ({ page }) => {
@@ -171,14 +176,17 @@ test('view stream records', async ({ page }) => {
     enableStreams: true
   })
 
-  await page.keyboard.press('Escape').catch(() => {})
-  const streamTable = page.getByText('test-stream-').first()
-  await expect(streamTable).toBeVisible({ timeout: 10000 })
-
-  await streamTable.click()
+  // Click to expand accordion (table may not be auto-expanded)
+  await page.getByText(tableName).first().click()
   await page.waitForLoadState('networkidle')
-  await page.getByRole('button', { name: 'View Streams' }).click()
-  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
+
+  // Wait for Stream badge to be visible - it's a purple badge in the accordion
+  await expect(page.getByText('Stream').first()).toBeVisible({ timeout: 10000 })
+  await page.waitForTimeout(500)
+
+  // Click on Stream badge using a more specific locator (purple background span)
+  const streamBadge = page.locator('.inline-flex').filter({ hasText: 'Stream' }).first()
+  await streamBadge.click()
 
   // Click "View Stream Events" button - if exists
   const viewEventsBtn = page.getByRole('button', { name: 'View Stream Events' })

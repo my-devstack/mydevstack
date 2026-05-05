@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useSettingsStore } from '@/stores/settings'
 import { useDynamoDB } from '@/composables/useDynamoDB'
+import { RssIcon } from '@heroicons/vue/24/outline'
 
 interface Props {
   tableName: string
@@ -21,12 +22,16 @@ const props = withDefaults(defineProps<Props>(), {
   details: null,
 })
 
-defineEmits<{
+const emit = defineEmits<{
   viewStreams: [tableName: string]
 }>()
 
 const settingsStore = useSettingsStore()
 const { getKeyTypeLabel, getBillingModeLabel } = useDynamoDB()
+
+function handleViewStreams() {
+  emit('viewStreams', props.tableName)
+}
 </script>
 
 <template>
@@ -46,6 +51,14 @@ const { getKeyTypeLabel, getBillingModeLabel } = useDynamoDB()
       </span>
       <span class="text-sm text-light-muted dark:text-dark-muted">
         {{ getBillingModeLabel(details.BillingModeSummary?.BillingMode || 'PROVISIONED') }}
+      </span>
+      <span
+        v-if="details.StreamSpecification?.StreamEnabled"
+        class="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 cursor-pointer hover:bg-purple-200 dark:hover:bg-purple-900/50"
+        @click="handleViewStreams"
+      >
+        <RssIcon class="w-3 h-3" />
+        Stream
       </span>
     </div>
     
@@ -119,14 +132,6 @@ const { getKeyTypeLabel, getBillingModeLabel } = useDynamoDB()
           {{ details.TableSizeBytes ? (details.TableSizeBytes / 1024).toFixed(2) + ' KB' : '0 KB' }}
         </p>
       </div>
-    </div>
-    
-    <!-- Stream Specification -->
-    <div v-if="details.StreamSpecification?.StreamEnabled">
-      <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Stream</label>
-      <p class="text-sm text-light-text dark:text-dark-text">
-        {{ details.StreamSpecification.StreamViewType?.replace(/_/g, ' ') }}
-      </p>
     </div>
   </div>
   <div
