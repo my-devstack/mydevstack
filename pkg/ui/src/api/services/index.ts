@@ -54,6 +54,8 @@ export {
   batchWriteItem,
   batchGetItem,
   DynamoDBService,
+  listStreams,
+  listAllStreams,
 } from './dynamodb'
 
 // SQS Service (functional)

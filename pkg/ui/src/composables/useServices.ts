@@ -13,7 +13,6 @@ export const SERVICES: Service[] = [
   
   // Database
   { id: 'dynamodb', name: 'DynamoDB', category: 'database', icon: 'TableCellsIcon', route: '/services/dynamodb' },
-  { id: 'dynamodb-streams', name: 'DynamoDB Streams', category: 'database', icon: 'PlayIcon', route: '/services/dynamodb-streams' },
   
   // Messaging
   { id: 'sqs', name: 'SQS', category: 'messaging', icon: 'QueueListIcon', route: '/services/sqs' },

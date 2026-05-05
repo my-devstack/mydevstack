@@ -69,19 +69,6 @@ function handleClose() {
 
       <div class="pt-4 flex items-center gap-6">
         <a 
-          href="https://alfonsorodriguez.xyz" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          class="flex flex-col items-center gap-1 text-primary-600 hover:text-primary-700 dark:text-primary-400 text-sm"
-        >
-          <img
-            src="/me.png"
-            alt="Website"
-            class="w-8 h-8 rounded-full object-cover"
-          >
-          <span class="text-xs">Website</span>
-        </a>
-        <a 
           href="https://www.buymeacoffee.com/beabys" 
           target="_blank" 
           rel="noopener noreferrer"
