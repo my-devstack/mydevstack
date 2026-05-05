@@ -45,7 +45,7 @@ COPY --from=builder-frontend /build/ui/pkg/ui/dist /usr/share/nginx/html
 RUN echo "$VERSION" >> /usr/share/nginx/html/VERSION
 
 # Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY ./build/nginx.conf /etc/nginx/nginx.conf
 
 # Create necessary directories and set ownership
 RUN mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx/tmp /var/run  /etc/mydevstack/config && \
