@@ -4,3 +4,6 @@ export { default as DynamoDBCreateTableModal } from './DynamoDBCreateTableModal.
 export { default as DynamoDBViewTableModal } from './DynamoDBViewTableModal.vue'
 export { default as DynamoDBPutItemModal } from './DynamoDBPutItemModal.vue'
 export { default as DynamoDBExploreModal } from './DynamoDBExploreModal.vue'
+export { default as DynamoDBTableStats } from './DynamoDBTableStats.vue'
+export { default as DynamoDBStreamModal } from './DynamoDBStreamModal.vue'
+export { default as DynamoDBCodeExamples } from './DynamoDBCodeExamples.vue'

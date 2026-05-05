@@ -563,11 +563,16 @@ async function dynamoDBStreamsRequest(action: string, body: object = {}): Promis
 }
 
 // DynamoDB Streams exports
-export const listStreams = async (tableName?: string): Promise<{ Streams: any[] }> => {
+export const listStreams = async (tableName: string): Promise<{ Streams: any[] }> => {
   if (!tableName) {
     return { Streams: [] }
   }
   return dynamoDBStreamsRequest('ListStreams', { TableName: tableName })
+}
+
+// List all streams without table filter - returns orphaned streams when tables deleted
+export const listAllStreams = async (): Promise<{ Streams: any[] }> => {
+  return dynamoDBStreamsRequest('ListStreams', {})
 }
 
 export const describeStream = async (streamArn: string): Promise<any> => {

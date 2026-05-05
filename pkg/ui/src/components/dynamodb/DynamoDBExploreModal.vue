@@ -122,20 +122,28 @@ function formatAttributeValue(attr: any): string {
     >
       <div class="grid grid-cols-3 gap-4">
         <div>
-          <label class="block text-xs mb-1 text-light-muted dark:text-dark-muted">
+          <label
+            :for="pkName + '-pk'"
+            class="block text-xs mb-1 text-light-muted dark:text-dark-muted"
+          >
             {{ pkName }} (Partition Key) *
           </label>
           <input
+            :id="pkName + '-pk'"
             type="text"
             :placeholder="'Enter ' + pkName"
             class="w-full px-3 py-2 rounded-lg border text-sm bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text border-light-border dark:border-dark-border"
           >
         </div>
         <div v-if="skName">
-          <label class="block text-xs mb-1 text-light-muted dark:text-dark-muted">
+          <label
+            :for="skName + '-sk-cond'"
+            class="block text-xs mb-1 text-light-muted dark:text-dark-muted"
+          >
             Condition
           </label>
           <select
+            :id="skName + '-sk-cond'"
             class="w-full px-3 py-2 rounded-lg border text-sm bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text border-light-border dark:border-dark-border"
           >
             <option value="eq">
@@ -159,10 +167,14 @@ function formatAttributeValue(attr: any): string {
           </select>
         </div>
         <div v-if="skName">
-          <label class="block text-xs mb-1 text-light-muted dark:text-dark-muted">
+          <label
+            :for="skName + '-sk'"
+            class="block text-xs mb-1 text-light-muted dark:text-dark-muted"
+          >
             {{ skName }} (Sort Key)
           </label>
           <input
+            :id="skName + '-sk'"
             type="text"
             :placeholder="'Enter ' + skName"
             class="w-full px-3 py-2 rounded-lg border text-sm bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text border-light-border dark:border-dark-border"

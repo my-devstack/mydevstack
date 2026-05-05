@@ -190,3 +190,114 @@ test('view stream records', async ({ page }) => {
   // Verify dialog still open
   await expect(page.getByRole('dialog')).toBeVisible()
 })
+
+test('open Explore Data modal', async ({ page }) => {
+  const tableName = 'test-explore-' + Date.now()
+  
+  await createTable(page, tableName, {
+    pkName: 'id',
+    onDemand: true
+  })
+  
+  await page.keyboard.press('Escape').catch(() => {})
+  await page.waitForTimeout(1000)
+  
+  const tableRow = page.getByText('test-explore-').first()
+  await expect(tableRow).toBeVisible({ timeout: 10000 })
+  
+  await tableRow.click()
+  await page.waitForLoadState('networkidle')
+  
+  // Click Explore Data button
+  await page.getByRole('button', { name: 'Explore Data' }).first().click()
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
+})
+
+test('Explore Data modal has scan and query modes', async ({ page }) => {
+  const tableName = 'test-modes-' + Date.now()
+  
+  await createTable(page, tableName, {
+    pkName: 'id',
+    hasSortKey: true,
+    skName: 'sort',
+    onDemand: true
+  })
+  
+  await page.keyboard.press('Escape').catch(() => {})
+  await page.waitForTimeout(1000)
+  
+  const tableRow = page.getByText('test-modes-').first()
+  await expect(tableRow).toBeVisible({ timeout: 10000 })
+  
+  await tableRow.click()
+  await page.waitForLoadState('networkidle')
+  
+  await page.getByRole('button', { name: 'Explore Data' }).first().click()
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
+  
+  // Verify scan mode button exists
+  await expect(page.getByRole('button', { name: 'Scan' })).toBeVisible()
+  
+  // Verify query mode button exists
+  await expect(page.getByRole('button', { name: 'Query' })).toBeVisible()
+  
+// Switch to query mode
+  await page.getByRole('button', { name: 'Query' }).click()
+  await page.waitForTimeout(1000)
+
+  // Query mode should show partition key input (label is "{pkName} (Partition Key) *")
+  await expect(page.getByLabel(/Partition Key/)).toBeVisible({ timeout: 10000 })
+})
+
+test('Explore Data displays items after scan', async ({ page }) => {
+  const tableName = 'test-items-' + Date.now()
+  
+  await createTable(page, tableName, {
+    pkName: 'id',
+    onDemand: true
+  })
+  
+  await page.keyboard.press('Escape').catch(() => {})
+  await page.waitForTimeout(1000)
+  
+  const tableRow = page.getByText('test-items-').first()
+  await expect(tableRow).toBeVisible({ timeout: 10000 })
+  
+  await tableRow.click()
+  await page.waitForLoadState('networkidle')
+  
+  await page.getByRole('button', { name: 'Explore Data' }).first().click()
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
+  
+  // Run scan
+  await page.getByRole('button', { name: 'Scan' }).click()
+  await page.waitForTimeout(2000)
+  
+  // Verify results area exists (empty or with items)
+  await expect(page.locator('.max-h-96, [class*="max-h"]').first()).toBeVisible()
+})
+
+test('Explore Data modal can be closed', async ({ page }) => {
+  const tableName = 'test-close-' + Date.now()
+  
+  await createTable(page, tableName, {
+    pkName: 'id',
+    onDemand: true
+  })
+  
+  await page.keyboard.press('Escape').catch(() => {})
+  await page.waitForTimeout(1000)
+  
+  const tableRow = page.getByText('test-close-').first()
+  await expect(tableRow).toBeVisible({ timeout: 10000 })
+  
+  await tableRow.click()
+  await page.waitForLoadState('networkidle')
+  
+  await page.getByRole('button', { name: 'Explore Data' }).first().click()
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
+
+  // Close with Footer Close button (use last() to avoid header close button)
+  await page.getByRole('button', { name: 'Close' }).last().click()
+  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5000 })
+})

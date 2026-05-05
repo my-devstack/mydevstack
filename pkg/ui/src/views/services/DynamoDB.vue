@@ -5,12 +5,6 @@ import { useToast } from '@/composables/useToast'
 import { useDynamoDB } from '@/composables/useDynamoDB'
 import { useContentReload } from '@/composables/useContentReload'
 import { TableCellsIcon, ChevronDownIcon, ChevronRightIcon, MagnifyingGlassCircleIcon, RssIcon } from '@heroicons/vue/24/outline'
-import Modal from '@/components/common/Modal.vue'
-import Button from '@/components/common/Button.vue'
-import FormInput from '@/components/common/FormInput.vue'
-import FormSelect from '@/components/common/FormSelect.vue'
-import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
-import CodeSnippet from '@/components/common/CodeSnippet.vue'
 import {
   DynamoDBDeleteTableModal,
   DynamoDBDeleteItemModal,
@@ -18,8 +12,10 @@ import {
   DynamoDBViewTableModal,
   DynamoDBPutItemModal,
   DynamoDBExploreModal,
+  DynamoDBTableStats,
+  DynamoDBStreamModal,
+  DynamoDBCodeExamples,
 } from '@/components/dynamodb'
-import { listTables, createTable as dbCreateTable, deleteTable as dbDeleteTable, describeTable, putItem as dbPutItem, getItem, deleteItem as dbDeleteItem, updateItem, query, scan, listStreams, describeStream, getShardIterator, getRecords } from '@/api/services/dynamodb'
 
 const settingsStore = useSettingsStore()
 const toast = useToast()
@@ -45,20 +41,10 @@ const {
   loadStreams,
   getStreamShards,
   getRecordsFromShard,
-  scanLoading,
-  scanError,
-  scanItems,
-  scanLastKey,
-  scanTableData,
-  queryTableData,
-  getAttributeType,
-  convertValueToAttr,
-  getSortKeyCondition,
-  formatEventName,
-  formatRecordData,
-  getPartitionKeyName,
-  getSortKeyName,
-  getAllUniqueAttributes,
+  query,
+  scan,
+  getShardIterator,
+  getRecords,
 } = useDynamoDB()
 
 // Create table modal state
@@ -78,8 +64,8 @@ const creating = ref(false)
 
 // View table modal state
 const showViewModal = ref(false)
-const selectedTable = ref<any>(null)
-const tableDetails = ref<any>(null)
+const selectedTable = ref<{ TableName: string } | null>(null)
+const tableDetails = ref<unknown>(null)
 const tableLoading = ref(false)
 const tableError = ref<string | null>(null)
 
@@ -95,11 +81,11 @@ function toggleTableExpansion(tableName: string) {
   if (expandedTables.value.has(tableName)) {
     expandedTables.value.delete(tableName)
   } else {
-    expandedTables.value.add(tableName)
-    // Load details if not already loaded
+    expandedTables.value = new Set([tableName])
     if (!tableDetailsMap.value[tableName]) {
       loadTableDetailsForAccordion(tableName)
     }
+    return
   }
   expandedTables.value = new Set(expandedTables.value)
 }
@@ -111,11 +97,11 @@ async function loadTableDetailsForAccordion(tableName: string) {
 // Explore data modal state
 const showExploreModal = ref(false)
 const exploreTableName = ref('')
-const exploreTableDetails = ref<any>(null)
+const exploreTableDetails = ref<unknown>(null)
 const exploreLoading = ref(false)
 const exploreError = ref<string | null>(null)
-const items = ref<any[]>([])
-const lastEvaluatedKey = ref<any>(null)
+const items = ref<unknown[]>([])
+const lastEvaluatedKey = ref<unknown>(null)
 const scanMode = ref<'scan' | 'query'>('scan')
 
 // Query specific
@@ -131,336 +117,18 @@ const putItemError = ref<string | null>(null)
 
 // Delete item confirmation
 const showDeleteItemModal = ref(false)
-const itemToDelete = ref<any>(null)
+const itemToDelete = ref<unknown>(null)
 const deleteItemLoading = ref(false)
 
 // Stream viewer modal state
 const showStreamModal = ref(false)
 const loadingRecords = ref(false)
-const selectedStream = ref<any>(null)
-const streamRecords = ref<any[]>([])
+const selectedStream = ref<unknown>(null)
+const streamRecords = ref<unknown[]>([])
 const shardIterator = ref<string | null>(null)
 
-// Code examples
-const codeExamples = computed(() => [
-  {
-    language: 'aws-cli',
-    label: 'AWS CLI',
-    code: `# List tables
-aws dynamodb list-tables --endpoint-url http://127.0.0.1:4566
-
-# Scan table (get all items)
-aws dynamodb scan --table-name my-table --endpoint-url http://127.0.0.1:4566
-
-# Query by partition key
-aws dynamodb query \\
-  --table-name my-table \\
-  --key-condition-expression "pk = :pk" \\
-  --expression-attribute-values '{":pk":{"S":"user123"}}' \\
-  --endpoint-url http://127.0.0.1:4566
-
-# Put item
-aws dynamodb put-item \\
-  --table-name my-table \\
-  --item '{"pk":{"S":"user1"},"name":{"S":"John"}}' \\
-  --endpoint-url http://127.0.0.1:4566
-
-# Delete item
-aws dynamodb delete-item \\
-  --table-name my-table \\
-  --key '{"pk":{"S":"user1"}}' \\
-  --endpoint-url http://127.0.0.1:4566`
-  },
-  {
-    language: 'javascript',
-    label: 'JavaScript',
-    code: `// Using AWS SDK v3
-import { DynamoDBClient, ScanCommand, QueryCommand, PutItemCommand, DeleteItemCommand } from "@aws-sdk/client-dynamodb";
-
-const client = new DynamoDBClient({
-  region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
-  credentials: {
-    accessKeyId: '${settingsStore.accessKey}',
-    secretAccessKey: '${settingsStore.secretKey}',
-  },
-});
-
-// Scan table
-const scanResponse = await client.send(new ScanCommand({
-  TableName: 'my-table',
-}));
-console.log(scanResponse.Items);
-
-// Query by partition key
-const queryResponse = await client.send(new QueryCommand({
-  TableName: 'my-table',
-  KeyConditionExpression: 'pk = :pk',
-  ExpressionAttributeValues: {
-    ':pk': { S: 'user123' }
-  }
-}));
-
-// Put item
-await client.send(new PutItemCommand({
-  TableName: 'my-table',
-  Item: {
-    pk: { S: 'user1' },
-    name: { S: 'John' },
-    age: { N: '30' }
-  }
-}));
-
-// Delete item
-await client.send(new DeleteItemCommand({
-  TableName: 'my-table',
-  Key: { pk: { S: 'user1' } }
-}));`
-  },
-  {
-    language: 'python',
-    label: 'Python',
-    code: `# Using boto3
-import boto3
-
-client = boto3.client(
-    'dynamodb',
-    region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
-    aws_access_key_id='${settingsStore.accessKey}',
-    aws_secret_access_key='${settingsStore.secretKey}',
-)
-
-# Scan table
-response = client.scan(TableName='my-table')
-for item in response['Items']:
-    print(item)
-
-# Query by partition key
-response = client.query(
-    TableName='my-table',
-    KeyConditionExpression='pk = :pk',
-    ExpressionAttributeValues={':pk': {'S': 'user123'}}
-)
-
-# Put item
-client.put_item(
-    TableName='my-table',
-    Item={
-        'pk': {'S': 'user1'},
-        'name': {'S': 'John'},
-        'age': {'N': '30'}
-    }
-)
-
-# Delete item
-client.delete_item(
-    TableName='my-table',
-    Key={'pk': {'S': 'user1'}}
-)`
-  },
-  {
-    language: 'go',
-    label: 'Go',
-    code: `// Using AWS SDK for Go v2
-import (
-    "context"
-    "github.com/aws/aws-sdk-go-v2/config"
-    "github.com/aws/aws-sdk-go-v2/service/dynamodb"
-    "github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
-)
-
-cfg, _ := config.LoadDefaultConfig(context.Background(),
-    config.WithRegion("${settingsStore.region}"),
-    config.WithEndpointResolverWithOptions(
-        aws.EndpointResolverWithOptionsFunc(
-            func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-                return aws.Endpoint{URL: "http://127.0.0.1:4566"}, nil
-            },
-        ),
-    ),
-)
-
-client := dynamodb.NewFromConfig(cfg)
-ctx := context.Background()
-
-// Scan table
-scanOutput, _ := client.Scan(ctx, &dynamodb.ScanInput{TableName: aws.String("my-table")})
-
-// Query by partition key
-queryOutput, _ := client.Query(ctx, &dynamodb.QueryInput{
-    TableName:              aws.String("my-table"),
-    KeyConditionExpression: aws.String("pk = :pk"),
-    ExpressionAttributeValues: map[string]types.AttributeValue{
-        ":pk": &types.AttributeValueMemberS{Value: "user123"},
-    },
-})
-
-// Put item
-item := map[string]types.AttributeValue{
-    "pk":   &types.AttributeValueMemberS{Value: "user1"},
-    "name": &types.AttributeValueMemberS{Value: "John"},
-}
-client.PutItem(ctx, &dynamodb.PutItemInput{TableName: aws.String("my-table"), Item: item})
-
-// Delete item
-client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
-    TableName: aws.String("my-table"),
-    Key:       map[string]types.AttributeValue{"pk": &types.AttributeValueMemberS{Value: "user1"}},
-})`
-  },
-])
-
-// DynamoDB Streams Examples
-const streamExamples = computed(() => [
-  {
-    language: 'aws-cli',
-    label: 'AWS CLI',
-    code: `# List streams for a table
-aws dynamodbstreams list-streams --endpoint-url http://127.0.0.1:4566
-
-# Get stream details
-aws dynamodbstreams describe-stream --stream-arn <stream-arn> --endpoint-url http://127.0.0.1:4566
-
-# Get shard iterator
-aws dynamodbstreams get-shard-iterator \\
-  --stream-arn <stream-arn> \\
-  --shard-id <shard-id> \\
-  --shard-iterator-type TRIM_HORIZON \\
-  --endpoint-url http://127.0.0.1:4566
-
-# Get stream records
-aws dynamodbstreams get-records \\
-  --shard-iterator <iterator> \\
-  --limit 100 \\
-  --endpoint-url http://127.0.0.1:4566`
-  },
-  {
-    language: 'javascript',
-    label: 'JavaScript',
-    code: `// Using AWS SDK v3 - DynamoDB Streams
-import { DynamoDBStreamsClient, ListStreamsCommand, DescribeStreamCommand, GetShardIteratorCommand, GetRecordsCommand } from "@aws-sdk/client-dynamodb-streams";
-
-const streamsClient = new DynamoDBStreamsClient({
-  region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
-  credentials: {
-    accessKeyId: '${settingsStore.accessKey}',
-    secretAccessKey: '${settingsStore.secretKey}',
-  },
-});
-
-// List streams
-const streamsResponse = await streamsClient.send(new ListStreamsCommand({
-  TableName: 'my-table',
-}));
-console.log('Streams:', streamsResponse.Streams);
-
-// Describe stream
-const describeResponse = await streamsClient.send(new DescribeStreamCommand({
-  StreamArn: '<stream-arn>',
-}));
-
-// Get shard iterator
-const iteratorResponse = await streamsClient.send(new GetShardIteratorCommand({
-  StreamArn: '<stream-arn>',
-  ShardId: '<shard-id>',
-  ShardIteratorType: 'TRIM_HORIZON',
-}));
-
-// Get records
-const recordsResponse = await streamsClient.send(new GetRecordsCommand({
-  ShardIterator: iteratorResponse.ShardIterator,
-  Limit: 100,
-}));
-console.log('Records:', recordsResponse.Records);`
-  },
-  {
-    language: 'python',
-    label: 'Python',
-    code: `# Using boto3 - dynamodbstreams
-import boto3
-
-streams_client = boto3.client(
-    'dynamodbstreams',
-    region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
-    aws_access_key_id='${settingsStore.accessKey}',
-    aws_secret_access_key='${settingsStore.secretKey}',
-)
-
-# List streams
-response = streams_client.list_streams(TableName='my-table')
-for stream in response['Streams']:
-    print(f"  Stream: {stream['StreamArn']}")
-
-# Describe stream
-response = streams_client.describe_stream(StreamArn='<stream-arn>')
-print(f"Stream: {response['StreamDescription']}")
-
-# Get shard iterator
-response = streams_client.get_shard_iterator(
-    StreamArn='<stream-arn>',
-    ShardId='<shard-id>',
-    ShardIteratorType='TRIM_HORIZON'
-)
-iterator = response['ShardIterator']
-
-# Get records
-response = streams_client.get_records(ShardIterator=iterator, Limit=100)
-for record in response['Records']:
-    print(f"Event: {record['eventName']}")`
-  },
-  {
-    language: 'go',
-    label: 'Go',
-    code: `// Using AWS SDK for Go v2 - DynamoDB Streams
-import (
-    "context"
-    "github.com/aws/aws-sdk-go-v2/config"
-    "github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
-    "github.com/aws/aws-sdk-go/aws"
-)
-
-cfg, _ := config.LoadDefaultConfig(context.Background(),
-    config.WithRegion("${settingsStore.region}"),
-)
-
-streamsClient := dynamodbstreams.NewFromConfig(cfg, func(o *dynamodbstreams.Options) {
-    o.BaseURL = aws.String("http://127.0.0.1:4566")
-})
-
-// List streams
-streamsOutput, err := streamsClient.ListStreams(context.Background(), &dynamodbstreams.ListStreamsInput{
-    TableName: aws.String("my-table"),
-})
-if err != nil {
-    panic(err)
-}
-for _, stream := range streamsOutput.Streams {
-    fmt.Printf("Stream: %s\\n", aws.StringValue(stream.StreamArn))
-}
-
-// Get records
-iteratorOutput, err := streamsClient.GetShardIterator(context.Background(), &dynamodbstreams.GetShardIteratorInput{
-    StreamArn:         aws.String("<stream-arn>"),
-    ShardId:           aws.String("<shard-id>"),
-    ShardIteratorType:  dynamodbstreams.ShardIteratorTypeTrimHorizon,
-})
-if err != nil {
-    panic(err)
-}
-
-recordsOutput, err := streamsClient.GetRecords(context.Background(), &dynamodbstreams.GetRecordsInput{
-    ShardIterator: iteratorOutput.ShardIterator,
-    Limit: aws.Int64(100),
-})
-if err != nil {
-    panic(err)
-}
-fmt.Printf("Records: %d\\n", len(recordsOutput.Records))`
-  },
-])
+// Example code tabs
+const exampleType = ref<'table' | 'stream'>('table')
 
 // Open create modal
 function openCreateModal() {
@@ -496,8 +164,9 @@ async function handleCreateTable() {
       streamViewType: streamViewType.value,
     })
     showCreateModal.value = false
-  } catch (e: any) {
-    toast.error('Failed to create table: ' + e.message)
+  } catch (e: unknown) {
+    const err = e as Error
+    toast.error('Failed to create table: ' + err.message)
   } finally {
     creating.value = false
   }
@@ -513,9 +182,10 @@ async function viewTable(tableName: string) {
   
   try {
     const data = await describeTable(tableName)
-    tableDetails.value = data.Table
-  } catch (e: any) {
-    tableError.value = 'Failed to get table details: ' + e.message
+    tableDetails.value = data?.Table
+  } catch (e: unknown) {
+    const err = e as Error
+    tableError.value = 'Failed to get table details: ' + err.message
   } finally {
     tableLoading.value = false
   }
@@ -531,36 +201,45 @@ async function viewStreams(tableName: string) {
 }
 
 // Get stream records
-async function selectStream(stream: any) {
+async function selectStream(stream: unknown) {
   selectedStream.value = stream
   streamRecords.value = []
   shardIterator.value = null
-  
-  if (!stream || !stream.StreamArn) {
+
+  const s = stream as { StreamArn?: string } | null
+  if (!s?.StreamArn) {
     streamError.value = 'No streams available'
     return
   }
-  
+
   loadingRecords.value = true
   streamError.value = null
-  
+
   try {
-    const streamArn = stream.StreamArn
+    const streamArn = s.StreamArn
     const shards = await getStreamShards(streamArn)
-    
-    if (shards.length > 0) {
-      const shard = shards[0]
-      const iterator = await getShardIterator(streamArn, shard.ShardId, 'TRIM_HORIZON')
-      shardIterator.value = iterator.ShardIterator
-      
-      if (shardIterator.value) {
-        const records = await getRecordsFromShard(shardIterator.value)
-        streamRecords.value = records
-        shardIterator.value = records.NextShardIterator
-      }
+
+    if (shards.length === 0) {
+      streamError.value = 'No shards found for stream. Stream may still be initializing.'
+      return
     }
-  } catch (e: any) {
-    streamError.value = 'Failed to load stream records: ' + e.message
+
+    const shard = shards[0]
+    const iterator = await getShardIterator(streamArn, shard.ShardId, 'TRIM_HORIZON')
+
+    if (!iterator?.ShardIterator) {
+      streamError.value = 'Failed to get shard iterator'
+      return
+    }
+
+    shardIterator.value = iterator.ShardIterator
+
+    const response = await getRecords(shardIterator.value)
+    streamRecords.value = response.Records || []
+    shardIterator.value = response.NextShardIterator || null
+  } catch (e: unknown) {
+    const err = e as Error
+    streamError.value = 'Failed to load stream records: ' + err.message
   } finally {
     loadingRecords.value = false
   }
@@ -577,14 +256,15 @@ async function loadMoreRecords() {
   
   try {
     const records = await getRecords(shardIterator.value)
-    streamRecords.value = [...streamRecords.value, ...(records.Records || [])]
-    shardIterator.value = records.NextShardIterator
+    streamRecords.value = [...streamRecords.value, ...((records as { Records?: unknown[] }).Records || [])]
+    shardIterator.value = (records as { NextShardIterator?: string }).NextShardIterator
     
     if (!shardIterator.value) {
       streamError.value = 'No more records available'
     }
-  } catch (e: any) {
-    streamError.value = 'Failed to load more records: ' + e.message
+  } catch (e: unknown) {
+    const err = e as Error
+    streamError.value = 'Failed to load more records: ' + err.message
   } finally {
     loadingRecords.value = false
   }
@@ -605,15 +285,19 @@ async function exploreTable(tableName: string) {
   
   try {
     const detailsData = await describeTable(tableName)
-    exploreTableDetails.value = detailsData.Table
+    exploreTableDetails.value = detailsData?.Table
     
     await scanOrQueryTable(tableName, 'scan')
-  } catch (e: any) {
-    exploreError.value = 'Failed to load table: ' + e.message
+  } catch (e: unknown) {
+    const err = e as Error
+    exploreError.value = 'Failed to load table: ' + err.message
   } finally {
     exploreLoading.value = false
   }
 }
+
+// Import API functions
+import { describeTable } from '@/api/services/dynamodb'
 
 // Scan or Query table
 async function scanOrQueryTable(tableName: string, mode?: 'scan' | 'query') {
@@ -622,18 +306,17 @@ async function scanOrQueryTable(tableName: string, mode?: 'scan' | 'query') {
   exploreError.value = null
   
   try {
-    const body: any = { TableName: tableName }
+    const body: Record<string, unknown> = { TableName: tableName }
     
     if (scanMode.value === 'query') {
-      // Query by partition key
       if (!partitionKeyValue.value.trim()) {
         exploreError.value = 'Partition key value is required for query'
         exploreLoading.value = false
         return
       }
       
-      const pkAttr = exploreTableDetails.value.KeySchema.find((k: any) => k.KeyType === 'HASH')
-      const skAttr = exploreTableDetails.value.KeySchema.find((k: any) => k.KeyType === 'RANGE')
+      const pkAttr = (exploreTableDetails.value as { KeySchema?: Array<{ AttributeName: string; KeyType: string }> })?.KeySchema?.find((k) => k.KeyType === 'HASH')
+      const skAttr = (exploreTableDetails.value as { KeySchema?: Array<{ AttributeName: string; KeyType: string }> })?.KeySchema?.find((k) => k.KeyType === 'RANGE')
       
       const keyCondition = [pkAttr.AttributeName + ' = :pk']
       body.ExpressionAttributeValues = {
@@ -660,7 +343,7 @@ async function scanOrQueryTable(tableName: string, mode?: 'scan' | 'query') {
       data = await scan(body)
     }
     
-    if (data.errorMessage) {
+    if (data?.errorMessage) {
       exploreError.value = data.errorMessage
       return
     }
@@ -672,8 +355,9 @@ async function scanOrQueryTable(tableName: string, mode?: 'scan' | 'query') {
     }
     
     lastEvaluatedKey.value = data.LastEvaluatedKey || null
-  } catch (e: any) {
-    exploreError.value = 'Failed to fetch items: ' + e.message
+  } catch (e: unknown) {
+    const err = e as Error
+    exploreError.value = 'Failed to fetch items: ' + err.message
   } finally {
     exploreLoading.value = false
   }
@@ -704,17 +388,19 @@ async function handlePutItem() {
     showPutItemModal.value = false
     lastEvaluatedKey.value = null
     await scanOrQueryTable(exploreTableName.value, 'scan')
-  } catch (e: any) {
-    putItemError.value = e.message.includes('JSON') 
+    await loadTableDetails(exploreTableName.value)
+  } catch (e: unknown) {
+    const err = e as Error
+    putItemError.value = err.message.includes('JSON') 
       ? 'Invalid JSON format. Use DynamoDB format like: {"key": {"S": "value"}}'
-      : e.message
+      : err.message
   } finally {
     putItemLoading.value = false
   }
 }
 
 // Confirm delete item
-function confirmDeleteItem(item: any) {
+function confirmDeleteItem(item: unknown) {
   itemToDelete.value = item
   showDeleteItemModal.value = true
 }
@@ -725,10 +411,10 @@ async function handleDeleteItem() {
   
   deleteItemLoading.value = true
   try {
-    // Build key from item
-    const key: any = {}
-    for (const attr of exploreTableDetails.value.KeySchema) {
-      const itemAttr = itemToDelete.value[attr.AttributeName]
+    const key: Record<string, unknown> = {}
+    const keySchema = (exploreTableDetails.value as { KeySchema?: Array<{ AttributeName: string }> })?.KeySchema || []
+    for (const attr of keySchema) {
+      const itemAttr = (itemToDelete.value as Record<string, unknown>)[attr.AttributeName]
       if (itemAttr) {
         key[attr.AttributeName] = itemAttr
       }
@@ -738,8 +424,10 @@ async function handleDeleteItem() {
     itemToDelete.value = null
     lastEvaluatedKey.value = null
     await scanOrQueryTable(exploreTableName.value, 'scan')
-  } catch (e: any) {
-    exploreError.value = 'Failed to delete item: ' + e.message
+    await loadTableDetails(exploreTableName.value)
+  } catch (e: unknown) {
+    const err = e as Error
+    exploreError.value = 'Failed to delete item: ' + err.message
   } finally {
     deleteItemLoading.value = false
   }
@@ -760,11 +448,56 @@ async function handleDeleteTable() {
     await deleteTable(tableToDelete.value)
     showDeleteModal.value = false
     tableToDelete.value = null
-  } catch (e: any) {
-    error.value = 'Failed to delete table: ' + e.message
+  } catch (e: unknown) {
+    const err = e as Error
+    error.value = 'Failed to delete table: ' + err.message
   } finally {
     deleting.value = false
   }
+}
+
+// Helper functions from useDynamoDB
+function getPartitionKeyName(details: unknown) {
+  return (details as { KeySchema?: Array<{ AttributeName: string; KeyType: string }> })?.KeySchema?.find((k) => k.KeyType === 'HASH')?.AttributeName || ''
+}
+
+function getSortKeyName(details: unknown) {
+  return (details as { KeySchema?: Array<{ AttributeName: string; KeyType: string }> })?.KeySchema?.find((k) => k.KeyType === 'RANGE')?.AttributeName || ''
+}
+
+function getAllUniqueAttributes(items: unknown[]) {
+  const attrs = new Set<string>()
+  for (const item of items) {
+    if (item && typeof item === 'object') {
+      for (const key of Object.keys(item as object)) {
+        attrs.add(key)
+      }
+    }
+  }
+  return Array.from(attrs)
+}
+
+function convertValueToAttr(value: string, attrName: string) {
+  const num = Number(value)
+  if (!isNaN(num)) {
+    return { N: String(num) }
+  }
+  if (value.toLowerCase() === 'true' || value.toLowerCase() === 'false') {
+    return { BOOL: value.toLowerCase() === 'true' }
+  }
+  return { S: value }
+}
+
+function getSortKeyCondition(condition: string) {
+  const conditions: Record<string, { expression: string }> = {
+    eq: { expression: '=' },
+    gt: { expression: '>' },
+    ge: { expression: '>=' },
+    lt: { expression: '<' },
+    le: { expression: '<=' },
+    begins: { expression: 'begins_with' },
+  }
+  return conditions[condition] || conditions.eq
 }
 
 // Get partition key name for explore query
@@ -775,9 +508,6 @@ const exploreSKName = computed(() => getSortKeyName(exploreTableDetails.value))
 
 // Get all unique attribute names from items
 const allAttributes = computed(() => getAllUniqueAttributes(items.value))
-
-// Example code tabs
-const exampleType = ref<'table' | 'stream'>('table')
 
 onMounted(() => {
   loadTables()
@@ -938,114 +668,12 @@ watch(reloadTrigger, () => {
             class="px-4 pb-4 border-t"
             :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
           >
-            <div
-              v-if="tableDetailsMap[table]"
-              class="mt-4 space-y-4"
-            >
-              <!-- Table Status -->
-              <div class="flex items-center gap-2">
-                <span
-                  class="px-2 py-1 text-xs rounded"
-                  :class="tableDetailsMap[table].TableStatus === 'ACTIVE' 
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'"
-                >
-                  {{ tableDetailsMap[table].TableStatus }}
-                </span>
-                <span class="text-sm text-light-muted dark:text-dark-muted">
-                  {{ getBillingModeLabel(tableDetailsMap[table].BillingModeSummary?.BillingMode || 'PROVISIONED') }}
-                </span>
-              </div>
-              
-              <!-- Key Schema -->
-              <div>
-                <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-2">Key Schema</label>
-                <div class="space-y-2">
-                  <div 
-                    v-for="key in tableDetailsMap[table].KeySchema"
-                    :key="key.AttributeName"
-                    class="flex items-center gap-2"
-                  >
-                    <span class="text-sm font-medium text-light-text dark:text-dark-text">{{ key.AttributeName }}</span>
-                    <span
-                      class="text-xs px-2 py-0.5 rounded"
-                      :class="key.KeyType === 'HASH' 
-                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' 
-                        : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'"
-                    >
-                      {{ key.KeyType === 'HASH' ? 'Partition Key' : 'Sort Key' }}
-                      ({{ getKeyTypeLabel(tableDetailsMap[table].AttributeDefinitions?.find((a: any) => a.AttributeName === key.AttributeName)?.AttributeType || 'S') }})
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Attribute Definitions -->
-              <div v-if="tableDetailsMap[table].AttributeDefinitions?.length > 0">
-                <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-2">Attributes</label>
-                <div class="flex flex-wrap gap-2">
-                  <span 
-                    v-for="attr in tableDetailsMap[table].AttributeDefinitions"
-                    :key="attr.AttributeName"
-                    class="text-sm px-2 py-1 rounded bg-light-border dark:bg-dark-border text-light-text dark:text-dark-text"
-                  >
-                    {{ attr.AttributeName }} ({{ attr.AttributeType }})
-                  </span>
-                </div>
-              </div>
-              
-              <!-- Provisioned Throughput -->
-              <div
-                v-if="tableDetailsMap[table].ProvisionedThroughput"
-                class="grid grid-cols-2 gap-4"
-              >
-                <div>
-                  <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Read Capacity</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">
-                    {{ tableDetailsMap[table].ProvisionedThroughput.ReadCapacityUnits }}
-                  </p>
-                </div>
-                <div>
-                  <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Write Capacity</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">
-                    {{ tableDetailsMap[table].ProvisionedThroughput.WriteCapacityUnits }}
-                  </p>
-                </div>
-              </div>
-              
-              <!-- Table Stats -->
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Item Count</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">
-                    {{ tableDetailsMap[table].ItemCount || 0 }}
-                  </p>
-                </div>
-                <div>
-                  <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Size</label>
-                  <p class="text-sm text-light-text dark:text-dark-text">
-                    {{ tableDetailsMap[table].TableSizeBytes ? (tableDetailsMap[table].TableSizeBytes / 1024).toFixed(2) + ' KB' : '0 KB' }}
-                  </p>
-                </div>
-              </div>
-              
-              <!-- Stream Specification -->
-              <div v-if="tableDetailsMap[table].StreamSpecification?.StreamEnabled">
-                <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Stream</label>
-                <p class="text-sm text-light-text dark:text-dark-text">
-                  {{ tableDetailsMap[table].StreamSpecification.StreamViewType?.replace(/_/g, ' ') }}
-                </p>
-              </div>
-            </div>
-            <div
-              v-else-if="!tableDetailsMap[table]"
-              class="mt-4 text-center py-4"
-            >
-              <div class="inline-block animate-spin rounded-full h-6 w-6 border-4 border-blue-600 border-t-transparent" />
-              <p class="mt-2 text-sm text-light-muted dark:text-dark-muted">
-                Loading table details...
-              </p>
-            </div>
+            <DynamoDBTableStats
+              :table-name="table"
+              :details="tableDetailsMap[table]"
+              :loading="!tableDetailsMap[table]"
+              @view-streams="viewStreams"
+            />
           </div>
         </div>
       </div>
@@ -1082,19 +710,7 @@ watch(reloadTrigger, () => {
         </button>
       </div>
       
-      <!-- Table Operations Examples -->
-      <CodeSnippet
-        v-if="exampleType === 'table'"
-        :snippets="codeExamples"
-        :disable-highlight="true"
-      />
-      
-      <!-- DynamoDB Streams Examples -->
-      <CodeSnippet
-        v-if="exampleType === 'stream'"
-        :snippets="streamExamples"
-        :disable-highlight="true"
-      />
+      <DynamoDBCodeExamples :type="exampleType" />
     </div>
   </div>
 
@@ -1149,7 +765,7 @@ watch(reloadTrigger, () => {
   <DynamoDBPutItemModal
     v-model="newItemJson"
     v-model:open="showPutItemModal"
-    :key-schema="exploreTableDetails?.KeySchema || []"
+    :key-schema="(exploreTableDetails as { KeySchema?: Array<{ AttributeName: string }> })?.KeySchema || []"
     :loading="putItemLoading"
     :error="putItemError"
     @submit="handlePutItem"
@@ -1168,184 +784,18 @@ watch(reloadTrigger, () => {
   />
 
   <!-- Stream Viewer Modal -->
-  <Modal
+  <DynamoDBStreamModal
     v-model:open="showStreamModal"
-    :title="'DynamoDB Streams: ' + (selectedTable?.TableName || '')"
-    size="3xl"
-  >
-    <!-- Loading -->
-    <div
-      v-if="streamLoading"
-      class="flex justify-center py-8"
-    >
-      <LoadingSpinner />
-    </div>
-
-    <!-- Error -->
-    <div
-      v-else-if="streamError && streams.length === 0"
-      class="p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg"
-    >
-      {{ streamError }}
-    </div>
-
-    <!-- Stream Content -->
-    <div
-      v-else
-      class="space-y-4"
-    >
-      <!-- Stream Info -->
-      <div
-        class="p-4 rounded-lg"
-        :class="settingsStore.darkMode ? 'bg-gray-700' : 'bg-gray-50'"
-      >
-        <div v-if="streams.length > 0">
-          <div class="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span
-                class="text-xs"
-                :class="settingsStore.darkMode ? 'text-gray-400' : 'text-gray-500'"
-              >Stream ARN:</span>
-              <p
-                class="font-mono text-xs mt-1 break-all"
-                :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'"
-              >
-                {{ streams[0]?.StreamArn }}
-              </p>
-            </div>
-            <div>
-              <span
-                class="text-xs"
-                :class="settingsStore.darkMode ? 'text-gray-400' : 'text-gray-500'"
-              >Status:</span>
-              <p
-                class="font-medium text-sm mt-1"
-                :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'"
-              >
-                {{ streams[0]?.StreamStatus }}
-              </p>
-            </div>
-            <div>
-              <span
-                class="text-xs"
-                :class="settingsStore.darkMode ? 'text-gray-400' : 'text-gray-500'"
-              >View Type:</span>
-              <p
-                class="font-medium text-sm mt-1"
-                :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'"
-              >
-                {{ streams[0]?.StreamViewType?.replace(/_/g, ' ') }}
-              </p>
-            </div>
-            <div>
-              <span
-                class="text-xs"
-                :class="settingsStore.darkMode ? 'text-gray-400' : 'text-gray-500'"
-              >Stream Label:</span>
-              <p
-                class="font-mono text-xs mt-1"
-                :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'"
-              >
-                {{ streams[0]?.StreamLabel }}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div
-          v-else
-          class="text-center py-4"
-        >
-          <p :class="settingsStore.darkMode ? 'text-gray-400' : 'text-gray-500'">
-            No streams available for this table
-          </p>
-        </div>
-      </div>
-
-      <!-- Records Section -->
-      <div v-if="selectedStream">
-        <div class="flex items-center justify-between mb-3">
-          <h4
-            class="text-sm font-medium"
-            :class="settingsStore.darkMode ? 'text-gray-300' : 'text-gray-700'"
-          >
-            Stream Records
-            <span class="ml-2 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-              {{ streamRecords.length }}
-            </span>
-          </h4>
-          <button
-            v-if="shardIterator"
-            :disabled="loadingRecords"
-            class="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            @click="loadMoreRecords"
-          >
-            {{ loadingRecords ? 'Loading...' : 'Load More' }}
-          </button>
-        </div>
-
-        <!-- Records List -->
-        <div
-          v-if="streamRecords.length > 0"
-          class="space-y-3 max-h-96 overflow-y-auto"
-        >
-          <div
-            v-for="(record, index) in streamRecords"
-            :key="index"
-            class="p-4 rounded-lg border"
-            :class="settingsStore.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'"
-          >
-            <div class="flex items-center justify-between mb-2">
-              <span
-                class="px-2 py-0.5 text-xs font-medium rounded"
-                :class="formatEventName(record.eventName)"
-              >
-                {{ record.eventName }}
-              </span>
-              <span
-                class="text-xs"
-                :class="settingsStore.darkMode ? 'text-gray-400' : 'text-gray-500'"
-              >
-                {{ new Date(record.dynamodb?.ApproximateCreationDateTime * 1000).toLocaleString() }}
-              </span>
-            </div>
-            <pre
-              class="text-xs font-mono overflow-x-auto p-2 rounded"
-              :class="settingsStore.darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-50 text-gray-700'"
-            >{{ formatRecordData(record) }}</pre>
-          </div>
-        </div>
-        <div
-          v-else
-          class="text-center py-8"
-        >
-          <p :class="settingsStore.darkMode ? 'text-gray-400' : 'text-gray-500'">
-            No records in stream yet. Make changes to items in the table to see stream events.
-          </p>
-        </div>
-      </div>
-
-      <!-- Select Stream Button -->
-      <div
-        v-if="streams.length > 0 && !selectedStream"
-        class="text-center py-4"
-      >
-        <button
-          :disabled="streamLoading"
-          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          @click="selectStream(streams[0])"
-        >
-          View Stream Events
-        </button>
-      </div>
-    </div>
-
-    <template #footer>
-      <button
-        class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-        @click="showStreamModal = false"
-      >
-        Close
-      </button>
-    </template>
-  </Modal>
+    :table-name="selectedTable?.TableName || ''"
+    :streams="streams"
+    :loading="streamLoading"
+    :error="streamError"
+    :records="streamRecords"
+    :selected-stream="(selectedStream as { StreamArn?: string; StreamStatus?: string; StreamViewType?: string; StreamLabel?: string }) || null"
+    :loading-records="loadingRecords"
+    :stream-error="streamError"
+    :has-more="!!shardIterator"
+    @load-records="loadMoreRecords"
+    @select-stream="selectStream"
+  />
 </template>

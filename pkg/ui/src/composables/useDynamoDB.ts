@@ -410,6 +410,8 @@ export function useDynamoDB() {
     loadStreams,
     getStreamShards,
     getRecordsFromShard,
+    getShardIterator,
+    getRecords,
     scanLoading,
     scanError,
     scanItems,
@@ -424,5 +426,7 @@ export function useDynamoDB() {
     getPartitionKeyName,
     getSortKeyName,
     getAllUniqueAttributes,
+    scan,
+    query,
   }
 }
