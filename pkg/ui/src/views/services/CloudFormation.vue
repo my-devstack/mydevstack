@@ -4,10 +4,15 @@ import { useSettingsStore } from '@/stores/settings'
 import { useContentReload } from '@/composables/useContentReload'
 import { CubeIcon } from '@heroicons/vue/24/outline'
 import { useCloudFormation } from '@/composables/useCloudFormation'
-import StackList from '@/components/cloudformation/StackList.vue'
-import CreateStackForm from '@/components/cloudformation/CreateStackForm.vue'
+import {
+  StackList,
+  CreateStackForm,
+} from '@/components/cloudformation'
 import type { CloudFormationStack } from '@/api/types/aws'
-import type { InstanceType } from 'vue'
+
+interface CreateStackFormRef {
+  resetForm: () => void
+}
 
 const { reloadTrigger } = useContentReload()
 const settingsStore = useSettingsStore()
@@ -16,16 +21,18 @@ const {
   stacks,
   loading,
   error,
-  selectedStackName,
   fetchStacks,
   createStack,
   deleteStack,
   selectStack,
   clearError,
+  selectedStackName,
 } = useCloudFormation()
 
+const createStackFormRef = ref<CreateStackFormRef | null>(null)
+
+// Modal state
 const showCreateModal = ref(false)
-const createStackFormRef = ref<InstanceType<typeof CreateStackForm> | null>(null)
 
 // Error handling
 const localError = ref<string | null>(null)

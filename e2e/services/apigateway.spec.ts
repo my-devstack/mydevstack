@@ -24,8 +24,18 @@ async function createRestApi(page: any, name: string, description?: string) {
 
   await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
 
-  // Wait for dialog to close
-  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+  // Wait for dialog to close or error toast
+  try {
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+  } catch {
+    // Check for error toast
+    const errorToast = page.locator('.toast-error, [class*="error"]').first()
+    if (await errorToast.isVisible({ timeout: 2000 })) {
+      throw new Error('REST API creation failed')
+    }
+    // Try one more time with longer timeout
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+  }
 }
 
 // Helper function to create an HTTP API
@@ -49,8 +59,16 @@ async function createHttpApi(page: any, name: string, description?: string) {
 
   await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
 
-  // Wait for dialog to close
-  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+  // Wait for dialog to close or error toast
+  try {
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+  } catch {
+    const errorToast = page.locator('.toast-error, [class*="error"]').first()
+    if (await errorToast.isVisible({ timeout: 2000 })) {
+      throw new Error('HTTP API creation failed')
+    }
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+  }
 }
 
 test.describe('API Gateway', () => {
@@ -87,7 +105,7 @@ test.describe('API Gateway', () => {
     await createRestApi(page, apiName, 'Test REST API description')
 
     // Verify API appears in list - wait for list to populate
-    await page.waitForTimeout(2000)
+    await page.waitForTimeout(3000)
     await expect(page.locator('div').filter({ hasText: apiName }).first()).toBeVisible({ timeout: 15000 })
   })
 

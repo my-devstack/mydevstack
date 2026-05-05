@@ -5,12 +5,8 @@ import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
 import { useSQS } from '@/composables/useSQS'
 import { QueueListIcon, ChevronDownIcon, ChevronRightIcon, ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
-import Modal from '@/components/common/Modal.vue'
-import FormInput from '@/components/common/FormInput.vue'
-import Button from '@/components/common/Button.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
-import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
-import EmptyState from '@/components/common/EmptyState.vue'
+import { SQSCreateQueueModal, SQSMessagesModal } from '@/components/sqs'
 
 const settingsStore = useSettingsStore()
 const toast = useToast()
@@ -568,79 +564,15 @@ watch(reloadTrigger, () => {
     />
 
     <!-- Messages Modal -->
-    <Modal
-      v-model:open="showMessagesModal"
-      :title="`Messages - ${selectedQueueName}`"
-      size="lg"
-    >
-      <div class="space-y-4">
-        <div class="flex justify-between items-center">
-          <span class="text-sm text-light-muted dark:text-dark-muted">
-            {{ messages.length }} message(s) available
-          </span>
-          <Button
-            variant="secondary"
-            size="sm"
-            @click="loadMessages"
-          >
-            Refresh
-          </Button>
-        </div>
-
-        <div
-          v-if="loadingMessages"
-          class="flex justify-center py-8"
-        >
-          <LoadingSpinner />
-        </div>
-
-        <EmptyState
-          v-else-if="messages.length === 0"
-          icon="inbox"
-          title="No Messages"
-          description="This queue is empty or messages have already been received."
-        />
-
-        <div
-          v-else
-          class="space-y-3 max-h-96 overflow-auto"
-        >
-          <div
-            v-for="(msg, index) in messages"
-            :key="msg.MessageId || index"
-            class="p-3 rounded-lg border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg"
-          >
-            <div class="flex justify-between items-start gap-2">
-              <div class="flex-1 min-w-0">
-                <div class="text-xs font-medium text-light-muted dark:text-dark-muted mb-1">
-                  Message ID: {{ msg.MessageId }}
-                </div>
-                <div class="text-xs text-light-muted dark:text-dark-muted mb-2">
-                  Receipt Handle: <code class="text-xs">{{ msg.ReceiptHandle }}</code>
-                </div>
-                <pre class="text-sm text-light-text dark:text-dark-text whitespace-pre-wrap break-all font-mono">{{ formatBody(msg.Body) }}</pre>
-              </div>
-              <Button
-                variant="danger"
-                size="sm"
-                @click="handleDeleteMessage(msg.ReceiptHandle)"
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <template #footer>
-        <Button
-          variant="secondary"
-          @click="showMessagesModal = false"
-        >
-          Close
-        </Button>
-      </template>
-    </Modal>
+    <SQSMessagesModal
+      :open="showMessagesModal"
+      :queue-name="selectedQueueName"
+      :messages="messages"
+      :loading="loadingMessages"
+      @update:open="showMessagesModal = $event"
+      @refresh="loadMessages"
+      @delete="handleDeleteMessage"
+    />
 
     <!-- Usage Examples Section -->
     <div class="mt-8">
@@ -683,42 +615,10 @@ watch(reloadTrigger, () => {
   </div>
 
   <!-- Create Queue Modal -->
-  <Modal
+  <SQSCreateQueueModal
     :open="showCreateModal"
-    title="Create Queue"
-    @close="showCreateModal = false"
-  >
-    <div class="space-y-4">
-      <FormInput
-        v-model="newQueue.name"
-        label="Queue Name"
-        placeholder="my-queue"
-      />
-      <label class="flex items-center gap-2">
-        <input
-          v-model="newQueue.isFifo"
-          type="checkbox"
-          class="w-4 h-4 rounded border-gray-300"
-        >
-        <span class="text-sm">FIFO Queue</span>
-      </label>
-    </div>
-    <template #footer>
-      <div class="flex justify-end gap-2">
-        <Button
-          variant="secondary"
-          @click="showCreateModal = false"
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          :loading="loading"
-          @click="createQueue"
-        >
-          Create
-        </Button>
-      </div>
-    </template>
-  </Modal>
+    :loading="loading"
+    @update:open="showCreateModal = $event"
+    @create="(name: string, isFifo: boolean) => { newQueue.name = name; newQueue.isFifo = isFifo; createQueue() }"
+  />
 </template>
