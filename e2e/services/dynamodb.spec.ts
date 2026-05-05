@@ -158,6 +158,11 @@ test('create table with stream enabled', async ({ page }) => {
     onDemand: true,
     enableStreams: true
   })
+
+  // Verify stream icon appears in accordion details
+  await page.getByText(tableName).first().click()
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByText('Stream').first()).toBeVisible({ timeout: 10000 })
 })
 
 test('view stream records', async ({ page }) => {
@@ -175,9 +180,12 @@ test('view stream records', async ({ page }) => {
   const streamTable = page.getByText('test-stream-').first()
   await expect(streamTable).toBeVisible({ timeout: 10000 })
 
+  // Click to expand accordion
   await streamTable.click()
   await page.waitForLoadState('networkidle')
-  await page.getByRole('button', { name: 'View Streams' }).click()
+
+  // Click on Stream text/icon in the accordion details (same row as ACTIVE and Provisioned)
+  await page.locator('.flex.items-center.gap-2').filter({ hasText: 'Stream' }).click()
   await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
 
   // Click "View Stream Events" button - if exists

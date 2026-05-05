@@ -3,15 +3,22 @@ import { useSettingsStore } from '@/stores/settings'
 import Modal from '@/components/common/Modal.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 
+interface StreamDetails {
+  StreamArn?: string
+  StreamStatus?: string
+  StreamViewType?: string
+  StreamLabel?: string
+  TableName?: string
+  Shards?: Array<{ ShardId?: string; SequenceNumberRange?: { StartingSequenceNumber?: string; EndingSequenceNumber?: string } }>
+}
+
 interface Props {
   open: boolean
   tableName: string
-  streams: Array<{
-    StreamArn?: string
-    StreamStatus?: string
-    StreamViewType?: string
-    StreamLabel?: string
-    TableName?: string
+  streams: StreamDetails[]
+  shards: Array<{
+    ShardId?: string
+    SequenceNumberRange?: { StartingSequenceNumber?: string; EndingSequenceNumber?: string }
   }>
   loading: boolean
   error: string | null
@@ -133,7 +140,7 @@ function selectStream(stream: { StreamArn?: string; StreamStatus?: string; Strea
                 class="font-medium text-sm mt-1"
                 :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'"
               >
-                {{ streams[0]?.StreamStatus }}
+                {{ streams[0]?.StreamStatus || 'ENABLED' }}
               </p>
             </div>
             <div>
@@ -145,7 +152,7 @@ function selectStream(stream: { StreamArn?: string; StreamStatus?: string; Strea
                 class="font-medium text-sm mt-1"
                 :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'"
               >
-                {{ streams[0]?.StreamViewType?.replace(/_/g, ' ') }}
+                {{ streams[0]?.StreamViewType?.replace(/_/g, ' ') || 'NEW_AND_OLD_IMAGES' }}
               </p>
             </div>
             <div>
@@ -159,6 +166,22 @@ function selectStream(stream: { StreamArn?: string; StreamStatus?: string; Strea
               >
                 {{ streams[0]?.StreamLabel }}
               </p>
+            </div>
+          </div>
+          <!-- Shards -->
+          <div v-if="shards.length > 0" class="mt-4 pt-4 border-t" :class="settingsStore.darkMode ? 'border-gray-600' : 'border-gray-200'">
+            <h4 class="text-sm font-medium mb-2" :class="settingsStore.darkMode ? 'text-gray-300' : 'text-gray-700'">
+              Shards ({{ shards.length }})
+            </h4>
+            <div class="space-y-1">
+              <div
+                v-for="shard in shards"
+                :key="shard.ShardId"
+                class="text-xs p-2 rounded"
+                :class="settingsStore.darkMode ? 'bg-gray-600' : 'bg-gray-100'"
+              >
+                <span class="font-mono">{{ shard.ShardId }}</span>
+              </div>
             </div>
           </div>
         </div>

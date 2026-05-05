@@ -7,14 +7,11 @@ import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useKinesis } from '@/composables/useKinesis'
 import {
-  KinesisStreamsList,
-  KinesisShardsList,
-  KinesisRecordsList,
   KinesisCreateModal,
   KinesisPutRecordModal,
   KinesisViewRecordModal,
 } from '@/components/kinesis'
-import KinesisStreamInfo from '@/components/kinesis/KinesisStreamInfo.vue'
+import KinesisStreamItem from '@/components/kinesis/KinesisStreamItem.vue'
 
 const settingsStore = useSettingsStore()
 const selectedExample = ref(0)
@@ -189,37 +186,23 @@ watch(reloadTrigger, () => {
       />
       
       <template v-else>
-        <KinesisStreamsList
-          :streams="streams"
-          :is-loading="isLoading"
-          :columns="streamColumns"
-          :selected-stream="selectedStream"
-          @select="selectStream"
-          @delete="openDeleteModal"
-        />
-
-        <KinesisStreamInfo
-          v-if="selectedStream"
-          :stream="selectedStream"
-          @put-record-click="showPutRecordModal = true"
-        />
-        
-        <KinesisShardsList
-          v-if="selectedStream"
-          :shards="shards"
-          :columns="shardColumns"
-          :selected-shard="selectedShard"
-          @get-records="getRecordsForShard"
-        />
-        
-        <KinesisRecordsList
-          v-if="selectedShard"
-          :records="records"
-          :is-loading="recordsLoading"
-          :columns="recordColumns"
-          :selected-shard="selectedShard"
-          @view="viewRecord"
-        />
+        <div class="space-y-4">
+          <KinesisStreamItem
+            v-for="stream in streams"
+            :key="stream.StreamName"
+            :stream="stream"
+            :stream-details="selectedStream?.StreamName === stream.StreamName ? selectedStream : null"
+            :shards="selectedStream?.StreamName === stream.StreamName ? shards : []"
+            :records="selectedStream?.StreamName === stream.StreamName && selectedShard ? records : []"
+            :records-loading="recordsLoading"
+            :selected-shard="selectedShard"
+            @select="selectStream"
+            @delete="openDeleteModal"
+            @get-records="getRecordsForShard"
+            @view-record="viewRecord"
+            @put-record-click="(streamName) => { if (selectedStream?.StreamName !== streamName) selectStream({ StreamName: streamName } as any); showPutRecordModal = true }"
+          />
+        </div>
       </template>
     </div>
     
@@ -236,6 +219,7 @@ watch(reloadTrigger, () => {
       :is-loading="isLoading"
       :put-record-form="putRecordForm"
       @update:open="showPutRecordModal = $event"
+      @update:put-record-form="putRecordForm = $event"
       @put-record="putRecord"
     />
     

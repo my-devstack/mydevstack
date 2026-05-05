@@ -126,6 +126,7 @@ const loadingRecords = ref(false)
 const selectedStream = ref<unknown>(null)
 const streamRecords = ref<unknown[]>([])
 const shardIterator = ref<string | null>(null)
+const streamShards = ref<any[]>([])
 
 // Example code tabs
 const exampleType = ref<'table' | 'stream'>('table')
@@ -205,6 +206,7 @@ async function selectStream(stream: unknown) {
   selectedStream.value = stream
   streamRecords.value = []
   shardIterator.value = null
+  streamShards.value = []
 
   const s = stream as { StreamArn?: string } | null
   if (!s?.StreamArn) {
@@ -218,6 +220,7 @@ async function selectStream(stream: unknown) {
   try {
     const streamArn = s.StreamArn
     const shards = await getStreamShards(streamArn)
+    streamShards.value = shards
 
     if (shards.length === 0) {
       streamError.value = 'No shards found for stream. Stream may still be initializing.'
@@ -627,14 +630,6 @@ watch(reloadTrigger, () => {
                   <MagnifyingGlassCircleIcon class="w-4 h-4" />
                 </button>
                 <button
-                  v-if="tableDetailsMap[table]?.StreamSpecification?.StreamEnabled"
-                  class="p-2 text-purple-500 hover:text-purple-700 hover:bg-light-border dark:hover:bg-dark-border rounded"
-                  title="View Streams"
-                  @click="viewStreams(table)"
-                >
-                  <RssIcon class="w-4 h-4" />
-                </button>
-                <button
                   class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
                   title="Delete"
                   @click="confirmDelete(table)"
@@ -788,6 +783,7 @@ watch(reloadTrigger, () => {
     v-model:open="showStreamModal"
     :table-name="selectedTable?.TableName || ''"
     :streams="streams"
+    :shards="streamShards"
     :loading="streamLoading"
     :error="streamError"
     :records="streamRecords"
