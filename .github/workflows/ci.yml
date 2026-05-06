@@ -43,7 +43,7 @@ jobs:
           cache-dependency-path: pkg/ui/package-lock.json
 
       - name: Install dependencies
-        run: cd pkg/ui && npm ci
+        run: cd pkg/ui && npm ci --legacy-peer-deps
 
       - name: Run ESLint
         run: cd pkg/ui && npm run lint
@@ -63,7 +63,7 @@ jobs:
           cache-dependency-path: pkg/ui/package-lock.json
 
       - name: Install dependencies
-        run: cd pkg/ui && npm ci
+        run: cd pkg/ui && npm ci --legacy-peer-deps
 
       - name: Run Vitest
         run: cd pkg/ui && npm run test:run
@@ -140,11 +140,11 @@ jobs:
         working-directory: pkg/proxy
 
       - name: Install root dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
         working-directory: .
 
       - name: Install UI dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
         working-directory: pkg/ui
 
       - name: Install Playwright browsers
@@ -274,7 +274,7 @@ jobs:
       - name: Build Vue UI
         run: |
           cd pkg/ui
-          npm ci
+          npm ci --legacy-peer-deps
           npm run build
 
       - name: Upload artifact

@@ -301,6 +301,21 @@ cd pkg/ui && npm run test:run
 cd pkg/ui && npm run test:run src/stores/settings.test.ts
 ```
 
+### Storybook (Component Development)
+
+```bash
+# Start Storybook (port 6006)
+cd pkg/ui && npm run storybook
+
+# Build static
+cd pkg/ui && npm run build-storybook
+```
+
+Use Storybook for:
+- Developing components in isolation
+- Testing UI states (loading, empty, error)
+- Visual documentation of component API
+
 ### Building
 
 ```bash
