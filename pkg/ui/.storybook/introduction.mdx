@@ -1,0 +1,86 @@
+# MyDevStack Component Library
+
+This Storybook showcases reusable components for AWS service management.
+
+## Overview
+
+MyDevStack is a Vue 3 + TypeScript application for managing AWS resources. The UI is built with a composable + component architecture, and Storybook provides isolated development and visual testing.
+
+## Architecture
+
+Each service (S3, IAM, Lambda, etc.) follows the same pattern:
+
+- **Composable**: `use[Service]()` - business logic and state
+- **Components**: `components/[service]/` - reusable UI components
+- **Stories**: `components/[service]/*.stories.ts` - Storybook stories
+
+## Development Workflow
+
+1. Run `npm run storybook` (starts on port 6006)
+2. Develop component in isolation
+3. Test edge cases (loading, error, empty)
+4. Integrate into main app
+
+## Component Categories
+
+### Lists (Highest Reuse)
+- S3BucketsList, LambdaFunctionsList, IAMUsersList
+- States: Default, Loading, Empty
+
+### Modals (High Reuse)
+- CreateModal, DeleteModal, EditModal variants
+- States: Open, Closed, Loading
+
+### Forms (Medium Reuse)
+- CreateStackForm, CreateSecretModal
+- States: Default, ValidationError, Submitting
+
+### Detail Views (Low Reuse)
+- StackDetails, LambdaInvokeModal, KMSViewDetailsModal
+- States: Default, Loading, WithData
+
+## Story Naming Convention
+
+```
+src/components/[service]/[ComponentName].stories.ts
+```
+
+Examples:
+- `src/components/s3/S3BucketsList.stories.ts`
+- `src/components/iam/IAMCreateUserModal.stories.ts`
+- `src/components/common/Button.stories.ts`
+
+## Story States
+
+Each component story should include:
+- **Default**: Normal data loaded
+- **Loading**: During async operations
+- **Empty**: No data available
+- **Error**: Failed to load data
+
+## Common Components
+
+- Button, Modal, FormInput, FormSelect
+- DataTable, ServiceTable
+- LoadingSpinner, EmptyState, StatusBadge
+- Toast, Tabs
+
+## Running Storybook
+
+```bash
+# Development
+cd pkg/ui && npm run storybook
+
+# Build static
+npm run build-storybook
+
+# Test specific component
+npm run build-storybook -- --components src/components/s3/S3BucketsList.stories.ts
+```
+
+## Notes
+
+- Stories stay in same folder as components (colocate)
+- Use `args` for dynamic prop control
+- Mock API calls in stories (don't rely on LocalStack)
+- Test loading/error/empty states visually
