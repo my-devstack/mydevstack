@@ -51,7 +51,7 @@ COPY ./build/nginx.conf /etc/nginx/nginx.conf
 RUN mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx/tmp /var/run  /etc/mydevstack/config && \
     chown -R appuser:appuser /var/cache/nginx /var/log/nginx /var/lib/nginx /var/run /etc/nginx /etc/mydevstack/config
 
-COPY ./config.yaml.example /etc/mydevstack/config/config.yaml
+COPY ./pkg/proxy/config.yaml.example   /etc/mydevstack/config/config.yaml
 
 # Switch to non-root user
 USER appuser

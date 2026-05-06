@@ -102,6 +102,26 @@ cd pkg/ui && npm run test:run
 cd pkg/ui && npx vitest run <file>
 ```
 
+### Storybook (Component Development)
+
+```bash
+# Start Storybook (port 6006)
+cd pkg/ui && npm run storybook
+
+# Build static Storybook
+cd pkg/ui && npm run build-storybook
+```
+
+**Why use Storybook?**
+- Develop components in isolation without backend
+- Test all states (loading, empty, error) visually
+- Document component API automatically
+
+**When to use:**
+- Building new UI components
+- Creating stories for existing services
+- Visual regression testing
+
 ### E2E Tests
 
 E2E tests require Floci/LocalStack running on port 4566:

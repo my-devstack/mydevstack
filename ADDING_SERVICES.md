@@ -147,7 +147,65 @@ function handleConfirm() {
 </template>
 ```
 
-### Step 4: Create View
+### Step 4: Create Storybook Stories (Recommended)
+
+Create stories alongside your components for isolated development and testing:
+
+```bash
+# Storybook runs on port 6006
+cd pkg/ui && npm run storybook
+```
+
+Create `pkg/ui/src/components/<service>/<Component>.stories.ts`:
+
+```typescript
+import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import <Component> from './<Component>.vue'
+
+const meta: Meta<typeof <Component>> = {
+  title: 'Services/<Service>/<Component>',
+  component: <Component>,
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {
+    // Default props
+  },
+}
+
+export const Loading: Story = {
+  args: {
+    loading: true,
+  },
+}
+
+export const Empty: Story = {
+  args: {
+    items: [],
+  },
+}
+
+export const Error: Story = {
+  args: {
+    error: 'Failed to load data',
+  },
+}
+```
+
+**Story Patterns by Component Type:**
+
+| Component Type | Story States |
+|----------------|--------------|
+| Lists (ServiceList) | Default, Loading, Empty, Error |
+| Modals (Create/Edit) | Open, Closed, Loading |
+| Forms | Default, Validation Error, Submitting |
+| Details | Default, Loading, With Data |
+
+### Step 5: Create View
 
 Create `pkg/ui/src/views/services/<Service>.vue`:
 
@@ -213,10 +271,11 @@ The following services are currently implemented:
 | API Client | 1 | `api/services/<service>.ts` |
 | Composable | 1 | `composables/use<Service>.ts` (+ unit test) |
 | Components | 2-4 | List, Modal, optionally CodeExamples (+ integration test) |
+| Stories | 1-2 | `components/<service>/*.stories.ts` (recommended) |
 | View | 1 | Container component |
 | Router | 1 | Add route entry |
 | E2E Test | 1 | `e2e/services/<service>.spec.ts` |
-| **Total** | **7-10** | Per service |
+| **Total** | **8-12** | Per service |
 
 ## Testing Requirements
 
@@ -226,7 +285,9 @@ Every service MUST include:
    - Unit tests (`composables/use<Service>.test.ts`)
 2. **Components** (`components/<service>/`)
    - Integration tests (`components/<service>/integration.test.ts`)
-3. **E2E Tests** (`e2e/services/<service>.spec.ts`)
+3. **Storybook Stories** (`components/<service>/*.stories.ts`)
+   - Test all component states (Default, Loading, Empty, Error)
+4. **E2E Tests** (`e2e/services/<service>.spec.ts`)
 
 Run tests:
 ```bash
@@ -249,6 +310,7 @@ make test-e2e
 5. **Consistent naming** - PascalCase for components, camelCase for files
 6. **Keep under 200 lines** - Break large components into smaller reusable parts
 7. **Always write tests** - Unit + integration for frontend, unit for backend
+8. **Use Storybook** - Create stories alongside components for isolated development
 
 ## Using Generic Components
 
