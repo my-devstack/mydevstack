@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { shallowRef, computed, watch } from 'vue'
-import { CubeIcon, TrashIcon } from '@heroicons/vue/24/outline'
+import { reactive, computed, watch, ref } from 'vue'
+import { CubeIcon, TrashIcon, ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 import { useSettingsStore } from '@/stores/settings'
-import type { CloudFormationStack, CloudFormationOutput } from '@/api/types/aws'
+import { useToast } from '@/composables/useToast'
+import { listStackResources } from '@/api/services/cloudformation'
+import type { CloudFormationStack, CloudFormationOutput, CloudFormationStackResource } from '@/api/types/aws'
 
 const props = defineProps<{
   stacks: CloudFormationStack[]
@@ -16,12 +18,18 @@ const emit = defineEmits<{
 }>()
 
 const settingsStore = useSettingsStore()
+const toast = useToast()
 
-const expandedStack = shallowRef<string | null>(null)
+const expandedStack = ref<string | null>(null)
+
+// Resources state per stack - use reactive for deep reactivity
+const stackResources = reactive<Record<string, CloudFormationStackResource[]>>({})
+const loadingResources = reactive<Record<string, boolean>>({})
+const resourcesError = reactive<Record<string, string>>({})
 
 // Pagination
-const currentPage = shallowRef(1)
-const itemsPerPage = shallowRef(10)
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 const totalPages = computed(() => Math.ceil(props.stacks.length / itemsPerPage.value))
 const paginatedStacks = computed(() => {
@@ -42,7 +50,12 @@ watch(itemsPerPage, () => {
 })
 
 function toggleExpand(stackName: string) {
-  expandedStack.value = expandedStack.value === stackName ? null : stackName
+  if (expandedStack.value === stackName) {
+    expandedStack.value = null
+  } else {
+    expandedStack.value = stackName
+    loadResources(stackName)
+  }
 }
 
 function isExpanded(stackName: string): boolean {
@@ -78,6 +91,43 @@ function statusColor(status: string | undefined): string {
 
 function getOutputs(stack: CloudFormationStack): CloudFormationOutput[] {
   return stack.Outputs || []
+}
+
+function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text)
+  toast.success('Copied', 'Stack ID copied to clipboard')
+}
+
+async function loadResources(stackName: string) {
+  if (stackResources[stackName] || loadingResources[stackName]) {
+    return
+  }
+
+  // Reactive update triggers reactivity automatically
+  loadingResources[stackName] = true
+  resourcesError[stackName] = ''
+
+  try {
+    const resources = await listStackResources({ StackName: stackName })
+    // Reactive update
+    stackResources[stackName] = resources
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Failed to load resources'
+    // Reactive update
+    resourcesError[stackName] = msg
+    console.error('[StackList] Failed to load stack resources:', err)
+  } finally {
+    // Reactive update
+    loadingResources[stackName] = false
+  }
+}
+
+function getStackResources(stackName: string): CloudFormationStackResource[] {
+  return stackResources[stackName] || []
+}
+
+function isLoadingResources(stackName: string): boolean {
+  return loadingResources[stackName] || false
 }
 </script>
 
@@ -248,9 +298,19 @@ function getOutputs(stack: CloudFormationStack): CloudFormationOutput[] {
                   <h3 class="text-sm font-medium text-light-muted dark:text-dark-muted mb-2">
                     Stack ID
                   </h3>
-                  <p class="text-light-text dark:text-dark-text text-sm truncate">
-                    {{ stack.StackId }}
-                  </p>
+                  <div class="flex items-center gap-2">
+                    <p class="text-light-text dark:text-dark-text text-sm truncate flex-1">
+                      {{ stack.StackId }}
+                    </p>
+                    <button
+                      type="button"
+                      aria-label="Copy Stack ID"
+                      class="p-1.5 rounded hover:bg-light-border dark:hover:bg-dark-border text-light-muted dark:text-dark-muted"
+                      @click.stop="copyToClipboard(stack.StackId)"
+                    >
+                      <ClipboardDocumentIcon class="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
                 <div class="p-4 bg-light-surface dark:bg-dark-surface rounded-lg">
                   <h3 class="text-sm font-medium text-light-muted dark:text-dark-muted mb-2">
@@ -265,7 +325,7 @@ function getOutputs(stack: CloudFormationStack): CloudFormationOutput[] {
                     Last Updated
                   </h3>
                   <p class="text-light-text dark:text-dark-text">
-                    {{ formatDate(stack.LastUpdatedTime) }}
+                    {{ formatDate(stack.LastUpdatedTime || stack.CreationTime) }}
                   </p>
                 </div>
                 <div class="p-4 bg-light-surface dark:bg-dark-surface rounded-lg">
@@ -291,6 +351,70 @@ function getOutputs(stack: CloudFormationStack): CloudFormationOutput[] {
                   >
                     {{ stack.StackStatus }}
                   </span>
+                </div>
+
+                <!-- New Fields -->
+                <div
+                  v-if="stack.RoleARN"
+                  class="p-4 bg-light-surface dark:bg-dark-surface rounded-lg"
+                >
+                  <h3 class="text-sm font-medium text-light-muted dark:text-dark-muted mb-2">
+                    Role ARN
+                  </h3>
+                  <p class="text-light-text dark:text-dark-text text-sm truncate">
+                    {{ stack.RoleARN }}
+                  </p>
+                </div>
+                <div
+                  v-if="stack.EnableTerminationProtection !== undefined"
+                  class="p-4 bg-light-surface dark:bg-dark-surface rounded-lg"
+                >
+                  <h3 class="text-sm font-medium text-light-muted dark:text-dark-muted mb-2">
+                    Termination Protection
+                  </h3>
+                  <p class="text-light-text dark:text-dark-text">
+                    {{ stack.EnableTerminationProtection ? 'Enabled' : 'Disabled' }}
+                  </p>
+                </div>
+                <div
+                  v-if="stack.DriftInformation?.StackDriftStatus"
+                  class="p-4 bg-light-surface dark:bg-dark-surface rounded-lg"
+                >
+                  <h3 class="text-sm font-medium text-light-muted dark:text-dark-muted mb-2">
+                    Drift Status
+                  </h3>
+                  <p class="text-light-text dark:text-dark-text">
+                    {{ stack.DriftInformation.StackDriftStatus }}
+                  </p>
+                </div>
+                <div
+                  v-if="stack.ParentId || stack.RootId"
+                  class="p-4 bg-light-surface dark:bg-dark-surface rounded-lg"
+                >
+                  <h3 class="text-sm font-medium text-light-muted dark:text-dark-muted mb-2">
+                    Parent/Root Stack
+                  </h3>
+                  <p class="text-light-text dark:text-dark-text text-sm">
+                    <span v-if="stack.ParentId">Parent: {{ stack.ParentId }}</span>
+                    <span v-if="stack.RootId">Root: {{ stack.RootId }}</span>
+                  </p>
+                </div>
+                <div
+                  v-if="stack.Tags?.length"
+                  class="p-4 bg-light-surface dark:bg-dark-surface rounded-lg"
+                >
+                  <h3 class="text-sm font-medium text-light-muted dark:text-dark-muted mb-2">
+                    Tags
+                  </h3>
+                  <div class="flex flex-wrap gap-2">
+                    <span
+                      v-for="tag in stack.Tags"
+                      :key="tag.Key"
+                      class="inline-flex items-center px-2 py-1 rounded text-xs bg-light-border dark:bg-dark-border text-light-text dark:text-dark-text"
+                    >
+                      {{ tag.Key }}={{ tag.Value }}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -331,6 +455,92 @@ function getOutputs(stack: CloudFormationStack): CloudFormationOutput[] {
                       </tr>
                     </tbody>
                   </table>
+                </div>
+              </div>
+
+              <!-- Resources -->
+              <div class="mt-4">
+                <h3 class="text-lg font-medium text-light-text dark:text-dark-text mb-3">
+                  Resources
+                </h3>
+                <div
+                  v-if="isLoadingResources(stack.StackName)"
+                  class="text-center py-4"
+                >
+                  <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent" />
+                  <p class="mt-2 text-sm text-light-muted dark:text-dark-muted">
+                    Loading resources...
+                  </p>
+                </div>
+                <div
+                  v-else-if="resourcesError[stack.StackName]"
+                  class="text-center py-4 text-red-600 dark:text-red-400"
+                >
+                  {{ resourcesError[stack.StackName] }}
+                </div>
+                <div
+                  v-else-if="getStackResources(stack.StackName).length > 0"
+                  class="bg-light-surface dark:bg-dark-surface rounded-lg overflow-hidden"
+                >
+                  <table class="min-w-full divide-y divide-light-border dark:divide-dark-border">
+                    <thead>
+                      <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-light-muted dark:text-dark-muted uppercase tracking-wider">
+                          Logical ID
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-light-muted dark:text-dark-muted uppercase tracking-wider">
+                          Type
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-light-muted dark:text-dark-muted uppercase tracking-wider">
+                          Physical ID
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-light-muted dark:text-dark-muted uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-light-muted dark:text-dark-muted uppercase tracking-wider">
+                          Last Updated
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-light-border dark:divide-dark-border">
+                      <tr
+                        v-for="resource in getStackResources(stack.StackName)"
+                        :key="resource.LogicalResourceId"
+                      >
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-light-text dark:text-dark-text">
+                          {{ resource.LogicalResourceId }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-light-muted dark:text-dark-muted">
+                          {{ resource.ResourceType }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-light-muted dark:text-dark-muted truncate max-w-xs">
+                          {{ resource.PhysicalResourceId || 'N/A' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <span
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                            :class="{
+                              'bg-green-100 text-green-800': resource.ResourceStatus === 'CREATE_COMPLETE' || resource.ResourceStatus === 'UPDATE_COMPLETE',
+                              'bg-red-100 text-red-800': resource.ResourceStatus?.includes('FAILED'),
+                              'bg-yellow-100 text-yellow-800': resource.ResourceStatus?.includes('IN_PROGRESS'),
+                              'bg-gray-100 text-gray-800': true,
+                            }"
+                          >
+                            {{ resource.ResourceStatus }}
+                          </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-light-muted dark:text-dark-muted">
+                          {{ formatDate(resource.LastUpdatedTimestamp) }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div
+                  v-else
+                  class="text-center py-4 text-light-muted dark:text-dark-muted"
+                >
+                  No resources found
                 </div>
               </div>
             </div>
