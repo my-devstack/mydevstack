@@ -1,5 +1,7 @@
 # MyDevStack
 
+<img src="pkg/ui/public/logo.svg" alt="MyDevStack Logo" width="128" align="center" />
+
 A modern, developer-friendly Docker image for managing AWS services running locally via AWS emulators like LocalStack or MiniStack.
 
 ![Docker](https://img.shields.io/badge/Docker-24.0+-2496ED?style=flat&logo=docker)

@@ -43,16 +43,23 @@ function handleClose() {
     @close="handleClose"
   >
     <div class="space-y-4">
-      <div>
-        <h3 class="font-medium">
-          MyDevStack
-        </h3>
-        <p
-          class="text-sm"
-          :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+      <div class="flex items-center gap-4">
+        <img
+          src="/logo.svg"
+          alt="MyDevStack"
+          class="w-16 h-16"
         >
-          Version {{ version }} - AWS Service Manager
-        </p>
+        <div>
+          <h3 class="font-medium text-lg">
+            MyDevStack
+          </h3>
+          <p
+            class="text-sm"
+            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+          >
+            Version {{ version }} - AWS Service Manager
+          </p>
+        </div>
       </div>
 
       <div>
