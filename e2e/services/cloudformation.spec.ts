@@ -161,7 +161,7 @@ test.describe('CloudFormation', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
 
     // Should show validation error
-    await expect(page.getByText('Invalid JSON template')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText('Invalid JSON:')).toBeVisible({ timeout: 5000 })
   })
 
   test('error state - missing stack name', async ({ page }) => {
@@ -182,5 +182,89 @@ test.describe('CloudFormation', () => {
 
     // Should show validation error
     await expect(page.getByText('Stack name is required')).toBeVisible({ timeout: 5000 })
+  })
+
+  test('switch to YAML format', async ({ page }) => {
+    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+
+    // Open modal
+    await page.getByText('+ Create Stack').first().click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+
+    // Default should be JSON selected
+    await expect(page.getByRole('button', { name: 'JSON' })).toHaveClass(/bg-primary-600/)
+
+    // Click YAML button
+    await page.getByRole('button', { name: 'YAML' }).click()
+
+    // YAML should now be selected
+    await expect(page.getByRole('button', { name: 'YAML' })).toHaveClass(/bg-primary-600/)
+  })
+
+  test('create stack with YAML template', async ({ page }) => {
+    test.setTimeout(60000)
+
+    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+
+    // Open modal
+    await page.getByText('+ Create Stack').first().click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+
+    // Switch to YAML
+    await page.getByRole('button', { name: 'YAML' }).click()
+
+    // Fill form with YAML
+    const stackName = `yaml-stack-${Date.now()}`
+    await page.getByPlaceholder('Enter stack name').fill(stackName)
+    await page.locator('textarea').fill(`AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  MyBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: my-test-bucket`)
+
+    // Create stack
+    await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+
+    // Wait for modal to close
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 20000 })
+
+    // Wait for page reload
+    await page.waitForLoadState('networkidle')
+
+    // Verify the stack appears in list
+    const stackRow = page.locator('.cursor-pointer').filter({ hasText: stackName })
+    await expect(stackRow).toBeVisible({ timeout: 30000 })
+  })
+
+  test('validation error with invalid YAML', async ({ page }) => {
+    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+
+    // Open modal
+    await page.getByText('+ Create Stack').first().click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+
+    // Switch to YAML
+    await page.getByRole('button', { name: 'YAML' }).click()
+
+    // Fill with YAML containing CloudFormation tags (should be allowed now)
+    await page.getByPlaceholder('Enter stack name').fill('test-stack')
+    await page.locator('textarea').fill(`AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  MyQueue:
+    Type: AWS::SQS::Queue
+  MyFunction:
+    Type: AWS::Lambda::Function
+  MyESM:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      FunctionName: !Ref MyFunction
+      EventSourceArn: !GetAtt MyQueue.Arn`)
+
+    // Try to create - should now work (AWS validates server-side)
+    await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+
+    // Should NOT show validation error (CF tags allowed)
+    await expect(page.getByText('Invalid YAML')).not.toBeVisible({ timeout: 5000 })
   })
 })
