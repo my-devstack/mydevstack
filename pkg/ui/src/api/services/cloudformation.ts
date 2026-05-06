@@ -6,7 +6,7 @@
 
 import { PROXY_BACKEND } from '@/config'
 import { APIError } from '../client'
-import type { CloudFormationStack, CloudFormationOutput } from '../types/aws'
+import type { CloudFormationStack, CloudFormationOutput, CloudFormationStackResource } from '../types/aws'
 
 async function cfRequest(action: string, body: object = {}): Promise<any> {
   const endpoint = PROXY_BACKEND.replace(/\/$/, '')
@@ -64,6 +64,10 @@ export interface DeleteStackRequest {
   RoleARN?: string
 }
 
+export interface ListStackResourcesRequest {
+  StackName: string
+}
+
 export interface GetStackDetailsRequest {
   StackName: string
 }
@@ -90,6 +94,12 @@ export class CloudFormationService {
       TimeoutInMinutes: stack.TimeoutInMinutes || 0,
       Capabilities: stack.Capabilities || [],
       Outputs: stack.Outputs || [],
+      EnableTerminationProtection: stack.EnableTerminationProtection || false,
+      Tags: stack.Tags || [],
+      RoleARN: stack.RoleARN || '',
+      ParentId: stack.ParentId || '',
+      RootId: stack.RootId || '',
+      DriftInformation: stack.DriftInformation || {},
     }))
   }
 
@@ -121,7 +131,25 @@ export class CloudFormationService {
       TimeoutInMinutes: stack.TimeoutInMinutes || 0,
       Capabilities: stack.Capabilities || [],
       Outputs: stack.Outputs || [],
+      EnableTerminationProtection: stack.EnableTerminationProtection || false,
+      Tags: stack.Tags || [],
+      RoleARN: stack.RoleARN || '',
+      ParentId: stack.ParentId || '',
+      RootId: stack.RootId || '',
+      DriftInformation: stack.DriftInformation || {},
     }
+  }
+
+  async listStackResources(request: ListStackResourcesRequest): Promise<CloudFormationStackResource[]> {
+    const response = await cfRequest('ListStackResources', { StackName: request.StackName })
+    return (response.StackResourceSummaries || []).map((resource: any) => ({
+      LogicalResourceId: resource.LogicalResourceId || '',
+      PhysicalResourceId: resource.PhysicalResourceId || '',
+      ResourceType: resource.ResourceType || '',
+      ResourceStatus: resource.ResourceStatus || '',
+      ResourceStatusReason: resource.ResourceStatusReason || '',
+      LastUpdatedTimestamp: resource.LastUpdatedTimestamp || '',
+    }))
   }
 
   async getStackTemplate(stackName: string): Promise<string> {
@@ -137,5 +165,6 @@ export const createStack = (request: CreateStackRequest) => cloudFormationServic
 export const deleteStack = (request: DeleteStackRequest) => cloudFormationService.deleteStack(request)
 export const getStackDetails = (request: GetStackDetailsRequest) => cloudFormationService.getStackDetails(request)
 export const getStackTemplate = (stackName: string) => cloudFormationService.getStackTemplate(stackName)
+export const listStackResources = (request: ListStackResourcesRequest) => cloudFormationService.listStackResources(request)
 
 export default cloudFormationService

@@ -24,6 +24,19 @@ vi.mock('@/composables/useCloudFormation', () => ({
   })),
 }))
 
+vi.mock('@/composables/useToast', () => ({
+  useToast: vi.fn(() => ({
+    success: vi.fn(),
+    error: vi.fn(),
+  })),
+}))
+
+import * as cfApi from '@/api/services/cloudformation'
+
+vi.mock('@/api/services/cloudformation', () => ({
+  listStackResources: vi.fn(),
+}))
+
 describe('CloudFormation Components Integration', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -158,6 +171,30 @@ describe('CloudFormation Components Integration', () => {
       expect(wrapper.text()).toContain('Output1')
     })
 
+    it('shows copy button for Stack ID', async () => {
+      const mockStack: CloudFormationStack = {
+        StackName: 'test-stack',
+        StackId: 'arn:aws:cloudformation:us-east-1:123456789:stack/test-stack',
+        StackStatus: 'CREATE_COMPLETE',
+        CreationTime: '2024-01-01T00:00:00Z',
+      } as CloudFormationStack
+
+      const wrapper = mount(StackList, {
+        props: {
+          stacks: [mockStack],
+          loading: false,
+        },
+      })
+
+      // Click to expand accordion
+      const rows = wrapper.findAll('div.cursor-pointer')
+      await rows[0].trigger('click')
+
+      // Check copy button exists
+      const copyButton = wrapper.find('button[aria-label="Copy Stack ID"]')
+      expect(copyButton.exists()).toBe(true)
+    })
+
     it('hides details when accordion collapsed', async () => {
       const mockStack: CloudFormationStack = {
         StackName: 'test-stack',
@@ -286,10 +323,13 @@ describe('CloudFormation Components Integration', () => {
         expect(wrapper.vm.paginatedStacks).toHaveLength(5)
       })
 
-      it('goToPage clamps to valid range', async () => {
+it('goToPage clamps to valid range', async () => {
         const stacks = makeStacks(5)
         const wrapper = mount(StackList, {
-          props: { stacks, loading: false },
+          props: {
+            stacks,
+            loading: false,
+          },
         })
 
         await wrapper.vm.goToPage(0) // below min
@@ -297,6 +337,172 @@ describe('CloudFormation Components Integration', () => {
 
         await wrapper.vm.goToPage(100) // above max
         expect(wrapper.vm.currentPage).toBe(1)
+      })
+    })
+
+    describe('loadResources', () => {
+      const mockResources = [
+        { LogicalResourceId: 'VPC', ResourceType: 'AWS::EC2::VPC', PhysicalResourceId: 'vpc-123', ResourceStatus: 'CREATE_COMPLETE', LastUpdatedTimestamp: '2024-01-15T10:00:00Z' },
+        { LogicalResourceId: 'Subnet', ResourceType: 'AWS::EC2::Subnet', PhysicalResourceId: 'subnet-456', ResourceStatus: 'CREATE_COMPLETE', LastUpdatedTimestamp: '2024-01-15T10:05:00Z' },
+      ]
+
+      it('loads resources when stack is expanded', async () => {
+        vi.mocked(cfApi.listStackResources).mockResolvedValue(mockResources)
+
+        const mockStack: CloudFormationStack = {
+          StackName: 'test-stack',
+          StackId: 'arn:aws:cloudformation:...',
+          StackStatus: 'CREATE_COMPLETE',
+          CreationTime: '2024-01-01T00:00:00Z',
+        } as CloudFormationStack
+
+        const wrapper = mount(StackList, {
+          props: {
+            stacks: [mockStack],
+            loading: false,
+          },
+        })
+
+        // Expand stack - triggers loadResources internally
+        const rows = wrapper.findAll('div.cursor-pointer')
+        await rows[0].trigger('click')
+
+        // Wait for async loadResources to complete
+        await vi.waitFor(() => {
+          expect(cfApi.listStackResources).toHaveBeenCalledWith({ StackName: 'test-stack' })
+        })
+
+        // Verify resources are displayed in the table
+        expect(wrapper.text()).toContain('VPC')
+        expect(wrapper.text()).toContain('AWS::EC2::VPC')
+        expect(wrapper.text()).toContain('Subnet')
+      })
+
+      it('shows loading spinner while fetching resources', async () => {
+        // Create a promise that we can control
+        let resolveResources: (val: any) => void
+        const promise = new Promise((resolve) => {
+          resolveResources = resolve
+        })
+        vi.mocked(cfApi.listStackResources).mockReturnValue(promise)
+
+        const mockStack: CloudFormationStack = {
+          StackName: 'test-stack',
+          StackId: 'arn:aws:cloudformation:...',
+          StackStatus: 'CREATE_COMPLETE',
+          CreationTime: '2024-01-01T00:00:00Z',
+        } as CloudFormationStack
+
+        const wrapper = mount(StackList, {
+          props: {
+            stacks: [mockStack],
+            loading: false,
+          },
+        })
+
+        // Expand stack
+        const rows = wrapper.findAll('div.cursor-pointer')
+        await rows[0].trigger('click')
+
+        // Should show loading spinner
+        expect(wrapper.text()).toContain('Loading resources...')
+
+        // Resolve the promise
+        resolveResources!(mockResources)
+        await vi.waitFor(() => {
+          // Wait until loading is gone and resources show
+          expect(wrapper.text()).not.toContain('Loading resources...')
+          expect(wrapper.text()).toContain('VPC')
+        })
+      })
+
+      it('shows error message when resources fail to load', async () => {
+        vi.mocked(cfApi.listStackResources).mockRejectedValue(new Error('Access denied'))
+
+        const mockStack: CloudFormationStack = {
+          StackName: 'test-stack',
+          StackId: 'arn:aws:cloudformation:...',
+          StackStatus: 'CREATE_COMPLETE',
+          CreationTime: '2024-01-01T00:00:00Z',
+        } as CloudFormationStack
+
+        const wrapper = mount(StackList, {
+          props: {
+            stacks: [mockStack],
+            loading: false,
+          },
+        })
+
+        // Expand stack
+        const rows = wrapper.findAll('div.cursor-pointer')
+        await rows[0].trigger('click')
+
+        // Wait for error
+        await vi.waitFor(() => {
+          expect(wrapper.text()).toContain('Access denied')
+        })
+
+        // Should show error, not loading
+        expect(wrapper.text()).not.toContain('Loading resources...')
+      })
+
+      it('does not re-fetch resources for already loaded stack', async () => {
+        vi.mocked(cfApi.listStackResources).mockResolvedValue(mockResources)
+
+        const mockStack: CloudFormationStack = {
+          StackName: 'test-stack',
+          StackId: 'arn:aws:cloudformation:...',
+          StackStatus: 'CREATE_COMPLETE',
+          CreationTime: '2024-01-01T00:00:00Z',
+        } as CloudFormationStack
+
+        const wrapper = mount(StackList, {
+          props: {
+            stacks: [mockStack],
+            loading: false,
+          },
+        })
+
+        // First expand - loads resources
+        const rows = wrapper.findAll('div.cursor-pointer')
+        await rows[0].trigger('click')
+
+        await vi.waitFor(() => {
+          expect(cfApi.listStackResources).toHaveBeenCalledTimes(1)
+        })
+
+        // Collapse
+        await rows[0].trigger('click')
+
+        // Expand again - should NOT re-fetch
+        await rows[0].trigger('click')
+
+        expect(cfApi.listStackResources).toHaveBeenCalledTimes(1)
+      })
+
+      it('shows "No resources found" when stack has no resources', async () => {
+        vi.mocked(cfApi.listStackResources).mockResolvedValue([])
+
+        const mockStack: CloudFormationStack = {
+          StackName: 'empty-stack',
+          StackId: 'arn:aws:cloudformation:...',
+          StackStatus: 'CREATE_COMPLETE',
+          CreationTime: '2024-01-01T00:00:00Z',
+        } as CloudFormationStack
+
+        const wrapper = mount(StackList, {
+          props: {
+            stacks: [mockStack],
+            loading: false,
+          },
+        })
+
+        const rows = wrapper.findAll('div.cursor-pointer')
+        await rows[0].trigger('click')
+
+        await vi.waitFor(() => {
+          expect(wrapper.text()).toContain('No resources found')
+        })
       })
     })
   })

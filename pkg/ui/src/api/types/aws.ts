@@ -758,6 +758,16 @@ export interface CloudFormationStack {
   TimeoutInMinutes?: number
   Capabilities?: string[]
   Outputs?: CloudFormationOutput[]
+  EnableTerminationProtection?: boolean
+  Tags?: Array<{ Key: string; Value: string }>
+  RoleARN?: string
+  ParentId?: string
+  RootId?: string
+  DriftInformation?: {
+    StackDriftStatus?: string
+    LastCheckTimestamp?: string
+  }
+  StackResources?: CloudFormationStackResource[]
 }
 
 export interface CloudFormationOutput {
@@ -765,6 +775,15 @@ export interface CloudFormationOutput {
   OutputValue: string
   Description?: string
   ExportName?: string
+}
+
+export interface CloudFormationStackResource {
+  LogicalResourceId: string
+  PhysicalResourceId?: string
+  ResourceType: string
+  ResourceStatus: string
+  ResourceStatusReason?: string
+  LastUpdatedTimestamp: string
 }
 
 // SSM Types
