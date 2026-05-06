@@ -74,10 +74,6 @@ function formatData(data: string): string {
       @click="toggleExpand"
     >
       <div class="col-span-8 flex items-center gap-2">
-        <component
-          :is="expanded ? ChevronDownIcon : ChevronRightIcon"
-          class="h-5 w-5 text-light-muted dark:text-dark-muted"
-        />
         <svg
           class="h-5 w-5 text-primary-500"
           fill="none"
@@ -117,6 +113,10 @@ function formatData(data: string): string {
             />
           </svg>
         </button>
+        <component
+          :is="expanded ? ChevronDownIcon : ChevronRightIcon"
+          class="h-5 w-5 text-light-muted dark:text-dark-muted"
+        />
       </div>
     </div>
 
