@@ -54,3 +54,19 @@ func (a *LambdaAdapter) UpdateFunctionCode(ctx context.Context, input *lambda.Up
 func (a *LambdaAdapter) GetFunctionConfiguration(ctx context.Context, input *lambda.GetFunctionConfigurationInput) (*lambda.GetFunctionConfigurationOutput, error) {
 	return a.client.GetFunctionConfiguration(ctx, input)
 }
+
+func (a *LambdaAdapter) ListEventSourceMappings(ctx context.Context, input *lambda.ListEventSourceMappingsInput) (*lambda.ListEventSourceMappingsOutput, error) {
+	return a.client.ListEventSourceMappings(ctx, input)
+}
+
+func (a *LambdaAdapter) CreateEventSourceMapping(ctx context.Context, input *lambda.CreateEventSourceMappingInput) (*lambda.CreateEventSourceMappingOutput, error) {
+	return a.client.CreateEventSourceMapping(ctx, input)
+}
+
+func (a *LambdaAdapter) GetEventSourceMapping(ctx context.Context, input *lambda.GetEventSourceMappingInput) (*lambda.GetEventSourceMappingOutput, error) {
+	return a.client.GetEventSourceMapping(ctx, input)
+}
+
+func (a *LambdaAdapter) DeleteEventSourceMapping(ctx context.Context, input *lambda.DeleteEventSourceMappingInput) (*lambda.DeleteEventSourceMappingOutput, error) {
+	return a.client.DeleteEventSourceMapping(ctx, input)
+}

@@ -25,6 +25,7 @@ const settingsStore = useSettingsStore()
 const services: Service[] = [
   { name: 'S3', path: '/services/s3', icon: 's3', color: 'service-s3' },
   { name: 'Lambda', path: '/services/lambda', icon: 'lambda', color: 'service-lambda' },
+  { name: 'Lambda ESM', path: '/services/lambda-event-source-mapping', icon: 'lambda', color: 'service-lambda' },
   { name: 'DynamoDB', path: '/services/dynamodb', icon: 'dynamodb', color: 'service-dynamodb' },
   { name: 'SQS', path: '/services/sqs', icon: 'sqs', color: 'service-sqs' },
   { name: 'SNS', path: '/services/sns', icon: 'sns', color: 'service-sns' },

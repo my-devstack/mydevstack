@@ -38,6 +38,74 @@ func (_m *LambdaPort) EXPECT() *LambdaPort_Expecter {
 	return &LambdaPort_Expecter{mock: &_m.Mock}
 }
 
+// CreateEventSourceMapping provides a mock function for the type LambdaPort
+func (_mock *LambdaPort) CreateEventSourceMapping(ctx context.Context, input *lambda.CreateEventSourceMappingInput) (*lambda.CreateEventSourceMappingOutput, error) {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateEventSourceMapping")
+	}
+
+	var r0 *lambda.CreateEventSourceMappingOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.CreateEventSourceMappingInput) (*lambda.CreateEventSourceMappingOutput, error)); ok {
+		return returnFunc(ctx, input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.CreateEventSourceMappingInput) *lambda.CreateEventSourceMappingOutput); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lambda.CreateEventSourceMappingOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *lambda.CreateEventSourceMappingInput) error); ok {
+		r1 = returnFunc(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// LambdaPort_CreateEventSourceMapping_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateEventSourceMapping'
+type LambdaPort_CreateEventSourceMapping_Call struct {
+	*mock.Call
+}
+
+// CreateEventSourceMapping is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *lambda.CreateEventSourceMappingInput
+func (_e *LambdaPort_Expecter) CreateEventSourceMapping(ctx interface{}, input interface{}) *LambdaPort_CreateEventSourceMapping_Call {
+	return &LambdaPort_CreateEventSourceMapping_Call{Call: _e.mock.On("CreateEventSourceMapping", ctx, input)}
+}
+
+func (_c *LambdaPort_CreateEventSourceMapping_Call) Run(run func(ctx context.Context, input *lambda.CreateEventSourceMappingInput)) *LambdaPort_CreateEventSourceMapping_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *lambda.CreateEventSourceMappingInput
+		if args[1] != nil {
+			arg1 = args[1].(*lambda.CreateEventSourceMappingInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *LambdaPort_CreateEventSourceMapping_Call) Return(createEventSourceMappingOutput *lambda.CreateEventSourceMappingOutput, err error) *LambdaPort_CreateEventSourceMapping_Call {
+	_c.Call.Return(createEventSourceMappingOutput, err)
+	return _c
+}
+
+func (_c *LambdaPort_CreateEventSourceMapping_Call) RunAndReturn(run func(ctx context.Context, input *lambda.CreateEventSourceMappingInput) (*lambda.CreateEventSourceMappingOutput, error)) *LambdaPort_CreateEventSourceMapping_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateFunction provides a mock function for the type LambdaPort
 func (_mock *LambdaPort) CreateFunction(ctx context.Context, input *lambda.CreateFunctionInput) (*lambda.CreateFunctionOutput, error) {
 	ret := _mock.Called(ctx, input)
@@ -106,6 +174,74 @@ func (_c *LambdaPort_CreateFunction_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// DeleteEventSourceMapping provides a mock function for the type LambdaPort
+func (_mock *LambdaPort) DeleteEventSourceMapping(ctx context.Context, input *lambda.DeleteEventSourceMappingInput) (*lambda.DeleteEventSourceMappingOutput, error) {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteEventSourceMapping")
+	}
+
+	var r0 *lambda.DeleteEventSourceMappingOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.DeleteEventSourceMappingInput) (*lambda.DeleteEventSourceMappingOutput, error)); ok {
+		return returnFunc(ctx, input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.DeleteEventSourceMappingInput) *lambda.DeleteEventSourceMappingOutput); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lambda.DeleteEventSourceMappingOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *lambda.DeleteEventSourceMappingInput) error); ok {
+		r1 = returnFunc(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// LambdaPort_DeleteEventSourceMapping_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteEventSourceMapping'
+type LambdaPort_DeleteEventSourceMapping_Call struct {
+	*mock.Call
+}
+
+// DeleteEventSourceMapping is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *lambda.DeleteEventSourceMappingInput
+func (_e *LambdaPort_Expecter) DeleteEventSourceMapping(ctx interface{}, input interface{}) *LambdaPort_DeleteEventSourceMapping_Call {
+	return &LambdaPort_DeleteEventSourceMapping_Call{Call: _e.mock.On("DeleteEventSourceMapping", ctx, input)}
+}
+
+func (_c *LambdaPort_DeleteEventSourceMapping_Call) Run(run func(ctx context.Context, input *lambda.DeleteEventSourceMappingInput)) *LambdaPort_DeleteEventSourceMapping_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *lambda.DeleteEventSourceMappingInput
+		if args[1] != nil {
+			arg1 = args[1].(*lambda.DeleteEventSourceMappingInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *LambdaPort_DeleteEventSourceMapping_Call) Return(deleteEventSourceMappingOutput *lambda.DeleteEventSourceMappingOutput, err error) *LambdaPort_DeleteEventSourceMapping_Call {
+	_c.Call.Return(deleteEventSourceMappingOutput, err)
+	return _c
+}
+
+func (_c *LambdaPort_DeleteEventSourceMapping_Call) RunAndReturn(run func(ctx context.Context, input *lambda.DeleteEventSourceMappingInput) (*lambda.DeleteEventSourceMappingOutput, error)) *LambdaPort_DeleteEventSourceMapping_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteFunction provides a mock function for the type LambdaPort
 func (_mock *LambdaPort) DeleteFunction(ctx context.Context, input *lambda.DeleteFunctionInput) (*lambda.DeleteFunctionOutput, error) {
 	ret := _mock.Called(ctx, input)
@@ -170,6 +306,74 @@ func (_c *LambdaPort_DeleteFunction_Call) Return(deleteFunctionOutput *lambda.De
 }
 
 func (_c *LambdaPort_DeleteFunction_Call) RunAndReturn(run func(ctx context.Context, input *lambda.DeleteFunctionInput) (*lambda.DeleteFunctionOutput, error)) *LambdaPort_DeleteFunction_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetEventSourceMapping provides a mock function for the type LambdaPort
+func (_mock *LambdaPort) GetEventSourceMapping(ctx context.Context, input *lambda.GetEventSourceMappingInput) (*lambda.GetEventSourceMappingOutput, error) {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetEventSourceMapping")
+	}
+
+	var r0 *lambda.GetEventSourceMappingOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.GetEventSourceMappingInput) (*lambda.GetEventSourceMappingOutput, error)); ok {
+		return returnFunc(ctx, input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.GetEventSourceMappingInput) *lambda.GetEventSourceMappingOutput); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lambda.GetEventSourceMappingOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *lambda.GetEventSourceMappingInput) error); ok {
+		r1 = returnFunc(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// LambdaPort_GetEventSourceMapping_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetEventSourceMapping'
+type LambdaPort_GetEventSourceMapping_Call struct {
+	*mock.Call
+}
+
+// GetEventSourceMapping is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *lambda.GetEventSourceMappingInput
+func (_e *LambdaPort_Expecter) GetEventSourceMapping(ctx interface{}, input interface{}) *LambdaPort_GetEventSourceMapping_Call {
+	return &LambdaPort_GetEventSourceMapping_Call{Call: _e.mock.On("GetEventSourceMapping", ctx, input)}
+}
+
+func (_c *LambdaPort_GetEventSourceMapping_Call) Run(run func(ctx context.Context, input *lambda.GetEventSourceMappingInput)) *LambdaPort_GetEventSourceMapping_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *lambda.GetEventSourceMappingInput
+		if args[1] != nil {
+			arg1 = args[1].(*lambda.GetEventSourceMappingInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *LambdaPort_GetEventSourceMapping_Call) Return(getEventSourceMappingOutput *lambda.GetEventSourceMappingOutput, err error) *LambdaPort_GetEventSourceMapping_Call {
+	_c.Call.Return(getEventSourceMappingOutput, err)
+	return _c
+}
+
+func (_c *LambdaPort_GetEventSourceMapping_Call) RunAndReturn(run func(ctx context.Context, input *lambda.GetEventSourceMappingInput) (*lambda.GetEventSourceMappingOutput, error)) *LambdaPort_GetEventSourceMapping_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -374,6 +578,74 @@ func (_c *LambdaPort_Invoke_Call) Return(invokeOutput *lambda.InvokeOutput, err 
 }
 
 func (_c *LambdaPort_Invoke_Call) RunAndReturn(run func(ctx context.Context, input *lambda.InvokeInput) (*lambda.InvokeOutput, error)) *LambdaPort_Invoke_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListEventSourceMappings provides a mock function for the type LambdaPort
+func (_mock *LambdaPort) ListEventSourceMappings(ctx context.Context, input *lambda.ListEventSourceMappingsInput) (*lambda.ListEventSourceMappingsOutput, error) {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListEventSourceMappings")
+	}
+
+	var r0 *lambda.ListEventSourceMappingsOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.ListEventSourceMappingsInput) (*lambda.ListEventSourceMappingsOutput, error)); ok {
+		return returnFunc(ctx, input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.ListEventSourceMappingsInput) *lambda.ListEventSourceMappingsOutput); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lambda.ListEventSourceMappingsOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *lambda.ListEventSourceMappingsInput) error); ok {
+		r1 = returnFunc(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// LambdaPort_ListEventSourceMappings_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListEventSourceMappings'
+type LambdaPort_ListEventSourceMappings_Call struct {
+	*mock.Call
+}
+
+// ListEventSourceMappings is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *lambda.ListEventSourceMappingsInput
+func (_e *LambdaPort_Expecter) ListEventSourceMappings(ctx interface{}, input interface{}) *LambdaPort_ListEventSourceMappings_Call {
+	return &LambdaPort_ListEventSourceMappings_Call{Call: _e.mock.On("ListEventSourceMappings", ctx, input)}
+}
+
+func (_c *LambdaPort_ListEventSourceMappings_Call) Run(run func(ctx context.Context, input *lambda.ListEventSourceMappingsInput)) *LambdaPort_ListEventSourceMappings_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *lambda.ListEventSourceMappingsInput
+		if args[1] != nil {
+			arg1 = args[1].(*lambda.ListEventSourceMappingsInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *LambdaPort_ListEventSourceMappings_Call) Return(listEventSourceMappingsOutput *lambda.ListEventSourceMappingsOutput, err error) *LambdaPort_ListEventSourceMappings_Call {
+	_c.Call.Return(listEventSourceMappingsOutput, err)
+	return _c
+}
+
+func (_c *LambdaPort_ListEventSourceMappings_Call) RunAndReturn(run func(ctx context.Context, input *lambda.ListEventSourceMappingsInput) (*lambda.ListEventSourceMappingsOutput, error)) *LambdaPort_ListEventSourceMappings_Call {
 	_c.Call.Return(run)
 	return _c
 }

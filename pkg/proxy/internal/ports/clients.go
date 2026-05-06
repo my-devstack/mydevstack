@@ -191,6 +191,10 @@ type LambdaClientPort interface {
 	UpdateFunctionConfiguration(ctx context.Context, input *lambda.UpdateFunctionConfigurationInput, opts ...func(*lambda.Options)) (*lambda.UpdateFunctionConfigurationOutput, error)
 	UpdateFunctionCode(ctx context.Context, input *lambda.UpdateFunctionCodeInput, opts ...func(*lambda.Options)) (*lambda.UpdateFunctionCodeOutput, error)
 	GetFunctionConfiguration(ctx context.Context, input *lambda.GetFunctionConfigurationInput, opts ...func(*lambda.Options)) (*lambda.GetFunctionConfigurationOutput, error)
+	ListEventSourceMappings(ctx context.Context, input *lambda.ListEventSourceMappingsInput, opts ...func(*lambda.Options)) (*lambda.ListEventSourceMappingsOutput, error)
+	CreateEventSourceMapping(ctx context.Context, input *lambda.CreateEventSourceMappingInput, opts ...func(*lambda.Options)) (*lambda.CreateEventSourceMappingOutput, error)
+	GetEventSourceMapping(ctx context.Context, input *lambda.GetEventSourceMappingInput, opts ...func(*lambda.Options)) (*lambda.GetEventSourceMappingOutput, error)
+	DeleteEventSourceMapping(ctx context.Context, input *lambda.DeleteEventSourceMappingInput, opts ...func(*lambda.Options)) (*lambda.DeleteEventSourceMappingOutput, error)
 }
 
 // RDSClientPort defines the interface for the AWS RDS client

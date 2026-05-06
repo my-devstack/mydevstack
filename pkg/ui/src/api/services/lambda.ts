@@ -164,6 +164,33 @@ export class LambdaService {
   async getFunctionConfiguration(FunctionName: string): Promise<any> {
     return lambdaRequest('AWSLambda20140331.GetFunctionConfiguration', { FunctionName })
   }
+
+  async listEventSourceMappings(params?: { FunctionName?: string; MaxItems?: number }): Promise<any> {
+    const body = params ? { FunctionName: params.FunctionName, MaxItems: params.MaxItems } : {}
+    return lambdaRequest('AWSLambda20140331.ListEventSourceMappings', body)
+  }
+
+  async createEventSourceMapping(params: {
+    FunctionName: string
+    EventSourceArn: string
+    BatchSize?: number
+    MaximumBatchingWindowInSeconds?: number
+    ParallelizationFactor?: number
+    DestinationConfig?: {
+      OnSuccess?: { Destination: string }
+      OnFailure?: { Destination: string }
+    }
+  }): Promise<any> {
+    return lambdaRequest('AWSLambda20140331.CreateEventSourceMapping', params)
+  }
+
+  async getEventSourceMapping(UUID: string): Promise<any> {
+    return lambdaRequest('AWSLambda20140331.GetEventSourceMapping', { UUID })
+  }
+
+  async deleteEventSourceMapping(UUID: string): Promise<any> {
+    return lambdaRequest('AWSLambda20140331.DeleteEventSourceMapping', { UUID })
+  }
 }
 
 export const lambdaService = new LambdaService()
@@ -184,6 +211,14 @@ export const updateFunctionCode = (params: Parameters<LambdaService['updateFunct
 export const getFunctionConfiguration = (FunctionName: string) =>
   lambdaService.getFunctionConfiguration(FunctionName)
 
+// Event Source Mapping API
+export const listEventSourceMappings = (params?: { FunctionName?: string; MaxItems?: number }) =>
+  lambdaService.listEventSourceMappings(params)
+export const createEventSourceMapping = (params: Parameters<LambdaService['createEventSourceMapping']>[0]) =>
+  lambdaService.createEventSourceMapping(params)
+export const getEventSourceMapping = (UUID: string) => lambdaService.getEventSourceMapping(UUID)
+export const deleteEventSourceMapping = (UUID: string) => lambdaService.deleteEventSourceMapping(UUID)
+
 export const lambda = {
   listFunctions: () => lambdaService.listFunctions(),
   createFunction: (params: any) => lambdaService.createFunction(params),
@@ -194,6 +229,11 @@ export const lambda = {
   updateFunctionConfiguration: (params: any) => lambdaService.updateFunctionConfiguration(params),
   updateFunctionCode: (params: any) => lambdaService.updateFunctionCode(params),
   getFunctionConfiguration: (FunctionName: string) => lambdaService.getFunctionConfiguration(FunctionName),
+  listEventSourceMappings: (params?: { FunctionName?: string; MaxItems?: number }) =>
+    lambdaService.listEventSourceMappings(params),
+  createEventSourceMapping: (params: any) => lambdaService.createEventSourceMapping(params),
+  getEventSourceMapping: (UUID: string) => lambdaService.getEventSourceMapping(UUID),
+  deleteEventSourceMapping: (UUID: string) => lambdaService.deleteEventSourceMapping(UUID),
 }
 
 export default lambda

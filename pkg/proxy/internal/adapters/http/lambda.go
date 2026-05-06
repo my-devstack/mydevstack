@@ -32,6 +32,14 @@ func (h *ProxyHandler) handleLambda(c *gin.Context) {
 		h.updateFunctionCode(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "GetFunctionConfiguration"):
 		h.getFunctionConfiguration(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "ListEventSourceMappings"):
+		h.listEventSourceMappings(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "CreateEventSourceMapping"):
+		h.createEventSourceMapping(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "GetEventSourceMapping"):
+		h.getEventSourceMapping(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "DeleteEventSourceMapping"):
+		h.deleteEventSourceMapping(ctx, c, bodyBytes)
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown Lambda action: " + xAmzTarget})
 	}
@@ -157,6 +165,62 @@ func (h *ProxyHandler) getFunctionConfiguration(ctx context.Context, c *gin.Cont
 	result, err := h.svc.Lambda().GetFunctionConfiguration(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get function configuration", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) listEventSourceMappings(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &lambda.ListEventSourceMappingsInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.Lambda().ListEventSourceMappings(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to list event source mappings", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) createEventSourceMapping(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &lambda.CreateEventSourceMappingInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.Lambda().CreateEventSourceMapping(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to create event source mapping", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) getEventSourceMapping(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &lambda.GetEventSourceMappingInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.Lambda().GetEventSourceMapping(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to get event source mapping", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) deleteEventSourceMapping(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &lambda.DeleteEventSourceMappingInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.Lambda().DeleteEventSourceMapping(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to delete event source mapping", err)
 		return
 	}
 	c.JSON(http.StatusOK, result)
