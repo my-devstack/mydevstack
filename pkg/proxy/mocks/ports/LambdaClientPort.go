@@ -38,6 +38,89 @@ func (_m *LambdaClientPort) EXPECT() *LambdaClientPort_Expecter {
 	return &LambdaClientPort_Expecter{mock: &_m.Mock}
 }
 
+// CreateEventSourceMapping provides a mock function for the type LambdaClientPort
+func (_mock *LambdaClientPort) CreateEventSourceMapping(ctx context.Context, input *lambda.CreateEventSourceMappingInput, opts ...func(*lambda.Options)) (*lambda.CreateEventSourceMappingOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateEventSourceMapping")
+	}
+
+	var r0 *lambda.CreateEventSourceMappingOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.CreateEventSourceMappingInput, ...func(*lambda.Options)) (*lambda.CreateEventSourceMappingOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.CreateEventSourceMappingInput, ...func(*lambda.Options)) *lambda.CreateEventSourceMappingOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lambda.CreateEventSourceMappingOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *lambda.CreateEventSourceMappingInput, ...func(*lambda.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// LambdaClientPort_CreateEventSourceMapping_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateEventSourceMapping'
+type LambdaClientPort_CreateEventSourceMapping_Call struct {
+	*mock.Call
+}
+
+// CreateEventSourceMapping is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *lambda.CreateEventSourceMappingInput
+//   - opts ...func(*lambda.Options)
+func (_e *LambdaClientPort_Expecter) CreateEventSourceMapping(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_CreateEventSourceMapping_Call {
+	return &LambdaClientPort_CreateEventSourceMapping_Call{Call: _e.mock.On("CreateEventSourceMapping",
+		append([]interface{}{ctx, input}, opts...)...)}
+}
+
+func (_c *LambdaClientPort_CreateEventSourceMapping_Call) Run(run func(ctx context.Context, input *lambda.CreateEventSourceMappingInput, opts ...func(*lambda.Options))) *LambdaClientPort_CreateEventSourceMapping_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *lambda.CreateEventSourceMappingInput
+		if args[1] != nil {
+			arg1 = args[1].(*lambda.CreateEventSourceMappingInput)
+		}
+		var arg2 []func(*lambda.Options)
+		var variadicArgs []func(*lambda.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*lambda.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *LambdaClientPort_CreateEventSourceMapping_Call) Return(createEventSourceMappingOutput *lambda.CreateEventSourceMappingOutput, err error) *LambdaClientPort_CreateEventSourceMapping_Call {
+	_c.Call.Return(createEventSourceMappingOutput, err)
+	return _c
+}
+
+func (_c *LambdaClientPort_CreateEventSourceMapping_Call) RunAndReturn(run func(ctx context.Context, input *lambda.CreateEventSourceMappingInput, opts ...func(*lambda.Options)) (*lambda.CreateEventSourceMappingOutput, error)) *LambdaClientPort_CreateEventSourceMapping_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateFunction provides a mock function for the type LambdaClientPort
 func (_mock *LambdaClientPort) CreateFunction(ctx context.Context, input *lambda.CreateFunctionInput, opts ...func(*lambda.Options)) (*lambda.CreateFunctionOutput, error) {
 	var tmpRet mock.Arguments
@@ -121,6 +204,89 @@ func (_c *LambdaClientPort_CreateFunction_Call) RunAndReturn(run func(ctx contex
 	return _c
 }
 
+// DeleteEventSourceMapping provides a mock function for the type LambdaClientPort
+func (_mock *LambdaClientPort) DeleteEventSourceMapping(ctx context.Context, input *lambda.DeleteEventSourceMappingInput, opts ...func(*lambda.Options)) (*lambda.DeleteEventSourceMappingOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteEventSourceMapping")
+	}
+
+	var r0 *lambda.DeleteEventSourceMappingOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.DeleteEventSourceMappingInput, ...func(*lambda.Options)) (*lambda.DeleteEventSourceMappingOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.DeleteEventSourceMappingInput, ...func(*lambda.Options)) *lambda.DeleteEventSourceMappingOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lambda.DeleteEventSourceMappingOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *lambda.DeleteEventSourceMappingInput, ...func(*lambda.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// LambdaClientPort_DeleteEventSourceMapping_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteEventSourceMapping'
+type LambdaClientPort_DeleteEventSourceMapping_Call struct {
+	*mock.Call
+}
+
+// DeleteEventSourceMapping is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *lambda.DeleteEventSourceMappingInput
+//   - opts ...func(*lambda.Options)
+func (_e *LambdaClientPort_Expecter) DeleteEventSourceMapping(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_DeleteEventSourceMapping_Call {
+	return &LambdaClientPort_DeleteEventSourceMapping_Call{Call: _e.mock.On("DeleteEventSourceMapping",
+		append([]interface{}{ctx, input}, opts...)...)}
+}
+
+func (_c *LambdaClientPort_DeleteEventSourceMapping_Call) Run(run func(ctx context.Context, input *lambda.DeleteEventSourceMappingInput, opts ...func(*lambda.Options))) *LambdaClientPort_DeleteEventSourceMapping_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *lambda.DeleteEventSourceMappingInput
+		if args[1] != nil {
+			arg1 = args[1].(*lambda.DeleteEventSourceMappingInput)
+		}
+		var arg2 []func(*lambda.Options)
+		var variadicArgs []func(*lambda.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*lambda.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *LambdaClientPort_DeleteEventSourceMapping_Call) Return(deleteEventSourceMappingOutput *lambda.DeleteEventSourceMappingOutput, err error) *LambdaClientPort_DeleteEventSourceMapping_Call {
+	_c.Call.Return(deleteEventSourceMappingOutput, err)
+	return _c
+}
+
+func (_c *LambdaClientPort_DeleteEventSourceMapping_Call) RunAndReturn(run func(ctx context.Context, input *lambda.DeleteEventSourceMappingInput, opts ...func(*lambda.Options)) (*lambda.DeleteEventSourceMappingOutput, error)) *LambdaClientPort_DeleteEventSourceMapping_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteFunction provides a mock function for the type LambdaClientPort
 func (_mock *LambdaClientPort) DeleteFunction(ctx context.Context, input *lambda.DeleteFunctionInput, opts ...func(*lambda.Options)) (*lambda.DeleteFunctionOutput, error) {
 	var tmpRet mock.Arguments
@@ -200,6 +366,89 @@ func (_c *LambdaClientPort_DeleteFunction_Call) Return(deleteFunctionOutput *lam
 }
 
 func (_c *LambdaClientPort_DeleteFunction_Call) RunAndReturn(run func(ctx context.Context, input *lambda.DeleteFunctionInput, opts ...func(*lambda.Options)) (*lambda.DeleteFunctionOutput, error)) *LambdaClientPort_DeleteFunction_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetEventSourceMapping provides a mock function for the type LambdaClientPort
+func (_mock *LambdaClientPort) GetEventSourceMapping(ctx context.Context, input *lambda.GetEventSourceMappingInput, opts ...func(*lambda.Options)) (*lambda.GetEventSourceMappingOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetEventSourceMapping")
+	}
+
+	var r0 *lambda.GetEventSourceMappingOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.GetEventSourceMappingInput, ...func(*lambda.Options)) (*lambda.GetEventSourceMappingOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.GetEventSourceMappingInput, ...func(*lambda.Options)) *lambda.GetEventSourceMappingOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lambda.GetEventSourceMappingOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *lambda.GetEventSourceMappingInput, ...func(*lambda.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// LambdaClientPort_GetEventSourceMapping_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetEventSourceMapping'
+type LambdaClientPort_GetEventSourceMapping_Call struct {
+	*mock.Call
+}
+
+// GetEventSourceMapping is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *lambda.GetEventSourceMappingInput
+//   - opts ...func(*lambda.Options)
+func (_e *LambdaClientPort_Expecter) GetEventSourceMapping(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_GetEventSourceMapping_Call {
+	return &LambdaClientPort_GetEventSourceMapping_Call{Call: _e.mock.On("GetEventSourceMapping",
+		append([]interface{}{ctx, input}, opts...)...)}
+}
+
+func (_c *LambdaClientPort_GetEventSourceMapping_Call) Run(run func(ctx context.Context, input *lambda.GetEventSourceMappingInput, opts ...func(*lambda.Options))) *LambdaClientPort_GetEventSourceMapping_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *lambda.GetEventSourceMappingInput
+		if args[1] != nil {
+			arg1 = args[1].(*lambda.GetEventSourceMappingInput)
+		}
+		var arg2 []func(*lambda.Options)
+		var variadicArgs []func(*lambda.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*lambda.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *LambdaClientPort_GetEventSourceMapping_Call) Return(getEventSourceMappingOutput *lambda.GetEventSourceMappingOutput, err error) *LambdaClientPort_GetEventSourceMapping_Call {
+	_c.Call.Return(getEventSourceMappingOutput, err)
+	return _c
+}
+
+func (_c *LambdaClientPort_GetEventSourceMapping_Call) RunAndReturn(run func(ctx context.Context, input *lambda.GetEventSourceMappingInput, opts ...func(*lambda.Options)) (*lambda.GetEventSourceMappingOutput, error)) *LambdaClientPort_GetEventSourceMapping_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -449,6 +698,89 @@ func (_c *LambdaClientPort_Invoke_Call) Return(invokeOutput *lambda.InvokeOutput
 }
 
 func (_c *LambdaClientPort_Invoke_Call) RunAndReturn(run func(ctx context.Context, input *lambda.InvokeInput, opts ...func(*lambda.Options)) (*lambda.InvokeOutput, error)) *LambdaClientPort_Invoke_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListEventSourceMappings provides a mock function for the type LambdaClientPort
+func (_mock *LambdaClientPort) ListEventSourceMappings(ctx context.Context, input *lambda.ListEventSourceMappingsInput, opts ...func(*lambda.Options)) (*lambda.ListEventSourceMappingsOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListEventSourceMappings")
+	}
+
+	var r0 *lambda.ListEventSourceMappingsOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.ListEventSourceMappingsInput, ...func(*lambda.Options)) (*lambda.ListEventSourceMappingsOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lambda.ListEventSourceMappingsInput, ...func(*lambda.Options)) *lambda.ListEventSourceMappingsOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lambda.ListEventSourceMappingsOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *lambda.ListEventSourceMappingsInput, ...func(*lambda.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// LambdaClientPort_ListEventSourceMappings_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListEventSourceMappings'
+type LambdaClientPort_ListEventSourceMappings_Call struct {
+	*mock.Call
+}
+
+// ListEventSourceMappings is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *lambda.ListEventSourceMappingsInput
+//   - opts ...func(*lambda.Options)
+func (_e *LambdaClientPort_Expecter) ListEventSourceMappings(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_ListEventSourceMappings_Call {
+	return &LambdaClientPort_ListEventSourceMappings_Call{Call: _e.mock.On("ListEventSourceMappings",
+		append([]interface{}{ctx, input}, opts...)...)}
+}
+
+func (_c *LambdaClientPort_ListEventSourceMappings_Call) Run(run func(ctx context.Context, input *lambda.ListEventSourceMappingsInput, opts ...func(*lambda.Options))) *LambdaClientPort_ListEventSourceMappings_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *lambda.ListEventSourceMappingsInput
+		if args[1] != nil {
+			arg1 = args[1].(*lambda.ListEventSourceMappingsInput)
+		}
+		var arg2 []func(*lambda.Options)
+		var variadicArgs []func(*lambda.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*lambda.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *LambdaClientPort_ListEventSourceMappings_Call) Return(listEventSourceMappingsOutput *lambda.ListEventSourceMappingsOutput, err error) *LambdaClientPort_ListEventSourceMappings_Call {
+	_c.Call.Return(listEventSourceMappingsOutput, err)
+	return _c
+}
+
+func (_c *LambdaClientPort_ListEventSourceMappings_Call) RunAndReturn(run func(ctx context.Context, input *lambda.ListEventSourceMappingsInput, opts ...func(*lambda.Options)) (*lambda.ListEventSourceMappingsOutput, error)) *LambdaClientPort_ListEventSourceMappings_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -21,6 +21,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/services/Lambda.vue'),
     meta: { title: 'Lambda', service: 'lambda' },
   },
+  // Lambda Event Source Mapping
+  {
+    path: '/services/lambda-event-source-mapping',
+    name: 'LambdaEventSourceMapping',
+    component: () => import('@/views/services/LambdaEventSourceMapping.vue'),
+    meta: { title: 'Lambda Event Source Mapping', service: 'lambda' },
+  },
   // DynamoDB
   {
     path: '/services/dynamodb',

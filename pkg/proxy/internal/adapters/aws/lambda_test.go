@@ -165,3 +165,92 @@ func TestLambdaAdapter_ListFunctions_Error(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, output)
 }
+
+func TestLambdaAdapter_ListEventSourceMappings(t *testing.T) {
+	mockClient := lambdamocks.NewLambdaClientPort(t)
+	ctx := context.Background()
+	input := &lambda.ListEventSourceMappingsInput{FunctionName: aws.String("test-function")}
+
+	expectedOutput := &lambda.ListEventSourceMappingsOutput{
+		EventSourceMappings: []types.EventSourceMappingConfiguration{
+			{UUID: aws.String("test-uuid"), FunctionArn: aws.String("arn:aws:lambda:us-east-1:123456789012:function:test")},
+		},
+	}
+
+	mockClient.EXPECT().ListEventSourceMappings(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &LambdaAdapter{client: mockClient}
+	output, err := adapter.ListEventSourceMappings(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestLambdaAdapter_CreateEventSourceMapping(t *testing.T) {
+	mockClient := lambdamocks.NewLambdaClientPort(t)
+	ctx := context.Background()
+	input := &lambda.CreateEventSourceMappingInput{
+		FunctionName: aws.String("test-function"),
+		EventSourceArn: aws.String("arn:aws:sqs:us-east-1:123456789012:my-queue"),
+	}
+
+	expectedOutput := &lambda.CreateEventSourceMappingOutput{
+		UUID: aws.String("test-uuid"),
+	}
+
+	mockClient.EXPECT().CreateEventSourceMapping(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &LambdaAdapter{client: mockClient}
+	output, err := adapter.CreateEventSourceMapping(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestLambdaAdapter_GetEventSourceMapping(t *testing.T) {
+	mockClient := lambdamocks.NewLambdaClientPort(t)
+	ctx := context.Background()
+	input := &lambda.GetEventSourceMappingInput{UUID: aws.String("test-uuid")}
+
+	expectedOutput := &lambda.GetEventSourceMappingOutput{
+		UUID: aws.String("test-uuid"),
+	}
+
+	mockClient.EXPECT().GetEventSourceMapping(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &LambdaAdapter{client: mockClient}
+	output, err := adapter.GetEventSourceMapping(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestLambdaAdapter_DeleteEventSourceMapping(t *testing.T) {
+	mockClient := lambdamocks.NewLambdaClientPort(t)
+	ctx := context.Background()
+	input := &lambda.DeleteEventSourceMappingInput{UUID: aws.String("test-uuid")}
+
+	expectedOutput := &lambda.DeleteEventSourceMappingOutput{}
+
+	mockClient.EXPECT().DeleteEventSourceMapping(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &LambdaAdapter{client: mockClient}
+	output, err := adapter.DeleteEventSourceMapping(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestLambdaAdapter_ListEventSourceMappings_Error(t *testing.T) {
+	mockClient := lambdamocks.NewLambdaClientPort(t)
+	ctx := context.Background()
+	input := &lambda.ListEventSourceMappingsInput{}
+
+	mockClient.EXPECT().ListEventSourceMappings(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &LambdaAdapter{client: mockClient}
+	output, err := adapter.ListEventSourceMappings(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
