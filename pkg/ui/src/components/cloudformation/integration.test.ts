@@ -587,5 +587,117 @@ it('goToPage clamps to valid range', async () => {
         templateBody: '{"AWSTemplateFormatVersion": "2010-09-09"}',
       })
     })
+
+    it('validates invalid JSON', async () => {
+      const wrapper = mount(CreateStackForm, {
+        props: {
+          open: true,
+          loading: false,
+        },
+      })
+
+      await wrapper.find('input[type="text"]').setValue('test-stack')
+      await wrapper.find('textarea').setValue('not valid json')
+
+      const buttons = wrapper.findAll('button')
+      const createButton = buttons.find(b => b.text().includes('Create Stack'))
+      await createButton!.trigger('click')
+
+      expect(wrapper.text()).toContain('Invalid JSON')
+      expect(wrapper.emitted('create')).toBeFalsy()
+    })
+
+    it('switch to YAML format', async () => {
+      const wrapper = mount(CreateStackForm, {
+        props: {
+          open: true,
+          loading: false,
+        },
+      })
+
+      const yamlButton = wrapper.findAll('button').find(b => b.text() === 'YAML')
+      expect(yamlButton).toBeDefined()
+      await yamlButton!.trigger('click')
+
+      expect(wrapper.vm.templateFormat).toBe('yaml')
+    })
+
+    it('validates valid YAML', async () => {
+      const wrapper = mount(CreateStackForm, {
+        props: {
+          open: true,
+          loading: false,
+        },
+      })
+
+      const yamlButton = wrapper.findAll('button').find(b => b.text() === 'YAML')
+      await yamlButton!.trigger('click')
+
+      await wrapper.find('input[type="text"]').setValue('yaml-stack')
+      await wrapper.find('textarea').setValue('AWSTemplateFormatVersion: "2010-09-09"\nResources: {}')
+
+      const buttons = wrapper.findAll('button')
+      const createButton = buttons.find(b => b.text().includes('Create Stack'))
+      await createButton!.trigger('click')
+
+      expect(wrapper.emitted('create')).toBeTruthy()
+      expect(wrapper.emitted('create')![0][0]).toEqual({
+        stackName: 'yaml-stack',
+        templateBody: 'AWSTemplateFormatVersion: "2010-09-09"\nResources: {}',
+      })
+    })
+
+    it('allows YAML with CloudFormation tags', async () => {
+      const wrapper = mount(CreateStackForm, {
+        props: {
+          open: true,
+          loading: false,
+        },
+      })
+
+      const yamlButton = wrapper.findAll('button').find(b => b.text() === 'YAML')
+      await yamlButton!.trigger('click')
+
+      await wrapper.find('input[type="text"]').setValue('yaml-stack')
+      await wrapper.find('textarea').setValue(`AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  MyFunction:
+    Type: AWS::Lambda::Function
+  MyQueue:
+    Type: AWS::SQS::Queue
+  MyESM:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      FunctionName: !Ref MyFunction
+      EventSourceArn: !GetAtt MyQueue.Arn
+      Enabled: true`)
+
+      const buttons = wrapper.findAll('button')
+      const createButton = buttons.find(b => b.text().includes('Create Stack'))
+      await createButton!.trigger('click')
+
+      // YAML with CloudFormation tags is now allowed (validated server-side)
+      expect(wrapper.emitted('create')).toBeTruthy()
+    })
+
+    it('resets format on modal close', async () => {
+      const wrapper = mount(CreateStackForm, {
+        props: {
+          open: true,
+          loading: false,
+        },
+      })
+
+      const yamlButton = wrapper.findAll('button').find(b => b.text() === 'YAML')
+      await yamlButton!.trigger('click')
+      expect(wrapper.vm.templateFormat).toBe('yaml')
+
+      // Click the X close button (first button in header)
+      const closeButton = wrapper.find('button')
+      await closeButton.trigger('click')
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.vm.templateFormat).toBe('json')
+    })
   })
 })

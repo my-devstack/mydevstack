@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
+import yaml from 'js-yaml'
 
 const props = defineProps<{
   open: boolean
@@ -17,6 +18,7 @@ const settingsStore = useSettingsStore()
 
 const stackName = ref('')
 const templateBody = ref('')
+const templateFormat = ref<'json' | 'yaml'>('json')
 const nameError = ref('')
 const templateError = ref('')
 
@@ -34,12 +36,17 @@ function validate() {
     templateError.value = 'Template body is required'
     valid = false
   } else {
-    try {
-      JSON.parse(templateBody.value)
-    } catch {
-      templateError.value = 'Invalid JSON template'
-      valid = false
+    if (templateFormat.value === 'json') {
+      try {
+        JSON.parse(templateBody.value)
+      } catch (e: unknown) {
+        const errorMsg = e instanceof Error ? e.message : 'Invalid template'
+        templateError.value = `Invalid JSON: ${errorMsg}`
+        valid = false
+      }
     }
+    // YAML validation - skip for CloudFormation tags (!Ref, !GetAtt, etc.)
+    // AWS CloudFormation validates server-side
   }
 
   return valid
@@ -62,6 +69,7 @@ function closeModal() {
 function resetForm() {
   stackName.value = ''
   templateBody.value = ''
+  templateFormat.value = 'json'
   nameError.value = ''
   templateError.value = ''
 }
@@ -146,16 +154,46 @@ defineExpose({ resetForm })
 
           <!-- Template Body -->
           <div>
-            <label
-              class="block text-sm font-medium mb-1"
-              :class="settingsStore.darkMode ? 'text-dark-text' : 'text-gray-700'"
-            >
-              Template Body (JSON)
-            </label>
+            <div class="flex items-center justify-between mb-1">
+              <label
+                class="block text-sm font-medium"
+                :class="settingsStore.darkMode ? 'text-dark-text' : 'text-gray-700'"
+              >
+                Template Body
+              </label>
+              <div class="flex gap-1">
+                <button
+                  type="button"
+                  class="px-2 py-1 text-xs rounded"
+                  :class="templateFormat === 'json'
+                    ? 'bg-primary-600 text-white'
+                    : settingsStore.darkMode
+                      ? 'bg-dark-border text-dark-muted hover:text-dark-text'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
+                  @click="templateFormat = 'json'"
+                >
+                  JSON
+                </button>
+                <button
+                  type="button"
+                  class="px-2 py-1 text-xs rounded"
+                  :class="templateFormat === 'yaml'
+                    ? 'bg-primary-600 text-white'
+                    : settingsStore.darkMode
+                      ? 'bg-dark-border text-dark-muted hover:text-dark-text'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
+                  @click="templateFormat = 'yaml'"
+                >
+                  YAML
+                </button>
+              </div>
+            </div>
             <textarea
               v-model="templateBody"
               rows="10"
-              placeholder="{\n  &quot;AWSTemplateFormatVersion&quot;: &quot;2010-09-09&quot;,\n  &quot;Resources&quot;: {}\n}"
+              :placeholder="templateFormat === 'json'
+                ? '{\n  &quot;AWSTemplateFormatVersion&quot;: &quot;2010-09-09&quot;,\n  &quot;Resources&quot;: {}\n}'
+                : 'AWSTemplateFormatVersion: &quot;2010-09-09&quot;\nResources: {}'"
               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
               :class="settingsStore.darkMode ? 'bg-dark-bg border-dark-border text-dark-text' : 'bg-white border-gray-300 text-gray-900'"
             />
