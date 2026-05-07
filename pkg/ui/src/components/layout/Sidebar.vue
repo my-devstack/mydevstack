@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSettingsStore } from '@/stores/settings'
+import { PROXY_BACKEND } from '@/config'
 
 interface Service {
   name: string
@@ -21,6 +22,65 @@ const emit = defineEmits<{
 const route = useRoute()
 const router = useRouter()
 const settingsStore = useSettingsStore()
+
+// Version checking state
+const currentVersion = ref('')
+const latestVersion = ref('')
+const githubRepo = ref('')
+const showVersionNotification = ref(false)
+
+// Compare versions - returns true if latest > current
+function isNewerVersionAvailable(): boolean {
+  if (!latestVersion.value || !currentVersion.value) return false
+
+  const current = currentVersion.value.replace(/^v/, '').split('-')[0]
+  const latest = latestVersion.value.replace(/^v/, '').split('-')[0]
+
+  const currentParts = current.split('.').map(Number)
+  const latestParts = latest.split('.').map(Number)
+
+  for (let i = 0; i < Math.max(currentParts.length, latestParts.length); i++) {
+    const c = currentParts[i] || 0
+    const l = latestParts[i] || 0
+    if (l > c) return true
+    if (l < c) return false
+  }
+  return false
+}
+
+// Build release URL
+function getReleaseUrl(): string {
+  if (!latestVersion.value || !githubRepo.value) return ''
+  const version = latestVersion.value.replace(/^v/, '')
+  return `${githubRepo.value}/releases/tag/v${version}`
+}
+
+// Fetch versions
+async function fetchVersions() {
+  try {
+    // Get current version from /VERSION file
+    const versionRes = await fetch('/VERSION')
+    if (versionRes.ok) {
+      currentVersion.value = (await versionRes.text()).trim()
+    }
+
+    // Get latest version from health endpoint
+    const healthRes = await fetch(`${PROXY_BACKEND}/health`)
+    if (healthRes.ok) {
+      const healthData = await healthRes.json()
+      latestVersion.value = healthData.latestVersion || ''
+      githubRepo.value = healthData.github_repo || ''
+
+      showVersionNotification.value = isNewerVersionAvailable()
+    }
+  } catch (e) {
+    console.error('Failed to fetch version info:', e)
+  }
+}
+
+onMounted(() => {
+  fetchVersions()
+})
 
 const services: Service[] = [
   { name: 'S3', path: '/services/s3', icon: 's3', color: 'service-s3' },
@@ -431,6 +491,56 @@ const handleServiceClick = (service: Service) => {
             class="text-sm font-medium"
           >{{ service.name }}</span>
         </button>
+      </div>
+    </div>
+
+    <!-- Version Notification -->
+    <div
+      v-if="showVersionNotification && latestVersion"
+      class="mx-2 mb-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+    >
+      <div class="flex items-start gap-2">
+        <svg
+          class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          />
+        </svg>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-blue-800 dark:text-blue-200">
+            A new version has been released
+          </p>
+          <p class="text-sm text-blue-600 dark:text-blue-300">
+            v{{ latestVersion }}
+          </p>
+          <a
+            :href="getReleaseUrl()"
+            target="_blank"
+            class="inline-flex items-center gap-1 mt-1 text-xs font-medium text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 hover:underline"
+          >
+            View Release
+            <svg
+              class="w-3 h-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
+            </svg>
+          </a>
+        </div>
       </div>
     </div>
   </aside>

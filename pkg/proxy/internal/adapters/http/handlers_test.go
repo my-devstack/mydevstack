@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	configloader "github.com/my-devstack/mydevstack/pkg/proxy/internal/config"
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
+	"github.com/my-devstack/mydevstack/pkg/proxy/internal/service"
 	mockports "github.com/my-devstack/mydevstack/pkg/proxy/mocks/ports"
 	"github.com/stretchr/testify/mock"
 )
@@ -60,6 +61,11 @@ func (s *testProxyService) SetServices() error {
 	return nil
 }
 
+// createTestVersionService creates a mock version service for testing
+func createTestVersionService() *service.VersionService {
+	return service.NewVersionService("https://github.com/test/test")
+}
+
 func setupTestRouter(handler *ProxyHandler) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
@@ -71,7 +77,8 @@ func setupTestRouter(handler *ProxyHandler) *gin.Engine {
 
 func TestHealthCheck(t *testing.T) {
 	svc := &testProxyService{}
-	handler := NewProxyHandler(svc)
+	versionSvc := createTestVersionService()
+	handler := NewProxyHandler(svc, versionSvc)
 	r := setupTestRouter(handler)
 
 	w := httptest.NewRecorder()
@@ -165,7 +172,7 @@ func TestServiceRouter(t *testing.T) {
 				s3Port: mockS3,
 				cfPort: mockCF,
 			}
-			handler := NewProxyHandler(svc)
+			handler := NewProxyHandler(svc, createTestVersionService())
 			r := setupTestRouter(handler)
 
 			w := httptest.NewRecorder()
@@ -191,7 +198,7 @@ func TestS3ListBuckets(t *testing.T) {
 	svc := &testProxyService{
 		s3Port: mockS3,
 	}
-	handler := NewProxyHandler(svc)
+	handler := NewProxyHandler(svc, createTestVersionService())
 	r := setupTestRouter(handler)
 
 	w := httptest.NewRecorder()
@@ -209,7 +216,7 @@ func TestS3ListBuckets(t *testing.T) {
 
 func TestCORSHeaders(t *testing.T) {
 	svc := &testProxyService{}
-	handler := NewProxyHandler(svc)
+	handler := NewProxyHandler(svc, createTestVersionService())
 	r := setupTestRouter(handler)
 
 	w := httptest.NewRecorder()
@@ -232,7 +239,7 @@ func TestBackendHealthCheck_Reachable(t *testing.T) {
 			},
 		},
 	}
-	handler := NewProxyHandler(svc)
+	handler := NewProxyHandler(svc, createTestVersionService())
 	r := setupTestRouter(handler)
 
 	w := httptest.NewRecorder()

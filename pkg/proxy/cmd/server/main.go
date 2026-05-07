@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/my-devstack/mydevstack/pkg/proxy/bootstrap"
@@ -57,14 +58,24 @@ func loadConfig() (*configloader.Config, error) {
 }
 
 func defaultConfig() *configloader.Config {
+	githubRepo := getEnv("GITHUB_REPO", "https://github.com/my-devstack/mydevstack")
+	versionCheckHours := 24
+	if v := os.Getenv("VERSION_CHECK_HOURS"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			versionCheckHours = n
+		}
+	}
+
 	return &configloader.Config{
-		Port: getEnv("PROXY_PORT", "8081"),
+		Port:              getEnv("PROXY_PORT", "8081"),
 		AWS: configloader.AWSProxyConfig{
 			Endpoint:  getEnv("AWS_ENDPOINT", "http://localhost:4566"),
 			AccessKey: getEnv("AWS_ACCESS_KEY", "test"),
 			SecretKey: getEnv("AWS_SECRET_KEY", "test"),
 		},
-		ServicePattern: getEnv("SERVICE_PATTERN", "root"),
+		ServicePattern:    getEnv("SERVICE_PATTERN", "root"),
+		GitHubRepo:        githubRepo,
+		VersionCheckHours: versionCheckHours,
 	}
 }
 
@@ -96,7 +107,7 @@ func setupRoutes(r *gin.Engine, handler *http2.ProxyHandler) {
 		c.Next()
 	})
 
-	r.GET("/health", handler.BackendHealthCheck)
+	r.GET("/health", handler.HealthCheck)
 	r.GET("/_health", handler.BackendHealthCheck)
 	r.POST("/proxy/region", handler.SetRegion)
 
