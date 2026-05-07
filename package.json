@@ -8,8 +8,5 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1"
-  },
-  "dependencies": {
-    "eslint-plugin-storybook": "^0.12.0"
   }
 }

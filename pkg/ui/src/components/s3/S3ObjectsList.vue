@@ -19,10 +19,15 @@ const emit = defineEmits<{
   'select-object': [key: string]
   'download-object': [key: string]
   'delete-object': [key: string]
+  'copy-link': [key: string]
   'upload-file': [event: Event]
 }>()
 
 const settingsStore = useSettingsStore()
+
+async function handleCopyLink(key: string) {
+  emit('copy-link', key)
+}
 
 function formatSize(bytes: number | string | undefined): string {
   if (!bytes) return '0 B'
@@ -137,6 +142,13 @@ function formatDate(dateStr: string | undefined): string {
               @click="emit('download-object', obj.Key)"
             >
               Download
+            </button>
+            <button
+              class="text-purple-500 hover:text-purple-700 text-sm mr-3"
+              title="Copy Link"
+              @click="handleCopyLink(obj.Key)"
+            >
+              Copy Link
             </button>
             <button
               class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"

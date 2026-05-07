@@ -69,3 +69,89 @@ export const Loading: Story = {
     `
   })
 };
+
+export const AdvancedOptionsExpanded: Story = {
+  args: {
+    open: true
+  },
+  render: (args) => ({
+    components: { S3CreateModal },
+    setup() {
+      const advanced = ref(true)
+      return { args, advanced };
+    },
+    template: `
+      <div class="h-96">
+        <S3CreateModal v-bind="args" />
+      </div>
+    `
+  })
+};
+
+export const WithVersioning: Story = {
+  args: {
+    open: true
+  },
+  render: (args) => ({
+    components: { S3CreateModal },
+    setup() {
+      return { args };
+    },
+    template: `
+      <div class="h-96">
+        <S3CreateModal v-bind="args" />
+      </div>
+    `
+  })
+};
+
+export const WithEncryption: Story = {
+  args: {
+    open: true
+  },
+  render: (args) => ({
+    components: { S3CreateModal },
+    setup() {
+      return { args };
+    },
+    template: `
+      <div class="h-96">
+        <S3CreateModal v-bind="args" />
+      </div>
+    `
+  })
+};
+
+export const WithTags: Story = {
+  args: {
+    open: true
+  },
+  render: (args) => ({
+    components: { S3CreateModal },
+    setup() {
+      return { args };
+    },
+    template: `
+      <div class="h-96">
+        <S3CreateModal v-bind="args" />
+      </div>
+    `
+  })
+};
+
+export const WithPolicy: Story = {
+  args: {
+    open: true
+  },
+  render: (args) => ({
+    components: { S3CreateModal },
+    setup() {
+      return { args };
+    },
+    template: `
+      <div class="h-96">
+        <S3CreateModal v-bind="args" />
+      </div>
+    `
+  })
+};

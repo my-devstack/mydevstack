@@ -113,11 +113,11 @@ describe('useS3 Composable', () => {
 
     it('creates bucket with CORS option', async () => {
       vi.mocked(s3Api.createBucket).mockResolvedValue({})
-      
+
       const { createBucket } = useS3()
       await createBucket('new-bucket', { enableCors: true })
-      
-      expect(s3Api.createBucket).toHaveBeenCalledWith('new-bucket', true)
+
+      expect(s3Api.createBucket).toHaveBeenCalledWith('new-bucket', { enableCors: true })
     })
 
     it('handles empty name gracefully', async () => {

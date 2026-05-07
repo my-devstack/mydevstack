@@ -1,6 +1,14 @@
 import { ref } from 'vue'
 import { useUIStore } from '@/stores/ui'
 import * as s3Api from '@/api/services/s3'
+import * as lambdaApi from '@/api/services/lambda'
+
+export interface TriggerConfig {
+  functionName: string
+  events: string[]
+  prefix?: string
+  suffix?: string
+}
 
 export function useS3() {
   const uiStore = useUIStore()
@@ -8,6 +16,12 @@ export function useS3() {
   const buckets = ref<any[]>([])
   const objects = ref<any[]>([])
   const selectedBucket = ref<string | null>(null)
+  const bucketDetails = ref<Record<string, {
+    versioning: { status: string; mfaDelete: string } | null
+    encryption: { algorithm: string; keyId: string } | null
+    tags: Array<{ Key: string; Value: string }>
+    loading: boolean
+  }>>({})
   const loading = ref(false)
   const uploading = ref(false)
 
@@ -36,12 +50,53 @@ export function useS3() {
     }
   }
 
-  async function createBucket(name: string, options?: { enableCors?: boolean }) {
+  async function loadBucketDetails(bucketName: string) {
+    bucketDetails.value[bucketName] = { ...bucketDetails.value[bucketName], loading: true }
+    try {
+      const [versioning, encryption, tags] = await Promise.all([
+        s3Api.getBucketVersioning(bucketName).catch(() => null),
+        s3Api.getBucketEncryption(bucketName).catch(() => null),
+        s3Api.getBucketTagging(bucketName).catch(() => ({ tags: [] })),
+      ])
+      bucketDetails.value[bucketName] = {
+        versioning,
+        encryption,
+        tags: tags?.tags || [],
+        loading: false,
+      }
+    } catch (error) {
+      uiStore.notifyError('Failed to load bucket details', error instanceof Error ? error.message : 'Unknown error')
+      if (bucketDetails.value[bucketName]) {
+        bucketDetails.value[bucketName].loading = false
+      }
+    }
+  }
+
+  async function createBucket(
+    name: string,
+    options?: {
+      enableCors?: boolean
+      enableVersioning?: boolean
+      encryptionType?: 'AES256' | 'aws:kms'
+      kmsKeyId?: string
+      blockPublicAccess?: boolean
+      tags?: Array<{ Key: string; Value: string }>
+      bucketPolicy?: string
+    }
+  ) {
     loading.value = true
     try {
-      await s3Api.createBucket(name, options?.enableCors)
+      await s3Api.createBucket(name, options)
       uiStore.notifySuccess('Bucket created', `Bucket "${name}" created successfully`)
+      // Refresh bucket list from API, then add new bucket to ensure it's at top
       await loadBuckets()
+      // Check if bucket already in list (some mocks return it), otherwise add it
+      if (!buckets.value.find(b => b.Name === name)) {
+        buckets.value.unshift({ 
+          Name: name, 
+          CreationDate: new Date().toISOString() 
+        })
+      }
     } catch (error) {
       uiStore.notifyError('Failed to create bucket', error instanceof Error ? error.message : 'Unknown error')
       throw error
@@ -105,6 +160,15 @@ export function useS3() {
     }
   }
 
+  async function getPresignedUrl(bucket: string, key: string): Promise<string> {
+    try {
+      return await s3Api.getPresignedUrl(bucket, key)
+    } catch (error) {
+      uiStore.notifyError('Failed to get presigned URL', error instanceof Error ? error.message : 'Unknown error')
+      throw error
+    }
+  }
+
   function formatBody(body: string): string {
     try {
       const parsed = JSON.parse(body)
@@ -114,19 +178,91 @@ export function useS3() {
     }
   }
 
+  async function configureLambdaTrigger(bucket: string, config: TriggerConfig) {
+    loading.value = true
+    try {
+      // Get Lambda function ARN
+      const { functions } = await lambdaApi.listFunctions()
+      const fn = functions?.find((f: any) => f.FunctionName === config.functionName)
+      if (!fn) {
+        throw new Error(`Lambda function "${config.functionName}" not found`)
+      }
+
+      // Build notification configuration
+      const notificationConfig: any = {
+        LambdaFunctionConfigurations: [
+          {
+            Id: `trigger-${Date.now()}`,
+            LambdaFunctionArn: fn.FunctionArn,
+            Events: config.events,
+          },
+        ],
+      }
+
+      // Add filters if specified
+      if (config.prefix || config.suffix) {
+        const filterRules: Array<{ Name: string; Value: string }> = []
+        if (config.prefix) {
+          filterRules.push({ Name: 'prefix', Value: config.prefix })
+        }
+        if (config.suffix) {
+          filterRules.push({ Name: 'suffix', Value: config.suffix })
+        }
+        notificationConfig.LambdaFunctionConfigurations[0].Filter = {
+          Key: {
+            FilterRules: filterRules,
+          },
+        }
+      }
+
+      await s3Api.configureNotification(bucket, {
+        Bucket: bucket,
+        NotificationConfiguration: notificationConfig,
+      })
+      uiStore.notifySuccess('Trigger configured', `Lambda trigger added to bucket "${bucket}"`)
+    } catch (error) {
+      uiStore.notifyError('Failed to configure trigger', error instanceof Error ? error.message : 'Unknown error')
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function getLambdaTriggers(bucket: string): Promise<TriggerConfig[]> {
+    try {
+      const config = await s3Api.getNotificationConfig(bucket)
+      const lambdaConfigs = config.LambdaFunctionConfigurations || []
+
+      return lambdaConfigs.map((lc: any) => ({
+        functionName: lc.LambdaFunctionArn?.split(':')?.pop() || '',
+        events: lc.Events || [],
+        prefix: lc.Filter?.Key?.FilterRules?.find((r: any) => r.Name === 'prefix')?.Value,
+        suffix: lc.Filter?.Key?.FilterRules?.find((r: any) => r.Name === 'suffix')?.Value,
+      }))
+    } catch (error) {
+      console.error('Failed to get Lambda triggers:', error)
+      return []
+    }
+  }
+
   return {
     buckets,
     objects,
     selectedBucket,
+    bucketDetails,
     loading,
     uploading,
     loadBuckets,
     loadObjects,
+    loadBucketDetails,
     createBucket,
     deleteBucket,
     deleteObject,
     uploadObject,
     getObject,
+    getPresignedUrl,
     formatBody,
+    configureLambdaTrigger,
+    getLambdaTriggers,
   }
 }

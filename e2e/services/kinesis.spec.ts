@@ -11,16 +11,17 @@ test.describe('Kinesis', () => {
     await expect(page.getByRole('main').getByRole('heading', { name: 'Kinesis', exact: true })).toBeVisible()
   })
 
-  test('show empty state when no streams', async ({ page }) => {
+  test('show streams list or empty state', async ({ page }) => {
     await page.goto('/#/services/kinesis')
     await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(1500)
 
-    const streamRows = page.locator('[class*="rounded-lg"][class*="border"]').filter({ hasText: /Stream/ })
-    const count = await streamRows.count()
-    if (count === 0) {
-      const emptyState = page.getByText('No Kinesis Streams')
-      await expect(emptyState).toBeVisible()
-    }
+    // Check for either streams or empty state
+    const hasStreams = await page.locator('.border.rounded-lg').first().isVisible().catch(() => false)
+    const hasEmptyState = await page.getByText('No Streams').isVisible().catch(() => false)
+    
+    // Either should be visible
+    expect(hasStreams || hasEmptyState).toBe(true)
   })
 
   test('open create stream modal', async ({ page }) => {

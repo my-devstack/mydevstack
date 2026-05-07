@@ -37,3 +37,17 @@ export const Uploading: Story = {
   args: { objects: mockObjects, bucketName: 'my-bucket', loading: false, uploading: true },
   render: (args) => ({ components: { S3ObjectsList }, setup: () => ({ args }), template: '<div class="h-96"><S3ObjectsList v-bind="args" /></div>' })
 };
+
+export const CopyLinkAction: Story = {
+  args: { objects: mockObjects, bucketName: 'my-bucket', loading: false },
+  render: (args) => ({
+    components: { S3ObjectsList },
+    setup() {
+      const handleCopyLink = (key: string) => {
+        console.log('Copy link for:', key)
+      }
+      return { args, handleCopyLink }
+    },
+    template: '<div class="h-96"><S3ObjectsList v-bind="args" @copy-link="handleCopyLink" /></div>'
+  })
+};

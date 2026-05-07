@@ -45,9 +45,20 @@ export class S3Service {
     }))
   }
 
-  async createBucket(bucket: string, options?: { enableCors?: boolean }): Promise<any> {
+  async createBucket(
+    bucket: string,
+    options?: {
+      enableCors?: boolean
+      enableVersioning?: boolean
+      encryptionType?: 'AES256' | 'aws:kms'
+      kmsKeyId?: string
+      blockPublicAccess?: boolean
+      tags?: Array<{ Key: string; Value: string }>
+      bucketPolicy?: string
+    }
+  ): Promise<any> {
     const params: any = { Bucket: bucket }
-    
+
     if (options?.enableCors) {
       params.CORSConfiguration = {
         CORSRules: [
@@ -61,8 +72,81 @@ export class S3Service {
         ],
       }
     }
-    
-    return s3Request('CreateBucket', params)
+
+    // Create the bucket first
+    await s3Request('CreateBucket', params)
+
+    // Apply versioning if enabled
+    if (options?.enableVersioning) {
+      await s3Request('PutBucketVersioning', {
+        Bucket: bucket,
+        VersioningConfiguration: {
+          Status: 'Enabled',
+        },
+      })
+    }
+
+    // Apply encryption if specified
+    if (options?.encryptionType) {
+      const encryptionParams: any = {
+        Bucket: bucket,
+        ServerSideEncryptionConfiguration: {
+          Rules: [
+            {
+              ApplyServerSideEncryptionByDefault: {
+                SSEAlgorithm: options.encryptionType,
+              },
+            },
+          ],
+        }
+      }
+
+      if (options.encryptionType === 'aws:kms' && options.kmsKeyId) {
+        encryptionParams.ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.KMSKeyId = options.kmsKeyId
+      }
+
+      await s3Request('PutBucketEncryption', encryptionParams)
+    }
+
+    // Apply tags if specified
+    if (options?.tags && options.tags.length > 0) {
+      await s3Request('PutBucketTagging', {
+        Bucket: bucket,
+        Tagging: {
+          TagSet: options.tags,
+        },
+      })
+    }
+
+    // Block public access if enabled
+    if (options?.blockPublicAccess) {
+      await s3Request('PutPublicAccessBlock', {
+        Bucket: bucket,
+        PublicAccessBlockConfiguration: {
+          BlockPublicAcls: true,
+          BlockPublicPolicy: true,
+          IgnorePublicAcls: true,
+          RestrictPublicBuckets: true,
+        },
+      })
+    }
+
+    // Apply bucket policy if specified
+    if (options?.bucketPolicy) {
+      // Validate JSON before sending
+      try {
+        JSON.parse(options.bucketPolicy)
+      } catch {
+        throw new Error('Invalid bucket policy JSON')
+      }
+
+      await s3Request('PutBucketPolicy', {
+        Bucket: bucket,
+        Policy: options.bucketPolicy,
+      })
+    }
+
+    return { Location: `/${bucket}` }
   }
 
   async deleteBucket(bucket: string): Promise<void> {
@@ -182,6 +266,42 @@ export class S3Service {
       lastModified: response.LastModified || '',
     }
   }
+
+  async getBucketVersioning(bucket: string): Promise<{ status: string; mfaDelete: string }> {
+    const response = await s3Request('GetBucketVersioning', { Bucket: bucket })
+    return {
+      status: response.Status || 'Unknown',
+      mfaDelete: response.MFADelete || 'Disabled',
+    }
+  }
+
+  async getBucketEncryption(bucket: string): Promise<{ algorithm: string; keyId: string }> {
+    const response = await s3Request('GetBucketEncryption', { Bucket: bucket })
+    const rule = response.ServerSideEncryptionRules?.[0] || {}
+    return {
+      algorithm: rule.ServerSideEncryptionAlgorithm || 'None',
+      keyId: rule.ServerSideEncryptionKeyManagementService?.KeyId || '',
+    }
+  }
+
+  async getBucketTagging(bucket: string): Promise<{ tags: Array<{ Key: string; Value: string }> }> {
+    const response = await s3Request('GetBucketTagging', { Bucket: bucket })
+    return {
+      tags: response.TagSet || [],
+    }
+  }
+
+  async getBucketPolicy(bucket: string): Promise<{ Policy?: string }> {
+    // This may return 404 if no policy exists
+    try {
+      return await s3Request('GetBucketPolicy', { Bucket: bucket })
+    } catch (error: any) {
+      if (error.statusCode === 404 || error.message?.includes('NoSuchBucketPolicy')) {
+        return {}
+      }
+      throw error
+    }
+  }
 }
 
 export const s3Service = new S3Service()
@@ -206,8 +326,65 @@ export const createFolder = async (bucket: string, folderPath: string) => {
   return s3Service.putObject(bucket, path, '', 'application/directory')
 }
 
-export const getPresignedUrl = (bucket: string, key: string) => {
-  return `/${bucket}/${key}`
+export const getPresignedUrl = async (bucket: string, key: string, expiresIn: number = 3600): Promise<string> => {
+  const response = await s3Request('PresignGetObject', {
+    Bucket: bucket,
+    Key: key,
+    Expires: expiresIn,
+  })
+  return response.url
+}
+
+export const getPresignedUploadUrl = async (
+  bucket: string,
+  key: string,
+  contentType: string,
+  expiresIn: number = 3600
+): Promise<string> => {
+  const response = await s3Request('PresignPutObject', {
+    Bucket: bucket,
+    Key: key,
+    ContentType: contentType,
+    Expires: expiresIn,
+  })
+  return response.url
+}
+
+export const getBucketVersioning = (bucket: string) => s3Service.getBucketVersioning(bucket)
+export const getBucketEncryption = (bucket: string) => s3Service.getBucketEncryption(bucket)
+export const getBucketTagging = (bucket: string) => s3Service.getBucketTagging(bucket)
+export const getBucketPolicy = (bucket: string) => s3Service.getBucketPolicy(bucket)
+
+export interface NotificationConfig {
+  Bucket: string
+  NotificationConfiguration?: {
+    LambdaFunctionConfigurations?: Array<{
+      Id?: string
+      LambdaFunctionArn: string
+      Events: string[]
+      Filter?: {
+        Key?: {
+          FilterRules?: Array<{
+            Name: string
+            Value: string
+          }>
+        }
+      }
+    }>
+    TopicConfigurations?: Array<any>
+    QueueConfigurations?: Array<any>
+  }
+}
+
+export async function configureNotification(bucket: string, config: NotificationConfig): Promise<any> {
+  return s3Request('PutBucketNotificationConfiguration', {
+    Bucket: bucket,
+    NotificationConfiguration: config.NotificationConfiguration,
+  })
+}
+
+export async function getNotificationConfig(bucket: string): Promise<any> {
+  return s3Request('GetBucketNotificationConfiguration', { Bucket: bucket })
 }
 
 export default s3Service

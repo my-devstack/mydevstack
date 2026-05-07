@@ -1,14 +1,25 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
+import { useUIStore } from '@/stores/ui'
 import { useContentReload } from '@/composables/useContentReload'
 import { useS3 } from '@/composables/useS3'
 import { ArchiveBoxIcon } from '@heroicons/vue/24/outline'
-import { S3BucketsList, S3ObjectsList, S3CreateModal, S3ViewModal, S3DeleteModal, S3CodeExamples } from '@/components/s3'
+import { S3BucketsList, S3ObjectsList, S3CreateModal, S3ViewModal, S3DeleteModal, S3CodeExamples, S3TriggerModal, S3PolicyModal } from '@/components/s3'
 
 const { reloadTrigger } = useContentReload()
 
 const settingsStore = useSettingsStore()
+const uiStore = useUIStore()
+
+// Pagination
+const bucketPage = ref(1)
+const bucketsPerPage = 15
+const totalBucketPages = computed(() => Math.ceil(buckets.value.length / bucketsPerPage))
+const paginatedBuckets = computed(() => {
+  const start = (bucketPage.value - 1) * bucketsPerPage
+  return buckets.value.slice(start, start + bucketsPerPage)
+})
 
 // Composable state and functions
 const {
@@ -17,13 +28,17 @@ const {
   selectedBucket,
   loading,
   uploading,
+  bucketDetails,
   loadBuckets,
   loadObjects: loadObjectsFromComposable,
+  loadBucketDetails,
   createBucket,
   deleteBucket: deleteBucketFromComposable,
   deleteObject: deleteObjectFromComposable,
   uploadObject,
   getObject,
+  getPresignedUrl,
+  configureLambdaTrigger,
 } = useS3()
 
 // UI State - error handling
@@ -33,6 +48,10 @@ const error = ref<string | null>(null)
 const showCreateModal = ref(false)
 const showViewModal = ref(false)
 const showDeleteModal = ref(false)
+const showTriggerModal = ref(false)
+const showPolicyModal = ref(false)
+const triggerBucketName = ref('')
+const policyBucketName = ref('')
 
 // View modal state
 const viewFileName = ref('')
@@ -58,6 +77,8 @@ async function handleCreateBucket(name: string, options?: { enableCors?: boolean
   try {
     await createBucket(name.trim(), options)
     showCreateModal.value = false
+    // Reset to first page to see new bucket
+    bucketPage.value = 1
   } catch (e: any) {
     error.value = 'Failed to create bucket: ' + e.message
   }
@@ -169,6 +190,28 @@ async function downloadObject(key: string) {
     document.body.removeChild(a)
   } catch (e: any) {
     error.value = 'Failed to download object: ' + e.message
+  }
+}
+
+// Copy object link
+async function copyObjectLink(key: string) {
+  try {
+    const url = await getPresignedUrl(selectedBucket.value!, key)
+    await navigator.clipboard.writeText(url)
+    uiStore.notifySuccess('Link copied!', 'Presigned URL copied to clipboard')
+  } catch (e: any) {
+    error.value = 'Failed to copy link: ' + e.message
+  }
+}
+
+// Handle Lambda trigger save
+async function handleSaveTrigger(config: { functionName: string; events: string[]; prefix?: string; suffix?: string }) {
+  try {
+    await configureLambdaTrigger(triggerBucketName.value, config)
+    showTriggerModal.value = false
+    triggerBucketName.value = ''
+  } catch (e: any) {
+    error.value = 'Failed to configure trigger: ' + e.message
   }
 }
 
@@ -313,10 +356,43 @@ watch(reloadTrigger, () => {
     <!-- Buckets List -->
     <S3BucketsList
       v-if="!loading && !selectedBucket"
-      :buckets="buckets"
+      :buckets="paginatedBuckets"
+      :bucket-details="bucketDetails"
       @select-bucket="loadObjects"
       @delete-bucket="confirmDeleteBucket"
+      @expand-bucket="loadBucketDetails"
+      @add-trigger="(name) => { triggerBucketName = name; showTriggerModal = true }"
+      @view-policy="(name) => { policyBucketName = name; showPolicyModal = true }"
     />
+
+    <!-- Pagination -->
+    <div
+      v-if="!loading && !selectedBucket && totalBucketPages > 1"
+      class="flex justify-center items-center gap-2 py-4"
+    >
+      <button
+        class="px-3 py-1 rounded border disabled:opacity-50"
+        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+        :disabled="bucketPage === 1"
+        @click="bucketPage--"
+      >
+        Previous
+      </button>
+      <span
+        class="text-sm"
+        :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+      >
+        Page {{ bucketPage }} of {{ totalBucketPages }}
+      </span>
+      <button
+        class="px-3 py-1 rounded border disabled:opacity-50"
+        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+        :disabled="bucketPage === totalBucketPages"
+        @click="bucketPage++"
+      >
+        Next
+      </button>
+    </div>
 
     <!-- Objects List -->
     <S3ObjectsList
@@ -327,6 +403,7 @@ watch(reloadTrigger, () => {
       @select-object="viewObject"
       @download-object="downloadObject"
       @delete-object="confirmDeleteObject"
+      @copy-link="copyObjectLink"
       @upload-file="uploadFile"
     />
 
@@ -359,6 +436,21 @@ watch(reloadTrigger, () => {
       :loading="loading"
       @update:open="showDeleteModal = $event"
       @delete="itemToDelete?.type === 'bucket' ? deleteBucket() : deleteObject()"
+    />
+
+    <!-- Lambda Trigger Modal -->
+    <S3TriggerModal
+      :open="showTriggerModal"
+      :bucket-name="triggerBucketName"
+      @update:open="showTriggerModal = $event"
+      @save="handleSaveTrigger"
+    />
+
+    <!-- Policy Modal -->
+    <S3PolicyModal
+      :open="showPolicyModal"
+      :bucket-name="policyBucketName"
+      @update:open="showPolicyModal = $event"
     />
 
     <!-- Usage Examples Section -->

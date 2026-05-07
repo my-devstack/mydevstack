@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
@@ -38,6 +39,34 @@ func (h *ProxyHandler) handleS3(c *gin.Context) {
 		h.headObject(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "CreateBucket"):
 		h.createBucket(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "GetBucketVersioning"):
+		h.getBucketVersioning(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "GetBucketEncryption"):
+		h.getBucketEncryption(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "GetBucketTagging"):
+		h.getBucketTagging(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "PresignGetObject"):
+		h.presignGetObject(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "PresignPutObject"):
+		h.presignPutObject(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "PutBucketPolicy"):
+		h.putBucketPolicy(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "PutBucketVersioning"):
+		h.putBucketVersioning(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "PutBucketEncryption"):
+		h.putBucketEncryption(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "PutBucketTagging"):
+		h.putBucketTagging(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "PutPublicAccessBlock"):
+		h.putPublicAccessBlock(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "GetPublicAccessBlock"):
+		h.getPublicAccessBlock(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "PutBucketNotificationConfiguration"):
+		h.putBucketNotificationConfiguration(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "GetBucketNotificationConfiguration"):
+		h.getBucketNotificationConfiguration(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "GetBucketPolicy"):
+		h.getBucketPolicy(ctx, c, bodyBytes)
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown S3 action: " + xAmzTarget})
 	}
@@ -240,6 +269,232 @@ func (h *ProxyHandler) createBucket(ctx context.Context, c *gin.Context, bodyByt
 	result, err := h.svc.S3().CreateBucket(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create bucket", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) getBucketVersioning(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &s3.GetBucketVersioningInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.S3().GetBucketVersioning(ctx, input)
+	if err != nil {
+		// Return empty versioning status instead of error (bucket may not have versioning)
+		c.JSON(http.StatusOK, gin.H{"Status": ""})
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) getBucketEncryption(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &s3.GetBucketEncryptionInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.S3().GetBucketEncryption(ctx, input)
+	if err != nil {
+		// Return empty encryption config instead of error (bucket may not have encryption)
+		c.JSON(http.StatusOK, &s3.GetBucketEncryptionOutput{
+			ServerSideEncryptionConfiguration: nil,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) getBucketTagging(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &s3.GetBucketTaggingInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.S3().GetBucketTagging(ctx, input)
+	if err != nil {
+		// Return empty tags instead of error (bucket may not have tags)
+		c.JSON(http.StatusOK, &s3.GetBucketTaggingOutput{
+			TagSet: nil,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+type PresignInput struct {
+	Bucket *string `json:"Bucket"`
+	Key    *string `json:"Key"`
+	Expires *int64 `json:"Expires"`
+}
+
+func (h *ProxyHandler) presignGetObject(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &PresignInput{}
+	if err := json.Unmarshal(bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	if input.Bucket == nil || input.Key == nil {
+		sendError(c, http.StatusBadRequest, "Bucket and Key are required", nil)
+		return
+	}
+	expires := time.Duration(3600) * time.Second
+	if input.Expires != nil && *input.Expires > 0 {
+		expires = time.Duration(*input.Expires) * time.Second
+	}
+	url, err := h.svc.S3().PresignGetObject(ctx, *input.Bucket, *input.Key, expires)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to generate presigned URL", err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"url": url})
+}
+
+func (h *ProxyHandler) presignPutObject(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &PresignInput{}
+	if err := json.Unmarshal(bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	if input.Bucket == nil || input.Key == nil {
+		sendError(c, http.StatusBadRequest, "Bucket and Key are required", nil)
+		return
+	}
+	expires := time.Duration(3600) * time.Second
+	if input.Expires != nil && *input.Expires > 0 {
+		expires = time.Duration(*input.Expires) * time.Second
+	}
+	url, err := h.svc.S3().PresignPutObject(ctx, *input.Bucket, *input.Key, expires)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to generate presigned URL", err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"url": url})
+}
+
+func (h *ProxyHandler) putBucketPolicy(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &s3.PutBucketPolicyInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.S3().PutBucketPolicy(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to put bucket policy", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) putBucketVersioning(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &s3.PutBucketVersioningInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.S3().PutBucketVersioning(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to put bucket versioning", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) putBucketEncryption(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &s3.PutBucketEncryptionInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.S3().PutBucketEncryption(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to put bucket encryption", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) putBucketTagging(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &s3.PutBucketTaggingInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.S3().PutBucketTagging(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to put bucket tagging", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) putPublicAccessBlock(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &s3.PutPublicAccessBlockInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.S3().PutPublicAccessBlock(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to put public access block", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) getPublicAccessBlock(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &s3.GetPublicAccessBlockInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.S3().GetPublicAccessBlock(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to get public access block", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) putBucketNotificationConfiguration(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &s3.PutBucketNotificationConfigurationInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.S3().PutBucketNotificationConfiguration(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to put bucket notification configuration", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) getBucketNotificationConfiguration(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &s3.GetBucketNotificationConfigurationInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.S3().GetBucketNotificationConfiguration(ctx, input)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, "Failed to get bucket notification configuration", err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *ProxyHandler) getBucketPolicy(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+	input := &s3.GetBucketPolicyInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
+		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	result, err := h.svc.S3().GetBucketPolicy(ctx, input)
+	if err != nil {
+		// Return empty if no policy exists
+		c.JSON(http.StatusOK, &s3.GetBucketPolicyOutput{})
 		return
 	}
 	c.JSON(http.StatusOK, result)

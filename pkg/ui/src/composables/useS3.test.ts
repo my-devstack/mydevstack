@@ -102,10 +102,10 @@ describe('useS3', () => {
     vi.mocked(s3Api.listBuckets).mockResolvedValue([])
 
     const { createBucket } = useS3()
-    
+
     await createBucket('test-bucket', { enableCors: true })
-    
-    expect(s3Api.createBucket).toHaveBeenCalledWith('test-bucket', true)
+
+    expect(s3Api.createBucket).toHaveBeenCalledWith('test-bucket', { enableCors: true })
   })
 
   it('createBucket throws on error', async () => {
