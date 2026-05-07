@@ -158,24 +158,48 @@ jobs:
           pkill -f "vite preview" 2>/dev/null || true
           sleep 2
           
-          # Build Go server first
-          cd pkg/proxy && go build -o server ./cmd/server
-          ./server &
-          SERVER_PID=$!
-          echo "Go server started with PID: $SERVER_PID"
-          sleep 5
+          cd pkg/proxy
+          
+          # Copy config.yaml.example to config.yaml
+          cp config.yaml.example config.yaml
+          cat config.yaml
+          
+          # Run Go server using go run (instead of binary) with config file
+          export CONFIG_FILE="$(pwd)/config.yaml"
+          export PROXY_PORT=8081
+          export AWS_ENDPOINT=http://localhost:4566
+          export GITHUB_REPO=https://github.com/my-devstack/mydevstack
+          export VERSION_CHECK_HOURS=24
+          
+          # Run server in background
+          nohup go run ./cmd/server > server.log 2>&1 &
+          GORUN_PID=$!
+          echo "Go server started with PID: $GORUN_PID"
+          
+          # Wait for server to be ready
+          for i in {1..15}; do
+            sleep 2
+            if curl -s http://localhost:8081/health > /dev/null 2>&1; then
+              echo "Go server is ready"
+              break
+            fi
+            echo "Waiting for Go server... ($i/15)"
+          done
           
           # Verify Go server is running
-          curl -s http://localhost:8081/health || echo "Go server health check failed"
+          curl -s http://localhost:8081/health || { echo "Go server health check failed"; cat server.log; exit 1; }
           
           # Build and start Vue (navigate back to root then to pkg/ui)
-          cd ../pkg/ui && npm run build
+          cd pkg/ui && npm run build
           pkill -f vite 2>/dev/null || true
           npx vite preview --port 3000 &
           sleep 5
 
       - name: Run E2E tests
-        run: npm run test:e2e
+        run: |
+          # Give server extra time to stabilize
+          sleep 5
+          npm run test:e2e
         # env:
         #   BASE_URL: http://localhost:3000
         #   PROXY_URL: http://localhost:8081
@@ -186,7 +210,8 @@ jobs:
           docker stop floci 2>/dev/null || true
           docker rm floci 2>/dev/null || true
           pkill -f "go run" 2>/dev/null || true
-          pkill -f server 2>/dev/null || true
+          pkill -f "./server" 2>/dev/null || true
+          pkill -f "vite preview" 2>/dev/null || true
           pkill -f vite 2>/dev/null || true
 
   build-release:
