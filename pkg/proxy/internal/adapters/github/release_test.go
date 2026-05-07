@@ -1,11 +1,16 @@
 package github
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestParseGitHubURL(t *testing.T) {
@@ -59,30 +64,66 @@ func TestParseGitHubURL(t *testing.T) {
 }
 
 func TestClient_GetLatestRelease_Success(t *testing.T) {
-	// Create a mock server
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Verify request
-		if r.URL.Path != "/repos/owner/repo/releases/latest" {
-			t.Errorf("expected path /repos/owner/repo/releases/latest, got %s", r.URL.Path)
-		}
-
+	var capturedRequest *http.Request
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedRequest = r
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(Release{
+		if err := json.NewEncoder(w).Encode(Release{
 			TagName: "v1.2.3",
 			HTMLURL: "https://github.com/owner/repo/releases/tag/v1.2.3",
-		})
-	}))
-	defer server.Close()
+		}); err != nil {
+			t.Logf("Failed to encode: %v", err)
+		}
+	})
 
-	// Replace the API URL in client (we'll use the URL directly)
-	// This is a simplified test - in real scenario we'd inject the URL
-	_ = server
-
-	// Test that client can be created
 	client := NewClient()
-	if client == nil {
-		t.Error("expected client to be created")
+	client.httpClient = &http.Client{
+		Transport: &redirectTransport{handler: handler},
 	}
+
+	release, err := client.GetLatestRelease(context.Background(), "https://github.com/owner/repo")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if capturedRequest == nil {
+		t.Fatal("request was not captured")
+	}
+	if capturedRequest.URL.Path != "/repos/owner/repo/releases/latest" {
+		t.Errorf("expected path /repos/owner/repo/releases/latest, got %s", capturedRequest.URL.Path)
+	}
+	if accept := capturedRequest.Header.Get("Accept"); accept != "application/vnd.github+json" {
+		t.Errorf("expected Accept header application/vnd.github+json, got %s", accept)
+	}
+	if ua := capturedRequest.Header.Get("User-Agent"); ua != "mydevstack" {
+		t.Errorf("expected User-Agent header mydevstack, got %s", ua)
+	}
+
+	if release.TagName != "v1.2.3" {
+		t.Errorf("expected tag v1.2.3, got %s", release.TagName)
+	}
+	if release.HTMLURL != "https://github.com/owner/repo/releases/tag/v1.2.3" {
+		t.Errorf("expected url https://github.com/owner/repo/releases/tag/v1.2.3, got %s", release.HTMLURL)
+	}
+}
+
+type redirectTransport struct {
+	handler http.Handler
+}
+
+func (r *redirectTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	newReq := req.Clone(req.Context())
+	newReq.URL.Scheme = "http"
+	newReq.URL.Host = "127.0.0.1:12345" // dummy host
+	rec := httptest.NewRecorder()
+	r.handler.ServeHTTP(rec, newReq)
+	body := rec.Body.Bytes()
+	return &http.Response{
+		StatusCode: rec.Code,
+		Header:     rec.Header(),
+		Body:       io.NopCloser(bytes.NewReader(body)),
+		Request:    req,
+	}, nil
 }
 
 func TestClient_GetLatestRelease_InvalidRepo(t *testing.T) {
@@ -91,6 +132,103 @@ func TestClient_GetLatestRelease_InvalidRepo(t *testing.T) {
 	_, err := client.GetLatestRelease(context.Background(), "invalid-url")
 	if err == nil {
 		t.Error("expected error for invalid URL")
+	}
+}
+
+func TestClient_GetLatestRelease_Non200Status(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		if _, err := w.Write([]byte(`{"message": "Not Found"}`)); err != nil {
+			t.Logf("Write error: %v", err)
+		}
+	})
+
+	client := NewClient()
+	client.httpClient = &http.Client{
+		Transport: &redirectTransport{handler: handler},
+	}
+
+	_, err := client.GetLatestRelease(context.Background(), "https://github.com/owner/repo")
+	if err == nil {
+		t.Fatal("expected error for non-200 status")
+	}
+	if !strings.Contains(err.Error(), "404") {
+		t.Errorf("expected error to contain 404, got %v", err)
+	}
+}
+
+func TestClient_GetLatestRelease_InvalidJSON(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write([]byte(`{invalid json`)); err != nil {
+			t.Logf("Write error: %v", err)
+		}
+	})
+
+	client := NewClient()
+	client.httpClient = &http.Client{
+		Transport: &redirectTransport{handler: handler},
+	}
+
+	_, err := client.GetLatestRelease(context.Background(), "https://github.com/owner/repo")
+	if err == nil {
+		t.Fatal("expected error for invalid JSON")
+	}
+	if !strings.Contains(err.Error(), "failed to decode") {
+		t.Errorf("expected error to contain 'failed to decode', got %v", err)
+	}
+}
+
+func TestClient_GetLatestRelease_NetworkError(t *testing.T) {
+	client := NewClient()
+	client.httpClient = &http.Client{
+		Transport: &errorTransport{err: errors.New("connection refused")},
+		Timeout:   1 * time.Second,
+	}
+
+	_, err := client.GetLatestRelease(context.Background(), "https://github.com/owner/repo")
+	if err == nil {
+		t.Fatal("expected error for network failure")
+	}
+}
+
+type errorTransport struct {
+	err error
+}
+
+func (t *errorTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	return nil, t.err
+}
+
+func TestClient_GetLatestRelease_ContextCancelled(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Simulate slow response
+		time.Sleep(5 * time.Second)
+		w.WriteHeader(http.StatusOK)
+	})
+
+	client := NewClient()
+	client.httpClient = &http.Client{
+		Transport: &redirectTransport{handler: handler},
+		Timeout:   10 * time.Second,
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // Cancel immediately
+
+	_, err := client.GetLatestRelease(ctx, "https://github.com/owner/repo")
+	if err == nil {
+		t.Fatal("expected error for cancelled context")
+	}
+}
+
+func TestClient_GetLatestRelease_EmptyPath(t *testing.T) {
+	client := NewClient()
+
+	_, err := client.GetLatestRelease(context.Background(), "https://github.com/")
+	if err == nil {
+		t.Error("expected error for URL with only owner")
 	}
 }
 
@@ -108,5 +246,18 @@ func TestRelease_JSONParsing(t *testing.T) {
 	}
 	if release.HTMLURL != "https://github.com/test/repo/releases/tag/v2.0.0" {
 		t.Errorf("expected html_url, got %s", release.HTMLURL)
+	}
+}
+
+func TestNewClient(t *testing.T) {
+	client := NewClient()
+	if client == nil {
+		t.Fatal("expected non-nil client")
+	}
+	if client.httpClient == nil {
+		t.Fatal("expected non-nil httpClient")
+	}
+	if client.httpClient.Timeout != 10*time.Second {
+		t.Errorf("expected 10s timeout, got %v", client.httpClient.Timeout)
 	}
 }
