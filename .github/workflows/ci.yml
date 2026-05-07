@@ -154,10 +154,22 @@ jobs:
         run: |
           pkill -f "go run" 2>/dev/null || true
           pkill -f vite 2>/dev/null || true
+          pkill -f server 2>/dev/null || true
+          pkill -f "vite preview" 2>/dev/null || true
           sleep 2
-          cd pkg/proxy && go run ./cmd/server &
-          sleep 3
-          cd pkg/ui && npm run build
+          
+          # Build Go server first
+          cd pkg/proxy && go build -o server ./cmd/server
+          ./server &
+          SERVER_PID=$!
+          echo "Go server started with PID: $SERVER_PID"
+          sleep 5
+          
+          # Verify Go server is running
+          curl -s http://localhost:8081/health || echo "Go server health check failed"
+          
+          # Build and start Vue (navigate back to root then to pkg/ui)
+          cd ../pkg/ui && npm run build
           pkill -f vite 2>/dev/null || true
           npx vite preview --port 3000 &
           sleep 5
@@ -174,6 +186,7 @@ jobs:
           docker stop floci 2>/dev/null || true
           docker rm floci 2>/dev/null || true
           pkill -f "go run" 2>/dev/null || true
+          pkill -f server 2>/dev/null || true
           pkill -f vite 2>/dev/null || true
 
   build-release:
