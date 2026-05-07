@@ -77,6 +77,8 @@ async function handleCreateBucket(name: string, options?: { enableCors?: boolean
   try {
     await createBucket(name.trim(), options)
     showCreateModal.value = false
+    // Reset to first page to see new bucket
+    bucketPage.value = 1
   } catch (e: any) {
     error.value = 'Failed to create bucket: ' + e.message
   }

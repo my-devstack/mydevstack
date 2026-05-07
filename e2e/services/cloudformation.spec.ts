@@ -13,11 +13,15 @@ test.describe('CloudFormation', () => {
   })
 
   test.afterEach(async ({ page }) => {
-    // Cleanup: close any open modals
-    const modal = page.getByRole('dialog')
-    if (await modal.isVisible().catch(() => false)) {
-      await page.getByRole('button', { name: 'Cancel' }).first().click()
-      await expect(modal).not.toBeVisible({ timeout: 5000 })
+    // Cleanup: close any open modals - handle detached elements gracefully
+    try {
+      const modal = page.getByRole('dialog')
+      if (await modal.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await page.getByRole('button', { name: 'Cancel' }).first().click({ timeout: 3000 })
+        await expect(modal).not.toBeVisible({ timeout: 5000 })
+      }
+    } catch (e) {
+      // Modal closed or element detached - ignore
     }
   })
 

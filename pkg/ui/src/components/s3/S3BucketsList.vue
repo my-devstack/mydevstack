@@ -108,6 +108,26 @@ function toggleBucketExpansion(bucketName: string) {
           <div class="flex items-center justify-end gap-2">
             <button
               type="button"
+              class="p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600"
+              title="View Objects"
+              @click.stop="emit('select-bucket', bucket.Name)"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
               class="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600"
               title="Delete"
               @click="emit('delete-bucket', bucket.Name)"

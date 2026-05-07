@@ -1,5 +1,24 @@
 import { test, expect } from '../fixtures.js'
 
+// Helper to find bucket on any page (handles pagination)
+async function findBucketOnPage(page: any, bucketName: string, maxPages = 5): Promise<boolean> {
+  for (let i = 0; i < maxPages; i++) {
+    const bucket = page.getByText(bucketName, { exact: true })
+    if (await bucket.isVisible({ timeout: 2000 }).catch(() => false)) {
+      return true
+    }
+    // Try clicking Next button if available
+    const nextBtn = page.getByRole('button', { name: 'Next' })
+    if (await nextBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await nextBtn.click()
+      await page.waitForTimeout(500)
+    } else {
+      break
+    }
+  }
+  return false
+}
+
 test.describe('S3', () => {
   test('navigate to S3 service page', async ({ page }) => {
     await page.goto('/#/services/s3')
@@ -10,7 +29,7 @@ test.describe('S3', () => {
   test('show bucket count', async ({ page }) => {
     await page.goto('/#/services/s3')
     await page.waitForLoadState('networkidle')
-    await expect(page.getByText(/bucket/)).toBeVisible()
+    await expect(page.getByText('bucket(s)')).toBeVisible()
   })
 
   test('open create modal', async ({ page }) => {
@@ -48,10 +67,15 @@ test.describe('S3', () => {
     await page.getByRole('button', { name: 'Create', exact: true }).click()
     
     // Wait for success message
-    await expect(page.getByText(`Bucket "${bucketName}" created`)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(`Bucket "${bucketName}" created successfully`)).toBeVisible({ timeout: 10000 })
     
-    // Verify bucket appears in list table (use exact match in table)
-    await expect(page.locator('table').getByText(bucketName, { exact: true })).toBeVisible({ timeout: 5000 })
+    // Wait for modal to close and list to refresh
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(1000)
+    
+    // Verify bucket appears in list (search across pages if needed)
+    const found = await findBucketOnPage(page, bucketName)
+    expect(found).toBe(true)
   })
 
   test('create bucket with CORS enabled', async ({ page }) => {
@@ -65,8 +89,15 @@ test.describe('S3', () => {
     await page.getByLabel('Enable CORS').check()
     await page.getByRole('button', { name: 'Create', exact: true }).click()
     
-    await expect(page.getByText(`Bucket "${bucketName}" created`)).toBeVisible({ timeout: 10000 })
-    await expect(page.locator('table').getByText(bucketName, { exact: true })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(`Bucket "${bucketName}" created successfully`)).toBeVisible({ timeout: 10000 })
+    
+    // Wait for modal to close and list to refresh
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000)
+    
+    // Verify bucket appears in list (search across pages if needed)
+    const found = await findBucketOnPage(page, bucketName)
+    expect(found).toBe(true)
   })
 
   test('create bucket with advanced options visible', async ({ page }) => {
@@ -77,7 +108,7 @@ test.describe('S3', () => {
     await page.getByPlaceholder('Enter bucket name').fill('test-advanced')
     
     // Expand advanced options
-    const advancedOptions = page.locator('legend').getByText('Advanced Options')
+    const advancedOptions = page.getByRole('button', { name: 'Advanced Options' })
     await advancedOptions.click()
     await page.waitForTimeout(500)
     
@@ -101,15 +132,22 @@ test.describe('S3', () => {
     await page.getByPlaceholder('Enter bucket name').fill(bucketName)
     
     // Expand and enable versioning
-    const advancedOptions = page.locator('legend').getByText('Advanced Options')
+    const advancedOptions = page.getByRole('button', { name: 'Advanced Options' })
     await advancedOptions.click()
     await page.waitForTimeout(500)
     await page.getByLabel('Enable Versioning').check()
     
     await page.getByRole('button', { name: 'Create', exact: true }).click()
     
-    await expect(page.getByText(`Bucket "${bucketName}" created`)).toBeVisible({ timeout: 10000 })
-    await expect(page.locator('table').getByText(bucketName, { exact: true })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(`Bucket "${bucketName}" created successfully`)).toBeVisible({ timeout: 10000 })
+    
+    // Wait for modal to close and list to refresh
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000)
+    
+    // Verify bucket appears in list (search across pages if needed)
+    const found = await findBucketOnPage(page, bucketName)
+    expect(found).toBe(true)
   })
 
   test('create bucket with tags', async ({ page }) => {
@@ -122,8 +160,12 @@ test.describe('S3', () => {
     await page.getByPlaceholder('Enter bucket name').fill(bucketName)
     
     // Expand and add tags
-    const advancedOptions = page.locator('legend').getByText('Advanced Options')
+    const advancedOptions = page.getByRole('button', { name: 'Advanced Options' })
     await advancedOptions.click()
+    await page.waitForTimeout(500)
+    
+    // Add a tag first
+    await page.getByRole('button', { name: '+ Add Tag' }).click()
     await page.waitForTimeout(500)
     
     const keyInputs = page.getByPlaceholder('Key')
@@ -133,8 +175,15 @@ test.describe('S3', () => {
     
     await page.getByRole('button', { name: 'Create', exact: true }).click()
     
-    await expect(page.getByText(`Bucket "${bucketName}" created`)).toBeVisible({ timeout: 10000 })
-    await expect(page.locator('table').getByText(bucketName, { exact: true })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(`Bucket "${bucketName}" created successfully`)).toBeVisible({ timeout: 10000 })
+    
+    // Wait for modal to close and list to refresh
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000)
+    
+    // Verify bucket appears in list (search across pages if needed)
+    const found = await findBucketOnPage(page, bucketName)
+    expect(found).toBe(true)
   })
 
   test('select bucket to view objects', async ({ page }) => {
@@ -142,10 +191,10 @@ test.describe('S3', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
     
-    // Click on first bucket row in table
-    const bucketRow = page.locator('table tbody tr').first()
-    if (await bucketRow.isVisible({ timeout: 5000 })) {
-      await bucketRow.click()
+    // Click View Objects button on first bucket
+    const viewObjectsBtn = page.locator('.border.rounded-lg button[title="View Objects"]').first()
+    if (await viewObjectsBtn.isVisible({ timeout: 5000 })) {
+      await viewObjectsBtn.click()
       await page.waitForTimeout(1500)
       
       // Should show objects list with back button
@@ -158,10 +207,10 @@ test.describe('S3', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
     
-    // Navigate to bucket
-    const bucketRow = page.locator('table tbody tr').first()
-    if (await bucketRow.isVisible({ timeout: 5000 })) {
-      await bucketRow.click()
+    // Navigate to bucket using View Objects button
+    const viewObjectsBtn = page.locator('.border.rounded-lg button[title="View Objects"]').first()
+    if (await viewObjectsBtn.isVisible({ timeout: 5000 })) {
+      await viewObjectsBtn.click()
       await page.waitForTimeout(2000)
       
       // Check for upload button

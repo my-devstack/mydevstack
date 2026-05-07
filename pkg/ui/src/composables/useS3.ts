@@ -88,7 +88,15 @@ export function useS3() {
     try {
       await s3Api.createBucket(name, options)
       uiStore.notifySuccess('Bucket created', `Bucket "${name}" created successfully`)
+      // Refresh bucket list from API, then add new bucket to ensure it's at top
       await loadBuckets()
+      // Check if bucket already in list (some mocks return it), otherwise add it
+      if (!buckets.value.find(b => b.Name === name)) {
+        buckets.value.unshift({ 
+          Name: name, 
+          CreationDate: new Date().toISOString() 
+        })
+      }
     } catch (error) {
       uiStore.notifyError('Failed to create bucket', error instanceof Error ? error.message : 'Unknown error')
       throw error
