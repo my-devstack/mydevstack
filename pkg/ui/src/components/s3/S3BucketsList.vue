@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { ArchiveBoxIcon } from '@heroicons/vue/24/outline'
-import DataTable from '@/components/common/DataTable.vue'
+import { ref } from 'vue'
+import { ArchiveBoxIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
+import S3BucketDetails from './S3BucketDetails.vue'
 import { useSettingsStore } from '@/stores/settings'
 
 interface Bucket {
@@ -9,22 +9,29 @@ interface Bucket {
   CreationDate?: string
 }
 
+interface BucketDetails {
+  versioning: { status: string; mfaDelete: string } | null
+  encryption: { algorithm: string; keyId: string } | null
+  tags: Array<{ Key: string; Value: string }>
+  loading: boolean
+}
+
 const props = defineProps<{
   buckets: Bucket[]
+  bucketDetails?: Record<string, BucketDetails>
   loading?: boolean
 }>()
 
 const emit = defineEmits<{
   'select-bucket': [bucketName: string]
   'delete-bucket': [bucketName: string]
+  'expand-bucket': [bucketName: string]
+  'add-trigger': [bucketName: string]
+  'view-policy': [bucketName: string]
 }>()
 
 const settingsStore = useSettingsStore()
-
-const columns = computed(() => [
-  { key: 'Name', label: 'Name', sortable: true },
-  { key: 'CreationDate', label: 'Created', sortable: true },
-])
+const expandedBucket = ref<string | null>(null)
 
 function formatDate(dateStr: string | undefined): string {
   if (!dateStr) return 'Unknown'
@@ -34,11 +41,20 @@ function formatDate(dateStr: string | undefined): string {
     return dateStr
   }
 }
+
+function toggleBucketExpansion(bucketName: string) {
+  if (expandedBucket.value === bucketName) {
+    expandedBucket.value = null
+  } else {
+    expandedBucket.value = bucketName
+    emit('expand-bucket', bucketName)
+  }
+}
 </script>
 
 <template>
   <div
-    v-if="loading"
+    v-if="loading && buckets.length === 0"
     class="text-center py-12"
   >
     <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent" />
@@ -62,47 +78,75 @@ function formatDate(dateStr: string | undefined): string {
     </p>
   </div>
 
-  <DataTable
+  <div
     v-else
-    :columns="columns"
-    :data="buckets"
-    :loading="loading"
-    selectable
-    empty-message="No buckets found. Create one to get started!"
-    @row-click="(row) => emit('select-bucket', row.Name)"
+    class="space-y-4"
   >
-    <template #cell-Name="{ value }">
-      <div class="flex items-center gap-2">
-        <ArchiveBoxIcon class="h-5 w-5 text-primary-500" />
-        <span class="font-medium text-light-text dark:text-dark-text">{{ value }}</span>
-      </div>
-    </template>
-    <template #cell-CreationDate="{ value }">
-      <span class="text-light-muted dark:text-dark-muted">{{ formatDate(value) }}</span>
-    </template>
-    <template #row-actions="{ row }">
-      <div class="flex items-center gap-2">
-        <button
-          type="button"
-          class="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600"
-          title="Delete"
-          @click.stop="emit('delete-bucket', row.Name)"
+    <div
+      v-for="bucket in buckets"
+      :key="bucket.Name"
+      class="border rounded-lg overflow-hidden"
+      :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
+    >
+      <!-- Accordion Header -->
+      <div
+        class="grid grid-cols-12 gap-4 px-4 py-4 items-center cursor-pointer hover:bg-light-bg dark:hover:bg-dark-bg"
+        :class="settingsStore.darkMode ? 'bg-dark-surface' : 'bg-light-surface'"
+        @click="toggleBucketExpansion(bucket.Name)"
+      >
+        <div class="col-span-8 flex items-center gap-2">
+          <ArchiveBoxIcon class="h-5 w-5 text-primary-500" />
+          <span class="font-medium text-light-text dark:text-dark-text">{{ bucket.Name }}</span>
+          <span class="text-sm text-light-muted dark:text-dark-muted">
+            {{ formatDate(bucket.CreationDate) }}
+          </span>
+        </div>
+        <div
+          class="col-span-4 text-right"
+          @click.stop
         >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          <div class="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              class="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600"
+              title="Delete"
+              @click="emit('delete-bucket', bucket.Name)"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            </button>
+            <component
+              :is="expandedBucket === bucket.Name ? ChevronDownIcon : ChevronRightIcon"
+              class="h-5 w-5 text-light-muted dark:text-dark-muted"
             />
-          </svg>
-        </button>
+          </div>
+        </div>
       </div>
-    </template>
-  </DataTable>
+
+      <!-- Accordion Content -->
+      <div
+        v-if="expandedBucket === bucket.Name"
+        class="px-4 pb-4 border-t"
+        :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
+      >
+        <S3BucketDetails
+          :bucket-name="bucket.Name"
+          :details="bucketDetails?.[bucket.Name] || null"
+          @add-trigger="(name) => emit('add-trigger', name)"
+          @view-policy="(name) => emit('view-policy', name)"
+        />
+      </div>
+    </div>
+  </div>
 </template>

@@ -17,8 +17,9 @@ func TestNewS3Adapter(t *testing.T) {
 		Region: "us-east-1",
 	}
 	endpoint := "http://localhost:4566"
+	region := "us-east-1"
 
-	adapter := NewS3Adapter(awsCfg, endpoint)
+	adapter := NewS3Adapter(awsCfg, endpoint, region)
 
 	assert.NotNil(t, adapter, "S3Adapter should not be nil")
 	assert.IsType(t, &S3Adapter{}, adapter, "Should return S3Adapter type")
@@ -38,7 +39,7 @@ func TestS3Adapter_ListBuckets(t *testing.T) {
 
 	mockClient.EXPECT().ListBuckets(ctx, input).Return(expectedOutput, nil)
 
-	adapter := &S3Adapter{client: mockClient}
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
 	output, err := adapter.ListBuckets(ctx)
 
 	assert.NoError(t, err)
@@ -56,7 +57,7 @@ func TestS3Adapter_ListObjectsV2(t *testing.T) {
 
 	mockClient.EXPECT().ListObjectsV2(ctx, input).Return(expectedOutput, nil)
 
-	adapter := &S3Adapter{client: mockClient}
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
 	output, err := adapter.ListObjectsV2(ctx, input)
 
 	assert.NoError(t, err)
@@ -74,7 +75,7 @@ func TestS3Adapter_GetObject(t *testing.T) {
 
 	mockClient.EXPECT().GetObject(ctx, input).Return(expectedOutput, nil)
 
-	adapter := &S3Adapter{client: mockClient}
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
 	output, err := adapter.GetObject(ctx, input)
 
 	assert.NoError(t, err)
@@ -90,7 +91,7 @@ func TestS3Adapter_PutObject(t *testing.T) {
 
 	mockClient.EXPECT().PutObject(ctx, input).Return(expectedOutput, nil)
 
-	adapter := &S3Adapter{client: mockClient}
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
 	output, err := adapter.PutObject(ctx, input)
 
 	assert.NoError(t, err)
@@ -106,7 +107,7 @@ func TestS3Adapter_DeleteObject(t *testing.T) {
 
 	mockClient.EXPECT().DeleteObject(ctx, input).Return(expectedOutput, nil)
 
-	adapter := &S3Adapter{client: mockClient}
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
 	output, err := adapter.DeleteObject(ctx, input)
 
 	assert.NoError(t, err)
@@ -122,7 +123,7 @@ func TestS3Adapter_DeleteBucket(t *testing.T) {
 
 	mockClient.EXPECT().DeleteBucket(ctx, input).Return(expectedOutput, nil)
 
-	adapter := &S3Adapter{client: mockClient}
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
 	output, err := adapter.DeleteBucket(ctx, input)
 
 	assert.NoError(t, err)
@@ -138,7 +139,7 @@ func TestS3Adapter_HeadBucket(t *testing.T) {
 
 	mockClient.EXPECT().HeadBucket(ctx, input).Return(expectedOutput, nil)
 
-	adapter := &S3Adapter{client: mockClient}
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
 	output, err := adapter.HeadBucket(ctx, input)
 
 	assert.NoError(t, err)
@@ -154,7 +155,7 @@ func TestS3Adapter_HeadObject(t *testing.T) {
 
 	mockClient.EXPECT().HeadObject(ctx, input).Return(expectedOutput, nil)
 
-	adapter := &S3Adapter{client: mockClient}
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
 	output, err := adapter.HeadObject(ctx, input)
 
 	assert.NoError(t, err)
@@ -170,7 +171,7 @@ func TestS3Adapter_CreateBucket(t *testing.T) {
 
 	mockClient.EXPECT().CreateBucket(ctx, input).Return(expectedOutput, nil)
 
-	adapter := &S3Adapter{client: mockClient}
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
 	output, err := adapter.CreateBucket(ctx, input)
 
 	assert.NoError(t, err)
@@ -184,7 +185,7 @@ func TestS3Adapter_ListBuckets_Error(t *testing.T) {
 
 	mockClient.EXPECT().ListBuckets(ctx, input).Return(nil, errors.New("some error"))
 
-	adapter := &S3Adapter{client: mockClient}
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
 	output, err := adapter.ListBuckets(ctx)
 
 	assert.Error(t, err)

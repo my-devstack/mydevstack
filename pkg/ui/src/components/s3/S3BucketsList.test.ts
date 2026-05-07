@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import S3BucketsList from './S3BucketsList.vue'
+import S3BucketDetails from './S3BucketDetails.vue'
 
 vi.mock('@/stores/settings', () => ({
   useSettingsStore: () => ({
@@ -127,7 +128,7 @@ describe('S3BucketsList', () => {
     expect(wrapper.text()).toContain('single-bucket')
   })
 
-  it('handles many buckets with pagination', () => {
+  it('handles many buckets', () => {
     const manyBuckets = Array.from({ length: 50 }, (_, i) => ({
       Name: `bucket-${i}`,
       CreationDate: '2024-01-01T00:00:00Z'
@@ -141,6 +142,45 @@ describe('S3BucketsList', () => {
     })
 
     expect(wrapper.text()).toContain('bucket-0')
-    expect(wrapper.text()).toContain('Showing 1 to 10 of 50 results')
+    expect(wrapper.text()).toContain('bucket-49')
+  })
+
+  it('emits expand-bucket event when clicking bucket row', () => {
+    const wrapper = mount(S3BucketsList, {
+      props: {
+        buckets: [{ Name: 'test-bucket', CreationDate: '2024-01-01T00:00:00Z' }],
+        loading: false,
+      },
+    })
+
+    wrapper.find('.cursor-pointer').trigger('click')
+    expect(wrapper.emitted('expand-bucket')).toBeTruthy()
+    expect(wrapper.emitted('expand-bucket')?.[0]).toEqual(['test-bucket'])
+  })
+
+  
+
+  it('has bucketDetails prop defined', () => {
+    expect(S3BucketsList.props).toBeDefined()
+    expect(S3BucketsList.props.bucketDetails).toBeDefined()
+  })
+
+  it('bucketDetails prop is optional', () => {
+    expect(S3BucketsList.props.bucketDetails.required).toBeFalsy()
+  })
+
+  it('emits expand-bucket event', () => {
+    expect(S3BucketsList.emits).toBeDefined()
+    expect(S3BucketsList.emits).toContain('expand-bucket')
+  })
+
+  it('emits add-trigger event', () => {
+    expect(S3BucketsList.emits).toBeDefined()
+    expect(S3BucketsList.emits).toContain('add-trigger')
+  })
+
+  it('emits view-policy event', () => {
+    expect(S3BucketsList.emits).toBeDefined()
+    expect(S3BucketsList.emits).toContain('view-policy')
   })
 })
