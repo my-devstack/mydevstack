@@ -335,20 +335,55 @@ jobs:
           result-encoding: string
           script: |
             const previousTag = '${{ steps.prev-tag.outputs.previous_tag }}';
+            const currentTag = '${{ github.ref_name }}';
+            console.log('Current tag:', currentTag);
+            console.log('Previous tag:', JSON.stringify(previousTag));
+            
             let releaseNotes = '';
-            if (!previousTag) {
+            if (!previousTag || previousTag.trim() === '') {
               console.log('No previous tag found, generating empty notes');
             } else {
-              const notes = await github.rest.repos.generateReleaseNotes({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                tag_name: '${{ github.ref_name }}',
-                previous_tag_name: previousTag
-              });
-              releaseNotes = notes.body;
+              try {
+                // Use GitHub's compare API to get commits between tags
+                console.log('Fetching commits between', previousTag.trim(), 'and', currentTag);
+                
+                const response = await github.rest.repos.compareCommits({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  base: previousTag.trim(),
+                  head: currentTag
+                });
+                
+                console.log('Compare response status:', response.status);
+                console.log('Total commits:', response.data.total_commits);
+                console.log('Commits array:', response.data.commits?.length);
+                
+                // Generate release notes from commits
+                const commits = response.data.commits || [];
+                const authors = [...new Set(commits.map(c => c.commit.author.name))];
+                
+                releaseNotes = `## Changes\n\n`;
+                releaseNotes += `Total commits: ${commits.length}\n\n`;
+                
+                if (commits.length > 0) {
+                  releaseNotes += '### Commits\n\n';
+                  commits.slice(0, 50).forEach(commit => {
+                    const msg = commit.commit.message.split('\n')[0];
+                    releaseNotes += `- ${msg} (${commit.sha.substring(0, 7)})\n`;
+                  });
+                }
+                
+                releaseNotes += `\n### Authors\n${authors.map(a => `- ${a}`).join('\n')}`;
+                
+              } catch (err) {
+                console.error('Failed to generate release notes:', err.message);
+                console.error('Error status:', err.status);
+                console.error('Error details:', JSON.stringify(err));
+                releaseNotes = '';
+              }
             }
-            console.log('Release notes generated, length:', releaseNotes.length);
-            core.setOutput('result', releaseNotes);
+            console.log('Release notes generated, length:', (releaseNotes || '').length);
+            core.setOutput('result', releaseNotes || '');
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
