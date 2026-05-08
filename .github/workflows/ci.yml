@@ -156,11 +156,11 @@ jobs:
           pkill -f vite 2>/dev/null || true
           sleep 2
           cd pkg/proxy && go run ./cmd/server &
-          sleep 3
+          sleep 10
           cd pkg/ui && npm run build
           pkill -f vite 2>/dev/null || true
           npx vite preview --port 3000 &
-          sleep 5
+          sleep 10
 
       - name: Run E2E tests
         run: npm run test:e2e
@@ -332,7 +332,6 @@ jobs:
         id: release-notes
         uses: actions/github-script@v7
         with:
-          result-encoding: string
           script: |
             const previousTag = '${{ steps.prev-tag.outputs.previous_tag }}';
             const currentTag = '${{ github.ref_name }}';
@@ -383,7 +382,8 @@ jobs:
               }
             }
             console.log('Release notes generated, length:', (releaseNotes || '').length);
-            core.setOutput('result', releaseNotes || '');
+            console.log('Release notes:', releaseNotes);
+            return releaseNotes || '';
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
