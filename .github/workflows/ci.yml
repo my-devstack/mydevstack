@@ -335,17 +335,20 @@ jobs:
           result-encoding: string
           script: |
             const previousTag = '${{ steps.prev-tag.outputs.previous_tag }}';
+            let releaseNotes = '';
             if (!previousTag) {
               console.log('No previous tag found, generating empty notes');
-              return '';
+            } else {
+              const notes = await github.rest.repos.generateReleaseNotes({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag_name: '${{ github.ref_name }}',
+                previous_tag_name: previousTag
+              });
+              releaseNotes = notes.body;
             }
-            const notes = await github.rest.repos.generateReleaseNotes({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: '${{ github.ref_name }}',
-              previous_tag_name: previousTag
-            });
-            return notes.body;
+            console.log('Release notes generated, length:', releaseNotes.length);
+            core.setOutput('result', releaseNotes);
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
