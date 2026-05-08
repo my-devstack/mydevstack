@@ -321,11 +321,8 @@ jobs:
       - name: Get previous tag
         id: prev-tag
         run: |
-          # Get all tags sorted by date, exclude current tag (handle both v1.2.0 and 1.2.0 formats)
           CURRENT="${{ github.ref_name }}"
-          # Strip leading v if present to match both formats
-          CURRENT_STRIPPED="${CURRENT#v}"
-          PREV_TAG=$(git tag --sort=-creatordate --format='%(refname:lstrip=2)' | grep -E "^v?${CURRENT_STRIPPED}$" -v | head -1 || true)
+          PREV_TAG=$(git tag --sort=-creatordate --format='%(refname:lstrip=2)' | grep -v -- "$CURRENT" | head -1 || true)
           echo "previous_tag=$PREV_TAG" >> $GITHUB_OUTPUT
         shell: bash
 
