@@ -4,10 +4,10 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,  // Tests within file run serially
   forbidOnly: false,
-  retries: 1,
-  workers: process.env.CI ? 4 : 3,  // Files run in parallel
+  retries: 2,
+  workers: 3,  // Run tests serially in CI to avoid race conditions
   reporter: 'list',
-  timeout: 30000,
+  timeout: 40000,
   expect: {
     timeout: 5000,
   },

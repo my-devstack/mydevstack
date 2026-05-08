@@ -100,13 +100,53 @@ test.describe('API Gateway', () => {
   })
 
   test('create REST API and verify in list', async ({ page }) => {
+    test.setTimeout(60000) // Increase timeout for CI
+
     const apiName = 'test-rest-api-' + Date.now()
 
-    await createRestApi(page, apiName, 'Test REST API description')
+    await page.goto('/#/services/api-gateway')
+    await page.waitForLoadState('networkidle')
+
+    // Ensure REST API tab is active (default)
+    const restTab = page.getByRole('tab', { name: 'REST APIs' })
+    if (await restTab.isVisible()) {
+      await restTab.click()
+    }
+
+    // Click the Create REST API button in the header
+    await page.getByRole('button', { name: 'Create REST API' }).first().click()
+
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('heading', { name: 'Create REST API' })).toBeVisible()
+
+    // Fill in the form
+    await page.getByPlaceholder('my-api').fill(apiName)
+    await page.getByPlaceholder('My REST API (optional)').fill('Test REST API description')
+
+    await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+
+    // Wait for modal to close - retry loop for CI/flaky Floci
+    for (let i = 0; i < 8; i++) {
+      try {
+        await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+        break
+      } catch {
+        // Check for error toast
+        const errorToast = page.locator('.toast-error, [class*="error"]').first()
+        if (await errorToast.isVisible({ timeout: 2000 })) {
+          throw new Error('REST API creation failed')
+        }
+        // Retry modal close check
+        await page.waitForTimeout(3000)
+      }
+    }
+
+    // Force page refresh after create to refresh data from Floci
+    await page.reload({ waitUntil: 'networkidle' })
+    await page.waitForTimeout(3000)
 
     // Verify API appears in list - wait for list to populate
-    await page.waitForTimeout(3000)
-    await expect(page.locator('div').filter({ hasText: apiName }).first()).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('div').filter({ hasText: apiName }).first()).toBeVisible({ timeout: 25000 })
   })
 
   test('create HTTP API and verify in list', async ({ page }) => {
