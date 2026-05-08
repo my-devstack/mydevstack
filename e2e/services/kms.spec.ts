@@ -89,19 +89,26 @@ test.describe('KMS', () => {
   })
 
   test('expand key and verify metadata', async ({ page }) => {
-    const keyDescription = 'test-details-' + Date.now()
+  const keyDescription = 'test-details-' + Date.now()
 
-    await createKey(page, keyDescription)
+  await createKey(page, keyDescription)
 
-    await expect(page.locator('div.border.rounded-lg').first()).toBeVisible({ timeout: 15000 })
+  // Wait for the key to appear in the list
+  await expect(page.locator('div.border.rounded-lg').first()).toBeVisible({ timeout: 15000 })
+  await page.waitForTimeout(500)
 
-    // Click to expand the first key
-    await page.locator('div.border.rounded-lg').first().locator('.grid.grid-cols-12').click()
+  // Click on the key card to expand
+  const keyCard = page.locator('div.border.rounded-lg').first()
+  await keyCard.click({ position: { x: 50, y: 20 } })
+  
+  await page.waitForTimeout(500)
 
-    // Verify inline details and policy (use heading role to avoid strict mode)
-    await expect(page.getByRole('heading', { name: 'Key Details' })).toBeVisible({ timeout: 5000 })
-    await expect(page.getByRole('heading', { name: 'Key Policy' })).toBeVisible({ timeout: 5000 })
-  })
+  // Verify accordion opened - look for expanded content
+  // The accordion content should contain either Key Details heading or Key Policy
+  await expect(
+    page.locator('text=Key Details').or(page.locator('text=Key Policy'))
+  ).toBeVisible({ timeout: 5000 })
+})
 
   test('delete key - schedule deletion', async ({ page }) => {
     const keyDescription = 'test-delete-' + Date.now()

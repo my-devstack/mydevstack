@@ -11,14 +11,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
+	"github.com/my-devstack/mydevstack/pkg/proxy/internal/service"
 )
 
 type ProxyHandler struct {
-	svc ports.ProxyService
+	svc        ports.ProxyService
+	versionSvc *service.VersionService
 }
 
-func NewProxyHandler(svc ports.ProxyService) *ProxyHandler {
-	return &ProxyHandler{svc: svc}
+func NewProxyHandler(svc ports.ProxyService, versionSvc *service.VersionService) *ProxyHandler {
+	return &ProxyHandler{svc: svc, versionSvc: versionSvc}
 }
 
 func (h *ProxyHandler) ServiceRouter(c *gin.Context) {
@@ -61,14 +63,23 @@ func (h *ProxyHandler) ServiceRouter(c *gin.Context) {
 }
 
 func (h *ProxyHandler) HealthCheck(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"status":       "healthy",
-		"proxy":        "aws-proxy",
-		"target":       h.svc.Config().AWS.Endpoint,
-		"endpoint_url": h.svc.Config().AWS.Endpoint,
-		"region":       h.svc.Region(),
-		"emulator":     h.svc.Config().Emulator,
-	})
+	response := gin.H{
+		"status":        "healthy",
+		"proxy":         "aws-proxy",
+		"target":        h.svc.Config().AWS.Endpoint,
+		"endpoint_url":  h.svc.Config().AWS.Endpoint,
+		"region":        h.svc.Region(),
+		"emulator":      h.svc.Config().Emulator,
+		"github_repo":   h.versionSvc.GetGitHubRepo(),
+		"latestVersion": "",
+	}
+
+	// Add latest version if available
+	if latest, ok := h.versionSvc.GetLatestVersion(); ok && latest != "" {
+		response["latestVersion"] = latest
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func (h *ProxyHandler) SetRegion(c *gin.Context) {

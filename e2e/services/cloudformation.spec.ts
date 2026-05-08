@@ -78,11 +78,25 @@ test.describe('CloudFormation', () => {
     await page.waitForLoadState('networkidle')
 
     // Step 7: Wait for the new stack to appear in the list (CF async, use long timeout)
-    const stackRow = page.locator('.cursor-pointer').filter({ hasText: stackName })
-    await expect(stackRow).toBeVisible({ timeout: 30000 })
+    // Handle pagination - search through pages to find the stack
+    const maxPages = 10
+    let stackRow = page.locator('.cursor-pointer').filter({ hasText: stackName })
+    let found = await stackRow.isVisible().catch(() => false)
 
-    // Click to expand and verify details show
-    await stackRow.click()
+    for (let i = 0; i < maxPages && !found; i++) {
+      if (i > 0) {
+        const nextBtn = page.getByRole('button', { name: 'Next' })
+        const isDisabled = await nextBtn.isDisabled().catch(() => true)
+        if (isDisabled) break
+        await nextBtn.click()
+        await page.waitForLoadState('networkidle')
+      }
+      stackRow = page.locator('.cursor-pointer').filter({ hasText: stackName })
+      found = await stackRow.isVisible().catch(() => false)
+    }
+
+    expect(found).toBe(true)
+    await stackRow.first().click()
     await expect(page.getByText('Stack ID')).toBeVisible({ timeout: 5000 })
   })
 
@@ -237,8 +251,23 @@ Resources:
     await page.waitForLoadState('networkidle')
 
     // Verify the stack appears in list
-    const stackRow = page.locator('.cursor-pointer').filter({ hasText: stackName })
-    await expect(stackRow).toBeVisible({ timeout: 30000 })
+    const maxPages = 10
+    let stackRow = page.locator('.cursor-pointer').filter({ hasText: stackName })
+    let found = await stackRow.isVisible().catch(() => false)
+
+    for (let i = 0; i < maxPages && !found; i++) {
+      if (i > 0) {
+        const nextBtn = page.getByRole('button', { name: 'Next' })
+        const isDisabled = await nextBtn.isDisabled().catch(() => true)
+        if (isDisabled) break
+        await nextBtn.click()
+        await page.waitForLoadState('networkidle')
+      }
+      stackRow = page.locator('.cursor-pointer').filter({ hasText: stackName })
+      found = await stackRow.isVisible().catch(() => false)
+    }
+
+    expect(found).toBe(true)
   })
 
   test('validation error with invalid YAML', async ({ page }) => {

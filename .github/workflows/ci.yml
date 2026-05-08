@@ -175,7 +175,6 @@ jobs:
           docker rm floci 2>/dev/null || true
           pkill -f "go run" 2>/dev/null || true
           pkill -f vite 2>/dev/null || true
-
   build-release:
     name: Build Release Binary
     runs-on: ubuntu-latest
@@ -319,6 +318,33 @@ jobs:
           find . -maxdepth 1 -name '*.zip' | sort | xargs sha256sum > checksums.txt
           cat checksums.txt
 
+      - name: Get previous tag
+        id: prev-tag
+        run: |
+          # Get all tags sorted by date, exclude current tag, get the most recent
+          PREV_TAG=$(git tag --sort=-creatordate --format='%(refname:lstrip=2)' | grep -v "${{ github.ref_name }}" | head -1)
+          echo "previous_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Generate release notes
+        id: release-notes
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const previousTag = '${{ steps.prev-tag.outputs.previous_tag }}';
+            if (!previousTag) {
+              console.log('No previous tag found, generating empty notes');
+              return '';
+            }
+            const notes = await github.rest.repos.generateReleaseNotes({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: '${{ github.ref_name }}',
+              previous_tag_name: previousTag
+            });
+            return notes.body;
+
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
@@ -326,7 +352,16 @@ jobs:
           files: |
             artifacts/*.zip
             artifacts/checksums.txt
-          generate_release_notes: true
+          body: |
+            ## Docker Image
+
+            ```bash
+            docker pull beabys/mydevstack:${{ github.ref_name }}
+            ```
+
+            ---
+
+            ${{ steps.release-notes.outputs.result }}
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
