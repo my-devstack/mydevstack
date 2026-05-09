@@ -361,18 +361,17 @@ jobs:
                 const commits = response.data.commits || [];
                 const authors = [...new Set(commits.map(c => c.commit.author.name))];
                 
-                releaseNotes = `## Changes\n\n`;
-                releaseNotes += `Total commits: ${commits.length}\n\n`;
+                releaseNotes = '## Changes\n\nTotal commits: ' + commits.length + '\n\n';
                 
                 if (commits.length > 0) {
                   releaseNotes += '### Commits\n\n';
                   commits.slice(0, 50).forEach(commit => {
                     const msg = commit.commit.message.split('\n')[0];
-                    releaseNotes += `- ${msg} (${commit.sha.substring(0, 7)})\n`;
+                    releaseNotes += '- ' + msg + ' (' + commit.sha.substring(0, 7) + ')\n';
                   });
                 }
                 
-                releaseNotes += `\n### Authors\n${authors.map(a => `- ${a}`).join('\n')}`;
+                releaseNotes += '\n### Authors\n' + authors.map(a => '- ' + a).join('\n');
                 
               } catch (err) {
                 console.error('Failed to generate release notes:', err.message);
@@ -382,8 +381,11 @@ jobs:
               }
             }
             console.log('Release notes generated, length:', (releaseNotes || '').length);
-            console.log('Release notes:', releaseNotes);
-            return releaseNotes || '';
+            // Write to GITHUB_OUTPUT for env var usage
+            const fs = require('fs');
+            const outputPath = process.env.GITHUB_OUTPUT;
+            fs.writeFileSync(outputPath, 'release_notes=' + releaseNotes + '\n');
+            return releaseNotes;
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
@@ -401,9 +403,10 @@ jobs:
 
             ---
 
-            ${{ steps.release-notes.outputs.result }}
+            ${{ env.release_notes }}
           draft: false
         env:
+          release_notes: ${{ steps.release-notes.outputs.release_notes }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release-docker:

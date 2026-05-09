@@ -220,6 +220,20 @@ export {
   removeTagsFromResource,
 } from './ssm'
 
+// Step Functions Service (functional, REST-style)
+export {
+  listStateMachines,
+  createStateMachine,
+  describeStateMachine,
+  updateStateMachine,
+  deleteStateMachine,
+  startExecution,
+  listExecutions,
+  stopExecution,
+  describeExecution,
+  getExecutionHistory,
+} from './stepfunctions'
+
 // Re-export APIError for convenience
 export { APIError } from '../client'
 

@@ -957,3 +957,49 @@ func (_c *ProxyService_SetServices_Call) RunAndReturn(run func() error) *ProxySe
 	_c.Call.Return(run)
 	return _c
 }
+
+// StepFunctions provides a mock function for the type ProxyService
+func (_mock *ProxyService) StepFunctions() ports.StepFunctionsPort {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for StepFunctions")
+	}
+
+	var r0 ports.StepFunctionsPort
+	if returnFunc, ok := ret.Get(0).(func() ports.StepFunctionsPort); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ports.StepFunctionsPort)
+		}
+	}
+	return r0
+}
+
+// ProxyService_StepFunctions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StepFunctions'
+type ProxyService_StepFunctions_Call struct {
+	*mock.Call
+}
+
+// StepFunctions is a helper method to define mock.On call
+func (_e *ProxyService_Expecter) StepFunctions() *ProxyService_StepFunctions_Call {
+	return &ProxyService_StepFunctions_Call{Call: _e.mock.On("StepFunctions")}
+}
+
+func (_c *ProxyService_StepFunctions_Call) Run(run func()) *ProxyService_StepFunctions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ProxyService_StepFunctions_Call) Return(stepFunctionsPort ports.StepFunctionsPort) *ProxyService_StepFunctions_Call {
+	_c.Call.Return(stepFunctionsPort)
+	return _c
+}
+
+func (_c *ProxyService_StepFunctions_Call) RunAndReturn(run func() ports.StepFunctionsPort) *ProxyService_StepFunctions_Call {
+	_c.Call.Return(run)
+	return _c
+}

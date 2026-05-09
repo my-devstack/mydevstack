@@ -47,6 +47,7 @@ func main() {
 	log.Printf("  DynamoDB:        http://localhost:%s/dynamodb/", cfg.Port)
 	log.Printf("  RDS:             http://localhost:%s/rds/", cfg.Port)
 	log.Printf("  CloudFormation:  http://localhost:%s/cloudformation/", cfg.Port)
+	log.Printf("  Step Functions:  http://localhost:%s/api/stepfunctions", cfg.Port)
 
 	if err := r.Run(addr); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
@@ -110,6 +111,18 @@ func setupRoutes(r *gin.Engine, handler *http2.ProxyHandler) {
 	r.GET("/health", handler.HealthCheck)
 	r.GET("/_health", handler.BackendHealthCheck)
 	r.POST("/proxy/region", handler.SetRegion)
+
+	// Step Functions REST API
+	r.GET("/api/stepfunctions", handler.HandleListStateMachines)
+	r.POST("/api/stepfunctions", handler.HandleCreateStateMachine)
+	r.GET("/api/stepfunctions/:arn", handler.HandleDescribeStateMachine)
+	r.PUT("/api/stepfunctions/:arn", handler.HandleUpdateStateMachine)
+	r.DELETE("/api/stepfunctions/:arn", handler.HandleDeleteStateMachine)
+	r.POST("/api/stepfunctions/:arn/executions", handler.HandleStartExecution)
+	r.GET("/api/stepfunctions/:arn/executions", handler.HandleListExecutions)
+	r.POST("/api/stepfunctions/:arn/executions/:executionArn/stop", handler.HandleStopExecution)
+	r.GET("/api/stepfunctions/:arn/executions/:executionArn", handler.HandleDescribeExecution)
+	r.GET("/api/stepfunctions/:arn/executions/:executionArn/history", handler.HandleGetExecutionHistory)
 
 	r.Any("/:service/*path", handler.ServiceRouter)
 }

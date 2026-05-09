@@ -2,6 +2,9 @@
 import { ref, computed, watch } from 'vue'
 import { ClipboardDocumentIcon, CheckIcon } from '@heroicons/vue/24/outline'
 import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/vue/24/solid'
+import { useSettingsStore } from '@/stores/settings'
+
+const settingsStore = useSettingsStore()
 
 interface JsonNode {
   key: string
@@ -207,17 +210,6 @@ watch(() => props.expanded, (val) => {
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { useSettingsStore } from '@/stores/settings'
-
-export default {
-  setup() {
-    const settingsStore = useSettingsStore()
-    return { settingsStore }
-  }
-}
-</script>
 
 <style scoped>
 pre {

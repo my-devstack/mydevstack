@@ -28,6 +28,7 @@ func (s *testProxyService) S3() ports.S3Port {
 
 func (s *testProxyService) Lambda() ports.LambdaPort                  { return nil }
 func (s *testProxyService) SecretsManager() ports.SecretsManagerPort    { return nil }
+func (s *testProxyService) StepFunctions() ports.StepFunctionsPort      { return nil }
 func (s *testProxyService) SQS() ports.SQSPort                        { return nil }
 func (s *testProxyService) SNS() ports.SNSPort                        { return nil }
 func (s *testProxyService) KMS() ports.KMSPort                        { return nil }

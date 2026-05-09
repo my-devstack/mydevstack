@@ -112,6 +112,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/services/RDS.vue'),
     meta: { title: 'RDS', service: 'rds' },
   },
+  // Step Functions
+  {
+    path: '/services/step-functions',
+    name: 'StepFunctions',
+    component: () => import('@/views/services/StepFunctions.vue'),
+    meta: { title: 'Step Functions', service: 'stepfunctions' },
+  },
   
   // Explicit redirect for /services to dashboard
   {

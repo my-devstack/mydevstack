@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -294,4 +295,21 @@ type CloudFormationClientPort interface {
 	DescribeStacks(ctx context.Context, input *cloudformation.DescribeStacksInput, opts ...func(*cloudformation.Options)) (*cloudformation.DescribeStacksOutput, error)
 	GetTemplate(ctx context.Context, input *cloudformation.GetTemplateInput, opts ...func(*cloudformation.Options)) (*cloudformation.GetTemplateOutput, error)
 	ListStackResources(ctx context.Context, input *cloudformation.ListStackResourcesInput, opts ...func(*cloudformation.Options)) (*cloudformation.ListStackResourcesOutput, error)
+}
+
+// SFNClientPort defines the interface for the AWS Step Functions client
+type SFNClientPort interface {
+	ListStateMachines(ctx context.Context, input *sfn.ListStateMachinesInput, opts ...func(*sfn.Options)) (*sfn.ListStateMachinesOutput, error)
+	CreateStateMachine(ctx context.Context, input *sfn.CreateStateMachineInput, opts ...func(*sfn.Options)) (*sfn.CreateStateMachineOutput, error)
+	DescribeStateMachine(ctx context.Context, input *sfn.DescribeStateMachineInput, opts ...func(*sfn.Options)) (*sfn.DescribeStateMachineOutput, error)
+	UpdateStateMachine(ctx context.Context, input *sfn.UpdateStateMachineInput, opts ...func(*sfn.Options)) (*sfn.UpdateStateMachineOutput, error)
+	DeleteStateMachine(ctx context.Context, input *sfn.DeleteStateMachineInput, opts ...func(*sfn.Options)) (*sfn.DeleteStateMachineOutput, error)
+	StartExecution(ctx context.Context, input *sfn.StartExecutionInput, opts ...func(*sfn.Options)) (*sfn.StartExecutionOutput, error)
+	StopExecution(ctx context.Context, input *sfn.StopExecutionInput, opts ...func(*sfn.Options)) (*sfn.StopExecutionOutput, error)
+	ListExecutions(ctx context.Context, input *sfn.ListExecutionsInput, opts ...func(*sfn.Options)) (*sfn.ListExecutionsOutput, error)
+	DescribeExecution(ctx context.Context, input *sfn.DescribeExecutionInput, opts ...func(*sfn.Options)) (*sfn.DescribeExecutionOutput, error)
+	GetExecutionHistory(ctx context.Context, input *sfn.GetExecutionHistoryInput, opts ...func(*sfn.Options)) (*sfn.GetExecutionHistoryOutput, error)
+	ListTagsForResource(ctx context.Context, input *sfn.ListTagsForResourceInput, opts ...func(*sfn.Options)) (*sfn.ListTagsForResourceOutput, error)
+	TagResource(ctx context.Context, input *sfn.TagResourceInput, opts ...func(*sfn.Options)) (*sfn.TagResourceOutput, error)
+	UntagResource(ctx context.Context, input *sfn.UntagResourceInput, opts ...func(*sfn.Options)) (*sfn.UntagResourceOutput, error)
 }
