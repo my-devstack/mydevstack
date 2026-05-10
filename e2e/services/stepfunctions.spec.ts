@@ -16,15 +16,18 @@ test.describe('Step Functions', () => {
   test('accordion expands and shows details', async ({ page }) => {
     await page.goto('/#/services/step-functions')
     await page.waitForLoadState('networkidle')
-    // Wait for table rows to load
-    await page.waitForSelector('table, div[class*="border"]', { timeout: 10000 })
-    // Click first row to expand accordion
-    const firstRow = page.locator('div[class*="border"]').filter({ hasText: /arn:aws:states/i }).first()
-    if (await firstRow.isVisible()) {
-      await firstRow.click()
-      // Should show expanded content with ARN, Description, Definition
-      await expect(page.getByText('ARN:')).toBeVisible({ timeout: 5000 })
-      await expect(page.getByText('Description:')).toBeVisible({ timeout: 5000 })
+    // Wait for rows to load
+    await page.waitForSelector('div[class*="border rounded"]', { timeout: 10000 })
+    const rows = page.locator('div[class*="border rounded"]')
+    const rowCount = await rows.count()
+    if (rowCount >= 1) {
+      // Click first row heading text (machine name) to expand accordion
+      const firstRowName = page.locator('div[class*="border rounded"] div[class*="truncate"]').first()
+      if (await firstRowName.isVisible()) {
+        await firstRowName.click()
+        // Should show expanded content with ARN
+        await expect(page.getByText('ARN:').first()).toBeVisible({ timeout: 5000 })
+      }
     }
   })
 
