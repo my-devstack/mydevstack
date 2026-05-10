@@ -188,6 +188,7 @@ jobs:
           script: |
             const previousTag = '${{ steps.prev-tag.outputs.previous_tag }}';
             const currentTag = '${{ github.ref_name }}';
+            const repoUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}`;
             console.log('Current tag:', currentTag);
             console.log('Previous tag:', JSON.stringify(previousTag));
             
@@ -204,25 +205,51 @@ jobs:
                 });
                 
                 const commits = response.data.commits || [];
-                const authors = [...new Set(commits.map(c => c.commit.author.name))];
+                const commitShas = commits.map(c => c.sha);
+                console.log('Total commits:', commitShas.length);
                 
-                releaseNotes = '## Changes\n\nTotal commits: ' + commits.length + '\n\n';
+                const prs = [];
+                const seenPrs = new Set();
                 
-                if (commits.length > 0) {
-                  releaseNotes += '### Commits\n\n';
-                  commits.slice(0, 50).forEach(commit => {
-                    const msg = commit.commit.message.split('\n')[0];
-                    releaseNotes += '- ' + msg + ' (' + commit.sha.substring(0, 7) + ')\n';
+                for (const commit of commits) {
+                  const { data: pullRequests } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    commit_sha: commit.sha
                   });
+                  
+                  for (const pr of pullRequests) {
+                    if (!seenPrs.has(pr.number)) {
+                      seenPrs.add(pr.number);
+                      prs.push({
+                        number: pr.number,
+                        title: pr.title,
+                        author: pr.user.login,
+                        url: pr.html_url
+                      });
+                    }
+                  }
                 }
                 
-                releaseNotes += '\n### Authors\n' + authors.map(a => '- ' + a).join('\n');
+                releaseNotes = '## Changes\n\nTotal PRs: ' + prs.length + '\n\n';
+                
+                if (prs.length > 0) {
+                  releaseNotes += '### Pull Requests\n\n';
+                  prs.forEach(pr => {
+                    releaseNotes += '* [' + pr.title + '](<' + pr.url + '>) by @' + pr.author + '\n';
+                  });
+                }
                 
               } catch (err) {
                 console.error('Failed to generate release notes:', err.message);
                 releaseNotes = '';
               }
             }
+            
+            if (previousTag && previousTag.trim() !== '') {
+              releaseNotes += '\n\n**Full Changelog**: [' + previousTag + '...' + currentTag + '](' + repoUrl + '/compare/' + previousTag + '...' + currentTag + ')';
+            }
+            
             console.log('Release notes generated, length:', (releaseNotes || '').length);
             
             const fs = require('fs');

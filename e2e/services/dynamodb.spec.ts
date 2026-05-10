@@ -1,5 +1,24 @@
 import { test, expect } from '../fixtures.js'
 
+// Helper to find table on any page (handles pagination)
+async function findTableOnPage(page: any, tableName: string, maxPages = 5): Promise<boolean> {
+  for (let i = 0; i < maxPages; i++) {
+    const table = page.getByText(tableName, { exact: true })
+    if (await table.isVisible({ timeout: 2000 }).catch(() => false)) {
+      return true
+    }
+    // Try clicking Next button if available
+    const nextBtn = page.getByRole('button', { name: 'Next' })
+    if (await nextBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await nextBtn.click()
+      await page.waitForTimeout(500)
+    } else {
+      break
+    }
+  }
+  return false
+}
+
 async function createTable(page: any, tableName: string, options: {
   pkName?: string,
   pkType?: string,
@@ -160,7 +179,9 @@ test('create table with stream enabled', async ({ page }) => {
   })
 
   // Verify stream icon appears in accordion details
-  await page.getByText(tableName).first().click()
+  const found = await findTableOnPage(page, tableName)
+  expect(found).toBe(true)
+  await page.getByText(tableName, { exact: true }).first().click()
   await page.waitForLoadState('networkidle')
   await expect(page.getByText('Stream').first()).toBeVisible({ timeout: 10000 })
 })
@@ -177,7 +198,9 @@ test('view stream records', async ({ page }) => {
   })
 
   // Click to expand accordion (table may not be auto-expanded)
-  await page.getByText(tableName).first().click()
+  const found = await findTableOnPage(page, tableName)
+  expect(found).toBe(true)
+  await page.getByText(tableName, { exact: true }).first().click()
   await page.waitForLoadState('networkidle')
 
   // Wait for Stream badge to be visible - it's a purple badge in the accordion
@@ -210,10 +233,9 @@ test('open Explore Data modal', async ({ page }) => {
   await page.keyboard.press('Escape').catch(() => {})
   await page.waitForTimeout(1000)
   
-  const tableRow = page.getByText('test-explore-').first()
-  await expect(tableRow).toBeVisible({ timeout: 10000 })
-  
-  await tableRow.click()
+  const found = await findTableOnPage(page, tableName)
+  expect(found).toBe(true)
+  await page.getByText(tableName, { exact: true }).first().click()
   await page.waitForLoadState('networkidle')
   
   // Click Explore Data button
@@ -234,10 +256,9 @@ test('Explore Data modal has scan and query modes', async ({ page }) => {
   await page.keyboard.press('Escape').catch(() => {})
   await page.waitForTimeout(1000)
   
-  const tableRow = page.getByText('test-modes-').first()
-  await expect(tableRow).toBeVisible({ timeout: 10000 })
-  
-  await tableRow.click()
+  const found = await findTableOnPage(page, tableName)
+  expect(found).toBe(true)
+  await page.getByText(tableName, { exact: true }).first().click()
   await page.waitForLoadState('networkidle')
   
   await page.getByRole('button', { name: 'Explore Data' }).first().click()
@@ -268,10 +289,9 @@ test('Explore Data displays items after scan', async ({ page }) => {
   await page.keyboard.press('Escape').catch(() => {})
   await page.waitForTimeout(1000)
   
-  const tableRow = page.getByText('test-items-').first()
-  await expect(tableRow).toBeVisible({ timeout: 10000 })
-  
-  await tableRow.click()
+  const found = await findTableOnPage(page, tableName)
+  expect(found).toBe(true)
+  await page.getByText(tableName, { exact: true }).first().click()
   await page.waitForLoadState('networkidle')
   
   await page.getByRole('button', { name: 'Explore Data' }).first().click()
@@ -296,10 +316,9 @@ test('Explore Data modal can be closed', async ({ page }) => {
   await page.keyboard.press('Escape').catch(() => {})
   await page.waitForTimeout(1000)
   
-  const tableRow = page.getByText('test-close-').first()
-  await expect(tableRow).toBeVisible({ timeout: 10000 })
-  
-  await tableRow.click()
+  const found = await findTableOnPage(page, tableName)
+  expect(found).toBe(true)
+  await page.getByText(tableName, { exact: true }).first().click()
   await page.waitForLoadState('networkidle')
   
   await page.getByRole('button', { name: 'Explore Data' }).first().click()
