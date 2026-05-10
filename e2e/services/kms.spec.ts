@@ -18,7 +18,7 @@ async function createKey(page: any, description: string) {
 
 test.describe('KMS', () => {
   test('navigate to service', async ({ page }) => {
-    await page.goto('http://localhost:3000/#/services/kms')
+    await page.goto('/#/services/kms')
     await page.waitForLoadState('networkidle')
     await expect(page.locator('h1').first()).toContainText('KMS', { timeout: 10000 })
   })
@@ -28,7 +28,7 @@ test.describe('KMS', () => {
 
     await createKey(page, keyDescription)
 
-    // Verify key appears in list
+    // Verify key appears in list (pagination-safe: new key always on page 1)
     await expect(page.locator('div.border.rounded-lg').first()).toBeVisible({ timeout: 15000 })
   })
 

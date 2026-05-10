@@ -65,9 +65,23 @@ const {
 // Stores
 const settingsStore = useSettingsStore()
 
+// Pagination
+const keyPage = ref(1)
+const keysPerPage = 15
+const totalKeyPages = computed(() => Math.ceil(keys.value.length / keysPerPage))
+const paginatedKeys = computed(() => {
+  const start = (keyPage.value - 1) * keysPerPage
+  return keys.value.slice(start, start + keysPerPage)
+})
+
 // UI-specific refs (not extracted to composable)
 const showExamples = ref(false)
 const selectedExample = ref(0)
+
+async function handleCreateKeyWrapper() {
+  await handleCreateKey()
+  keyPage.value = 1
+}
 
 // Columns
 const columns = computed(() => [
@@ -328,7 +342,7 @@ fmt.Println(string(decryptOutput.Plaintext))`
 
         <!-- Key Rows with Accordion -->
         <div
-          v-for="key in keys"
+          v-for="key in paginatedKeys"
           :key="key.KeyId"
           class="border rounded-lg overflow-hidden"
           :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
@@ -519,6 +533,34 @@ fmt.Println(string(decryptOutput.Plaintext))`
             </div>
           </div>
         </div>
+        <!-- Pagination -->
+        <div
+          v-if="!isLoading && totalKeyPages > 1"
+          class="flex justify-center items-center gap-2 py-4"
+        >
+          <button
+            class="px-3 py-1 rounded border disabled:opacity-50"
+            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+            :disabled="keyPage === 1"
+            @click="keyPage--"
+          >
+            Previous
+          </button>
+          <span
+            class="text-sm"
+            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+          >
+            Page {{ keyPage }} of {{ totalKeyPages }}
+          </span>
+          <button
+            class="px-3 py-1 rounded border disabled:opacity-50"
+            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+            :disabled="keyPage === totalKeyPages"
+            @click="keyPage++"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
 
@@ -527,7 +569,7 @@ fmt.Println(string(decryptOutput.Plaintext))`
       v-model:open="showCreateModal"
       v-model:form="newKey"
       :key-specs="keySpecs"
-      @create="handleCreateKey"
+      @create="handleCreateKeyWrapper"
     />
 
     <!-- Key Details Modal -->
