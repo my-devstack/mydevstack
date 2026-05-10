@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -28,6 +29,7 @@ type ProxyService interface {
 	S3() S3Port
 	Lambda() LambdaPort
 	SecretsManager() SecretsManagerPort
+	StepFunctions() StepFunctionsPort
 	SQS() SQSPort
 	SNS() SNSPort
 	KMS() KMSPort
@@ -99,6 +101,22 @@ type SecretsManagerPort interface {
 	RestoreSecret(ctx context.Context, input *secretsmanager.RestoreSecretInput) (*secretsmanager.RestoreSecretOutput, error)
 	RotateSecret(ctx context.Context, input *secretsmanager.RotateSecretInput) (*secretsmanager.RotateSecretOutput, error)
 	GetRandomPassword(ctx context.Context, input *secretsmanager.GetRandomPasswordInput) (*secretsmanager.GetRandomPasswordOutput, error)
+}
+
+type StepFunctionsPort interface {
+	ListStateMachines(ctx context.Context, input *sfn.ListStateMachinesInput) (*sfn.ListStateMachinesOutput, error)
+	CreateStateMachine(ctx context.Context, input *sfn.CreateStateMachineInput) (*sfn.CreateStateMachineOutput, error)
+	DescribeStateMachine(ctx context.Context, input *sfn.DescribeStateMachineInput) (*sfn.DescribeStateMachineOutput, error)
+	UpdateStateMachine(ctx context.Context, input *sfn.UpdateStateMachineInput) (*sfn.UpdateStateMachineOutput, error)
+	DeleteStateMachine(ctx context.Context, input *sfn.DeleteStateMachineInput) (*sfn.DeleteStateMachineOutput, error)
+	StartExecution(ctx context.Context, input *sfn.StartExecutionInput) (*sfn.StartExecutionOutput, error)
+	StopExecution(ctx context.Context, input *sfn.StopExecutionInput) (*sfn.StopExecutionOutput, error)
+	ListExecutions(ctx context.Context, input *sfn.ListExecutionsInput) (*sfn.ListExecutionsOutput, error)
+	DescribeExecution(ctx context.Context, input *sfn.DescribeExecutionInput) (*sfn.DescribeExecutionOutput, error)
+	GetExecutionHistory(ctx context.Context, input *sfn.GetExecutionHistoryInput) (*sfn.GetExecutionHistoryOutput, error)
+	ListTagsForResource(ctx context.Context, input *sfn.ListTagsForResourceInput) (*sfn.ListTagsForResourceOutput, error)
+	TagResource(ctx context.Context, input *sfn.TagResourceInput) (*sfn.TagResourceOutput, error)
+	UntagResource(ctx context.Context, input *sfn.UntagResourceInput) (*sfn.UntagResourceOutput, error)
 }
 
 type SQSPort interface {

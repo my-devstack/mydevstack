@@ -105,36 +105,53 @@ function downloadCode(snippet: Snippet) {
   URL.revokeObjectURL(url)
 }
 
-// Simple syntax highlighting
+// Simple syntax highlighting - single-pass to prevent nested HTML matches
 function highlightCode(code: string, language: string): string {
-  // Escape HTML
+  // Escape HTML first
   let escaped = code
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
 
-  // Basic syntax highlighting patterns
+  // All patterns: higher-priority patterns listed first
+  // Comments processed first so strings inside comments not highlighted
   const patterns: [RegExp, string][] = [
-    // Comments
-    [/(\/\/.*$|#.*$)/gm, 'text-gray-500 dark:text-gray-400'],
+    // Block comments
     [/\/\*[\s\S]*?\*\//g, 'text-gray-500 dark:text-gray-400'],
+    // Line comments
+    [/(\/\/.*$|#.*$)/gm, 'text-gray-500 dark:text-gray-400'],
     // Strings
     [/(["'`])(?:(?!\1)[^\\]|\\.)*?\1/g, 'text-emerald-600 dark:text-emerald-400'],
-    // Numbers
-    [/\b\d+\.?\d*\b/g, 'text-blue-600 dark:text-blue-400'],
     // Keywords
     [/\b(const|let|var|function|return|if|else|for|while|import|export|class|extends|new|this|async|await|try|catch|finally|throw|def|True|False|None|and|or|not|in|is|lambda|yield|from|as|with|type|struct|interface|package|func|go|chan|defer|select|case|default|switch)\b/g, 'text-violet-600 dark:text-violet-400'],
     // Booleans
     [/\b(true|false|null|undefined|nil)\b/g, 'text-amber-600 dark:text-amber-400'],
-    // Functions
+    // Numbers (must run AFTER strings to avoid matching inside string content)
+    [/\b\d+\.?\d*\b/g, 'text-blue-600 dark:text-blue-400'],
+    // Functions (followed by parenthesis)
     [/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()/g, 'text-sky-600 dark:text-sky-400'],
     // Types (for TypeScript/Go)
     [/\b(string|number|boolean|any|void|never|unknown|int|int8|int16|int32|int64|uint|uint8|uint16|uint32|uint64|float|float32|float64|byte|rune|bool|error|map|slice|struct)\b/g, 'text-rose-600 dark:text-rose-400'],
   ]
 
-  // Apply patterns with span wrapping
+  // Single-pass: collect all matches from plain text FIRST, then replace with spans
+  // Use safe unique placeholders to prevent nested matching when spans are inserted
+  const placeholders: string[] = []
+  let phIndex = 0
+
   patterns.forEach(([pattern, colorClass]) => {
-    escaped = escaped.replace(pattern, (match) => `<span class="${colorClass}">${match}</span>`)
+    escaped = escaped.replace(pattern, (match) => {
+      const ph = `__SF_${phIndex++}__`
+      placeholders.push(`<span class="${colorClass}">${match}</span>`)
+      return ph
+    })
+  })
+
+  // Replace placeholders with actual span HTML
+  placeholders.forEach((html, i) => {
+    const ph = `__SF_${i}__`
+    // Use split/join to replace ALL occurrences (safer than .replace())
+    escaped = escaped.split(ph).join(html)
   })
 
   return escaped

@@ -15,6 +15,7 @@ type ProxyService struct {
 	cfg               *configloader.Config
 	region            string
 	secretsManager    ports.SecretsManagerPort
+	stepfunctions     ports.StepFunctionsPort
 	s3                ports.S3Port
 	lambda            ports.LambdaPort
 	sqs               ports.SQSPort
@@ -79,6 +80,7 @@ func (s *ProxyService) SetServices() error {
 		return err
 	}
 	s.secretsManager = awsadapter.NewSecretsManagerAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.stepfunctions = awsadapter.NewStepFunctionsAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.s3 = awsadapter.NewS3Adapter(awsCfg, s.cfg.AWS.Endpoint, s.region)
 	s.lambda = awsadapter.NewLambdaAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.sqs = awsadapter.NewSQSAdapter(awsCfg, s.cfg.AWS.Endpoint)
@@ -99,6 +101,10 @@ func (s *ProxyService) SetServices() error {
 
 func (s *ProxyService) SecretsManager() ports.SecretsManagerPort {
 	return s.secretsManager
+}
+
+func (s *ProxyService) StepFunctions() ports.StepFunctionsPort {
+	return s.stepfunctions
 }
 
 func (s *ProxyService) S3() ports.S3Port {

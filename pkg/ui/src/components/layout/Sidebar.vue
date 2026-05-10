@@ -96,6 +96,7 @@ const services: Service[] = [
   { name: 'Kinesis', path: '/services/kinesis', icon: 'kinesis', color: 'service-kinesis' },
   { name: 'CloudFormation', path: '/services/cloudformation', icon: 'cloudformation', color: 'service-cloudformation' },
   { name: 'SSM', path: '/services/ssm', icon: 'ssm', color: 'service-ssm' },
+  { name: 'Step Functions', path: '/services/step-functions', icon: 'stepfunctions', color: 'service-stepfunctions' },
   { name: 'ElastiCache', path: '/services/elasticache', icon: 'elasticache', color: 'service-elasticache' },
   { name: 'RDS', path: '/services/rds', icon: 'rds', color: 'service-rds' },
 ]
@@ -469,6 +470,19 @@ const handleServiceClick = (service: Service) => {
               stroke-width="2"
               d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"
             />
+          </svg>
+          <svg
+            v-else-if="service.icon === 'stepfunctions'"
+            class="w-5 h-5 flex-shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5C4 3.89543 4.89543 3 6 3C7.10457 3 8 3.89543 8 5C8 6.10457 7.10457 7 6 7C4.89543 7 4 6.10457 4 5Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 19C16 17.8954 16.8954 17 18 17C19.1046 17 20 17.8954 20 19C20 20.1046 19.1046 21 18 21C16.8954 21 16 20.1046 16 19Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 12C10 10.8954 10.8954 10 12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5L10 12" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 12L16 19" />
           </svg>
           <svg
             v-else
