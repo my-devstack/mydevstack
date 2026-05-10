@@ -128,6 +128,15 @@ const streamRecords = ref<unknown[]>([])
 const shardIterator = ref<string | null>(null)
 const streamShards = ref<any[]>([])
 
+// Pagination
+const tablePage = ref(1)
+const tablesPerPage = 15
+const totalPages = computed(() => Math.ceil(tables.value.length / tablesPerPage))
+const paginatedTables = computed(() => {
+  const start = (tablePage.value - 1) * tablesPerPage
+  return tables.value.slice(start, start + tablesPerPage)
+})
+
 // Example code tabs
 const exampleType = ref<'table' | 'stream'>('table')
 
@@ -165,6 +174,7 @@ async function handleCreateTable() {
       streamViewType: streamViewType.value,
     })
     showCreateModal.value = false
+    tablePage.value = 1
   } catch (e: unknown) {
     const err = e as Error
     toast.error('Failed to create table: ' + err.message)
@@ -451,6 +461,7 @@ async function handleDeleteTable() {
     await deleteTable(tableToDelete.value)
     showDeleteModal.value = false
     tableToDelete.value = null
+    tablePage.value = 1
   } catch (e: unknown) {
     const err = e as Error
     error.value = 'Failed to delete table: ' + err.message
@@ -513,10 +524,12 @@ const exploreSKName = computed(() => getSortKeyName(exploreTableDetails.value))
 const allAttributes = computed(() => getAllUniqueAttributes(items.value))
 
 onMounted(() => {
+  tablePage.value = 1
   loadTables()
 })
 
 watch(reloadTrigger, () => {
+  tablePage.value = 1
   loadTables()
 })
 </script>
@@ -545,7 +558,7 @@ watch(reloadTrigger, () => {
           <button
             class="p-2 text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border rounded"
             title="Refresh"
-            @click="loadTables"
+            @click="tablePage = 1; loadTables()"
           >
             <svg
               class="w-4 h-4"
@@ -602,7 +615,7 @@ watch(reloadTrigger, () => {
         class="space-y-4"
       >
         <div
-          v-for="table in tables"
+          v-for="table in paginatedTables"
           :key="table"
           class="border rounded-lg overflow-hidden"
           :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
@@ -672,6 +685,35 @@ watch(reloadTrigger, () => {
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Pagination -->
+    <div
+      v-if="!loading && totalPages > 1"
+      class="flex justify-center items-center gap-2 py-4"
+    >
+      <button
+        class="px-3 py-1 rounded border disabled:opacity-50"
+        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+        :disabled="tablePage === 1"
+        @click="tablePage--"
+      >
+        Previous
+      </button>
+      <span
+        class="text-sm"
+        :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+      >
+        Page {{ tablePage }} of {{ totalPages }}
+      </span>
+      <button
+        class="px-3 py-1 rounded border disabled:opacity-50"
+        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+        :disabled="tablePage === totalPages"
+        @click="tablePage++"
+      >
+        Next
+      </button>
     </div>
 
     <!-- Example Code Section -->
