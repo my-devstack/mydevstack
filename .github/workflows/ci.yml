@@ -12,6 +12,7 @@ jobs:
   lint-proxy:
     name: Lint Proxy
     runs-on: ubuntu-latest
+    if: "!startsWith(github.ref, 'refs/tags/')"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -31,6 +32,7 @@ jobs:
   lint-ui:
     name: Lint UI
     runs-on: ubuntu-latest
+    if: "!startsWith(github.ref, 'refs/tags/')"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -51,6 +53,7 @@ jobs:
   test-ui:
     name: Test UI
     runs-on: ubuntu-latest
+    if: "!startsWith(github.ref, 'refs/tags/')"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -78,6 +81,7 @@ jobs:
   test-proxy:
     name: Test Proxy
     runs-on: ubuntu-latest
+    if: "!startsWith(github.ref, 'refs/tags/')"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -104,6 +108,7 @@ jobs:
   e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
+    if: "!startsWith(github.ref, 'refs/tags/')"
     needs:
       - lint-proxy
       - lint-ui
@@ -164,9 +169,6 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:e2e
-        # env:
-        #   BASE_URL: http://localhost:3000
-        #   PROXY_URL: http://localhost:8081
 
       - name: Cleanup
         if: always()
@@ -175,12 +177,11 @@ jobs:
           docker rm floci 2>/dev/null || true
           pkill -f "go run" 2>/dev/null || true
           pkill -f vite 2>/dev/null || true
+
   build-release:
     name: Build Release Binary
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    needs: e2e
-
     strategy:
       matrix:
         include:
@@ -244,7 +245,6 @@ jobs:
     name: Build UI
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    needs: e2e
 
     steps:
       - name: Checkout code
@@ -343,9 +343,6 @@ jobs:
               console.log('No previous tag found, generating empty notes');
             } else {
               try {
-                // Use GitHub's compare API to get commits between tags
-                console.log('Fetching commits between', previousTag.trim(), 'and', currentTag);
-                
                 const response = await github.rest.repos.compareCommits({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -353,11 +350,6 @@ jobs:
                   head: currentTag
                 });
                 
-                console.log('Compare response status:', response.status);
-                console.log('Total commits:', response.data.total_commits);
-                console.log('Commits array:', response.data.commits?.length);
-                
-                // Generate release notes from commits
                 const commits = response.data.commits || [];
                 const authors = [...new Set(commits.map(c => c.commit.author.name))];
                 
@@ -375,16 +367,14 @@ jobs:
                 
               } catch (err) {
                 console.error('Failed to generate release notes:', err.message);
-                console.error('Error status:', err.status);
-                console.error('Error details:', JSON.stringify(err));
                 releaseNotes = '';
               }
             }
             console.log('Release notes generated, length:', (releaseNotes || '').length);
-            // Write to GITHUB_OUTPUT for env var usage
+            
             const fs = require('fs');
             const outputPath = process.env.GITHUB_OUTPUT;
-            fs.writeFileSync(outputPath, 'release_notes=' + releaseNotes + '\n');
+            fs.writeFileSync(outputPath, 'release_notes<<EOF\n' + releaseNotes + '\nEOF\n');
             return releaseNotes;
 
       - name: Upload Release Assets
