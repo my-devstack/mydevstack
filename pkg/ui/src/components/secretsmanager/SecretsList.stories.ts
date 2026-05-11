@@ -44,3 +44,13 @@ export const ManySecrets: Story = {
     ]
   }
 };
+
+export const ManyPages: Story = {
+  args: {
+    secrets: Array.from({ length: 25 }, (_, i) => ({
+      Name: i % 2 === 0 ? `secret-${i + 1}` : `app-${i}-key`,
+      Description: `Description for secret ${i + 1}`,
+    })),
+    loading: false,
+  }
+};

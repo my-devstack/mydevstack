@@ -41,6 +41,11 @@ const {
   configureLambdaTrigger,
 } = useS3()
 
+// Reset to page 1 when buckets data changes (create/delete/reload)
+watch(buckets, () => {
+  bucketPage.value = 1
+})
+
 // UI State - error handling
 const error = ref<string | null>(null)
 
