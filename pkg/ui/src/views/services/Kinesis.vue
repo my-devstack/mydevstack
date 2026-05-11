@@ -132,6 +132,21 @@ const {
 
 const reloadTrigger = setupReloadWatcher()
 
+// Pagination (after useKinesis() — streams must be defined)
+const streamPage = ref(1)
+const streamsPerPage = 15
+const totalStreamPages = computed(() => Math.ceil(streams.value.length / streamsPerPage))
+const paginatedStreams = computed(() => {
+  const start = (streamPage.value - 1) * streamsPerPage
+  return streams.value.slice(start, start + streamsPerPage)
+})
+
+// Reset to page 1 when streams data changes (create/delete/reload)
+// Ensures newly created stream is visible even with 16+ streams
+watch(streams, () => {
+  streamPage.value = 1
+})
+
 onMounted(() => {
   loadStreams()
 })
@@ -188,7 +203,7 @@ watch(reloadTrigger, () => {
       <template v-else>
         <div class="space-y-4">
           <KinesisStreamItem
-            v-for="stream in streams"
+            v-for="stream in paginatedStreams"
             :key="stream.StreamName"
             :stream="stream"
             :stream-details="selectedStream?.StreamName === stream.StreamName ? selectedStream : null"
@@ -202,6 +217,35 @@ watch(reloadTrigger, () => {
             @view-record="viewRecord"
             @put-record-click="(streamName) => { if (selectedStream?.StreamName !== streamName) selectStream({ StreamName: streamName } as any); showPutRecordModal = true }"
           />
+        </div>
+
+        <!-- Pagination -->
+        <div
+          v-if="totalStreamPages > 1"
+          class="flex justify-center items-center gap-2 py-4"
+        >
+          <button
+            class="px-3 py-1 rounded border disabled:opacity-50"
+            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+            :disabled="streamPage === 1"
+            @click="streamPage--"
+          >
+            Previous
+          </button>
+          <span
+            class="text-sm"
+            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+          >
+            Page {{ streamPage }} of {{ totalStreamPages }}
+          </span>
+          <button
+            class="px-3 py-1 rounded border disabled:opacity-50"
+            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+            :disabled="streamPage === totalStreamPages"
+            @click="streamPage++"
+          >
+            Next
+          </button>
         </div>
       </template>
     </div>

@@ -1,5 +1,24 @@
 import { test, expect } from '../fixtures.js'
 
+// Helper to find stream on any page (handles pagination, 15 per page)
+async function findStreamOnPage(page: any, streamName: string, maxPages = 5): Promise<boolean> {
+  for (let i = 0; i < maxPages; i++) {
+    const stream = page.getByText(streamName, { exact: true })
+    if (await stream.isVisible({ timeout: 2000 }).catch(() => false)) {
+      return true
+    }
+    // Try clicking Next button if available
+    const nextBtn = page.getByRole('button', { name: 'Next' })
+    if (await nextBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await nextBtn.click()
+      await page.waitForTimeout(500)
+    } else {
+      break
+    }
+  }
+  return false
+}
+
 test.describe('Kinesis', () => {
   test.beforeEach(async () => {
     // Cleanup handled by proxy mock
@@ -19,7 +38,7 @@ test.describe('Kinesis', () => {
     // Check for either streams or empty state
     const hasStreams = await page.locator('.border.rounded-lg').first().isVisible().catch(() => false)
     const hasEmptyState = await page.getByText('No Streams').isVisible().catch(() => false)
-    
+
     // Either should be visible
     expect(hasStreams || hasEmptyState).toBe(true)
   })
@@ -48,8 +67,10 @@ test.describe('Kinesis', () => {
     // Submit - use last() to get the Create button in modal
     await page.getByRole('button', { name: 'Create' }).last().click()
 
-    // Wait for stream to appear - use first() to avoid strict mode violation
-    await expect(page.getByText(streamName).first()).toBeVisible({ timeout: 15000 })
+    // Wait for stream to appear (search across pages due to pagination)
+    await page.waitForTimeout(2000)
+    const found = await findStreamOnPage(page, streamName)
+    expect(found).toBe(true)
   })
 
   test('view stream details', async ({ page }) => {
@@ -63,8 +84,10 @@ test.describe('Kinesis', () => {
     await page.getByLabel('Stream Name').fill(streamName)
     await page.getByRole('button', { name: 'Create' }).last().click()
 
-    // Wait for stream to appear in the list
-    await expect(page.getByText(streamName).first()).toBeVisible({ timeout: 20000 })
+    // Wait for stream to appear (search across pages due to pagination)
+    await page.waitForTimeout(2000)
+    const found = await findStreamOnPage(page, streamName)
+    expect(found).toBe(true)
 
     // Click on the stream row to expand accordion
     await page.getByText(streamName).first().click()
@@ -87,7 +110,11 @@ test.describe('Kinesis', () => {
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
     await page.getByLabel('Stream Name').fill(streamName)
     await page.getByRole('button', { name: 'Create' }).last().click()
-    await expect(page.getByText(streamName).first()).toBeVisible({ timeout: 20000 })
+
+    // Wait for stream to appear (search across pages due to pagination)
+    await page.waitForTimeout(2000)
+    const found = await findStreamOnPage(page, streamName)
+    expect(found).toBe(true)
 
     // Click on the stream row to expand accordion
     await page.getByText(streamName).first().click()
