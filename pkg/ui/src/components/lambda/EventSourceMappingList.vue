@@ -159,7 +159,7 @@ function isExpanded(uuid: string): boolean {
     >
       <!-- Main Row -->
       <div
-        class="grid grid-cols-12 gap-4 px-4 py-3 items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
+        class="grid grid-cols-12 gap-4 px-4 py-3 items-center cursor-pointer bg-light-surface dark:bg-dark-surface hover:bg-light-bg dark:hover:bg-dark-bg"
         :class="{
           'border-b': isExpanded(mapping.UUID),
           'border-dark-border': settingsStore.darkMode,

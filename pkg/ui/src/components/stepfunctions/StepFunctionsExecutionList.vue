@@ -95,7 +95,7 @@ function getStatusType(status: string | undefined): 'active' | 'pending' | 'inac
             v-for="execution in executions"
             :key="execution.executionArn"
             class="border-b last:border-b-0"
-            :class="settingsStore.darkMode ? 'border-dark-border hover:bg-dark-surface' : 'border-light-border hover:bg-light-bg'"
+            :class="settingsStore.darkMode ? 'border-dark-border hover:bg-dark-surface' : 'border-light-border hover:bg-light-border'"
           >
             <td
               class="px-4 py-3 font-medium truncate max-w-[200px]"

@@ -52,7 +52,7 @@ test.describe('ElastiCache', () => {
   test('usage examples visible', async ({ page }) => {
     await page.goto('/#/services/elasticache')
     await page.waitForLoadState('networkidle')
-    await expect(page.getByRole('heading', { name: 'Usage Examples', level: 2 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Usage Examples', level: 3 })).toBeVisible()
   })
 
   test('AWS CLI example visible', async ({ page }) => {

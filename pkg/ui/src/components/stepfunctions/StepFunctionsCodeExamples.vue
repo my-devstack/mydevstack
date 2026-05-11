@@ -155,17 +155,10 @@ fmt.Println(*descResp.Status, *descResp.StartDate)`,
 </script>
 
 <template>
-  <div class="mt-8">
-    <h2
-      class="text-lg font-semibold mb-4"
-      :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'"
-    >
-      Usage Examples
-    </h2>
-    <CodeSnippet
-      title="Step Functions"
-      :snippets="snippets"
-      :disable-highlight="true"
-    />
-  </div>
+  <CodeSnippet
+    title="Usage Examples"
+    :snippets="snippets"
+    default-tab="aws-cli"
+    :disable-highlight="true"
+  />
 </template>

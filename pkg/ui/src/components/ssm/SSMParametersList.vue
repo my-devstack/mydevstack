@@ -138,7 +138,7 @@ function handleDelete(param: SSMParameterItem) {
       >
         <!-- Main Row -->
         <div
-          class="flex px-4 py-3 items-center cursor-pointer hover:bg-light-border/30 dark:hover:bg-dark-border/30"
+          class="flex px-4 py-3 items-center cursor-pointer bg-light-surface dark:bg-dark-surface hover:bg-light-bg dark:hover:bg-dark-bg"
           :class="{ 'border-b': isExpanded(param.Name), 'border-dark-border': settingsStore.darkMode, 'border-light-border': !settingsStore.darkMode }"
           @click="handleRowClick(param)"
         >

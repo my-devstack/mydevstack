@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useSettingsStore } from '@/stores/settings'
+import CodeSnippet from '@/components/common/CodeSnippet.vue'
 
 const props = defineProps<{
   region: string
@@ -8,10 +8,7 @@ const props = defineProps<{
   secretKey: string
 }>()
 
-const settingsStore = useSettingsStore()
-
 const selectedTab = ref<'rest' | 'http'>('rest')
-const selectedExample = ref(0)
 
 const restExamples = computed(() => [
   {
@@ -309,13 +306,6 @@ const currentExamples = computed(() => {
 
 <template>
   <div class="mt-8">
-    <h2
-      class="text-lg font-semibold mb-4"
-      :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'"
-    >
-      Usage Examples
-    </h2>
-
     <!-- API Type Tabs -->
     <div class="flex gap-4 mb-4">
       <button
@@ -323,8 +313,8 @@ const currentExamples = computed(() => {
         class="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
         :class="selectedTab === 'rest'
           ? 'bg-blue-600 text-white'
-          : settingsStore.darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-        @click="selectedTab = 'rest'; selectedExample = 0"
+          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'"
+        @click="selectedTab = 'rest'"
       >
         REST APIs
       </button>
@@ -333,42 +323,18 @@ const currentExamples = computed(() => {
         class="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
         :class="selectedTab === 'http'
           ? 'bg-blue-600 text-white'
-          : settingsStore.darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-        @click="selectedTab = 'http'; selectedExample = 0"
+          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'"
+        @click="selectedTab = 'http'"
       >
         HTTP APIs
       </button>
     </div>
 
-    <div
-      class="rounded-lg border overflow-hidden"
-      :class="settingsStore.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
-    >
-      <div
-        class="flex border-b overflow-x-auto"
-        :class="settingsStore.darkMode ? 'border-gray-700' : 'border-gray-200'"
-      >
-        <button
-          v-for="(example, index) in currentExamples"
-          :key="example.language"
-          type="button"
-          class="px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap"
-          :class="[
-            selectedExample === index
-              ? settingsStore.darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'
-              : settingsStore.darkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-          ]"
-          @click="selectedExample = index"
-        >
-          {{ example.label }}
-        </button>
-      </div>
-      <div class="p-4 overflow-x-auto">
-        <pre
-          class="text-sm font-mono"
-          :class="settingsStore.darkMode ? 'text-gray-300' : 'text-gray-700'"
-        >{{ currentExamples[selectedExample]?.code || '' }}</pre>
-      </div>
-    </div>
+    <CodeSnippet
+      title="Usage Examples"
+      :snippets="currentExamples"
+      default-tab="aws-cli"
+      :disable-highlight="true"
+    />
   </div>
 </template>
