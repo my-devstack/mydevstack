@@ -57,3 +57,14 @@ export const ManyShards: Story = {
     ]
   }
 };
+
+export const ManyPages: Story = {
+  args: {
+    streams: Array.from({ length: 25 }, (_, i) => ({
+      StreamName: `stream-${i + 1}`,
+      StreamARN: `arn:aws:kinesis:us-east-1:123456789:stream/stream-${i + 1}`,
+      StreamStatus: i % 3 === 0 ? 'CREATING' : 'ACTIVE',
+      Shards: Math.floor(Math.random() * 10) + 1,
+    }))
+  }
+};

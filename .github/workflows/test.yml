@@ -161,14 +161,14 @@ jobs:
           sleep 10
           for i in {1..5}; do
             if curl -sf http://localhost:8081/health > /dev/null; then
-              echo "Server healthy"
+              echo "Proxy Server healthy"
               break
             fi
             if [ $i -eq 5 ]; then
-              echo "Server not healthy after 5 attempts"
+              echo "Proxy Server not healthy after 5 attempts"
               exit 1
             fi
-            echo "Waiting for server... ($i/5)"
+            echo "Waiting for Proxy Server... ($i/5)"
             sleep 20
           done
 

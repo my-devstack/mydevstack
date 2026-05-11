@@ -7,7 +7,7 @@ export default defineConfig({
   retries: 2,
   workers: 3,  // Run tests serially in CI to avoid race conditions
   reporter: 'list',
-  timeout: 40000,
+  timeout: 30000,
   expect: {
     timeout: 5000,
   },
