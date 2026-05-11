@@ -1,5 +1,23 @@
 import { test, expect } from '../fixtures.js'
 
+// Helper to find secret on any page (handles pagination, 15 per page)
+async function findSecretOnPage(page: any, secretName: string, maxPages = 5): Promise<boolean> {
+  for (let i = 0; i < maxPages; i++) {
+    const secret = page.getByText(secretName, { exact: true })
+    if (await secret.isVisible({ timeout: 2000 }).catch(() => false)) {
+      return true
+    }
+    const nextBtn = page.getByRole('button', { name: 'Next' })
+    if (await nextBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await nextBtn.click()
+      await page.waitForTimeout(500)
+    } else {
+      break
+    }
+  }
+  return false
+}
+
 async function createSecret(page, name, value, description = '') {
   await page.goto('/#/services/secrets-manager', { waitUntil: 'networkidle' })
 
@@ -38,15 +56,17 @@ async function createSecret(page, name, value, description = '') {
   // Reload the page to get fresh data
   await page.reload({ waitUntil: 'networkidle' })
 
-  // Wait for secret to appear in the list
-  const secretDiv = page.locator('div.cursor-pointer').filter({ hasText: name })
-  await expect(secretDiv).toBeVisible({ timeout: 15000 })
+  // Wait for secret to appear (search across pages due to pagination)
+  await page.waitForTimeout(2000)
+  const found = await findSecretOnPage(page, name)
+  expect(found).toBe(true)
 }
 
 async function deleteSecret(page, secretName) {
-  // Find the secret div
+  // Find the secret (search across pages due to pagination)
+  const found = await findSecretOnPage(page, secretName)
+  expect(found).toBe(true)
   const secretDiv = page.locator('div.cursor-pointer').filter({ hasText: secretName })
-  await expect(secretDiv).toBeVisible({ timeout: 15000 })
 
   // Click the delete button (TrashIcon with aria-label="Delete")
   await secretDiv.getByRole('button', { name: 'Delete' }).first().click()
@@ -159,6 +179,10 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
 
     // Reload and verify new value — re-query secretDiv after reload (stale ref fix)
     await page.reload({ waitUntil: 'networkidle' })
+
+    // Find secret across pages (pagination may hide it)
+    const foundAfterEdit = await findSecretOnPage(page, secretName)
+    expect(foundAfterEdit).toBe(true)
     const refreshedSecretDiv = page.locator('div.cursor-pointer').filter({ hasText: secretName })
     await refreshedSecretDiv.click()
 
@@ -218,9 +242,10 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
     // Reload to see both
     await page.reload({ waitUntil: 'networkidle' })
 
-    // Find secret divs
+    // Find first secret (search across pages due to pagination)
+    const found1 = await findSecretOnPage(page, secretName1)
+    expect(found1).toBe(true)
     const secretDiv1 = page.locator('div.cursor-pointer').filter({ hasText: secretName1 })
-    const secretDiv2 = page.locator('div.cursor-pointer').filter({ hasText: secretName2 })
 
     // Click first secret div to expand
     await secretDiv1.click()
@@ -231,6 +256,11 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
 
     // Verify first secret expanded — "Edit Value" button visible
     await expect(page.getByRole('button', { name: 'Edit Value' })).toBeVisible()
+
+    // Find second secret (may be on different page)
+    const found2 = await findSecretOnPage(page, secretName2)
+    expect(found2).toBe(true)
+    const secretDiv2 = page.locator('div.cursor-pointer').filter({ hasText: secretName2 })
 
     // Click second secret div to expand (should collapse first)
     await secretDiv2.click()

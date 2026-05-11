@@ -37,6 +37,11 @@ const {
   formatBody,
 } = useSQS()
 
+// Reset to page 1 when queues data changes (create/delete/reload)
+watch(queues, () => {
+  queuePage.value = 1
+})
+
 const showCreateModal = ref(false)
 const newQueue = ref({ name: '', isFifo: false })
 
