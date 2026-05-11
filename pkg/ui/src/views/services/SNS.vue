@@ -117,6 +117,20 @@ async function openSubscriptionsModal(topicArn: string) {
 
 onMounted(() => loadTopics())
 watch(reloadTrigger, () => loadTopics())
+
+// Pagination
+const topicPage = ref(1)
+const topicsPerPage = 15
+const totalTopicPages = computed(() => Math.ceil(topics.value.length / topicsPerPage))
+const paginatedTopics = computed(() => {
+  const start = (topicPage.value - 1) * topicsPerPage
+  return topics.value.slice(start, start + topicsPerPage)
+})
+
+// Reset to page 1 when topics data changes
+watch(topics, () => {
+  topicPage.value = 1
+})
 </script>
 
 <template>
@@ -176,7 +190,7 @@ watch(reloadTrigger, () => loadTopics())
         class="space-y-4"
       >
         <div
-          v-for="topic in topics"
+          v-for="topic in paginatedTopics"
           :key="topic.TopicArn"
           class="border rounded-lg overflow-hidden"
           :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
@@ -324,6 +338,35 @@ watch(reloadTrigger, () => loadTopics())
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Pagination -->
+        <div
+          v-if="totalTopicPages > 1"
+          class="flex justify-center items-center gap-2 py-4"
+        >
+          <button
+            class="px-3 py-1 rounded border disabled:opacity-50"
+            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+            :disabled="topicPage === 1"
+            @click="topicPage--"
+          >
+            Previous
+          </button>
+          <span
+            class="text-sm"
+            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+          >
+            Page {{ topicPage }} of {{ totalTopicPages }}
+          </span>
+          <button
+            class="px-3 py-1 rounded border disabled:opacity-50"
+            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+            :disabled="topicPage === totalTopicPages"
+            @click="topicPage++"
+          >
+            Next
+          </button>
         </div>
       </div>
     </div>
