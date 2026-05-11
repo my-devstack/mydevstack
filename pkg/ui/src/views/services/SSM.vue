@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { PlusIcon, ArrowPathIcon, KeyIcon, BeakerIcon } from '@heroicons/vue/24/outline'
 import Button from '@/components/common/Button.vue'
@@ -134,6 +134,20 @@ const {
   openDeleteModal,
   formatDate,
 } = useSSM()
+
+// Pagination
+const paramPage = ref(1)
+const paramsPerPage = 15
+const totalParamPages = computed(() => Math.ceil(parameters.value.length / paramsPerPage))
+const paginatedParameters = computed(() => {
+  const start = (paramPage.value - 1) * paramsPerPage
+  return parameters.value.slice(start, start + paramsPerPage)
+})
+
+// Reset to page 1 when parameters data changes (create/delete/reload)
+watch(parameters, () => {
+  paramPage.value = 1
+})
 </script>
 
 <template>
@@ -179,13 +193,42 @@ const {
       <!-- Parameter List: show when loading OR have parameters -->
       <SSMParametersList
         v-if="loading || parameters.length > 0"
-        :parameters="parameters"
+        :parameters="paginatedParameters"
         :loading="loading"
         @select="selectParameter"
         @view-value="getParameterValue"
         @view-history="(param) => { selectParameter(param); loadParameterHistory(); }"
         @delete="openDeleteModal"
       />
+
+    <!-- Pagination -->
+    <div
+      v-if="totalParamPages > 1"
+      class="flex justify-center items-center gap-2 py-4"
+    >
+      <button
+        class="px-3 py-1 rounded border disabled:opacity-50"
+        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+        :disabled="paramPage === 1"
+        @click="paramPage--"
+      >
+        Previous
+      </button>
+      <span
+        class="text-sm"
+        :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+      >
+        Page {{ paramPage }} of {{ totalParamPages }}
+      </span>
+      <button
+        class="px-3 py-1 rounded border disabled:opacity-50"
+        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+        :disabled="paramPage === totalParamPages"
+        @click="paramPage++"
+      >
+        Next
+      </button>
+    </div>
 
       <!-- Empty State: only when not loading AND no parameters -->
       <EmptyState

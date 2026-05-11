@@ -40,3 +40,14 @@ export const SecureStrings: Story = {
     ]
   }
 };
+
+export const ManyPages: Story = {
+  args: {
+    parameters: Array.from({ length: 25 }, (_, i) => ({
+      Name: i % 2 === 0 ? `/app/param-${i + 1}` : `/config/setting-${i + 1}`,
+      Value: `value-${i + 1}`,
+      Type: i % 4 === 0 ? 'SecureString' : 'String',
+    })),
+    loading: false,
+  }
+};

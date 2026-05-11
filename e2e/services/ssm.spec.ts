@@ -1,5 +1,23 @@
 import { test, expect } from '../fixtures.js'
 
+// Helper to find parameter on any page (handles pagination, 15 per page)
+async function findParameterOnPage(page: any, paramName: string, maxPages = 5): Promise<boolean> {
+  for (let i = 0; i < maxPages; i++) {
+    const param = page.getByText(paramName, { exact: true })
+    if (await param.isVisible({ timeout: 2000 }).catch(() => false)) {
+      return true
+    }
+    const nextBtn = page.getByRole('button', { name: 'Next' })
+    if (await nextBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await nextBtn.click()
+      await page.waitForTimeout(500)
+    } else {
+      break
+    }
+  }
+  return false
+}
+
 async function createParameter(page: any, name: string, value: string, type = 'String') {
   await page.goto('/#/services/ssm', { waitUntil: 'networkidle' })
 
@@ -40,15 +58,17 @@ async function createParameter(page: any, name: string, value: string, type = 'S
   // Reload the page to get fresh data
   await page.reload({ waitUntil: 'networkidle' })
 
-  // Wait for parameter to appear in the list (accordion UI uses div.cursor-pointer, not table rows)
-  const paramDiv = page.locator('div.cursor-pointer').filter({ hasText: name })
-  await expect(paramDiv).toBeVisible({ timeout: 15000 })
+  // Wait for parameter to appear in the list (search across pages due to pagination)
+  await page.waitForTimeout(2000)
+  const found = await findParameterOnPage(page, name)
+  expect(found).toBe(true)
 }
 
 async function deleteParameter(page: any, paramName: string) {
-  // Find the parameter div (accordion UI uses div.cursor-pointer, not table rows)
+  // Find the parameter across pages (handles pagination)
+  const found = await findParameterOnPage(page, paramName)
+  expect(found).toBe(true)
   const paramDiv = page.locator('div.cursor-pointer').filter({ hasText: paramName })
-  await expect(paramDiv).toBeVisible({ timeout: 15000 })
 
   // Click the delete button (TrashIcon with aria-label="Delete")
   await paramDiv.getByRole('button', { name: 'Delete' }).first().click()
@@ -253,13 +273,11 @@ test.describe('SSM Parameter Store E2E Tests - Accordion UI', () => {
     // Reload to see both
     await page.reload({ waitUntil: 'networkidle' })
 
-    // Find parameter divs (accordion UI uses div.cursor-pointer)
+    // Find first parameter across pages (handles pagination)
+    const found1 = await findParameterOnPage(page, paramName1)
+    expect(found1).toBe(true)
     const paramDiv1 = page.locator('div.cursor-pointer').filter({ hasText: paramName1 })
-    const paramDiv2 = page.locator('div.cursor-pointer').filter({ hasText: paramName2 })
-
-    // Get containers for each param
     const paramContainer1 = paramDiv1.locator('..')
-    const paramContainer2 = paramDiv2.locator('..')
 
     // Click first param div to expand
     await paramDiv1.click()
@@ -267,6 +285,12 @@ test.describe('SSM Parameter Store E2E Tests - Accordion UI', () => {
 
     // Verify first param expanded (View Value button visible in container)
     await expect(paramContainer1.getByText('View Value')).toBeVisible()
+
+    // Find second parameter across pages (handles pagination)
+    const found2 = await findParameterOnPage(page, paramName2)
+    expect(found2).toBe(true)
+    const paramDiv2 = page.locator('div.cursor-pointer').filter({ hasText: paramName2 })
+    const paramContainer2 = paramDiv2.locator('..')
 
     // Click second param div to expand (should collapse first)
     await paramDiv2.click()
