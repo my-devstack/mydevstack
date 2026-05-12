@@ -42,6 +42,7 @@ services:
       FLOCI_STORAGE_PERSISTENT_PATH: /app/data
       FLOCI_SERVICES_LAMBDA_CODE_PATH:	/app/data/lambda
       FLOCI_SERVICES_DOCKER_NETWORK: mydevstack-network
+      FLOCI_SERVICES_LAMBDA_HOT_RELOAD_ENABLED: "true"
     networks:
       - mydevstack-network
     restart: unless-stopped

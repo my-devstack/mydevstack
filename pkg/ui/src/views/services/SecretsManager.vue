@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { ShieldCheckIcon } from '@heroicons/vue/24/outline'
+import { usePagination } from '@/composables/usePagination'
 import { useSecretsManager } from '@/composables/useSecretsManager'
 import {
   SecretsList,
@@ -54,19 +55,15 @@ const {
   isJson,
 } = useSecretsManager()
 
-// Pagination (after useSecretsManager() — secrets must be defined)
-const secretPage = ref(1)
-const secretsPerPage = 15
-const totalSecretPages = computed(() => Math.ceil(secrets.value.length / secretsPerPage))
-const paginatedSecrets = computed(() => {
-  const start = (secretPage.value - 1) * secretsPerPage
-  return secrets.value.slice(start, start + secretsPerPage)
-})
-
-// Reset to page 1 when secrets data changes (create/delete/reload)
-watch(secrets, () => {
-  secretPage.value = 1
-})
+// Pagination via composable
+const {
+  currentPage: secretPage,
+  itemsPerPage: secretsPerPage,
+  totalPages: totalSecretPages,
+  paginatedItems: paginatedSecrets,
+  goToPage,
+  perPageOptions,
+} = usePagination(secrets, { defaultPerPage: 10 })
 </script>
 
 <template>
@@ -135,31 +132,54 @@ watch(secrets, () => {
 
     <!-- Pagination -->
     <div
-      v-if="totalSecretPages > 1"
-      class="flex justify-center items-center gap-2 py-4"
+      v-if="secrets.length > 0"
+      class="flex flex-wrap items-center justify-between gap-4 py-4"
     >
-      <button
-        class="px-3 py-1 rounded border disabled:opacity-50"
-        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-        :disabled="secretPage === 1"
-        @click="secretPage--"
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+        <select
+          v-model="secretsPerPage"
+          class="text-sm border rounded px-2 py-1"
+          :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+        >
+          <option
+            v-for="opt in perPageOptions"
+            :key="opt"
+            :value="opt"
+          >
+            {{ opt }}
+          </option>
+        </select>
+        <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+      </div>
+
+      <div
+        v-if="totalSecretPages > 1"
+        class="flex items-center gap-2"
       >
-        Previous
-      </button>
-      <span
-        class="text-sm"
-        :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-      >
-        Page {{ secretPage }} of {{ totalSecretPages }}
-      </span>
-      <button
-        class="px-3 py-1 rounded border disabled:opacity-50"
-        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-        :disabled="secretPage === totalSecretPages"
-        @click="secretPage++"
-      >
-        Next
-      </button>
+        <button
+          class="px-3 py-1 rounded border disabled:opacity-50"
+          :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+          :disabled="secretPage === 1"
+          @click="goToPage(secretPage - 1)"
+        >
+          Previous
+        </button>
+        <span
+          class="text-sm"
+          :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+        >
+          Page {{ secretPage }} of {{ totalSecretPages }}
+        </span>
+        <button
+          class="px-3 py-1 rounded border disabled:opacity-50"
+          :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+          :disabled="secretPage === totalSecretPages"
+          @click="goToPage(secretPage + 1)"
+        >
+          Next
+        </button>
+      </div>
     </div>
 
     <!-- Example Code Section -->

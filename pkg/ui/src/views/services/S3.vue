@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useUIStore } from '@/stores/ui'
 import { useContentReload } from '@/composables/useContentReload'
+import { usePagination } from '@/composables/usePagination'
 import { useS3 } from '@/composables/useS3'
 import { ArchiveBoxIcon } from '@heroicons/vue/24/outline'
 import { S3BucketsList, S3ObjectsList, S3CreateModal, S3ViewModal, S3DeleteModal, S3CodeExamples, S3TriggerModal, S3PolicyModal } from '@/components/s3'
@@ -11,15 +12,6 @@ const { reloadTrigger } = useContentReload()
 
 const settingsStore = useSettingsStore()
 const uiStore = useUIStore()
-
-// Pagination
-const bucketPage = ref(1)
-const bucketsPerPage = 15
-const totalBucketPages = computed(() => Math.ceil(buckets.value.length / bucketsPerPage))
-const paginatedBuckets = computed(() => {
-  const start = (bucketPage.value - 1) * bucketsPerPage
-  return buckets.value.slice(start, start + bucketsPerPage)
-})
 
 // Composable state and functions
 const {
@@ -41,10 +33,15 @@ const {
   configureLambdaTrigger,
 } = useS3()
 
-// Reset to page 1 when buckets data changes (create/delete/reload)
-watch(buckets, () => {
-  bucketPage.value = 1
-})
+// Pagination via composable
+const {
+  currentPage: bucketPage,
+  itemsPerPage: bucketsPerPage,
+  totalPages: totalBucketPages,
+  paginatedItems: paginatedBuckets,
+  goToPage,
+  perPageOptions,
+} = usePagination(buckets, { defaultPerPage: 10 })
 
 // UI State - error handling
 const error = ref<string | null>(null)
@@ -372,31 +369,54 @@ watch(reloadTrigger, () => {
 
     <!-- Pagination -->
     <div
-      v-if="!loading && !selectedBucket && totalBucketPages > 1"
-      class="flex justify-center items-center gap-2 py-4"
+      v-if="!loading && !selectedBucket && buckets.length > 0"
+      class="flex flex-wrap items-center justify-between gap-4 py-4"
     >
-      <button
-        class="px-3 py-1 rounded border disabled:opacity-50"
-        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-        :disabled="bucketPage === 1"
-        @click="bucketPage--"
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+        <select
+          v-model="bucketsPerPage"
+          class="text-sm border rounded px-2 py-1"
+          :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+        >
+          <option
+            v-for="opt in perPageOptions"
+            :key="opt"
+            :value="opt"
+          >
+            {{ opt }}
+          </option>
+        </select>
+        <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+      </div>
+
+      <div
+        v-if="totalBucketPages > 1"
+        class="flex items-center gap-2"
       >
-        Previous
-      </button>
-      <span
-        class="text-sm"
-        :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-      >
-        Page {{ bucketPage }} of {{ totalBucketPages }}
-      </span>
-      <button
-        class="px-3 py-1 rounded border disabled:opacity-50"
-        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-        :disabled="bucketPage === totalBucketPages"
-        @click="bucketPage++"
-      >
-        Next
-      </button>
+        <button
+          class="px-3 py-1 rounded border disabled:opacity-50"
+          :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+          :disabled="bucketPage === 1"
+          @click="goToPage(bucketPage - 1)"
+        >
+          Previous
+        </button>
+        <span
+          class="text-sm"
+          :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+        >
+          Page {{ bucketPage }} of {{ totalBucketPages }}
+        </span>
+        <button
+          class="px-3 py-1 rounded border disabled:opacity-50"
+          :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+          :disabled="bucketPage === totalBucketPages"
+          @click="goToPage(bucketPage + 1)"
+        >
+          Next
+        </button>
+      </div>
     </div>
 
     <!-- Objects List -->

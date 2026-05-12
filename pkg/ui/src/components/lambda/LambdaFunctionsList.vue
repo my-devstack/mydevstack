@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, toRef } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
+import { usePagination } from '@/composables/usePagination'
 import { CodeBracketIcon } from '@heroicons/vue/24/outline'
 import type { LambdaFunction } from '@/api/types/aws'
 
@@ -15,6 +16,18 @@ const emit = defineEmits<{
 }>()
 
 const settingsStore = useSettingsStore()
+
+// Pagination via composable — create a ref from props.functions
+const functionsRef = toRef(props, 'functions')
+const {
+  currentPage,
+  itemsPerPage,
+  totalPages,
+  paginatedItems,
+  goToPage,
+  perPageOptions,
+} = usePagination(functionsRef, { defaultPerPage: 10 })
+
 const expandedFunctions = ref<Set<string>>(new Set())
 
 const invokePayload = ref<Record<string, string>>({})
@@ -164,7 +177,7 @@ defineExpose({ updateInvokeResult })
 
     <!-- Rows -->
     <div
-      v-for="func in functions"
+      v-for="func in paginatedItems"
       :key="func.FunctionName"
       class="border rounded-lg overflow-hidden"
       :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
@@ -350,6 +363,55 @@ defineExpose({ updateInvokeResult })
             >{{ getResult(func.FunctionName) }}</pre>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex flex-wrap items-center justify-between gap-4 py-4">
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+        <select
+          v-model="itemsPerPage"
+          class="text-sm border rounded px-2 py-1"
+          :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+        >
+          <option
+            v-for="opt in perPageOptions"
+            :key="opt"
+            :value="opt"
+          >
+            {{ opt }}
+          </option>
+        </select>
+        <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+      </div>
+
+      <div
+        v-if="totalPages > 1"
+        class="flex items-center gap-2"
+      >
+        <button
+          class="px-3 py-1 rounded border disabled:opacity-50"
+          :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+          :disabled="currentPage === 1"
+          @click="goToPage(currentPage - 1)"
+        >
+          Previous
+        </button>
+        <span
+          class="text-sm"
+          :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+        >
+          Page {{ currentPage }} of {{ totalPages }}
+        </span>
+        <button
+          class="px-3 py-1 rounded border disabled:opacity-50"
+          :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+          :disabled="currentPage === totalPages"
+          @click="goToPage(currentPage + 1)"
+        >
+          Next
+        </button>
       </div>
     </div>
   </div>

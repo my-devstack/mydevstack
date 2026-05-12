@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
+import { usePagination } from '@/composables/usePagination'
 import { useKMS } from '@/composables/useKMS'
 
 // Components
@@ -66,14 +67,15 @@ const {
 // Stores
 const settingsStore = useSettingsStore()
 
-// Pagination
-const keyPage = ref(1)
-const keysPerPage = 15
-const totalKeyPages = computed(() => Math.ceil(keys.value.length / keysPerPage))
-const paginatedKeys = computed(() => {
-  const start = (keyPage.value - 1) * keysPerPage
-  return keys.value.slice(start, start + keysPerPage)
-})
+// Pagination via composable
+const {
+  currentPage: keyPage,
+  itemsPerPage: keysPerPage,
+  totalPages: totalKeyPages,
+  paginatedItems: paginatedKeys,
+  goToPage,
+  perPageOptions,
+} = usePagination(keys, { defaultPerPage: 10 })
 
 // UI-specific refs (not extracted to composable)
 const showExamples = ref(false)
@@ -535,31 +537,54 @@ fmt.Println(string(decryptOutput.Plaintext))`
         </div>
         <!-- Pagination -->
         <div
-          v-if="!isLoading && totalKeyPages > 1"
-          class="flex justify-center items-center gap-2 py-4"
+          v-if="!isLoading && keys.length > 0"
+          class="flex flex-wrap items-center justify-between gap-4 py-4"
         >
-          <button
-            class="px-3 py-1 rounded border disabled:opacity-50"
-            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-            :disabled="keyPage === 1"
-            @click="keyPage--"
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+            <select
+              v-model="keysPerPage"
+              class="text-sm border rounded px-2 py-1"
+              :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+            >
+              <option
+                v-for="opt in perPageOptions"
+                :key="opt"
+                :value="opt"
+              >
+                {{ opt }}
+              </option>
+            </select>
+            <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+          </div>
+
+          <div
+            v-if="totalKeyPages > 1"
+            class="flex items-center gap-2"
           >
-            Previous
-          </button>
-          <span
-            class="text-sm"
-            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-          >
-            Page {{ keyPage }} of {{ totalKeyPages }}
-          </span>
-          <button
-            class="px-3 py-1 rounded border disabled:opacity-50"
-            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-            :disabled="keyPage === totalKeyPages"
-            @click="keyPage++"
-          >
-            Next
-          </button>
+            <button
+              class="px-3 py-1 rounded border disabled:opacity-50"
+              :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+              :disabled="keyPage === 1"
+              @click="goToPage(keyPage - 1)"
+            >
+              Previous
+            </button>
+            <span
+              class="text-sm"
+              :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+            >
+              Page {{ keyPage }} of {{ totalKeyPages }}
+            </span>
+            <button
+              class="px-3 py-1 rounded border disabled:opacity-50"
+              :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+              :disabled="keyPage === totalKeyPages"
+              @click="goToPage(keyPage + 1)"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -65,7 +65,7 @@ const emit = defineEmits<{
       <FormInput
         :model-value="newMachineDefinition"
         label="Definition"
-        placeholder='{"StartAt": "HelloWorld", "States": {"HelloWorld": {"Type": "Pass", "End": true}}}'
+        placeholder="{&quot;StartAt&quot;: &quot;HelloWorld&quot;, &quot;States&quot;: {&quot;HelloWorld&quot;: {&quot;Type&quot;: &quot;Pass&quot;, &quot;End&quot;: true}}}"
         required
         help-text="Define your state machine using Amazon States Language (JSON)"
         class="font-mono text-sm"

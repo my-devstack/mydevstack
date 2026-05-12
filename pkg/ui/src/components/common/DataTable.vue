@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
+import { usePagination } from '@/composables/usePagination'
 import LoadingSpinner from './LoadingSpinner.vue'
 import EmptyState from './EmptyState.vue'
 
@@ -35,9 +36,19 @@ const emit = defineEmits<{
   'update:selectedKey': [key: string]
 }>()
 
-// Pagination
-const currentPage = ref(1)
-const pageSize = ref(10)
+// Pagination via composable - create a ref from props.data
+import { toRef } from 'vue'
+const dataRef = toRef(props, 'data')
+const {
+  currentPage,
+  itemsPerPage,
+  totalPages,
+  goToPage,
+  perPageOptions,
+  totalItems,
+  startItem,
+  endItem,
+} = usePagination(dataRef, { defaultPerPage: 10 })
 
 // Sorting
 const sortKey = ref<string | null>(null)
@@ -57,16 +68,10 @@ const sortedData = computed(() => {
   })
 })
 
-const totalPages = computed(() => Math.ceil(props.data.length / pageSize.value))
-
 const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return sortedData.value.slice(start, start + pageSize.value)
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  return sortedData.value.slice(start, start + itemsPerPage.value)
 })
-
-const totalItems = computed(() => props.data.length)
-const startItem = computed(() => (currentPage.value - 1) * pageSize.value + 1)
-const endItem = computed(() => Math.min(currentPage.value * pageSize.value, totalItems.value))
 
 function handleSort(column: Column) {
   if (!column.sortable) return
@@ -91,11 +96,6 @@ function isSelected(row: Record<string, unknown>): boolean {
   if (!props.selectable || !props.selectedKey) return false
   const key = row.id as string || row.key as string
   return key === props.selectedKey
-}
-
-function goToPage(page: number) {
-  if (page < 1 || page > totalPages.value) return
-  currentPage.value = page
 }
 
 function nextPage() {
@@ -154,7 +154,7 @@ function prevPage() {
           <!-- Loading State -->
           <template v-if="loading">
             <tr
-              v-for="i in pageSize"
+              v-for="i in itemsPerPage"
               :key="`loading-${i}`"
             >
               <td
@@ -231,8 +231,27 @@ function prevPage() {
       v-if="!loading && totalItems > 0"
       class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 px-2"
     >
-      <div class="text-sm text-light-muted dark:text-dark-muted">
-        Showing <span class="font-medium">{{ startItem }}</span> to <span class="font-medium">{{ endItem }}</span> of <span class="font-medium">{{ totalItems }}</span> results
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+          <select
+            v-model="itemsPerPage"
+            class="text-sm border rounded px-2 py-1"
+            :class="'bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border text-light-text dark:text-dark-text'"
+          >
+            <option
+              v-for="opt in perPageOptions"
+              :key="opt"
+              :value="opt"
+            >
+              {{ opt }}
+            </option>
+          </select>
+          <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+        </div>
+        <div class="text-sm text-light-muted dark:text-dark-muted">
+          Showing <span class="font-medium">{{ startItem }}</span> to <span class="font-medium">{{ endItem }}</span> of <span class="font-medium">{{ totalItems }}</span> results
+        </div>
       </div>
 
       <div class="flex items-center gap-2">

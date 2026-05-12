@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
+import { usePagination } from '@/composables/usePagination'
 import { useSNS } from '@/composables/useSNS'
 import { MegaphoneIcon } from '@heroicons/vue/24/outline'
 import Modal from '@/components/common/Modal.vue'
@@ -118,19 +119,15 @@ async function openSubscriptionsModal(topicArn: string) {
 onMounted(() => loadTopics())
 watch(reloadTrigger, () => loadTopics())
 
-// Pagination
-const topicPage = ref(1)
-const topicsPerPage = 15
-const totalTopicPages = computed(() => Math.ceil(topics.value.length / topicsPerPage))
-const paginatedTopics = computed(() => {
-  const start = (topicPage.value - 1) * topicsPerPage
-  return topics.value.slice(start, start + topicsPerPage)
-})
-
-// Reset to page 1 when topics data changes
-watch(topics, () => {
-  topicPage.value = 1
-})
+// Pagination via composable
+const {
+  currentPage: topicPage,
+  itemsPerPage: topicsPerPage,
+  totalPages: totalTopicPages,
+  paginatedItems: paginatedTopics,
+  goToPage,
+  perPageOptions,
+} = usePagination(topics, { defaultPerPage: 10 })
 </script>
 
 <template>
@@ -342,31 +339,54 @@ watch(topics, () => {
 
         <!-- Pagination -->
         <div
-          v-if="totalTopicPages > 1"
-          class="flex justify-center items-center gap-2 py-4"
+          v-if="topics.length > 0"
+          class="flex flex-wrap items-center justify-between gap-4 py-4"
         >
-          <button
-            class="px-3 py-1 rounded border disabled:opacity-50"
-            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-            :disabled="topicPage === 1"
-            @click="topicPage--"
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+            <select
+              v-model="topicsPerPage"
+              class="text-sm border rounded px-2 py-1"
+              :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+            >
+              <option
+                v-for="opt in perPageOptions"
+                :key="opt"
+                :value="opt"
+              >
+                {{ opt }}
+              </option>
+            </select>
+            <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+          </div>
+
+          <div
+            v-if="totalTopicPages > 1"
+            class="flex items-center gap-2"
           >
-            Previous
-          </button>
-          <span
-            class="text-sm"
-            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-          >
-            Page {{ topicPage }} of {{ totalTopicPages }}
-          </span>
-          <button
-            class="px-3 py-1 rounded border disabled:opacity-50"
-            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-            :disabled="topicPage === totalTopicPages"
-            @click="topicPage++"
-          >
-            Next
-          </button>
+            <button
+              class="px-3 py-1 rounded border disabled:opacity-50"
+              :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+              :disabled="topicPage === 1"
+              @click="goToPage(topicPage - 1)"
+            >
+              Previous
+            </button>
+            <span
+              class="text-sm"
+              :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+            >
+              Page {{ topicPage }} of {{ totalTopicPages }}
+            </span>
+            <button
+              class="px-3 py-1 rounded border disabled:opacity-50"
+              :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+              :disabled="topicPage === totalTopicPages"
+              @click="goToPage(topicPage + 1)"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </div>

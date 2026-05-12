@@ -45,7 +45,7 @@ const emit = defineEmits<{
           :value="newExecutionInput"
           class="w-full h-36 px-3 py-2 rounded-lg border bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm"
           :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
-          placeholder='{\n  "key": "value"\n}'
+          placeholder="{\n  &quot;key&quot;: &quot;value&quot;\n}"
           @input="emit('update:new-execution-input', ($event.target as HTMLTextAreaElement).value)"
         />
       </div>

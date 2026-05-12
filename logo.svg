@@ -1,0 +1,9 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MyDevStack logo - constellation stack icon, light">
+  <rect x="22" y="22" width="84" height="84" rx="20" stroke="#0F172A" stroke-width="4" opacity="0.9"/>
+  <path d="M40 82L64 64M64 64L88 46M64 64L88 84M64 64L40 44" stroke="#0F172A" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="64" cy="64" r="10" fill="#22C55E"/>
+  <rect x="33" y="37" width="14" height="14" rx="4" fill="#38BDF8"/>
+  <rect x="81" y="39" width="14" height="14" rx="4" fill="#38BDF8"/>
+  <rect x="81" y="77" width="14" height="14" rx="4" fill="#38BDF8"/>
+  <rect x="33" y="75" width="14" height="14" rx="4" fill="#38BDF8"/>
+</svg>

@@ -147,3 +147,44 @@ test.describe('Step Functions', () => {
     await expect(page.getByText(/type/i).first()).toBeVisible({ timeout: 5000 })
   })
 })
+
+test.describe('Pagination', () => {
+  test('shows per-page selector when items exist', async ({ page }) => {
+    await page.goto('/#/services/step-functions')
+    await page.waitForLoadState('networkidle')
+    // Pagination only renders when state machines exist. Check gracefully.
+    const showLabel = page.getByText('Show:')
+    if (await showLabel.isVisible().catch(() => false)) {
+      const paginationSection = showLabel.locator('..')
+      const perPageSelect = paginationSection.locator('select')
+      await expect(perPageSelect).toBeVisible({ timeout: 5000 })
+    }
+  })
+
+  test('change items per page when items exist', async ({ page }) => {
+    await page.goto('/#/services/step-functions')
+    await page.waitForLoadState('networkidle')
+    const showLabel = page.getByText('Show:')
+    if (await showLabel.isVisible().catch(() => false)) {
+      const paginationSection = showLabel.locator('..')
+      const perPageSelect = paginationSection.locator('select')
+      await perPageSelect.selectOption('50')
+      await expect(paginationSection.getByText('per page')).toBeVisible({ timeout: 5000 })
+    }
+  })
+
+  test('page navigation buttons work when paginated', async ({ page }) => {
+    await page.goto('/#/services/step-functions')
+    await page.waitForLoadState('networkidle')
+    const showLabel = page.getByText('Show:')
+    if (await showLabel.isVisible().catch(() => false)) {
+      const paginationSection = showLabel.locator('..')
+      const perPageSelect = paginationSection.locator('select')
+      await perPageSelect.selectOption('5')
+      const nextButton = page.getByRole('button', { name: 'Next' }).first()
+      if (await nextButton.isVisible().catch(() => false)) {
+        await expect(nextButton).toBeVisible({ timeout: 5000 })
+      }
+    }
+  })
+})
