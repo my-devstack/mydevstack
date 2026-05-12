@@ -4,7 +4,14 @@ import { listFunctions as fetchLambdaFunctions } from '@/api/services/lambda'
 import { listTables as fetchDynamoDBTables } from '@/api/services/dynamodb'
 import { listQueues as fetchSQSQueues } from '@/api/services/sqs'
 import { listTopics as fetchSNSTopics } from '@/api/services/sns'
-import { listUsers, listRoles } from '@/api/services/iam'
+import { listUsers } from '@/api/services/iam'
+import { describeDBInstances as fetchRDSInstances } from '@/api/services/rds'
+import { getRestApis as fetchAPIGatewayRestApis } from '@/api/services/api-gateway'
+import { listStreams as fetchKinesisStreams } from '@/api/services/kinesis'
+import { listKeys as fetchKMSKeys } from '@/api/services/kms'
+import { listSecrets as fetchSecrets } from '@/api/services/secrets-manager'
+import { describeReplicationGroups as fetchElastiCacheGroups } from '@/api/services/elasticache'
+import { describeParameters as fetchSSMParameters } from '@/api/services/ssm'
 import type { ServiceCategory } from '@/types/services'
 import { SERVICE_COLORS, type ServiceStats, type ServiceStatus, determineStatus } from '@/types/serviceRegistry'
 
@@ -100,90 +107,119 @@ const SERVICE_CONFIGS: ServiceConfig[] = [
     color: SERVICE_COLORS.iam.text,
     bgColor: SERVICE_COLORS.iam.bg,
     statsFetcher: async () => {
-      const [users, roles] = await Promise.all([fetchUsers(), fetchRoles()])
-      return (users.Users?.length || 0) + (roles.Roles?.length || 0)
+      const result = await listUsers()
+      return result.Users?.length || 0
     },
     enabled: true,
   },
   {
     id: 'ec2',
-    name: 'EC2',
+    name: 'EC2 Instances',
     category: 'compute',
     icon: 'ServerIcon',
     route: '/services/ec2',
     color: SERVICE_COLORS.ec2.text,
     bgColor: SERVICE_COLORS.ec2.bg,
     statsFetcher: async () => 0,
+    enabled: true,
   },
   {
     id: 'rds',
-    name: 'RDS',
+    name: 'RDS Instances',
     category: 'database',
     icon: 'DatabaseIcon',
     route: '/services/rds',
     color: SERVICE_COLORS.rds.text,
     bgColor: SERVICE_COLORS.rds.bg,
-    statsFetcher: async () => 0,
+    statsFetcher: async () => {
+      const result = await fetchRDSInstances()
+      return result.length
+    },
+    enabled: true,
   },
   {
     id: 'apigateway',
-    name: 'API Gateway',
+    name: 'API Gateway APIs',
     category: 'networking',
     icon: 'GlobeAltIcon',
     route: '/services/apigateway',
     color: SERVICE_COLORS.apigateway.text,
     bgColor: SERVICE_COLORS.apigateway.bg,
-    statsFetcher: async () => 0,
+    statsFetcher: async () => {
+      const result = await fetchAPIGatewayRestApis()
+      return result.Items?.length || 0
+    },
+    enabled: true,
   },
   {
     id: 'kinesis',
-    name: 'Kinesis',
+    name: 'Kinesis Streams',
     category: 'analytics',
     icon: 'WaveformIcon',
     route: '/services/kinesis',
     color: SERVICE_COLORS.kinesis.text,
     bgColor: SERVICE_COLORS.kinesis.bg,
-    statsFetcher: async () => 0,
+    statsFetcher: async () => {
+      const result = await fetchKinesisStreams()
+      return result.StreamNames?.length || 0
+    },
+    enabled: true,
   },
   {
     id: 'kms',
-    name: 'KMS',
+    name: 'KMS Keys',
     category: 'security',
     icon: 'KeyIcon',
     route: '/services/kms',
     color: SERVICE_COLORS.kms.text,
     bgColor: SERVICE_COLORS.kms.bg,
-    statsFetcher: async () => 0,
+    statsFetcher: async () => {
+      const result = await fetchKMSKeys()
+      return result.Keys?.length || 0
+    },
+    enabled: true,
   },
   {
     id: 'secretsmanager',
-    name: 'Secrets Manager',
+    name: 'Secrets Manager Secrets',
     category: 'security',
     icon: 'LockClosedIcon',
     route: '/services/secretsmanager',
     color: SERVICE_COLORS.secretsmanager.text,
     bgColor: SERVICE_COLORS.secretsmanager.bg,
-    statsFetcher: async () => 0,
+    statsFetcher: async () => {
+      const result = await fetchSecrets()
+      return result.SecretList?.length || 0
+    },
+    enabled: true,
   },
   {
     id: 'elasticache',
-    name: 'ElastiCache',
+    name: 'ElastiCache Replication Groups',
     category: 'database',
     icon: 'ServerIcon',
     route: '/services/elasticache',
     color: SERVICE_COLORS.elasticache.text,
     bgColor: SERVICE_COLORS.elasticache.bg,
-    statsFetcher: async () => 0,
+    statsFetcher: async () => {
+      const result = await fetchElastiCacheGroups()
+      return result.length
+    },
+    enabled: true,
   },
   {
     id: 'ssm',
-    name: 'SSM',
+    name: 'SSM Parameters',
     category: 'parameters',
     icon: 'Cog6ToothIcon',
     route: '/services/ssm',
     color: SERVICE_COLORS.ssm.text,
     bgColor: SERVICE_COLORS.ssm.bg,
-    statsFetcher: async () => 0,
+    statsFetcher: async () => {
+      const result = await fetchSSMParameters()
+      return result.Parameters?.length || 0
+    },
+    enabled: true,
   },
 ]
 

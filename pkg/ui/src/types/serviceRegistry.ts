@@ -45,6 +45,5 @@ export const getServiceBgColor = (serviceId: string): string => {
 
 export const determineStatus = (count: number, error?: boolean): ServiceStatus => {
   if (error) return 'error'
-  if (count === 0) return 'warning'
   return 'healthy'
 }

@@ -51,7 +51,7 @@ describe('Dashboard integration', () => {
     const { determineStatus } = await import('@/types/serviceRegistry')
     expect(SERVICE_COLORS).toBeDefined()
     expect(determineStatus).toBeDefined()
-    expect(determineStatus(0)).toBe('warning')
+    expect(determineStatus(0)).toBe('healthy')
     expect(determineStatus(5)).toBe('healthy')
     expect(determineStatus(0, true)).toBe('error')
   })

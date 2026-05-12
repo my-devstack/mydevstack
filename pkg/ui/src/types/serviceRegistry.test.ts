@@ -55,8 +55,8 @@ describe('serviceRegistry', () => {
       expect(determineStatus(100)).toBe('healthy')
     })
 
-    it('should return warning when count is 0 and no error', () => {
-      expect(determineStatus(0)).toBe('warning')
+    it('should return healthy when count is 0 and no error', () => {
+      expect(determineStatus(0)).toBe('healthy')
     })
 
     it('should return error when error flag is true', () => {
