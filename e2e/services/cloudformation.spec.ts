@@ -300,4 +300,9 @@ Resources:
     // Should NOT show validation error (CF tags allowed)
     await expect(page.getByText('Invalid YAML')).not.toBeVisible({ timeout: 5000 })
   })
+
+  test('usage examples section visible', async ({ page }) => {
+    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: 'Usage Examples' })).toBeVisible()
+  })
 })

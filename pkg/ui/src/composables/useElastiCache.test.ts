@@ -206,9 +206,10 @@ describe('useElastiCache', () => {
   it('codeExamples generates content', () => {
     const { codeExamples } = useElastiCache()
     
-    expect(codeExamples.value).toHaveLength(3)
+    expect(codeExamples.value).toHaveLength(4)
     expect(codeExamples.value[0].language).toBe('aws-cli')
     expect(codeExamples.value[1].language).toBe('javascript')
     expect(codeExamples.value[2].language).toBe('python')
+    expect(codeExamples.value[3].language).toBe('go')
   })
 })

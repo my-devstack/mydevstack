@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures.js'
 
 test.setTimeout(120000)
 
@@ -190,6 +190,14 @@ test.describe('IAM - Groups', () => {
     await groupRow.locator('h3').click()
     await page.getByRole('button', { name: 'Add User' }).click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
+  })
+})
+
+test.describe('IAM - Usage Examples', () => {
+  test('usage examples section visible', async ({ page }) => {
+    await page.goto('/#/services/iam')
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByRole('heading', { name: 'Usage Examples' })).toBeVisible()
   })
 })
 

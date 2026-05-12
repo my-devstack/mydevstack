@@ -129,6 +129,14 @@ test.describe('KMS', () => {
   })
 })
 
+test('usage examples section', async ({ page }) => {
+  await page.goto('/#/services/kms')
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByRole('heading', { name: 'Usage Examples' })).toBeVisible()
+  // Verify AWS CLI tab is visible
+  await expect(page.getByText('AWS CLI')).toBeVisible()
+})
+
 test.describe('Pagination', () => {
   test('shows per-page selector', async ({ page }) => {
     await page.goto('/#/services/kms')

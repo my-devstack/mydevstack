@@ -641,10 +641,7 @@ fmt.Println(string(decryptOutput.Plaintext))`
     />
 
     <!-- Usage Examples Section -->
-    <div
-      v-if="!isLoading && keys.length > 0"
-      class="mt-8"
-    >
+    <div class="mt-8">
       <CodeSnippet
         title="Usage Examples"
         :snippets="codeExamples"

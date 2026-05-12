@@ -238,6 +238,46 @@ elasticache.delete_replication_group(
     ReplicationGroupId='my-cache'
 )`,
     },
+    {
+      language: 'go',
+      label: 'Go',
+      code: `// Using AWS SDK for Go v2
+import (
+    "context"
+    "fmt"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/elasticache"
+    "github.com/aws/aws-sdk-go/aws"
+)
+
+cfg, _ := config.LoadDefaultConfig(context.Background(),
+    config.WithRegion("${settingsStore.region}"),
+)
+
+client := elasticache.NewFromConfig(cfg, func(o *elasticache.Options) {
+    o.BaseEndpoint = aws.String("http://127.0.0.1:4566")
+})
+
+// Describe replication groups
+groups, _ := client.DescribeReplicationGroups(context.Background(), &elasticache.DescribeReplicationGroupsInput{})
+for _, group := range groups.ReplicationGroups {
+    fmt.Printf("Group: %s, Status: %s, Engine: %s\\n", aws.ToString(group.ReplicationGroupId), aws.ToString(group.Status), aws.ToString(group.Engine))
+}
+
+// Create replication group
+client.CreateReplicationGroup(context.Background(), &elasticache.CreateReplicationGroupInput{
+    ReplicationGroupId:          aws.String("my-cache"),
+    ReplicationGroupDescription: aws.String("Dev cache"),
+    Engine:                      aws.String("valkey"),
+    CacheNodeType:               aws.String("cache.t3.micro"),
+    NumNodeGroups:               aws.Int32(1),
+})
+
+// Delete replication group
+client.DeleteReplicationGroup(context.Background(), &elasticache.DeleteReplicationGroupInput{
+    ReplicationGroupId: aws.String("my-cache"),
+})`,
+    },
   ])
 
   return {
