@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -17,37 +18,45 @@ import (
 )
 
 type testProxyService struct {
-	s3Port ports.S3Port
-	cfPort ports.CloudFormationPort
-	cfg    *configloader.Config
+	s3Port   ports.S3Port
+	cfPort   ports.CloudFormationPort
+	cfg      *configloader.Config
+	emulator string
 }
 
 func (s *testProxyService) S3() ports.S3Port {
 	return s.s3Port
 }
 
-func (s *testProxyService) Lambda() ports.LambdaPort                  { return nil }
-func (s *testProxyService) SecretsManager() ports.SecretsManagerPort    { return nil }
-func (s *testProxyService) StepFunctions() ports.StepFunctionsPort      { return nil }
-func (s *testProxyService) SQS() ports.SQSPort                        { return nil }
-func (s *testProxyService) SNS() ports.SNSPort                        { return nil }
-func (s *testProxyService) KMS() ports.KMSPort                        { return nil }
-func (s *testProxyService) DynamoDB() ports.DynamoDBPort                  { return nil }
-func (s *testProxyService) DynamoDBStreams() ports.DynamoDBStreamsPort    { return nil }
-func (s *testProxyService) APIGateway() ports.APIGatewayPort          { return nil }
-func (s *testProxyService) APIGatewayV2() ports.APIGatewayV2Port      { return nil }
-func (s *testProxyService) SSM() ports.SSMPort                        { return nil }
-func (s *testProxyService) IAM() ports.IAMPort                        { return nil }
-func (s *testProxyService) Kinesis() ports.KinesisPort                { return nil }
-func (s *testProxyService) RDS() ports.RDSPort                        { return nil }
-func (s *testProxyService) ElastiCache() ports.ElastiCachePort        { return nil }
-func (s *testProxyService) CloudFormation() ports.CloudFormationPort { return s.cfPort }
+func (s *testProxyService) Lambda() ports.LambdaPort                   { return nil }
+func (s *testProxyService) SecretsManager() ports.SecretsManagerPort   { return nil }
+func (s *testProxyService) StepFunctions() ports.StepFunctionsPort     { return nil }
+func (s *testProxyService) SQS() ports.SQSPort                         { return nil }
+func (s *testProxyService) SNS() ports.SNSPort                         { return nil }
+func (s *testProxyService) KMS() ports.KMSPort                         { return nil }
+func (s *testProxyService) DynamoDB() ports.DynamoDBPort               { return nil }
+func (s *testProxyService) DynamoDBStreams() ports.DynamoDBStreamsPort { return nil }
+func (s *testProxyService) APIGateway() ports.APIGatewayPort           { return nil }
+func (s *testProxyService) APIGatewayV2() ports.APIGatewayV2Port       { return nil }
+func (s *testProxyService) SSM() ports.SSMPort                         { return nil }
+func (s *testProxyService) IAM() ports.IAMPort                         { return nil }
+func (s *testProxyService) Kinesis() ports.KinesisPort                 { return nil }
+func (s *testProxyService) RDS() ports.RDSPort                         { return nil }
+func (s *testProxyService) ElastiCache() ports.ElastiCachePort         { return nil }
+func (s *testProxyService) CloudFormation() ports.CloudFormationPort   { return s.cfPort }
 func (s *testProxyService) Config() *configloader.Config {
-	return &configloader.Config{
+	if s.cfg != nil {
+		return s.cfg
+	}
+	cfg := &configloader.Config{
 		AWS: configloader.AWSProxyConfig{
 			Endpoint: "http://localhost:4566",
 		},
 	}
+	if s.emulator != "" {
+		cfg.Emulator = s.emulator
+	}
+	return cfg
 }
 
 func (s *testProxyService) Region() string {
@@ -71,7 +80,6 @@ func setupTestRouter(handler *ProxyHandler) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	r.GET("/health", handler.HealthCheck)
-	r.GET("/_health", handler.BackendHealthCheck)
 	r.Any("/:service/*path", handler.ServiceRouter)
 	return r
 }
@@ -103,6 +111,62 @@ func TestHealthCheck(t *testing.T) {
 	}
 	if response["proxy"] != "aws-proxy" {
 		t.Errorf("HealthCheck proxy = %v, want aws-proxy", response["proxy"])
+	}
+}
+
+func TestHealthCheck_EmulatorUnreachable(t *testing.T) {
+	svc := &testProxyService{
+		emulator: "localstack",
+		cfg: &configloader.Config{
+			AWS: configloader.AWSProxyConfig{
+				Endpoint: "http://127.0.0.1:1",
+			},
+			Emulator: "localstack",
+		},
+	}
+	handler := NewProxyHandler(svc, createTestVersionService())
+	// Clear cache to force fresh check
+	handler.mu.Lock()
+	handler.lastHealthCheck = time.Time{}
+	handler.mu.Unlock()
+
+	r := setupTestRouter(handler)
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/health", nil)
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusServiceUnavailable {
+		t.Errorf("HealthCheck status = %v, want %v (emulator unreachable)", w.Code, http.StatusServiceUnavailable)
+	}
+
+	var response map[string]interface{}
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+	if response["status"] != "unhealthy" {
+		t.Errorf("HealthCheck status = %v, want unhealthy", response["status"])
+	}
+}
+
+func TestHealthCheck_NoEmulator(t *testing.T) {
+	svc := &testProxyService{}
+	handler := NewProxyHandler(svc, createTestVersionService())
+	r := setupTestRouter(handler)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/health", nil)
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("HealthCheck status = %v, want %v (no emulator = healthy by default)", w.Code, http.StatusOK)
+	}
+
+	var response map[string]interface{}
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+	if response["status"] != "healthy" {
+		t.Errorf("HealthCheck status = %v, want healthy", response["status"])
 	}
 }
 
@@ -244,7 +308,7 @@ func TestBackendHealthCheck_Reachable(t *testing.T) {
 	r := setupTestRouter(handler)
 
 	w := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/_health", nil)
+	req, err := http.NewRequest("GET", "/health", nil)
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
 	}

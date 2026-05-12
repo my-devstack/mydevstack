@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,10 +18,64 @@ import (
 type ProxyHandler struct {
 	svc        ports.ProxyService
 	versionSvc *service.VersionService
+
+	// health check cache
+	mu              sync.RWMutex
+	lastHealthCheck time.Time
+	backendHealthy  bool
+	healthCheckURL  string
 }
 
 func NewProxyHandler(svc ports.ProxyService, versionSvc *service.VersionService) *ProxyHandler {
-	return &ProxyHandler{svc: svc, versionSvc: versionSvc}
+	h := &ProxyHandler{svc: svc, versionSvc: versionSvc}
+	// Compute health check URL from emulator config
+	if emulator := svc.Config().Emulator; emulator != "" {
+		h.healthCheckURL = strings.TrimRight(svc.Config().AWS.Endpoint, "/") + "/_localstack/health"
+	}
+	return h
+}
+
+// checkBackendHealth probes the emulator health endpoint with 30s cache.
+// If no health check URL configured, returns healthy by default.
+func (h *ProxyHandler) checkBackendHealth() bool {
+	h.mu.RLock()
+	if !h.lastHealthCheck.IsZero() && time.Since(h.lastHealthCheck) < 30*time.Second {
+		defer h.mu.RUnlock()
+		return h.backendHealthy
+	}
+	h.mu.RUnlock()
+
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	// Double-check after acquiring write lock
+	if !h.lastHealthCheck.IsZero() && time.Since(h.lastHealthCheck) < 30*time.Second {
+		return h.backendHealthy
+	}
+
+	h.lastHealthCheck = time.Now()
+	h.backendHealthy = false
+
+	// No health check URL → healthy by default
+	if h.healthCheckURL == "" {
+		h.backendHealthy = true
+		return true
+	}
+
+	client := &http.Client{Timeout: 3 * time.Second, CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}}
+	resp, err := client.Get(h.healthCheckURL)
+	if err != nil {
+		return false
+	}
+
+	if err = resp.Body.Close(); err != nil {
+		log.Printf("Failed to close response body for %s: %v", h.healthCheckURL, err)
+		return false
+	}
+	h.backendHealthy = resp.StatusCode >= 200 && resp.StatusCode < 400
+	return h.backendHealthy
 }
 
 func (h *ProxyHandler) ServiceRouter(c *gin.Context) {
@@ -63,8 +118,15 @@ func (h *ProxyHandler) ServiceRouter(c *gin.Context) {
 }
 
 func (h *ProxyHandler) HealthCheck(c *gin.Context) {
+	status := "unhealthy"
+	statusCode := http.StatusServiceUnavailable
+	if h.checkBackendHealth() {
+		status = "healthy"
+		statusCode = http.StatusOK
+	}
+
 	response := gin.H{
-		"status":        "healthy",
+		"status":        status,
 		"proxy":         "aws-proxy",
 		"target":        h.svc.Config().AWS.Endpoint,
 		"endpoint_url":  h.svc.Config().AWS.Endpoint,
@@ -79,7 +141,7 @@ func (h *ProxyHandler) HealthCheck(c *gin.Context) {
 		response["latestVersion"] = latest
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(statusCode, response)
 }
 
 func (h *ProxyHandler) SetRegion(c *gin.Context) {
@@ -103,50 +165,6 @@ func (h *ProxyHandler) SetRegion(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"region": req.Region, "message": "Region updated successfully"})
-}
-
-func (h *ProxyHandler) BackendHealthCheck(c *gin.Context) {
-	testURLs := []string{
-		h.svc.Config().AWS.Endpoint + "/",
-		h.svc.Config().AWS.Endpoint + "/_health",
-		h.svc.Config().AWS.Endpoint + "/health",
-	}
-
-	for _, targetURL := range testURLs {
-		req, err := http.NewRequest("GET", targetURL, nil)
-		if err != nil {
-			log.Printf("Failed to create request for %s: %v", targetURL, err)
-			continue
-		}
-		client := &http.Client{Timeout: 3 * time.Second, CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		}}
-		resp, err := client.Do(req)
-		if err == nil {
-			if closeErr := resp.Body.Close(); closeErr != nil {
-				log.Printf("Failed to close response body: %v", closeErr)
-			}
-			if resp.StatusCode >= 200 && resp.StatusCode < 400 {
-				c.JSON(http.StatusOK, gin.H{
-					"status":     "healthy",
-					"backend":    "reachable",
-					"target":     h.svc.Config().AWS.Endpoint,
-					"statusCode": resp.StatusCode,
-					"region":     h.svc.Region(),
-					"emulator":   h.svc.Config().Emulator,
-				})
-				return
-			}
-		}
-	}
-
-	c.JSON(http.StatusServiceUnavailable, gin.H{
-		"status":   "unhealthy",
-		"backend":  "unreachable",
-		"target":   h.svc.Config().AWS.Endpoint,
-		"region":   h.svc.Region(),
-		"emulator": h.svc.Config().Emulator,
-	})
 }
 
 func readBody(c *gin.Context) []byte {
