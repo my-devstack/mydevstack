@@ -28,6 +28,7 @@ import {
   IAMDetachPolicyModal,
   IAMRemoveUserFromGroupModal,
 } from '@/components/iam'
+import CodeSnippet from '@/components/common/CodeSnippet.vue'
 import {
   UserIcon,
   ShieldCheckIcon,
@@ -159,6 +160,323 @@ const userCount = computed(() => users.value.length)
 const roleCount = computed(() => roles.value.length)
 const policyCount = computed(() => policies.value.length)
 const groupCount = computed(() => groups.value.length)
+
+// Code examples
+const codeExamples = computed(() => [
+  {
+    language: 'aws-cli',
+    label: 'AWS CLI',
+    code: `# List IAM users
+aws iam list-users --endpoint-url http://127.0.0.1:4566
+
+# Create IAM user
+aws iam create-user \\
+  --user-name alice \\
+  --endpoint-url http://127.0.0.1:4566
+
+# Create access key for user
+aws iam create-access-key \\
+  --user-name alice \\
+  --endpoint-url http://127.0.0.1:4566
+
+# List access keys for user
+aws iam list-access-keys \\
+  --user-name alice \\
+  --endpoint-url http://127.0.0.1:4566
+
+# Delete IAM user
+aws iam delete-user \\
+  --user-name alice \\
+  --endpoint-url http://127.0.0.1:4566
+
+# List IAM roles
+aws iam list-roles --endpoint-url http://127.0.0.1:4566
+
+# Create IAM role
+aws iam create-role \\
+  --role-name ec2-role \\
+  --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"ec2.amazonaws.com"},"Action":"sts:AssumeRole"}]}' \\
+  --endpoint-url http://127.0.0.1:4566
+
+# List IAM policies
+aws iam list-policies --endpoint-url http://127.0.0.1:4566
+
+# Create IAM policy
+aws iam create-policy \\
+  --policy-name my-s3-policy \\
+  --policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:ListBucket","Resource":"arn:aws:s3:::my-bucket"}]}' \\
+  --endpoint-url http://127.0.0.1:4566
+
+# Attach policy to role
+aws iam attach-role-policy \\
+  --role-name ec2-role \\
+  --policy-arn arn:aws:iam::000000000000:policy/my-s3-policy \\
+  --endpoint-url http://127.0.0.1:4566
+
+# List IAM groups
+aws iam list-groups --endpoint-url http://127.0.0.1:4566
+
+# Create IAM group
+aws iam create-group \\
+  --group-name developers \\
+  --endpoint-url http://127.0.0.1:4566
+
+# Add user to group
+aws iam add-user-to-group \\
+  --user-name alice \\
+  --group-name developers \\
+  --endpoint-url http://127.0.0.1:4566
+
+# List users in group
+aws iam get-group \\
+  --group-name developers \\
+  --endpoint-url http://127.0.0.1:4566`
+  },
+  {
+    language: 'javascript',
+    label: 'JavaScript',
+    code: `// Using AWS SDK v3
+import { IAMClient, ListUsersCommand, CreateUserCommand, CreateAccessKeyCommand, ListAccessKeysCommand, DeleteUserCommand, ListRolesCommand, CreateRoleCommand, ListPoliciesCommand, CreatePolicyCommand, AttachRolePolicyCommand, ListGroupsCommand, CreateGroupCommand, AddUserToGroupCommand, GetGroupCommand } from "@aws-sdk/client-iam";
+
+const client = new IAMClient({
+  region: '${settingsStore.region}',
+  endpoint: 'http://127.0.0.1:4566',
+  credentials: {
+    accessKeyId: '${settingsStore.accessKey}',
+    secretAccessKey: '${settingsStore.secretKey}',
+  },
+});
+
+// List users
+const users = await client.send(new ListUsersCommand({}));
+console.log(users.Users);
+
+// Create user
+await client.send(new CreateUserCommand({ UserName: 'alice' }));
+
+// Create access key
+const accessKey = await client.send(new CreateAccessKeyCommand({ UserName: 'alice' }));
+console.log(accessKey.AccessKey);
+
+// List roles
+const roles = await client.send(new ListRolesCommand({}));
+console.log(roles.Roles);
+
+// Create role
+await client.send(new CreateRoleCommand({
+  RoleName: 'ec2-role',
+  AssumeRolePolicyDocument: JSON.stringify({
+    Version: '2012-10-17',
+    Statement: [{
+      Effect: 'Allow',
+      Principal: { Service: 'ec2.amazonaws.com' },
+      Action: 'sts:AssumeRole'
+    }]
+  }),
+}));
+
+// Create policy
+const policy = await client.send(new CreatePolicyCommand({
+  PolicyName: 'my-s3-policy',
+  PolicyDocument: JSON.stringify({
+    Version: '2012-10-17',
+    Statement: [{
+      Effect: 'Allow',
+      Action: 's3:ListBucket',
+      Resource: 'arn:aws:s3:::my-bucket'
+    }]
+  }),
+}));
+
+// Attach policy to role
+await client.send(new AttachRolePolicyCommand({
+  RoleName: 'ec2-role',
+  PolicyArn: policy.Policy.Arn,
+}));
+
+// Create group
+await client.send(new CreateGroupCommand({ GroupName: 'developers' }));
+
+// Add user to group
+await client.send(new AddUserToGroupCommand({
+  UserName: 'alice',
+  GroupName: 'developers',
+}));
+
+// List groups
+const groups = await client.send(new ListGroupsCommand({}));
+console.log(groups.Groups);`
+  },
+  {
+    language: 'python',
+    label: 'Python',
+    code: `# Using boto3
+import boto3
+import json
+
+client = boto3.client(
+    'iam',
+    region_name='${settingsStore.region}',
+    endpoint_url='http://127.0.0.1:4566',
+    aws_access_key_id='${settingsStore.accessKey}',
+    aws_secret_access_key='${settingsStore.secretKey}',
+)
+
+# List users
+response = client.list_users()
+for user in response['Users']:
+    print(user['UserName'])
+
+# Create user
+client.create_user(UserName='alice')
+
+# Create access key
+response = client.create_access_key(UserName='alice')
+print(response['AccessKey'])
+
+# List roles
+response = client.list_roles()
+for role in response['Roles']:
+    print(role['RoleName'])
+
+# Create role
+client.create_role(
+    RoleName='ec2-role',
+    AssumeRolePolicyDocument=json.dumps({
+        'Version': '2012-10-17',
+        'Statement': [{
+            'Effect': 'Allow',
+            'Principal': {'Service': 'ec2.amazonaws.com'},
+            'Action': 'sts:AssumeRole'
+        }]
+    })
+)
+
+# Create policy
+policy = client.create_policy(
+    PolicyName='my-s3-policy',
+    PolicyDocument=json.dumps({
+        'Version': '2012-10-17',
+        'Statement': [{
+            'Effect': 'Allow',
+            'Action': 's3:ListBucket',
+            'Resource': 'arn:aws:s3:::my-bucket'
+        }]
+    })
+)
+
+# Attach policy to role
+client.attach_role_policy(
+    RoleName='ec2-role',
+    PolicyArn=policy['Policy']['Arn']
+)
+
+# Create group
+client.create_group(GroupName='developers')
+
+# Add user to group
+client.add_user_to_group(UserName='alice', GroupName='developers')
+
+# List groups
+response = client.list_groups()
+for group in response['Groups']:
+    print(group['GroupName'])`
+  },
+  {
+    language: 'go',
+    label: 'Go',
+    code: `// Using AWS SDK for Go v2
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/iam"
+    "github.com/aws/aws-sdk-go-v2/service/iam/types"
+)
+
+cfg, _ := config.LoadDefaultConfig(context.Background(),
+    config.WithRegion("${settingsStore.region}"),
+)
+
+client := iam.NewFromConfig(cfg, func(o *iam.Options) {
+    o.BaseEndpoint = "http://127.0.0.1:4566"
+})
+
+ctx := context.Background()
+
+// List users
+users, _ := client.ListUsers(ctx, &iam.ListUsersInput{})
+for _, u := range users.Users {
+    fmt.Println(*u.UserName)
+}
+
+// Create user
+client.CreateUser(ctx, &iam.CreateUserInput{UserName: aws.String("alice")})
+
+// Create access key
+key, _ := client.CreateAccessKey(ctx, &iam.CreateAccessKeyInput{UserName: aws.String("alice")})
+fmt.Println(*key.AccessKey.AccessKeyId)
+
+// List roles
+roles, _ := client.ListRoles(ctx, &iam.ListRolesInput{})
+for _, r := range roles.Roles {
+    fmt.Println(*r.RoleName)
+}
+
+// Create role
+policyDoc, _ := json.Marshal(map[string]interface{}{
+    "Version": "2012-10-17",
+    "Statement": []map[string]interface{}{
+        {"Effect": "Allow", "Principal": map[string]string{"Service": "ec2.amazonaws.com"}, "Action": "sts:AssumeRole"},
+    },
+})
+client.CreateRole(ctx, &iam.CreateRoleInput{
+    RoleName:                 aws.String("ec2-role"),
+    AssumeRolePolicyDocument: aws.String(string(policyDoc)),
+})
+
+// List policies
+policies, _ := client.ListPolicies(ctx, &iam.ListPoliciesInput{})
+for _, p := range policies.Policies {
+    fmt.Println(*p.PolicyName)
+}
+
+// Create policy
+policyDoc2, _ := json.Marshal(map[string]interface{}{
+    "Version": "2012-10-17",
+    "Statement": []map[string]interface{}{
+        {"Effect": "Allow", "Action": "s3:ListBucket", "Resource": "arn:aws:s3:::my-bucket"},
+    },
+})
+policy, _ := client.CreatePolicy(ctx, &iam.CreatePolicyInput{
+    PolicyName:     aws.String("my-s3-policy"),
+    PolicyDocument: aws.String(string(policyDoc2)),
+})
+fmt.Println(*policy.Policy.Arn)
+
+// Attach policy to role
+client.AttachRolePolicy(ctx, &iam.AttachRolePolicyInput{
+    RoleName:  aws.String("ec2-role"),
+    PolicyArn: policy.Policy.Arn,
+})
+
+// List groups
+groups, _ := client.ListGroups(ctx, &iam.ListGroupsInput{})
+for _, g := range groups.Groups {
+    fmt.Println(*g.GroupName)
+}
+
+// Create group
+client.CreateGroup(ctx, &iam.CreateGroupInput{GroupName: aws.String("developers")})
+
+// Add user to group
+client.AddUserToGroup(ctx, &iam.AddUserToGroupInput{
+    UserName:  aws.String("alice"),
+    GroupName: aws.String("developers"),
+})`
+  },
+])
 
 // Helper functions
 function formatDate(dateString?: string): string {
@@ -1398,5 +1716,15 @@ watch(reloadTrigger, () => {
       @update:open="showDeleteGroupModal = $event"
       @confirm="handleDeleteGroup"
     />
+
+    <!-- Usage Examples Section -->
+    <div class="mt-8">
+      <CodeSnippet
+        title="Usage Examples"
+        :snippets="codeExamples"
+        default-tab="aws-cli"
+        :disable-highlight="true"
+      />
+    </div>
   </div>
 </template>

@@ -183,10 +183,7 @@ const {
     </div>
 
     <!-- Example Code Section -->
-    <div
-      v-if="!loading && secrets.length > 0"
-      class="mt-8"
-    >
+    <div class="mt-8">
       <CodeSnippet
         title="Usage Examples"
         :snippets="codeExamples"

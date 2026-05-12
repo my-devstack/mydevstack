@@ -302,6 +302,14 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
   })
 })
 
+test('usage examples section', async ({ page }) => {
+  await page.goto('/#/services/secrets-manager')
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByRole('heading', { name: 'Usage Examples' })).toBeVisible()
+  // Verify AWS CLI tab is visible
+  await expect(page.getByText('AWS CLI')).toBeVisible()
+})
+
 test.describe('Pagination', () => {
   test('shows per-page selector when items exist', async ({ page }) => {
     await page.goto('/#/services/secrets-manager')
