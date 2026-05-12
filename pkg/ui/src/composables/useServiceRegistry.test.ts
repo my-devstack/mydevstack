@@ -23,7 +23,34 @@ vi.mock('@/api/services/sns', () => ({
 
 vi.mock('@/api/services/iam', () => ({
   listUsers: vi.fn().mockResolvedValue({ Users: [{ UserName: 'user1' }] }),
-  listRoles: vi.fn().mockResolvedValue({ Roles: [{ RoleName: 'role1' }, { RoleName: 'role2' }] }),
+}))
+
+vi.mock('@/api/services/rds', () => ({
+  describeDBInstances: vi.fn().mockResolvedValue([{ DBInstanceIdentifier: 'db1' }, { DBInstanceIdentifier: 'db2' }]),
+}))
+
+vi.mock('@/api/services/api-gateway', () => ({
+  getRestApis: vi.fn().mockResolvedValue({ Items: [{ Id: 'api1' }] }),
+}))
+
+vi.mock('@/api/services/kinesis', () => ({
+  listStreams: vi.fn().mockResolvedValue({ StreamNames: ['stream1', 'stream2'] }),
+}))
+
+vi.mock('@/api/services/kms', () => ({
+  listKeys: vi.fn().mockResolvedValue({ Keys: [{ KeyId: 'key1' }] }),
+}))
+
+vi.mock('@/api/services/secrets-manager', () => ({
+  listSecrets: vi.fn().mockResolvedValue({ SecretList: [{ Name: 'secret1' }, { Name: 'secret2' }, { Name: 'secret3' }] }),
+}))
+
+vi.mock('@/api/services/elasticache', () => ({
+  describeReplicationGroups: vi.fn().mockResolvedValue([{ ReplicationGroupId: 'rg1' }]),
+}))
+
+vi.mock('@/api/services/ssm', () => ({
+  describeParameters: vi.fn().mockResolvedValue({ Parameters: [{ Name: 'param1' }] }),
 }))
 
 describe('useServiceRegistry', () => {

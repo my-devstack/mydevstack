@@ -68,7 +68,7 @@ func defaultConfig() *configloader.Config {
 	}
 
 	return &configloader.Config{
-		Port:              getEnv("PROXY_PORT", "8081"),
+		Port: getEnv("PROXY_PORT", "8081"),
 		AWS: configloader.AWSProxyConfig{
 			Endpoint:  getEnv("AWS_ENDPOINT", "http://localhost:4566"),
 			AccessKey: getEnv("AWS_ACCESS_KEY", "test"),
@@ -109,7 +109,6 @@ func setupRoutes(r *gin.Engine, handler *http2.ProxyHandler) {
 	})
 
 	r.GET("/health", handler.HealthCheck)
-	r.GET("/_health", handler.BackendHealthCheck)
 	r.POST("/proxy/region", handler.SetRegion)
 
 	// Step Functions REST API
