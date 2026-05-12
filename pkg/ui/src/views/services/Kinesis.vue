@@ -116,6 +116,43 @@ response = client.get_records(
 for record in response['Records']:
     print(record['Data'])`
   },
+  {
+    language: 'go',
+    label: 'Go',
+    code: `// Using AWS SDK for Go v2
+import (
+    "context"
+    "fmt"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/kinesis"
+    "github.com/aws/aws-sdk-go/aws"
+)
+
+cfg, _ := config.LoadDefaultConfig(context.Background(),
+    config.WithRegion("us-east-1"),
+)
+
+client := kinesis.NewFromConfig(cfg, func(o *kinesis.Options) {
+    o.BaseEndpoint = aws.String("http://localhost:8081")
+})
+
+// Create stream
+client.CreateStream(context.Background(), &kinesis.CreateStreamInput{
+    StreamName: aws.String("my-stream"),
+    ShardCount: aws.Int32(1),
+})
+
+// List streams
+streams, _ := client.ListStreams(context.Background(), &kinesis.ListStreamsInput{})
+fmt.Println(streams.StreamNames)
+
+// Put record
+client.PutRecord(context.Background(), &kinesis.PutRecordInput{
+    StreamName:   aws.String("my-stream"),
+    PartitionKey: aws.String("key1"),
+    Data:         []byte("hello world"),
+})`,
+  },
 ])
 
 const {

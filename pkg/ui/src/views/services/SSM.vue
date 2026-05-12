@@ -101,6 +101,40 @@ response = client.get_parameter(
 )
 print(response['Parameter']['Value'])`
   },
+  {
+    language: 'go',
+    label: 'Go',
+    code: `// Using AWS SDK for Go v2
+import (
+    "context"
+    "fmt"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/ssm"
+    "github.com/aws/aws-sdk-go-v2/service/ssm/types"
+    "github.com/aws/aws-sdk-go/aws"
+)
+
+cfg, _ := config.LoadDefaultConfig(context.Background(),
+    config.WithRegion("us-east-1"),
+)
+
+client := ssm.NewFromConfig(cfg, func(o *ssm.Options) {
+    o.BaseEndpoint = aws.String("http://localhost:4566")
+})
+
+// Put parameter (String type)
+client.PutParameter(context.Background(), &ssm.PutParameterInput{
+    Name:  aws.String("/my-app/config"),
+    Value: aws.String("my-value"),
+    Type:  types.ParameterTypeString,
+})
+
+// Get parameter
+result, _ := client.GetParameter(context.Background(), &ssm.GetParameterInput{
+    Name: aws.String("/my-app/config"),
+})
+fmt.Println(*result.Parameter.Value)`,
+  },
 ])
 
 const {
