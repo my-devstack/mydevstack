@@ -4,6 +4,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { useToast } from '@/composables/useToast'
 import { useDynamoDB } from '@/composables/useDynamoDB'
 import { useContentReload } from '@/composables/useContentReload'
+import { usePagination } from '@/composables/usePagination'
 import { TableCellsIcon, ChevronDownIcon, ChevronRightIcon, MagnifyingGlassCircleIcon, RssIcon } from '@heroicons/vue/24/outline'
 import {
   DynamoDBDeleteTableModal,
@@ -128,14 +129,15 @@ const streamRecords = ref<unknown[]>([])
 const shardIterator = ref<string | null>(null)
 const streamShards = ref<any[]>([])
 
-// Pagination
-const tablePage = ref(1)
-const tablesPerPage = 15
-const totalPages = computed(() => Math.ceil(tables.value.length / tablesPerPage))
-const paginatedTables = computed(() => {
-  const start = (tablePage.value - 1) * tablesPerPage
-  return tables.value.slice(start, start + tablesPerPage)
-})
+// Pagination via composable
+const {
+  currentPage: tablePage,
+  itemsPerPage: tablesPerPage,
+  totalPages,
+  paginatedItems: paginatedTables,
+  goToPage,
+  perPageOptions,
+} = usePagination(tables, { defaultPerPage: 10 })
 
 // Example code tabs
 const exampleType = ref<'table' | 'stream'>('table')
@@ -524,7 +526,6 @@ const exploreSKName = computed(() => getSortKeyName(exploreTableDetails.value))
 const allAttributes = computed(() => getAllUniqueAttributes(items.value))
 
 onMounted(() => {
-  tablePage.value = 1
   loadTables()
 })
 
@@ -689,31 +690,54 @@ watch(reloadTrigger, () => {
 
     <!-- Pagination -->
     <div
-      v-if="!loading && totalPages > 1"
-      class="flex justify-center items-center gap-2 py-4"
+      v-if="!loading && tables.length > 0"
+      class="flex flex-wrap items-center justify-between gap-4 py-4"
     >
-      <button
-        class="px-3 py-1 rounded border disabled:opacity-50"
-        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-        :disabled="tablePage === 1"
-        @click="tablePage--"
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+        <select
+          v-model="tablesPerPage"
+          class="text-sm border rounded px-2 py-1"
+          :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+        >
+          <option
+            v-for="opt in perPageOptions"
+            :key="opt"
+            :value="opt"
+          >
+            {{ opt }}
+          </option>
+        </select>
+        <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+      </div>
+
+      <div
+        v-if="totalPages > 1"
+        class="flex items-center gap-2"
       >
-        Previous
-      </button>
-      <span
-        class="text-sm"
-        :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-      >
-        Page {{ tablePage }} of {{ totalPages }}
-      </span>
-      <button
-        class="px-3 py-1 rounded border disabled:opacity-50"
-        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-        :disabled="tablePage === totalPages"
-        @click="tablePage++"
-      >
-        Next
-      </button>
+        <button
+          class="px-3 py-1 rounded border disabled:opacity-50"
+          :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+          :disabled="tablePage === 1"
+          @click="goToPage(tablePage - 1)"
+        >
+          Previous
+        </button>
+        <span
+          class="text-sm"
+          :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+        >
+          Page {{ tablePage }} of {{ totalPages }}
+        </span>
+        <button
+          class="px-3 py-1 rounded border disabled:opacity-50"
+          :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+          :disabled="tablePage === totalPages"
+          @click="goToPage(tablePage + 1)"
+        >
+          Next
+        </button>
+      </div>
     </div>
 
     <!-- Example Code Section -->

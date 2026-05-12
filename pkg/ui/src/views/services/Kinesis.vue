@@ -5,6 +5,7 @@ import Button from '@/components/common/Button.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import { useSettingsStore } from '@/stores/settings'
+import { usePagination } from '@/composables/usePagination'
 import { useKinesis } from '@/composables/useKinesis'
 import {
   KinesisCreateModal,
@@ -132,20 +133,15 @@ const {
 
 const reloadTrigger = setupReloadWatcher()
 
-// Pagination (after useKinesis() — streams must be defined)
-const streamPage = ref(1)
-const streamsPerPage = 15
-const totalStreamPages = computed(() => Math.ceil(streams.value.length / streamsPerPage))
-const paginatedStreams = computed(() => {
-  const start = (streamPage.value - 1) * streamsPerPage
-  return streams.value.slice(start, start + streamsPerPage)
-})
-
-// Reset to page 1 when streams data changes (create/delete/reload)
-// Ensures newly created stream is visible even with 16+ streams
-watch(streams, () => {
-  streamPage.value = 1
-})
+// Pagination via composable
+const {
+  currentPage: streamPage,
+  itemsPerPage: streamsPerPage,
+  totalPages: totalStreamPages,
+  paginatedItems: paginatedStreams,
+  goToPage,
+  perPageOptions,
+} = usePagination(streams, { defaultPerPage: 10 })
 
 onMounted(() => {
   loadStreams()
@@ -221,31 +217,54 @@ watch(reloadTrigger, () => {
 
         <!-- Pagination -->
         <div
-          v-if="totalStreamPages > 1"
-          class="flex justify-center items-center gap-2 py-4"
+          v-if="streams.length > 0"
+          class="flex flex-wrap items-center justify-between gap-4 py-4"
         >
-          <button
-            class="px-3 py-1 rounded border disabled:opacity-50"
-            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-            :disabled="streamPage === 1"
-            @click="streamPage--"
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+            <select
+              v-model="streamsPerPage"
+              class="text-sm border rounded px-2 py-1"
+              :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+            >
+              <option
+                v-for="opt in perPageOptions"
+                :key="opt"
+                :value="opt"
+              >
+                {{ opt }}
+              </option>
+            </select>
+            <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+          </div>
+
+          <div
+            v-if="totalStreamPages > 1"
+            class="flex items-center gap-2"
           >
-            Previous
-          </button>
-          <span
-            class="text-sm"
-            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-          >
-            Page {{ streamPage }} of {{ totalStreamPages }}
-          </span>
-          <button
-            class="px-3 py-1 rounded border disabled:opacity-50"
-            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-            :disabled="streamPage === totalStreamPages"
-            @click="streamPage++"
-          >
-            Next
-          </button>
+            <button
+              class="px-3 py-1 rounded border disabled:opacity-50"
+              :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+              :disabled="streamPage === 1"
+              @click="goToPage(streamPage - 1)"
+            >
+              Previous
+            </button>
+            <span
+              class="text-sm"
+              :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+            >
+              Page {{ streamPage }} of {{ totalStreamPages }}
+            </span>
+            <button
+              class="px-3 py-1 rounded border disabled:opacity-50"
+              :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+              :disabled="streamPage === totalStreamPages"
+              @click="goToPage(streamPage + 1)"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </template>
     </div>

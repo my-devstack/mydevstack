@@ -76,7 +76,10 @@ function getCellValue(event: HistoryEvent, key: string): string {
     </div>
 
     <!-- History Table -->
-    <div v-else class="overflow-x-auto">
+    <div
+      v-else
+      class="overflow-x-auto"
+    >
       <table class="w-full text-sm">
         <thead>
           <tr

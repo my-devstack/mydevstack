@@ -83,11 +83,21 @@ function getStatusType(status: string | undefined): 'active' | 'pending' | 'inac
             class="text-xs font-semibold uppercase tracking-wider border-b"
             :class="settingsStore.darkMode ? 'text-dark-muted border-dark-border bg-dark-surface' : 'text-light-muted border-light-border bg-light-bg'"
           >
-            <th class="px-4 py-3 text-left">Name</th>
-            <th class="px-4 py-3 text-left">Status</th>
-            <th class="px-4 py-3 text-left">Start</th>
-            <th class="px-4 py-3 text-left">Stop</th>
-            <th class="px-4 py-3 text-right">Actions</th>
+            <th class="px-4 py-3 text-left">
+              Name
+            </th>
+            <th class="px-4 py-3 text-left">
+              Status
+            </th>
+            <th class="px-4 py-3 text-left">
+              Start
+            </th>
+            <th class="px-4 py-3 text-left">
+              Stop
+            </th>
+            <th class="px-4 py-3 text-right">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody>

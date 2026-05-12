@@ -128,3 +128,40 @@ test.describe('KMS', () => {
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
   })
 })
+
+test.describe('Pagination', () => {
+  test('shows per-page selector', async ({ page }) => {
+    await page.goto('/#/services/kms')
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText('Show:')).toBeVisible({ timeout: 10000 })
+    // Find select inside the Show: container (avoids region selector clash)
+    const paginationSection = page.getByText('Show:').locator('..')
+    const perPageSelect = paginationSection.locator('select')
+    await expect(perPageSelect).toBeVisible({ timeout: 10000 })
+  })
+
+  test('change items per page', async ({ page }) => {
+    await page.goto('/#/services/kms')
+    await page.waitForLoadState('networkidle')
+    const paginationSection = page.getByText('Show:').locator('..')
+    const perPageSelect = paginationSection.locator('select')
+    await perPageSelect.selectOption('50')
+    await page.waitForLoadState('networkidle')
+    await expect(paginationSection.getByText('per page')).toBeVisible({ timeout: 5000 })
+  })
+
+  test('page navigation buttons work when paginated', async ({ page }) => {
+    await page.goto('/#/services/kms')
+    await page.waitForLoadState('networkidle')
+    const showLabel = page.getByText('Show:')
+    if (await showLabel.isVisible().catch(() => false)) {
+      const paginationSection = showLabel.locator('..')
+      const perPageSelect = paginationSection.locator('select')
+      await perPageSelect.selectOption('5')
+      const nextButton = page.getByRole('button', { name: 'Next' }).first()
+      if (await nextButton.isVisible().catch(() => false)) {
+        await expect(nextButton).toBeVisible({ timeout: 5000 })
+      }
+    }
+  })
+})

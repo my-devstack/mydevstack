@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
+import { usePagination } from '@/composables/usePagination'
 import { useSQS } from '@/composables/useSQS'
 import { QueueListIcon, ChevronDownIcon, ChevronRightIcon, ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
@@ -12,15 +13,6 @@ import CodeSnippet from '@/components/common/CodeSnippet.vue'
 const settingsStore = useSettingsStore()
 const toast = useToast()
 const { reloadTrigger } = useContentReload()
-
-// Pagination
-const queuePage = ref(1)
-const queuesPerPage = 15
-const totalQueuePages = computed(() => Math.ceil(queues.value.length / queuesPerPage))
-const paginatedQueues = computed(() => {
-  const start = (queuePage.value - 1) * queuesPerPage
-  return queues.value.slice(start, start + queuesPerPage)
-})
 
 const {
   queues,
@@ -38,10 +30,15 @@ const {
   formatBody,
 } = useSQS()
 
-// Reset to page 1 when queues data changes (create/delete/reload)
-watch(queues, () => {
-  queuePage.value = 1
-})
+// Pagination via composable
+const {
+  currentPage: queuePage,
+  itemsPerPage: queuesPerPage,
+  totalPages: totalQueuePages,
+  paginatedItems: paginatedQueues,
+  goToPage,
+  perPageOptions,
+} = usePagination(queues, { defaultPerPage: 10 })
 
 const showCreateModal = ref(false)
 const newQueue = ref({ name: '', isFifo: false })
@@ -569,31 +566,54 @@ watch(reloadTrigger, () => {
 
       <!-- Pagination -->
       <div
-        v-if="totalQueuePages > 1"
-        class="flex justify-center items-center gap-2 py-4"
+        v-if="queues.length > 0"
+        class="flex flex-wrap items-center justify-between gap-4 py-4"
       >
-        <button
-          class="px-3 py-1 rounded border disabled:opacity-50"
-          :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-          :disabled="queuePage === 1"
-          @click="queuePage--"
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+          <select
+            v-model="queuesPerPage"
+            class="text-sm border rounded px-2 py-1"
+            :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+          >
+            <option
+              v-for="opt in perPageOptions"
+              :key="opt"
+              :value="opt"
+            >
+              {{ opt }}
+            </option>
+          </select>
+          <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+        </div>
+
+        <div
+          v-if="totalQueuePages > 1"
+          class="flex items-center gap-2"
         >
-          Previous
-        </button>
-        <span
-          class="text-sm"
-          :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-        >
-          Page {{ queuePage }} of {{ totalQueuePages }}
-        </span>
-        <button
-          class="px-3 py-1 rounded border disabled:opacity-50"
-          :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-          :disabled="queuePage === totalQueuePages"
-          @click="queuePage++"
-        >
-          Next
-        </button>
+          <button
+            class="px-3 py-1 rounded border disabled:opacity-50"
+            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+            :disabled="queuePage === 1"
+            @click="goToPage(queuePage - 1)"
+          >
+            Previous
+          </button>
+          <span
+            class="text-sm"
+            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+          >
+            Page {{ queuePage }} of {{ totalQueuePages }}
+          </span>
+          <button
+            class="px-3 py-1 rounded border disabled:opacity-50"
+            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+            :disabled="queuePage === totalQueuePages"
+            @click="goToPage(queuePage + 1)"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
 

@@ -246,16 +246,34 @@ function handleDelete(machine: StateMachineItem) {
           <div v-else>
             <div class="grid grid-cols-2 gap-4 text-sm">
               <div class="col-span-2">
-                <span class="font-semibold" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">ARN:</span>
-                <span class="ml-2 font-mono text-xs break-all" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">{{ getExpandedDetails(machine.stateMachineArn)?.stateMachineArn }}</span>
+                <span
+                  class="font-semibold"
+                  :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                >ARN:</span>
+                <span
+                  class="ml-2 font-mono text-xs break-all"
+                  :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                >{{ getExpandedDetails(machine.stateMachineArn)?.stateMachineArn }}</span>
               </div>
               <div>
-                <span class="font-semibold" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">Description:</span>
-                <span class="ml-2" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">{{ getExpandedDetails(machine.stateMachineArn)?.description || '-' }}</span>
+                <span
+                  class="font-semibold"
+                  :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                >Description:</span>
+                <span
+                  class="ml-2"
+                  :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                >{{ getExpandedDetails(machine.stateMachineArn)?.description || '-' }}</span>
               </div>
               <div>
-                <span class="font-semibold" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">Created:</span>
-                <span class="ml-2" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">{{ formatDate(getExpandedDetails(machine.stateMachineArn)?.creationDate) }}</span>
+                <span
+                  class="font-semibold"
+                  :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                >Created:</span>
+                <span
+                  class="ml-2"
+                  :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                >{{ formatDate(getExpandedDetails(machine.stateMachineArn)?.creationDate) }}</span>
               </div>
             </div>
             <!-- Definition -->
@@ -263,9 +281,18 @@ function handleDelete(machine: StateMachineItem) {
               v-if="getExpandedDetails(machine.stateMachineArn)?.definition"
               class="mt-3"
             >
-              <span class="font-semibold text-sm" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">Definition:</span>
-              <div class="mt-1 max-h-40 overflow-auto rounded border p-2" :class="settingsStore.darkMode ? 'border-dark-border bg-dark-surface' : 'border-light-border bg-light-surface'">
-                <pre class="text-xs font-mono whitespace-pre-wrap" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">{{ tryParseDefinition(getExpandedDetails(machine.stateMachineArn)?.definition) }}</pre>
+              <span
+                class="font-semibold text-sm"
+                :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+              >Definition:</span>
+              <div
+                class="mt-1 max-h-40 overflow-auto rounded border p-2"
+                :class="settingsStore.darkMode ? 'border-dark-border bg-dark-surface' : 'border-light-border bg-light-surface'"
+              >
+                <pre
+                  class="text-xs font-mono whitespace-pre-wrap"
+                  :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                >{{ tryParseDefinition(getExpandedDetails(machine.stateMachineArn)?.definition) }}</pre>
               </div>
             </div>
             <div class="mt-3 flex gap-2">

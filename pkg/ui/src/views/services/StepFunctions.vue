@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
+import { usePagination } from '@/composables/usePagination'
 import { useStepFunctions } from '@/composables/useStepFunctions'
 import { useSettingsStore } from '@/stores/settings'
 import StepFunctionsList from '@/components/stepfunctions/StepFunctionsList.vue'
@@ -28,19 +29,15 @@ const {
   openDeleteModal, resetForm, formatDate, getStatusType,
 } = useStepFunctions()
 
-// Pagination
-const stepfunctionsPage = ref(1)
-const stepfunctionsPerPage = 15
-const totalStepFunctionsPages = computed(() => Math.ceil(stateMachines.value.length / stepfunctionsPerPage))
-const paginatedStepFunctions = computed(() => {
-  const start = (stepfunctionsPage.value - 1) * stepfunctionsPerPage
-  return stateMachines.value.slice(start, start + stepfunctionsPerPage)
-})
-
-// Reset to page 1 when list reloads
-watch(stateMachines, () => {
-  stepfunctionsPage.value = 1
-})
+// Pagination via composable
+const {
+  currentPage: stepfunctionsPage,
+  itemsPerPage: stepfunctionsPerPage,
+  totalPages: totalStepFunctionsPages,
+  paginatedItems: paginatedStepFunctions,
+  goToPage,
+  perPageOptions,
+} = usePagination(stateMachines, { defaultPerPage: 10 })
 
 // Navigation
 function goBack() {
@@ -54,12 +51,17 @@ function goBack() {
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <h1 class="text-2xl font-bold"
-          :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
+        <h1
+          class="text-2xl font-bold"
+          :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+        >
           {{ selectedStateMachine ? selectedStateMachine.name : 'Step Functions' }}
         </h1>
-        <span v-if="!selectedStateMachine" class="text-sm"
-          :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">
+        <span
+          v-if="!selectedStateMachine"
+          class="text-sm"
+          :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+        >
           {{ stateMachines.length }} state machine(s)
         </span>
       </div>
@@ -94,35 +96,61 @@ function goBack() {
 
     <!-- Pagination -->
     <div
-      v-if="!loading && !selectedStateMachine && totalStepFunctionsPages > 1"
-      class="flex justify-center items-center gap-2 py-4"
+      v-if="!loading && !selectedStateMachine && stateMachines.length > 0"
+      class="flex flex-wrap items-center justify-between gap-4 py-4"
     >
-      <button
-        class="px-3 py-1 rounded border disabled:opacity-50"
-        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-        :disabled="stepfunctionsPage === 1"
-        @click="stepfunctionsPage--"
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+        <select
+          v-model="stepfunctionsPerPage"
+          class="text-sm border rounded px-2 py-1"
+          :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+        >
+          <option
+            v-for="opt in perPageOptions"
+            :key="opt"
+            :value="opt"
+          >
+            {{ opt }}
+          </option>
+        </select>
+        <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+      </div>
+
+      <div
+        v-if="totalStepFunctionsPages > 1"
+        class="flex items-center gap-2"
       >
-        Previous
-      </button>
-      <span
-        class="text-sm"
-        :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-      >
-        Page {{ stepfunctionsPage }} of {{ totalStepFunctionsPages }}
-      </span>
-      <button
-        class="px-3 py-1 rounded border disabled:opacity-50"
-        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-        :disabled="stepfunctionsPage === totalStepFunctionsPages"
-        @click="stepfunctionsPage++"
-      >
-        Next
-      </button>
+        <button
+          class="px-3 py-1 rounded border disabled:opacity-50"
+          :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+          :disabled="stepfunctionsPage === 1"
+          @click="goToPage(stepfunctionsPage - 1)"
+        >
+          Previous
+        </button>
+        <span
+          class="text-sm"
+          :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+        >
+          Page {{ stepfunctionsPage }} of {{ totalStepFunctionsPages }}
+        </span>
+        <button
+          class="px-3 py-1 rounded border disabled:opacity-50"
+          :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+          :disabled="stepfunctionsPage === totalStepFunctionsPages"
+          @click="goToPage(stepfunctionsPage + 1)"
+        >
+          Next
+        </button>
+      </div>
     </div>
 
     <!-- Detail Section (when machine selected) -->
-    <div v-if="selectedStateMachine" class="space-y-6">
+    <div
+      v-if="selectedStateMachine"
+      class="space-y-6"
+    >
       <StepFunctionsDetail
         :state-machine="selectedStateMachine"
         @back="goBack"
@@ -131,12 +159,16 @@ function goBack() {
       <!-- Executions Sub-section -->
       <div>
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-medium"
-            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
+          <h2
+            class="text-lg font-medium"
+            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+          >
             Executions
           </h2>
-          <button class="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm"
-            @click="showStartExecutionModal = true">
+          <button
+            class="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm"
+            @click="showStartExecutionModal = true"
+          >
             Start Execution
           </button>
         </div>

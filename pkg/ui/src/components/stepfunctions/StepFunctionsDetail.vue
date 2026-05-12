@@ -93,8 +93,18 @@ function tryParseDefinition(definition: string | undefined): object | string {
         class="flex items-center gap-1 text-sm mb-4 text-primary-500 hover:text-primary-600 transition-colors"
         @click="emit('back')"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
         </svg>
         Back to list
       </button>
@@ -108,24 +118,51 @@ function tryParseDefinition(definition: string | undefined): object | string {
 
       <!-- Metadata -->
       <div class="grid grid-cols-2 gap-4 mb-6">
-        <div class="p-4 rounded-lg border" :class="settingsStore.darkMode ? 'border-dark-border bg-dark-surface' : 'border-light-border bg-light-surface'">
-          <label class="block text-xs font-semibold uppercase tracking-wider mb-1" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">ARN</label>
-          <span class="font-mono text-xs break-all" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">{{ stateMachine.stateMachineArn }}</span>
+        <div
+          class="p-4 rounded-lg border"
+          :class="settingsStore.darkMode ? 'border-dark-border bg-dark-surface' : 'border-light-border bg-light-surface'"
+        >
+          <label
+            class="block text-xs font-semibold uppercase tracking-wider mb-1"
+            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+          >ARN</label>
+          <span
+            class="font-mono text-xs break-all"
+            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+          >{{ stateMachine.stateMachineArn }}</span>
         </div>
-        <div class="p-4 rounded-lg border" :class="settingsStore.darkMode ? 'border-dark-border bg-dark-surface' : 'border-light-border bg-light-surface'">
-          <label class="block text-xs font-semibold uppercase tracking-wider mb-1" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">Status</label>
+        <div
+          class="p-4 rounded-lg border"
+          :class="settingsStore.darkMode ? 'border-dark-border bg-dark-surface' : 'border-light-border bg-light-surface'"
+        >
+          <label
+            class="block text-xs font-semibold uppercase tracking-wider mb-1"
+            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+          >Status</label>
           <StatusBadge
             :status="getStatusType(stateMachine.status)"
             :label="stateMachine.status || 'Unknown'"
             size="sm"
           />
         </div>
-        <div class="p-4 rounded-lg border" :class="settingsStore.darkMode ? 'border-dark-border bg-dark-surface' : 'border-light-border bg-light-surface'">
-          <label class="block text-xs font-semibold uppercase tracking-wider mb-1" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">Type</label>
+        <div
+          class="p-4 rounded-lg border"
+          :class="settingsStore.darkMode ? 'border-dark-border bg-dark-surface' : 'border-light-border bg-light-surface'"
+        >
+          <label
+            class="block text-xs font-semibold uppercase tracking-wider mb-1"
+            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+          >Type</label>
           <span :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">{{ stateMachine.type || 'STANDARD' }}</span>
         </div>
-        <div class="p-4 rounded-lg border" :class="settingsStore.darkMode ? 'border-dark-border bg-dark-surface' : 'border-light-border bg-light-surface'">
-          <label class="block text-xs font-semibold uppercase tracking-wider mb-1" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">Created</label>
+        <div
+          class="p-4 rounded-lg border"
+          :class="settingsStore.darkMode ? 'border-dark-border bg-dark-surface' : 'border-light-border bg-light-surface'"
+        >
+          <label
+            class="block text-xs font-semibold uppercase tracking-wider mb-1"
+            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+          >Created</label>
           <span :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">{{ formatDate(stateMachine.creationDate) }}</span>
         </div>
       </div>
@@ -136,13 +173,21 @@ function tryParseDefinition(definition: string | undefined): object | string {
         class="mb-6 p-4 rounded-lg border"
         :class="settingsStore.darkMode ? 'border-dark-border bg-dark-surface' : 'border-light-border bg-light-surface'"
       >
-        <label class="block text-xs font-semibold uppercase tracking-wider mb-1" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">Description</label>
-        <p :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">{{ stateMachine.description }}</p>
+        <label
+          class="block text-xs font-semibold uppercase tracking-wider mb-1"
+          :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+        >Description</label>
+        <p :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
+          {{ stateMachine.description }}
+        </p>
       </div>
 
       <!-- Definition -->
       <div v-if="hasValidDefinition(stateMachine)">
-        <label class="block text-xs font-semibold uppercase tracking-wider mb-2" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">Definition</label>
+        <label
+          class="block text-xs font-semibold uppercase tracking-wider mb-2"
+          :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+        >Definition</label>
         <JsonViewer
           :data="tryParseDefinition(stateMachine.definition)"
           expanded
@@ -153,7 +198,9 @@ function tryParseDefinition(definition: string | undefined): object | string {
         class="p-4 rounded-lg border"
         :class="settingsStore.darkMode ? 'border-dark-border bg-dark-surface' : 'border-light-border bg-light-surface'"
       >
-        <p :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">No definition available</p>
+        <p :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">
+          No definition available
+        </p>
       </div>
     </div>
   </div>

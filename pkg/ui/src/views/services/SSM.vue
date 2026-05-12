@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { PlusIcon, ArrowPathIcon, KeyIcon, BeakerIcon } from '@heroicons/vue/24/outline'
 import Button from '@/components/common/Button.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import { usePagination } from '@/composables/usePagination'
 import { useSSM } from '@/composables/useSSM'
 import {
   SSMParametersList,
@@ -135,19 +136,15 @@ const {
   formatDate,
 } = useSSM()
 
-// Pagination
-const paramPage = ref(1)
-const paramsPerPage = 15
-const totalParamPages = computed(() => Math.ceil(parameters.value.length / paramsPerPage))
-const paginatedParameters = computed(() => {
-  const start = (paramPage.value - 1) * paramsPerPage
-  return parameters.value.slice(start, start + paramsPerPage)
-})
-
-// Reset to page 1 when parameters data changes (create/delete/reload)
-watch(parameters, () => {
-  paramPage.value = 1
-})
+// Pagination via composable
+const {
+  currentPage: paramPage,
+  itemsPerPage: paramsPerPage,
+  totalPages: totalParamPages,
+  paginatedItems: paginatedParameters,
+  goToPage,
+  perPageOptions,
+} = usePagination(parameters, { defaultPerPage: 10 })
 </script>
 
 <template>
@@ -201,34 +198,57 @@ watch(parameters, () => {
         @delete="openDeleteModal"
       />
 
-    <!-- Pagination -->
-    <div
-      v-if="totalParamPages > 1"
-      class="flex justify-center items-center gap-2 py-4"
-    >
-      <button
-        class="px-3 py-1 rounded border disabled:opacity-50"
-        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-        :disabled="paramPage === 1"
-        @click="paramPage--"
+      <!-- Pagination -->
+      <div
+        v-if="parameters.length > 0"
+        class="flex flex-wrap items-center justify-between gap-4 py-4"
       >
-        Previous
-      </button>
-      <span
-        class="text-sm"
-        :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
-      >
-        Page {{ paramPage }} of {{ totalParamPages }}
-      </span>
-      <button
-        class="px-3 py-1 rounded border disabled:opacity-50"
-        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-        :disabled="paramPage === totalParamPages"
-        @click="paramPage++"
-      >
-        Next
-      </button>
-    </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+          <select
+            v-model="paramsPerPage"
+            class="text-sm border rounded px-2 py-1"
+            :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+          >
+            <option
+              v-for="opt in perPageOptions"
+              :key="opt"
+              :value="opt"
+            >
+              {{ opt }}
+            </option>
+          </select>
+          <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+        </div>
+
+        <div
+          v-if="totalParamPages > 1"
+          class="flex items-center gap-2"
+        >
+          <button
+            class="px-3 py-1 rounded border disabled:opacity-50"
+            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+            :disabled="paramPage === 1"
+            @click="goToPage(paramPage - 1)"
+          >
+            Previous
+          </button>
+          <span
+            class="text-sm"
+            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+          >
+            Page {{ paramPage }} of {{ totalParamPages }}
+          </span>
+          <button
+            class="px-3 py-1 rounded border disabled:opacity-50"
+            :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+            :disabled="paramPage === totalParamPages"
+            @click="goToPage(paramPage + 1)"
+          >
+            Next
+          </button>
+        </div>
+      </div>
 
       <!-- Empty State: only when not loading AND no parameters -->
       <EmptyState
