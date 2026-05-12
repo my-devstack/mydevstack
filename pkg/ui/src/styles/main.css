@@ -32,11 +32,19 @@
 /* Base Styles */
 @layer base {
   html {
-    @apply antialiased;
+    @apply antialiased bg-light-bg;
+  }
+
+  html.dark {
+    @apply bg-dark-bg;
   }
 
   body {
-    @apply font-sans transition-colors duration-200;
+    @apply font-sans transition-colors duration-200 bg-light-bg;
+  }
+
+  .dark body {
+    @apply bg-dark-bg;
   }
 
   /* Custom Scrollbar */
