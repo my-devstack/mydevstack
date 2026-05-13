@@ -31,6 +31,7 @@ type ProxyService struct {
 	rds              ports.RDSPort
 	elasticache      ports.ElastiCachePort
 	cloudformation   ports.CloudFormationPort
+	sesv2            ports.SESv2Port
 	mu              sync.RWMutex
 }
 
@@ -96,6 +97,7 @@ func (s *ProxyService) SetServices() error {
 	s.rds = awsadapter.NewRDSAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.elasticache = awsadapter.NewElastiCacheAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.cloudformation = awsadapter.NewCloudFormationAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.sesv2 = awsadapter.NewSESv2Adapter(awsCfg, s.cfg.AWS.Endpoint)
 	return nil
 }
 
@@ -165,4 +167,8 @@ func (s *ProxyService) ElastiCache() ports.ElastiCachePort {
 
 func (s *ProxyService) CloudFormation() ports.CloudFormationPort {
 	return s.cloudformation
+}
+
+func (s *ProxyService) SESv2() ports.SESv2Port {
+	return s.sesv2
 }

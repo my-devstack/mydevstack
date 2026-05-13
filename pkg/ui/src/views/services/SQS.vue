@@ -52,9 +52,9 @@ const selectedQueueName = ref('')
 
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text).then(() => {
-    toast.success('Copied', 'Copied to clipboard')
+    toast.success('Copied to clipboard')
   }).catch(() => {
-    toast.error('Failed to copy', 'Could not copy to clipboard')
+    toast.error('Could not copy to clipboard')
   })
 }
 

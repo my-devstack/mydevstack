@@ -929,3 +929,27 @@ export interface DescribeDBEngineVersionsOutput {
     DBEngineVersionDescription?: string
   }[]
 }
+
+// SES Types
+export interface SESIdentity {
+  IdentityName: string
+  IdentityType: 'EMAIL_ADDRESS' | 'DOMAIN'
+  SendingEnabled: boolean
+  VerifiedStatus: string
+  VerificationStatus?: string
+  CustomMailFrom?: { Status: string; MailFromDomain?: string }
+  Tags?: { Key: string; Value: string }[]
+}
+
+export interface SESSendEmailRequest {
+  FromEmailAddress?: string
+  Destination: { ToAddresses: string[]; CcAddresses?: string[]; BccAddresses?: string[] }
+  Content: { Simple: { Subject: { Data: string }; Body: { Text?: { Data: string }; Html?: { Data: string } } } }
+  ReplyToAddresses?: string[]
+}
+
+export interface SESTemplate {
+  TemplateName: string
+  TemplateContent?: { Subject: string; Html?: string; Text?: string }
+  CreatedTimestamp?: string
+}

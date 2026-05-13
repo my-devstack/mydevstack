@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/aws/aws-sdk-go-v2/service/sesv2"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -271,6 +272,28 @@ type SNSClientPort interface {
 	ListSubscriptions(ctx context.Context, input *sns.ListSubscriptionsInput, opts ...func(*sns.Options)) (*sns.ListSubscriptionsOutput, error)
 	ListSubscriptionsByTopic(ctx context.Context, input *sns.ListSubscriptionsByTopicInput, opts ...func(*sns.Options)) (*sns.ListSubscriptionsByTopicOutput, error)
 	Publish(ctx context.Context, input *sns.PublishInput, opts ...func(*sns.Options)) (*sns.PublishOutput, error)
+}
+
+// SESv2ClientPort defines the interface for the AWS SESv2 client
+type SESv2ClientPort interface {
+	ListEmailIdentities(ctx context.Context, input *sesv2.ListEmailIdentitiesInput, opts ...func(*sesv2.Options)) (*sesv2.ListEmailIdentitiesOutput, error)
+	GetEmailIdentity(ctx context.Context, input *sesv2.GetEmailIdentityInput, opts ...func(*sesv2.Options)) (*sesv2.GetEmailIdentityOutput, error)
+	CreateEmailIdentity(ctx context.Context, input *sesv2.CreateEmailIdentityInput, opts ...func(*sesv2.Options)) (*sesv2.CreateEmailIdentityOutput, error)
+	DeleteEmailIdentity(ctx context.Context, input *sesv2.DeleteEmailIdentityInput, opts ...func(*sesv2.Options)) (*sesv2.DeleteEmailIdentityOutput, error)
+	SendEmail(ctx context.Context, input *sesv2.SendEmailInput, opts ...func(*sesv2.Options)) (*sesv2.SendEmailOutput, error)
+	SendBulkEmail(ctx context.Context, input *sesv2.SendBulkEmailInput, opts ...func(*sesv2.Options)) (*sesv2.SendBulkEmailOutput, error)
+	ListEmailTemplates(ctx context.Context, input *sesv2.ListEmailTemplatesInput, opts ...func(*sesv2.Options)) (*sesv2.ListEmailTemplatesOutput, error)
+	GetEmailTemplate(ctx context.Context, input *sesv2.GetEmailTemplateInput, opts ...func(*sesv2.Options)) (*sesv2.GetEmailTemplateOutput, error)
+	CreateEmailTemplate(ctx context.Context, input *sesv2.CreateEmailTemplateInput, opts ...func(*sesv2.Options)) (*sesv2.CreateEmailTemplateOutput, error)
+	UpdateEmailTemplate(ctx context.Context, input *sesv2.UpdateEmailTemplateInput, opts ...func(*sesv2.Options)) (*sesv2.UpdateEmailTemplateOutput, error)
+	DeleteEmailTemplate(ctx context.Context, input *sesv2.DeleteEmailTemplateInput, opts ...func(*sesv2.Options)) (*sesv2.DeleteEmailTemplateOutput, error)
+	GetAccount(ctx context.Context, input *sesv2.GetAccountInput, opts ...func(*sesv2.Options)) (*sesv2.GetAccountOutput, error)
+	PutAccountSuppressionAttributes(ctx context.Context, input *sesv2.PutAccountSuppressionAttributesInput, opts ...func(*sesv2.Options)) (*sesv2.PutAccountSuppressionAttributesOutput, error)
+	ListSuppressedDestinations(ctx context.Context, input *sesv2.ListSuppressedDestinationsInput, opts ...func(*sesv2.Options)) (*sesv2.ListSuppressedDestinationsOutput, error)
+	ListContactLists(ctx context.Context, input *sesv2.ListContactListsInput, opts ...func(*sesv2.Options)) (*sesv2.ListContactListsOutput, error)
+	CreateContactList(ctx context.Context, input *sesv2.CreateContactListInput, opts ...func(*sesv2.Options)) (*sesv2.CreateContactListOutput, error)
+	DeleteContactList(ctx context.Context, input *sesv2.DeleteContactListInput, opts ...func(*sesv2.Options)) (*sesv2.DeleteContactListOutput, error)
+	ListCustomVerificationEmailTemplates(ctx context.Context, input *sesv2.ListCustomVerificationEmailTemplatesInput, opts ...func(*sesv2.Options)) (*sesv2.ListCustomVerificationEmailTemplatesOutput, error)
 }
 
 // SSMClientPort defines the interface for the AWS SSM client

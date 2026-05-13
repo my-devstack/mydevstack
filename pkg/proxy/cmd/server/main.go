@@ -48,6 +48,7 @@ func main() {
 	log.Printf("  RDS:             http://localhost:%s/rds/", cfg.Port)
 	log.Printf("  CloudFormation:  http://localhost:%s/cloudformation/", cfg.Port)
 	log.Printf("  Step Functions:  http://localhost:%s/api/stepfunctions", cfg.Port)
+	log.Printf("  SES:             http://localhost:%s/sesv2/", cfg.Port)
 
 	if err := r.Run(addr); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

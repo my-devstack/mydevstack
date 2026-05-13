@@ -679,6 +679,52 @@ func (_c *ProxyService_S3_Call) RunAndReturn(run func() ports.S3Port) *ProxyServ
 	return _c
 }
 
+// SESv2 provides a mock function for the type ProxyService
+func (_mock *ProxyService) SESv2() ports.SESv2Port {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for SESv2")
+	}
+
+	var r0 ports.SESv2Port
+	if returnFunc, ok := ret.Get(0).(func() ports.SESv2Port); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ports.SESv2Port)
+		}
+	}
+	return r0
+}
+
+// ProxyService_SESv2_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SESv2'
+type ProxyService_SESv2_Call struct {
+	*mock.Call
+}
+
+// SESv2 is a helper method to define mock.On call
+func (_e *ProxyService_Expecter) SESv2() *ProxyService_SESv2_Call {
+	return &ProxyService_SESv2_Call{Call: _e.mock.On("SESv2")}
+}
+
+func (_c *ProxyService_SESv2_Call) Run(run func()) *ProxyService_SESv2_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ProxyService_SESv2_Call) Return(sESv2Port ports.SESv2Port) *ProxyService_SESv2_Call {
+	_c.Call.Return(sESv2Port)
+	return _c
+}
+
+func (_c *ProxyService_SESv2_Call) RunAndReturn(run func() ports.SESv2Port) *ProxyService_SESv2_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SNS provides a mock function for the type ProxyService
 func (_mock *ProxyService) SNS() ports.SNSPort {
 	ret := _mock.Called()
