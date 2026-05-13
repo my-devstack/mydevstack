@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
 import * as kmsApi from '@/api/services/kms'
 import type { KMSKey } from '@/api/types/aws'
@@ -26,7 +26,7 @@ export interface DecryptForm {
 }
 
 export function useKMS() {
-  const uiStore = useUIStore()
+  const toast = useToast()
   const { reloadTrigger } = useContentReload()
 
   // State
@@ -93,7 +93,7 @@ export function useKMS() {
           const metaResult = await kmsApi.describeKey(key.KeyId)
           key.keyMetadata = metaResult.KeyMetadata
         } catch (error) {
-          uiStore.notifyError('Error', `Failed to load key metadata: ${error}`)
+          toast.error(`Failed to load key metadata: ${error}`)
           key.keyMetadata = undefined
         }
 
@@ -101,14 +101,14 @@ export function useKMS() {
           const policyResult = await kmsApi.getKeyPolicy(key.KeyId, 'default')
           keyPolicyMap.value[key.KeyId] = policyResult.Policy || 'No policy'
         } catch (error) {
-          uiStore.notifyError('Error', `Failed to load key policy: ${error}`)
+          toast.error(`Failed to load key policy: ${error}`)
           keyPolicyMap.value[key.KeyId] = 'No policy'
         }
       }
 
       keys.value = keysList
     } catch (error) {
-      uiStore.notifyError('Failed to load keys', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to load keys: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       isLoading.value = false
     }
@@ -121,7 +121,7 @@ export function useKMS() {
       const result = await kmsApi.describeKey(selectedKey.value.KeyId)
       selectedKey.value = { ...selectedKey.value, keyMetadata: result.KeyMetadata }
     } catch (error) {
-      uiStore.notifyError('Failed to load key details', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to load key details: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 
@@ -132,12 +132,12 @@ export function useKMS() {
         KeyUsage: newKey.value.keyUsage as 'SIGN_VERIFY' | 'ENCRYPT_DECRYPT',
         CustomerMasterKeySpec: newKey.value.keySpec as 'SYMMETRIC_DEFAULT' | 'RSA_2048' | 'RSA_3072' | 'RSA_4096',
       })
-      uiStore.notifySuccess('Key created', `Key created successfully`)
+      toast.success('Key created successfully')
       showCreateModal.value = false
       newKey.value = { description: '', keyUsage: 'ENCRYPT_DECRYPT', keySpec: 'SYMMETRIC_DEFAULT' }
       await loadKeys()
     } catch (error) {
-      uiStore.notifyError('Failed to create key', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to create key: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 
@@ -146,10 +146,10 @@ export function useKMS() {
 
     try {
       await kmsApi.enableKey(selectedKey.value.KeyId)
-      uiStore.notifySuccess('Key enabled', 'Key enabled successfully')
+      toast.success('Key enabled successfully')
       await loadKeyDetails()
     } catch (error) {
-      uiStore.notifyError('Failed to enable key', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to enable key: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 
@@ -158,10 +158,10 @@ export function useKMS() {
 
     try {
       await kmsApi.disableKey(selectedKey.value.KeyId)
-      uiStore.notifySuccess('Key disabled', 'Key disabled successfully')
+      toast.success('Key disabled successfully')
       await loadKeyDetails()
     } catch (error) {
-      uiStore.notifyError('Failed to disable key', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to disable key: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 
@@ -170,12 +170,12 @@ export function useKMS() {
 
     try {
       await kmsApi.scheduleKeyDeletion(selectedKey.value.KeyId)
-      uiStore.notifySuccess('Key deletion scheduled', 'Key will be deleted in 7 days')
+      toast.success('Key will be deleted in 7 days')
       showDeleteModal.value = false
       selectedKey.value = null
       await loadKeys()
     } catch (error) {
-      uiStore.notifyError('Failed to schedule deletion', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to schedule deletion: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 
@@ -185,9 +185,9 @@ export function useKMS() {
     try {
       const result = await kmsApi.encrypt(selectedKey.value.KeyId, encryptForm.value.plaintext)
       encryptedResult.value = result.CiphertextBlob
-      uiStore.notifySuccess('Data encrypted', 'Data encrypted successfully')
+      toast.success('Data encrypted successfully')
     } catch (error) {
-      uiStore.notifyError('Encryption failed', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Encryption failed: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 
@@ -197,9 +197,9 @@ export function useKMS() {
     try {
       const result = await kmsApi.decrypt(decryptForm.value.ciphertext)
       decryptedResult.value = result.Plaintext
-      uiStore.notifySuccess('Data decrypted', 'Data decrypted successfully')
+      toast.success('Data decrypted successfully')
     } catch (error) {
-      uiStore.notifyError('Decryption failed', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Decryption failed: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 
@@ -210,7 +210,7 @@ export function useKMS() {
       const result = await kmsApi.getKeyPolicy(selectedKey.value.KeyId, 'default')
       keyPolicy.value = result.Policy || ''
     } catch (error) {
-      uiStore.notifyError('Failed to load key policy', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to load key policy: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 
@@ -250,9 +250,9 @@ export function useKMS() {
 
   function copyToClipboard(text: string) {
     return navigator.clipboard.writeText(text).then(() => {
-      uiStore.notifySuccess('Copied', 'Copied to clipboard')
+      toast.success('Copied to clipboard')
     }).catch(() => {
-      uiStore.notifyError('Failed to copy', 'Could not copy to clipboard')
+      toast.error('Failed to copy: Could not copy to clipboard')
     })
   }
 

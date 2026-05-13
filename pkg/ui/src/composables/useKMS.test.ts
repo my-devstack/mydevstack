@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useKMS } from './useKMS'
-import { useUIStore } from '@/stores/ui'
 import type { KMSKey } from '@/api/types/aws'
 
 // Mock the KMS API module
@@ -18,19 +17,19 @@ vi.mock('@/api/services/kms', () => ({
   listKeyPolicies: vi.fn(),
 }))
 
-// Create shared mock functions for UI store
-const mockNotifySuccess = vi.fn()
-const mockNotifyError = vi.fn()
-const mockNotifyWarning = vi.fn()
-const mockNotifyInfo = vi.fn()
+// Create shared mock functions for toast
+const mockToastSuccess = vi.fn()
+const mockToastError = vi.fn()
+const mockToastWarning = vi.fn()
+const mockToastInfo = vi.fn()
 
-// Mock the useUIStore store
-vi.mock('@/stores/ui', () => ({
-  useUIStore: vi.fn(() => ({
-    notifySuccess: mockNotifySuccess,
-    notifyError: mockNotifyError,
-    notifyWarning: mockNotifyWarning,
-    notifyInfo: mockNotifyInfo,
+// Mock the useToast composable
+vi.mock('@/composables/useToast', () => ({
+  useToast: vi.fn(() => ({
+    success: mockToastSuccess,
+    error: mockToastError,
+    warning: mockToastWarning,
+    info: mockToastInfo,
   })),
 }))
 
@@ -732,7 +731,7 @@ describe('useKMS', () => {
 
       await copyToClipboard('test text')
 
-      expect(mockNotifySuccess).toHaveBeenCalledWith('Copied', 'Copied to clipboard')
+      expect(mockToastSuccess).toHaveBeenCalledWith('Copied to clipboard')
     })
 
     it('shows error notification when copy fails', async () => {
@@ -746,7 +745,7 @@ describe('useKMS', () => {
 
       await copyToClipboard('test text')
 
-      expect(mockNotifyError).toHaveBeenCalledWith('Failed to copy', 'Could not copy to clipboard')
+      expect(mockToastError).toHaveBeenCalledWith('Failed to copy: Could not copy to clipboard')
     })
   })
 

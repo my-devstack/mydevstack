@@ -13,17 +13,17 @@ vi.mock('@/api/services/kinesis', () => ({
   putRecord: vi.fn(),
 }))
 
-// Create shared mock functions for UI store
-const mockNotifySuccess = vi.fn()
-const mockNotifyError = vi.fn()
-const mockNotifyWarning = vi.fn()
+// Create shared mock functions for toast
+const mockToastSuccess = vi.fn()
+const mockToastError = vi.fn()
+const mockToastWarning = vi.fn()
 
-// Mock the useUIStore store
-vi.mock('@/stores/ui', () => ({
-  useUIStore: vi.fn(() => ({
-    notifySuccess: mockNotifySuccess,
-    notifyError: mockNotifyError,
-    notifyWarning: mockNotifyWarning,
+// Mock the useToast composable
+vi.mock('@/composables/useToast', () => ({
+  useToast: vi.fn(() => ({
+    success: mockToastSuccess,
+    error: mockToastError,
+    warning: mockToastWarning,
   })),
 }))
 
@@ -145,7 +145,7 @@ describe('useKinesis', () => {
       await loadStreams()
 
       expect(isLoading.value).toBe(false)
-      expect(mockNotifyError).toHaveBeenCalledWith('Error', 'Failed to load streams: Error: Network error')
+      expect(mockToastError).toHaveBeenCalledWith('Failed to load streams: Error: Network error')
     })
 
     it('auto-selects first stream when streams exist', async () => {
@@ -236,7 +236,7 @@ describe('useKinesis', () => {
       await selectStream({ StreamName: 'bad', StreamARN: '', StreamStatus: 'ACTIVE' })
 
       expect(isLoading.value).toBe(false)
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
   })
 
@@ -264,7 +264,7 @@ describe('useKinesis', () => {
       await createStream()
 
       expect(kinesisApi.createStream).not.toHaveBeenCalled()
-      expect(mockNotifyWarning).toHaveBeenCalledWith('Validation', 'Stream name is required')
+      expect(mockToastWarning).toHaveBeenCalledWith('Stream name is required')
     })
 
     it('handles error when creating stream fails', async () => {
@@ -276,7 +276,7 @@ describe('useKinesis', () => {
 
       await createStream()
 
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
 
     it('resets form after successful creation', async () => {
@@ -353,7 +353,7 @@ describe('useKinesis', () => {
 
       await confirmDeleteStream()
 
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
   })
 
@@ -449,7 +449,7 @@ describe('useKinesis', () => {
       await getRecordsForShard({ ShardId: 'bad-shard' })
 
       expect(recordsLoading.value).toBe(false)
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
   })
 
@@ -497,7 +497,7 @@ describe('useKinesis', () => {
       await putRecord()
 
       expect(kinesisApi.putRecord).not.toHaveBeenCalled()
-      expect(mockNotifyWarning).toHaveBeenCalledWith('Validation', 'Partition key and data are required')
+      expect(mockToastWarning).toHaveBeenCalledWith('Partition key and data are required')
     })
 
     it('refreshes records after putting', async () => {

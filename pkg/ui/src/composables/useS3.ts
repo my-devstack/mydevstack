@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 import * as s3Api from '@/api/services/s3'
 import * as lambdaApi from '@/api/services/lambda'
 
@@ -11,7 +11,7 @@ export interface TriggerConfig {
 }
 
 export function useS3() {
-  const uiStore = useUIStore()
+  const toast = useToast()
 
   const buckets = ref<any[]>([])
   const objects = ref<any[]>([])
@@ -31,7 +31,7 @@ export function useS3() {
       const response = await s3Api.listBuckets()
       buckets.value = response
     } catch (error) {
-      uiStore.notifyError('Failed to load buckets', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to load buckets: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       loading.value = false
     }
@@ -44,7 +44,7 @@ export function useS3() {
       const response = await s3Api.listObjects(bucketName)
       objects.value = response.objects
     } catch (error) {
-      uiStore.notifyError('Failed to load objects', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to load objects: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       loading.value = false
     }
@@ -65,7 +65,7 @@ export function useS3() {
         loading: false,
       }
     } catch (error) {
-      uiStore.notifyError('Failed to load bucket details', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to load bucket details: ' + (error instanceof Error ? error.message : 'Unknown error'))
       if (bucketDetails.value[bucketName]) {
         bucketDetails.value[bucketName].loading = false
       }
@@ -87,7 +87,7 @@ export function useS3() {
     loading.value = true
     try {
       await s3Api.createBucket(name, options)
-      uiStore.notifySuccess('Bucket created', `Bucket "${name}" created successfully`)
+      toast.success(`Bucket "${name}" created successfully`)
       // Refresh bucket list from API, then add new bucket to ensure it's at top
       await loadBuckets()
       // Check if bucket already in list (some mocks return it), otherwise add it
@@ -98,7 +98,7 @@ export function useS3() {
         })
       }
     } catch (error) {
-      uiStore.notifyError('Failed to create bucket', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to create bucket: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     } finally {
       loading.value = false
@@ -109,14 +109,14 @@ export function useS3() {
     loading.value = true
     try {
       await s3Api.deleteBucket(name)
-      uiStore.notifySuccess('Bucket deleted', `Bucket "${name}" deleted successfully`)
+      toast.success(`Bucket "${name}" deleted successfully`)
       if (selectedBucket.value === name) {
         selectedBucket.value = null
         objects.value = []
       }
       await loadBuckets()
     } catch (error) {
-      uiStore.notifyError('Failed to delete bucket', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to delete bucket: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     } finally {
       loading.value = false
@@ -127,10 +127,10 @@ export function useS3() {
     loading.value = true
     try {
       await s3Api.deleteObject(bucketName, objectKey)
-      uiStore.notifySuccess('Object deleted', 'Object deleted successfully')
+      toast.success('Object deleted successfully')
       await loadObjects(bucketName)
     } catch (error) {
-      uiStore.notifyError('Failed to delete object', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to delete object: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     } finally {
       loading.value = false
@@ -141,10 +141,10 @@ export function useS3() {
     uploading.value = true
     try {
       await s3Api.putObject(bucketName, key, body, contentType)
-      uiStore.notifySuccess('Object uploaded', `Object "${key}" uploaded successfully`)
+      toast.success(`Object "${key}" uploaded successfully`)
       await loadObjects(bucketName)
     } catch (error) {
-      uiStore.notifyError('Failed to upload object', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to upload object: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     } finally {
       uploading.value = false
@@ -155,7 +155,7 @@ export function useS3() {
     try {
       return await s3Api.getObject(bucketName, key)
     } catch (error) {
-      uiStore.notifyError('Failed to get object', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to get object: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     }
   }
@@ -164,7 +164,7 @@ export function useS3() {
     try {
       return await s3Api.getPresignedUrl(bucket, key)
     } catch (error) {
-      uiStore.notifyError('Failed to get presigned URL', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to get presigned URL: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     }
   }
@@ -219,9 +219,9 @@ export function useS3() {
         Bucket: bucket,
         NotificationConfiguration: notificationConfig,
       })
-      uiStore.notifySuccess('Trigger configured', `Lambda trigger added to bucket "${bucket}"`)
+      toast.success(`Lambda trigger added to bucket "${bucket}"`)
     } catch (error) {
-      uiStore.notifyError('Failed to configure trigger', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to configure trigger: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     } finally {
       loading.value = false

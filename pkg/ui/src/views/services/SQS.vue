@@ -77,7 +77,7 @@ async function loadMessages() {
     messages.value = result || []
   } catch (e: any) {
     console.error('Failed to receive messages:', e)
-    toast.error('Failed to load messages', e.message || 'Unknown error')
+    toast.error('Failed to load messages: ' + (e.message || 'Unknown error'))
     messages.value = []
   } finally {
     loadingMessages.value = false
@@ -92,7 +92,7 @@ async function handleDeleteMessage(receiptHandle: string) {
     await loadMessages()
   } catch (e: any) {
     console.error('Failed to delete message:', e)
-    toast.error('Failed to delete message', e.message || 'Unknown error')
+    toast.error('Failed to delete message: ' + (e.message || 'Unknown error'))
   }
 }
 
@@ -277,7 +277,7 @@ async function confirmDeleteQueue() {
     showDeleteModal.value = false
     queueToDelete.value = ''
   } catch (e: any) {
-    toast.error('Failed to delete queue', e.message || 'Unknown error')
+    toast.error('Failed to delete queue: ' + (e.message || 'Unknown error'))
   }
 }
 
@@ -292,7 +292,7 @@ async function createQueue() {
     newQueue.value = { name: '', isFifo: false }
     queuePage.value = 1
   } catch (e: any) {
-    toast.error('Failed to create queue', e.message || 'Unknown error')
+    toast.error('Failed to create queue: ' + (e.message || 'Unknown error'))
   }
 }
 

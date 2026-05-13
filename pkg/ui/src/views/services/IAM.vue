@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
-import { useUIStore } from '@/stores/ui'
 import { useContentReload } from '@/composables/useContentReload'
+import { useToast } from '@/composables/useToast'
 import Button from '@/components/common/Button.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
@@ -69,7 +69,7 @@ import type { IAMUser, IAMRole, IAMPolicy, IAMGroup } from '@/api/types/aws'
 
 // Components
 const settingsStore = useSettingsStore()
-const uiStore = useUIStore()
+const toast = useToast()
 const { reloadTrigger } = useContentReload()
 
 // Types
@@ -491,7 +491,7 @@ async function loadUsers() {
     const result = await listUsers()
     users.value = result.Users
   } catch (error) {
-    uiStore.notifyError('Failed to load users', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to load users: ' + (error instanceof Error ? error.message : 'Unknown error'))
   } finally {
     isLoading.value = false
   }
@@ -499,7 +499,7 @@ async function loadUsers() {
 
 async function handleCreateUser(data: { UserName: string; Path?: string }) {
   if (!data.UserName.trim()) {
-    uiStore.notifyError('Validation error', 'Username is required')
+    toast.error('Username is required')
     return
   }
 
@@ -508,11 +508,11 @@ async function handleCreateUser(data: { UserName: string; Path?: string }) {
       UserName: data.UserName,
       Path: data.Path,
     })
-    uiStore.notifySuccess('User created', `User "${data.UserName}" created successfully`)
+    toast.success(`User "${data.UserName}" created successfully`)
     showCreateUserModal.value = false
     await loadUsers()
   } catch (error) {
-    uiStore.notifyError('Failed to create user', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to create user: ' + (error instanceof Error ? error.message : 'Unknown error'))
   }
 }
 
@@ -521,12 +521,12 @@ async function handleDeleteUser() {
 
   try {
     await deleteUser(selectedUser.value.UserName)
-    uiStore.notifySuccess('User deleted', `User "${selectedUser.value.UserName}" deleted successfully`)
+    toast.success(`User "${selectedUser.value.UserName}" deleted successfully`)
     showDeleteUserModal.value = false
     selectedUser.value = null
     await loadUsers()
   } catch (error) {
-    uiStore.notifyError('Failed to delete user', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to delete user: ' + (error instanceof Error ? error.message : 'Unknown error'))
   }
 }
 
@@ -537,7 +537,7 @@ async function loadUserAccessKeys() {
     const result = await listAccessKeys(selectedUser.value.UserName)
     userAccessKeys.value = result.AccessKeyMetadata || []
   } catch (error) {
-    uiStore.notifyError('Failed to load access keys', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to load access keys: ' + (error instanceof Error ? error.message : 'Unknown error'))
   }
 }
 
@@ -555,7 +555,7 @@ async function handleCreateAccessKey() {
     const keysResult = await listAccessKeys(selectedUser.value.UserName)
     userAccessKeysMap.value[selectedUser.value.UserName] = keysResult.AccessKeyMetadata || []
   } catch (error) {
-    uiStore.notifyError('Failed to create access key', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to create access key: ' + (error instanceof Error ? error.message : 'Unknown error'))
   }
 }
 
@@ -564,10 +564,10 @@ async function handleDeleteAccessKey(keyId: string) {
 
   try {
     await deleteAccessKey(keyId, selectedUser.value.UserName)
-    uiStore.notifySuccess('Access key deleted', 'Access key deleted successfully')
+    toast.success('Access key deleted successfully')
     await loadUserAccessKeys()
   } catch (error) {
-    uiStore.notifyError('Failed to delete access key', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to delete access key: ' + (error instanceof Error ? error.message : 'Unknown error'))
   }
 }
 
@@ -581,13 +581,13 @@ async function handleDeleteAccessKeyConfirm() {
 
   try {
     await deleteAccessKey(keyToDelete.value.accessKeyId, keyToDelete.value.userName)
-    uiStore.notifySuccess('Access key deleted', `Access key "${keyToDelete.value.accessKeyId}" deleted`)
+    toast.success(`Access key "${keyToDelete.value.accessKeyId}" deleted`)
     showDeleteKeyModal.value = false
     const result = await listAccessKeys(keyToDelete.value.userName)
     userAccessKeysMap.value[keyToDelete.value.userName] = result.AccessKeyMetadata || []
     keyToDelete.value = null
   } catch (error) {
-    uiStore.notifyError('Failed to delete access key', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to delete access key: ' + (error instanceof Error ? error.message : 'Unknown error'))
   }
 }
 
@@ -613,7 +613,7 @@ async function loadRoles() {
     const result = await listRoles()
     roles.value = result.Roles
   } catch (error) {
-    uiStore.notifyError('Failed to load roles', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to load roles: ' + (error instanceof Error ? error.message : 'Unknown error'))
   } finally {
     isLoading.value = false
   }
@@ -621,7 +621,7 @@ async function loadRoles() {
 
 async function handleCreateRole(data: { RoleName: string; Description?: string; AssumeRolePolicyDocument: string }) {
   if (!data.RoleName.trim()) {
-    uiStore.notifyError('Validation error', 'Role name is required')
+    toast.error('Role name is required')
     return
   }
 
@@ -631,11 +631,11 @@ async function handleCreateRole(data: { RoleName: string; Description?: string; 
       Description: data.Description,
       AssumeRolePolicyDocument: data.AssumeRolePolicyDocument,
     })
-    uiStore.notifySuccess('Role created', `Role "${data.RoleName}" created successfully`)
+    toast.success(`Role "${data.RoleName}" created successfully`)
     showCreateRoleModal.value = false
     await loadRoles()
   } catch (error) {
-    uiStore.notifyError('Failed to create role', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to create role: ' + (error instanceof Error ? error.message : 'Unknown error'))
   }
 }
 
@@ -644,12 +644,12 @@ async function handleDeleteRole() {
 
   try {
     await deleteRole(selectedRole.value.RoleName)
-    uiStore.notifySuccess('Role deleted', `Role "${selectedRole.value.RoleName}" deleted successfully`)
+    toast.success(`Role "${selectedRole.value.RoleName}" deleted successfully`)
     showDeleteRoleModal.value = false
     selectedRole.value = null
     await loadRoles()
   } catch (error) {
-    uiStore.notifyError('Failed to delete role', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to delete role: ' + (error instanceof Error ? error.message : 'Unknown error'))
   }
 }
 
@@ -678,12 +678,12 @@ async function handleAttachPolicy(policyArn: string) {
 
   try {
     await attachRolePolicy(selectedRole.value.RoleName, policyArn)
-    uiStore.notifySuccess('Policy attached', 'Policy attached successfully')
+    toast.success('Policy attached successfully')
     const result = await listAttachedRolePolicies(selectedRole.value.RoleName)
     rolePoliciesMap.value[selectedRole.value.RoleName] = result.AttachedPolicies || []
     showAttachPolicyModal.value = false
   } catch (error) {
-    uiStore.notifyError('Failed to attach policy', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to attach policy: ' + (error instanceof Error ? error.message : 'Unknown error'))
   }
 }
 
@@ -698,13 +698,13 @@ async function handleDetachPolicy() {
   const { roleName, policyArn } = policyToDetach.value
   try {
     await detachRolePolicy(roleName, policyArn)
-    uiStore.notifySuccess('Policy detached', 'Policy detached successfully')
+    toast.success('Policy detached successfully')
     showDetachPolicyModal.value = false
     const result = await listAttachedRolePolicies(roleName)
     rolePoliciesMap.value[roleName] = result.AttachedPolicies || []
     policyToDetach.value = null
   } catch (error) {
-    uiStore.notifyError('Failed to detach policy', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to detach policy: ' + (error instanceof Error ? error.message : 'Unknown error'))
   }
 }
 
@@ -735,7 +735,7 @@ async function loadPolicies() {
     const result = await listPolicies({ Scope: 'All' })
     policies.value = result.Policies
   } catch (error) {
-    uiStore.notifyError('Failed to load policies', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to load policies: ' + (error instanceof Error ? error.message : 'Unknown error'))
   } finally {
     isLoading.value = false
   }
@@ -750,7 +750,7 @@ async function handleDeletePolicy() {
   if (!selectedPolicy.value) return
   try {
     await deletePolicy(selectedPolicy.value.Arn)
-    uiStore.notifySuccess('Policy deleted', `Policy "${selectedPolicy.value.PolicyName}" deleted`)
+    toast.success(`Policy "${selectedPolicy.value.PolicyName}" deleted`)
     showDeletePolicyModal.value = false
     expandedPolicies.value.delete(selectedPolicy.value.Arn)
     await loadPolicies()
@@ -762,7 +762,7 @@ async function handleDeletePolicy() {
         message = `Cannot delete AWS managed policy "${selectedPolicy.value.PolicyName}". Only customer managed policies can be deleted.`
       }
     }
-    uiStore.notifyError('Failed to delete policy', message)
+    toast.error('Failed to delete policy: ' + message)
   }
 }
 
@@ -789,7 +789,7 @@ const creatingPolicy = ref(false)
 
 async function handleCreatePolicy(data: { PolicyName: string; PolicyDocument: string; Description?: string }) {
   if (!data.PolicyName.trim() || !data.PolicyDocument.trim()) {
-    uiStore.notifyError('Validation error', 'Policy name and policy document are required')
+    toast.error('Policy name and policy document are required')
     return
   }
   creatingPolicy.value = true
@@ -799,11 +799,11 @@ async function handleCreatePolicy(data: { PolicyName: string; PolicyDocument: st
       PolicyDocument: data.PolicyDocument,
       Description: data.Description,
     })
-    uiStore.notifySuccess('Policy created', `Policy "${data.PolicyName}" created successfully`)
+    toast.success(`Policy "${data.PolicyName}" created successfully`)
     showCreatePolicyModal.value = false
     await loadPolicies()
   } catch (error) {
-    uiStore.notifyError('Failed to create policy', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to create policy: ' + (error instanceof Error ? error.message : 'Unknown error'))
   } finally {
     creatingPolicy.value = false
   }
@@ -816,7 +816,7 @@ async function loadGroups() {
     const result = await listGroups()
     groups.value = result.Groups
   } catch (error) {
-    uiStore.notifyError('Failed to load groups', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to load groups: ' + (error instanceof Error ? error.message : 'Unknown error'))
   } finally {
     isLoading.value = false
   }
@@ -824,17 +824,17 @@ async function loadGroups() {
 
 async function handleCreateGroup(data: { GroupName: string; Path?: string }) {
   if (!data.GroupName.trim()) {
-    uiStore.notifyError('Validation error', 'Group name is required')
+    toast.error('Group name is required')
     return
   }
 
   try {
     await createGroup(data.GroupName, data.Path)
-    uiStore.notifySuccess('Group created', `Group "${data.GroupName}" created successfully`)
+    toast.success(`Group "${data.GroupName}" created successfully`)
     showCreateGroupModal.value = false
     await loadGroups()
   } catch (error) {
-    uiStore.notifyError('Failed to create group', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to create group: ' + (error instanceof Error ? error.message : 'Unknown error'))
   }
 }
 
@@ -844,13 +844,13 @@ async function handleDeleteGroup() {
   const groupName = groupToDelete.value.GroupName
   try {
     await deleteGroup(groupToDelete.value.GroupName)
-    uiStore.notifySuccess('Group deleted', `Group "${groupName}" deleted successfully`)
+    toast.success(`Group "${groupName}" deleted successfully`)
     showDeleteGroupModal.value = false
     expandedGroups.value.delete(groupName)
     groupToDelete.value = null
     await loadGroups()
   } catch (error) {
-    uiStore.notifyError('Failed to delete group', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to delete group: ' + (error instanceof Error ? error.message : 'Unknown error'))
   }
 }
 
@@ -930,12 +930,12 @@ async function handleAddUserToGroup() {
   addingUserToGroup.value = true
   try {
     await addUserToGroup(selectedGroup.value.GroupName, selectedUserToAdd.value)
-    uiStore.notifySuccess('User added', `User "${selectedUserToAdd.value}" added to group`)
+    toast.success(`User "${selectedUserToAdd.value}" added to group`)
     selectedUserToAdd.value = ''
     showAddUserToGroupModal.value = false
     await loadGroupUsers()
   } catch (error) {
-    uiStore.notifyError('Failed to add user', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to add user: ' + (error instanceof Error ? error.message : 'Unknown error'))
   } finally {
     addingUserToGroup.value = false
   }
@@ -952,13 +952,13 @@ async function handleRemoveUserFromGroup() {
   removingUserFromGroup.value = true
   try {
     await removeUserFromGroup(groupName, userName)
-    uiStore.notifySuccess('User removed', `User "${userName}" removed from group`)
+    toast.success(`User "${userName}" removed from group`)
     showRemoveUserModal.value = false
     const result = await listUsersForGroup(groupName)
     groupUsersMap.value[groupName] = result.Users || []
     userToRemove.value = null
   } catch (error) {
-    uiStore.notifyError('Failed to remove user', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to remove user: ' + (error instanceof Error ? error.message : 'Unknown error'))
   } finally {
     removingUserFromGroup.value = false
   }
@@ -969,13 +969,13 @@ async function handleAddUserToGroupFromList(groupName: string) {
   addingUserToGroup.value = true
   try {
     await addUserToGroup(groupName, selectedUserToAdd.value)
-    uiStore.notifySuccess('User added', `User "${selectedUserToAdd.value}" added to group`)
+    toast.success(`User "${selectedUserToAdd.value}" added to group`)
     selectedUserToAdd.value = ''
     showAddUserToGroupModal.value = false
     const result = await listUsersForGroup(groupName)
     groupUsersMap.value[groupName] = result.Users || []
   } catch (error) {
-    uiStore.notifyError('Failed to add user', error instanceof Error ? error.message : 'Unknown error')
+    toast.error('Failed to add user: ' + (error instanceof Error ? error.message : 'Unknown error'))
   } finally {
     addingUserToGroup.value = false
   }

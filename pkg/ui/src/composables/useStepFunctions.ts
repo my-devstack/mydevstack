@@ -1,5 +1,5 @@
 import { ref, computed, watch, onMounted } from 'vue'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
 import * as stepFunctionsApi from '@/api/services/stepfunctions'
 
@@ -26,7 +26,7 @@ export interface ExecutionItem {
 }
 
 export function useStepFunctions() {
-  const uiStore = useUIStore()
+  const toast = useToast()
   const { reloadTrigger } = useContentReload()
 
   // State
@@ -111,7 +111,7 @@ export function useStepFunctions() {
       }))
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      uiStore.notifyError('Failed to load state machines', message)
+      toast.error('Failed to load state machines: ' + message)
     } finally {
       loading.value = false
     }
@@ -134,7 +134,7 @@ export function useStepFunctions() {
       // If describe fails, still show basic info from list
       selectedStateMachine.value = machine
       const message = error instanceof Error ? error.message : 'Unknown error'
-      uiStore.notifyError('Failed to load state machine details', message)
+      toast.error('Failed to load state machine details: ' + message)
     }
     await loadExecutions()
   }
@@ -154,14 +154,14 @@ export function useStepFunctions() {
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      uiStore.notifyError('Failed to load state machine details', message)
+      toast.error('Failed to load state machine details: ' + message)
       return null
     }
   }
 
   async function createStateMachine() {
     if (!newMachineName.value || !newMachineDefinition.value || !newMachineRoleArn.value) {
-      uiStore.notifyWarning('Validation', 'Name, definition, and role ARN are required')
+      toast.warning('Name, definition, and role ARN are required')
       return
     }
 
@@ -174,13 +174,13 @@ export function useStepFunctions() {
         type: newMachineType.value,
       })
 
-      uiStore.notifySuccess('Success', `State machine ${newMachineName.value} created successfully`)
+      toast.success(`State machine ${newMachineName.value} created successfully`)
       showCreateModal.value = false
       resetForm()
       await loadStateMachines()
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      uiStore.notifyError('Failed to create state machine', message)
+      toast.error('Failed to create state machine: ' + message)
     } finally {
       loading.value = false
     }
@@ -193,7 +193,7 @@ export function useStepFunctions() {
     try {
       await stepFunctionsApi.deleteStateMachine(stateMachineToDelete.value.stateMachineArn)
 
-      uiStore.notifySuccess('Success', `State machine ${stateMachineToDelete.value.name} deleted successfully`)
+      toast.success(`State machine ${stateMachineToDelete.value.name} deleted successfully`)
 
       if (selectedStateMachine.value?.stateMachineArn === stateMachineToDelete.value.stateMachineArn) {
         selectedStateMachine.value = null
@@ -205,7 +205,7 @@ export function useStepFunctions() {
       await loadStateMachines()
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      uiStore.notifyError('Failed to delete state machine', message)
+      toast.error('Failed to delete state machine: ' + message)
     } finally {
       loading.value = false
     }
@@ -223,13 +223,13 @@ export function useStepFunctions() {
 
       await stepFunctionsApi.startExecution(selectedStateMachine.value.stateMachineArn, body)
 
-      uiStore.notifySuccess('Success', 'Execution started successfully')
+      toast.success('Execution started successfully')
       showStartExecutionModal.value = false
       newExecutionInput.value = ''
       await loadExecutions()
     } catch (error) {
       const startMsg = error instanceof Error ? error.message : 'Unknown error'
-      uiStore.notifyError('Failed to start execution', startMsg)
+      toast.error('Failed to start execution: ' + startMsg)
     } finally {
       executionLoading.value = false
     }
@@ -242,11 +242,11 @@ export function useStepFunctions() {
         cause: 'Stopped by user',
       })
 
-      uiStore.notifySuccess('Success', 'Execution stopped successfully')
+      toast.success('Execution stopped successfully')
       await loadExecutions()
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      uiStore.notifyError('Failed to stop execution', message)
+      toast.error('Failed to stop execution: ' + message)
     } finally {
       executionLoading.value = false
     }
@@ -272,7 +272,7 @@ export function useStepFunctions() {
       }))
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      uiStore.notifyError('Failed to load executions', message)
+      toast.error('Failed to load executions: ' + message)
     } finally {
       executionLoading.value = false
     }
@@ -299,7 +299,7 @@ export function useStepFunctions() {
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      uiStore.notifyError('Failed to describe execution', message)
+      toast.error('Failed to describe execution: ' + message)
     }
   }
 
@@ -323,7 +323,7 @@ export function useStepFunctions() {
       }))
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      uiStore.notifyError('Failed to get execution history', message)
+      toast.error('Failed to get execution history: ' + message)
     } finally {
       historyLoading.value = false
     }

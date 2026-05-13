@@ -19,16 +19,16 @@ vi.mock('@/api/services/kinesis', () => ({
   putRecord: vi.fn(),
 }))
 
-// Mock UI store
-const mockNotifySuccess = vi.fn()
-const mockNotifyError = vi.fn()
-const mockNotifyWarning = vi.fn()
+// Mock toast
+const mockToastSuccess = vi.fn()
+const mockToastError = vi.fn()
+const mockToastWarning = vi.fn()
 
-vi.mock('@/stores/ui', () => ({
-  useUIStore: vi.fn(() => ({
-    notifySuccess: mockNotifySuccess,
-    notifyError: mockNotifyError,
-    notifyWarning: mockNotifyWarning,
+vi.mock('@/composables/useToast', () => ({
+  useToast: vi.fn(() => ({
+    success: mockToastSuccess,
+    error: mockToastError,
+    warning: mockToastWarning,
   })),
 }))
 
@@ -66,7 +66,7 @@ describe('Kinesis Integration Flow', () => {
       await createStream()
 
       expect(kinesisApi.createStream).toHaveBeenCalledWith('test-stream', { ShardCount: 2 })
-      expect(mockNotifySuccess).toHaveBeenCalledWith('Success', 'Stream test-stream is being created')
+      expect(mockToastSuccess).toHaveBeenCalledWith('Stream test-stream is being created')
       expect(showCreateModal.value).toBe(false)
       expect(newStream.value).toEqual({ name: '', shardCount: 1 })
     })
@@ -78,7 +78,7 @@ describe('Kinesis Integration Flow', () => {
       await createStream()
 
       expect(kinesisApi.createStream).not.toHaveBeenCalled()
-      expect(mockNotifyWarning).toHaveBeenCalledWith('Validation', 'Stream name is required')
+      expect(mockToastWarning).toHaveBeenCalledWith('Stream name is required')
     })
 
     it('handles creation error', async () => {
@@ -89,7 +89,7 @@ describe('Kinesis Integration Flow', () => {
       newStream.value = { name: 'bad-stream', shardCount: 1 }
       await createStream()
 
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
   })
 
@@ -120,7 +120,7 @@ describe('Kinesis Integration Flow', () => {
       await confirmDeleteStream()
 
       expect(kinesisApi.deleteStream).toHaveBeenCalledWith('stream-to-delete')
-      expect(mockNotifySuccess).toHaveBeenCalledWith('Success', 'Stream stream-to-delete is being deleted')
+      expect(mockToastSuccess).toHaveBeenCalledWith('Stream stream-to-delete is being deleted')
       expect(showDeleteModal.value).toBe(false)
       expect(selectedStream.value).toBeNull()
     })
@@ -167,7 +167,7 @@ describe('Kinesis Integration Flow', () => {
       await putRecord()
 
       expect(kinesisApi.putRecord).toHaveBeenCalledWith('test-stream', '{"msg":"hello"}', 'pk1')
-      expect(mockNotifySuccess).toHaveBeenCalledWith('Success', 'Record put successfully')
+      expect(mockToastSuccess).toHaveBeenCalledWith('Record put successfully')
       expect(showPutRecordModal.value).toBe(false)
       expect(putRecordForm.value).toEqual({ partitionKey: '', data: '' })
     })
@@ -189,7 +189,7 @@ describe('Kinesis Integration Flow', () => {
       await putRecord()
 
       expect(kinesisApi.putRecord).not.toHaveBeenCalled()
-      expect(mockNotifyWarning).toHaveBeenCalledWith('Validation', 'Partition key and data are required')
+      expect(mockToastWarning).toHaveBeenCalledWith('Partition key and data are required')
     })
 
     it('refreshes records after putting', async () => {

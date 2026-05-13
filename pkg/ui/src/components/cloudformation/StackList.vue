@@ -95,7 +95,7 @@ function getOutputs(stack: CloudFormationStack): CloudFormationOutput[] {
 
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text)
-  toast.success('Copied', 'Stack ID copied to clipboard')
+  toast.success('Stack ID copied to clipboard')
 }
 
 async function loadResources(stackName: string) {

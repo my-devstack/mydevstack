@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 import type { IAMUser, IAMRole, IAMPolicy, IAMGroup } from '@/api/types/aws'
 import * as iamApi from '@/api/services/iam'
 
@@ -15,7 +15,7 @@ export interface AttachedPolicy {
 }
 
 export function useIAM() {
-  const uiStore = useUIStore()
+  const toast = useToast()
 
   const users = ref<IAMUser[]>([])
   const roles = ref<IAMRole[]>([])
@@ -38,7 +38,7 @@ export function useIAM() {
       const result = await iamApi.listUsers()
       users.value = result.Users
     } catch (error) {
-      uiStore.notifyError('Failed to load users', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to load users: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       loading.value = false
     }
@@ -46,13 +46,13 @@ export function useIAM() {
 
   async function createUser(userName: string, path?: string) {
     await iamApi.createUser({ UserName: userName, Path: path })
-    uiStore.notifySuccess('User created', `User "${userName}" created successfully`)
+    toast.success(`User "${userName}" created successfully`)
     await loadUsers()
   }
 
   async function deleteUser(userName: string) {
     await iamApi.deleteUser(userName)
-    uiStore.notifySuccess('User deleted', `User "${userName}" deleted successfully`)
+    toast.success(`User "${userName}" deleted successfully`)
     await loadUsers()
   }
 
@@ -63,7 +63,7 @@ export function useIAM() {
       userAccessKeysMap.value[userName] = keys
       return keys
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to load access keys: ${error}`)
+      toast.error(`Failed to load access keys: ${error}`)
       return []
     }
   }
@@ -80,7 +80,7 @@ export function useIAM() {
 
   async function deleteAccessKey(accessKeyId: string, userName: string) {
     await iamApi.deleteAccessKey(accessKeyId, userName)
-    uiStore.notifySuccess('Access key deleted', 'Access key deleted successfully')
+    toast.success('Access key deleted successfully')
     await loadUserAccessKeys(userName)
   }
 
@@ -90,7 +90,7 @@ export function useIAM() {
       const result = await iamApi.listRoles()
       roles.value = result.Roles
     } catch (error) {
-      uiStore.notifyError('Failed to load roles', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to load roles: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       loading.value = false
     }
@@ -102,13 +102,13 @@ export function useIAM() {
       AssumeRolePolicyDocument: assumeRolePolicyDocument,
       Description: description,
     })
-    uiStore.notifySuccess('Role created', `Role "${roleName}" created successfully`)
+    toast.success(`Role "${roleName}" created successfully`)
     await loadRoles()
   }
 
   async function deleteRole(roleName: string) {
     await iamApi.deleteRole(roleName)
-    uiStore.notifySuccess('Role deleted', `Role "${roleName}" deleted successfully`)
+    toast.success(`Role "${roleName}" deleted successfully`)
     await loadRoles()
   }
 
@@ -119,7 +119,7 @@ export function useIAM() {
       rolePoliciesMap.value[roleName] = policies
       return policies
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to load role policies: ${error}`)
+      toast.error(`Failed to load role policies: ${error}`)
       return []
     }
   }
@@ -131,13 +131,13 @@ export function useIAM() {
 
   async function attachPolicy(roleName: string, policyArn: string) {
     await iamApi.attachRolePolicy(roleName, policyArn)
-    uiStore.notifySuccess('Policy attached', 'Policy attached successfully')
+    toast.success('Policy attached successfully')
     await loadRolePolicies(roleName)
   }
 
   async function detachPolicy(roleName: string, policyArn: string) {
     await iamApi.detachRolePolicy(roleName, policyArn)
-    uiStore.notifySuccess('Policy detached', 'Policy detached successfully')
+    toast.success('Policy detached successfully')
     await loadRolePolicies(roleName)
   }
 
@@ -147,7 +147,7 @@ export function useIAM() {
       const result = await iamApi.listPolicies({ Scope: 'All' })
       policies.value = result.Policies
     } catch (error) {
-      uiStore.notifyError('Failed to load policies', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to load policies: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       loading.value = false
     }
@@ -159,13 +159,13 @@ export function useIAM() {
       const result = await iamApi.getPolicy(policyArn)
       policyDocuments.value[policyArn] = result.Policy
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to load policy document: ${error}`)
+      toast.error(`Failed to load policy document: ${error}`)
     }
   }
 
   async function deletePolicy(policyArn: string, policyName: string) {
     await iamApi.deletePolicy(policyArn)
-    uiStore.notifySuccess('Policy deleted', `Policy "${policyName}" deleted`)
+    toast.success(`Policy "${policyName}" deleted`)
     expandedPolicies.value.delete(policyArn)
     await loadPolicies()
   }
@@ -176,7 +176,7 @@ export function useIAM() {
       PolicyDocument: policyDocument,
       Description: description,
     })
-    uiStore.notifySuccess('Policy created', `Policy "${policyName}" created successfully`)
+    toast.success(`Policy "${policyName}" created successfully`)
     await loadPolicies()
   }
 
@@ -186,7 +186,7 @@ export function useIAM() {
       const result = await iamApi.listGroups()
       groups.value = result.Groups
     } catch (error) {
-      uiStore.notifyError('Failed to load groups', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to load groups: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       loading.value = false
     }
@@ -194,13 +194,13 @@ export function useIAM() {
 
   async function createGroup(groupName: string, path?: string) {
     await iamApi.createGroup(groupName, path)
-    uiStore.notifySuccess('Group created', `Group "${groupName}" created successfully`)
+    toast.success(`Group "${groupName}" created successfully`)
     await loadGroups()
   }
 
   async function deleteGroup(groupName: string) {
     await iamApi.deleteGroup(groupName)
-    uiStore.notifySuccess('Group deleted', `Group "${groupName}" deleted successfully`)
+    toast.success(`Group "${groupName}" deleted successfully`)
     expandedGroups.value.delete(groupName)
     await loadGroups()
   }
@@ -212,20 +212,20 @@ export function useIAM() {
       groupUsersMap.value[groupName] = users
       return users
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to load group users: ${error}`)
+      toast.error(`Failed to load group users: ${error}`)
       return []
     }
   }
 
   async function addUserToGroup(groupName: string, userName: string) {
     await iamApi.addUserToGroup(groupName, userName)
-    uiStore.notifySuccess('User added', `User "${userName}" added to group`)
+    toast.success(`User "${userName}" added to group`)
     await loadGroupUsers(groupName)
   }
 
   async function removeUserFromGroup(groupName: string, userName: string) {
     await iamApi.removeUserFromGroup(groupName, userName)
-    uiStore.notifySuccess('User removed', `User "${userName}" removed from group`)
+    toast.success(`User "${userName}" removed from group`)
     await loadGroupUsers(groupName)
   }
 

@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
 import * as kinesisApi from '@/api/services/kinesis'
 
@@ -47,7 +47,7 @@ export interface RecordForm {
 }
 
 export function useKinesis() {
-  const uiStore = useUIStore()
+  const toast = useToast()
   const { reloadTrigger } = useContentReload()
 
   // State
@@ -145,7 +145,7 @@ export function useKinesis() {
         await selectStream(streams.value[0])
       }
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to load streams: ${error}`)
+      toast.error(`Failed to load streams: ${error}`)
     } finally {
       isLoading.value = false
     }
@@ -172,7 +172,7 @@ export function useKinesis() {
       }
       shards.value = streamDesc.Shards || []
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to describe stream: ${error}`)
+      toast.error(`Failed to describe stream: ${error}`)
     } finally {
       isLoading.value = false
     }
@@ -180,7 +180,7 @@ export function useKinesis() {
 
   async function createStream() {
     if (!newStream.value.name) {
-      uiStore.notifyWarning('Validation', 'Stream name is required')
+      toast.warning('Stream name is required')
       return
     }
 
@@ -189,12 +189,12 @@ export function useKinesis() {
       await kinesisApi.createStream(newStream.value.name, {
         ShardCount: newStream.value.shardCount,
       })
-      uiStore.notifySuccess('Success', `Stream ${newStream.value.name} is being created`)
+      toast.success(`Stream ${newStream.value.name} is being created`)
       showCreateModal.value = false
       newStream.value = { name: '', shardCount: 1 }
       await loadStreams()
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to create stream: ${error}`)
+      toast.error(`Failed to create stream: ${error}`)
     } finally {
       isLoading.value = false
     }
@@ -211,7 +211,7 @@ export function useKinesis() {
     isLoading.value = true
     try {
       await kinesisApi.deleteStream(streamToDelete.value.StreamName)
-      uiStore.notifySuccess('Success', `Stream ${streamToDelete.value.StreamName} is being deleted`)
+      toast.success(`Stream ${streamToDelete.value.StreamName} is being deleted`)
 
       if (selectedStream.value?.StreamName === streamToDelete.value.StreamName) {
         selectedStream.value = null
@@ -223,7 +223,7 @@ export function useKinesis() {
       streamToDelete.value = null
       await loadStreams()
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to delete stream: ${error}`)
+      toast.error(`Failed to delete stream: ${error}`)
     } finally {
       isLoading.value = false
     }
@@ -256,9 +256,9 @@ export function useKinesis() {
         ApproximateArrivalTimestamp: r.ApproximateArrivalTimestamp?.toString(),
       }))
 
-      uiStore.notifySuccess('Success', `Retrieved ${records.value.length} records`)
+      toast.success(`Retrieved ${records.value.length} records`)
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to get records: ${error}`)
+      toast.error(`Failed to get records: ${error}`)
     } finally {
       recordsLoading.value = false
     }
@@ -266,7 +266,7 @@ export function useKinesis() {
 
   async function putRecord() {
     if (!selectedStream.value || !putRecordForm.value.partitionKey || !putRecordForm.value.data) {
-      uiStore.notifyWarning('Validation', 'Partition key and data are required')
+      toast.warning('Partition key and data are required')
       return
     }
 
@@ -278,7 +278,7 @@ export function useKinesis() {
         putRecordForm.value.partitionKey,
       )
 
-      uiStore.notifySuccess('Success', 'Record put successfully')
+      toast.success('Record put successfully')
       showPutRecordModal.value = false
       putRecordForm.value = { partitionKey: '', data: '' }
 
@@ -287,7 +287,7 @@ export function useKinesis() {
         await getRecordsForShard(selectedShard.value)
       }
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to put record: ${error}`)
+      toast.error(`Failed to put record: ${error}`)
     } finally {
       isLoading.value = false
     }

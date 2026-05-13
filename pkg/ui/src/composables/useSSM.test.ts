@@ -11,17 +11,17 @@ vi.mock('@/api/services/ssm', () => ({
   deleteParameter: vi.fn(),
 }))
 
-// Create shared mock functions for UI store
-const mockNotifySuccess = vi.fn()
-const mockNotifyError = vi.fn()
-const mockNotifyWarning = vi.fn()
+// Create shared mock functions for toast
+const mockToastSuccess = vi.fn()
+const mockToastError = vi.fn()
+const mockToastWarning = vi.fn()
 
-// Mock the useUIStore store
-vi.mock('@/stores/ui', () => ({
-  useUIStore: vi.fn(() => ({
-    notifySuccess: mockNotifySuccess,
-    notifyError: mockNotifyError,
-    notifyWarning: mockNotifyWarning,
+// Mock the useToast composable
+vi.mock('@/composables/useToast', () => ({
+  useToast: vi.fn(() => ({
+    success: mockToastSuccess,
+    error: mockToastError,
+    warning: mockToastWarning,
   })),
 }))
 
@@ -119,7 +119,7 @@ describe('useSSM', () => {
       await loadParameters()
 
       expect(loading.value).toBe(false)
-      expect(mockNotifyError).toHaveBeenCalledWith('Error', 'Failed to load parameters: Error: Network error')
+      expect(mockToastError).toHaveBeenCalledWith('Failed to load parameters: Error: Network error')
     })
   })
 
@@ -218,7 +218,7 @@ describe('useSSM', () => {
       await loadParameterHistory()
 
       expect(historyLoading.value).toBe(false)
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
   })
 
@@ -256,7 +256,7 @@ describe('useSSM', () => {
       await createParameter()
 
       expect(ssmApi.putParameter).not.toHaveBeenCalled()
-      expect(mockNotifyWarning).toHaveBeenCalledWith('Validation', 'Name and value are required')
+      expect(mockToastWarning).toHaveBeenCalledWith('Name and value are required')
     })
 
     it('handles error when create fails', async () => {
@@ -269,7 +269,7 @@ describe('useSSM', () => {
 
       await createParameter()
 
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
   })
 
@@ -304,7 +304,7 @@ describe('useSSM', () => {
       await updateParameter()
 
       expect(ssmApi.putParameter).not.toHaveBeenCalled()
-      expect(mockNotifyWarning).toHaveBeenCalledWith('Validation', 'Value is required')
+      expect(mockToastWarning).toHaveBeenCalledWith('Value is required')
     })
 
     it('does nothing if no parameter selected', async () => {
@@ -327,7 +327,7 @@ describe('useSSM', () => {
 
       await updateParameter()
 
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
   })
 
@@ -382,7 +382,7 @@ describe('useSSM', () => {
 
       await deleteParameter()
 
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
   })
 

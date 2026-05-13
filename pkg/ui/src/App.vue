@@ -5,7 +5,6 @@ import { useUIStore } from '@/stores/ui'
 import { useToast } from '@/composables/useToast'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import TopBar from '@/components/layout/TopBar.vue'
-import NotificationToast from '@/components/common/NotificationToast.vue'
 import Toast from '@/components/common/Toast.vue'
 
 const settingsStore = useSettingsStore()
@@ -57,8 +56,6 @@ watch(isDark, (dark) => {
       </main>
     </div>
 
-    <!-- Notifications -->
-    <NotificationToast />
     <Toast
       :toast="toast.currentToast.value"
       @dismiss="toast.removeToast"

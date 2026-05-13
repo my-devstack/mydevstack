@@ -1,7 +1,7 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import { PROXY_BACKEND } from '@/config'
 import { useSettingsStore } from '@/stores/settings'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 
 // AWS Signature Version 4 Signer (mock implementation for local development)
 class AWSSigV4Signer {
@@ -107,7 +107,7 @@ export class APIError extends Error {
 // Create axios instance
 function createApiClient(): AxiosInstance {
   const settingsStore = useSettingsStore()
-  const uiStore = useUIStore()
+  const toast = useToast()
 
   // Always use the fixed endpoint from config
   const baseURL = PROXY_BACKEND
@@ -140,7 +140,7 @@ function createApiClient(): AxiosInstance {
       return config
     },
     (error) => {
-      uiStore.notifyError('Request Error', error.message)
+      toast.error('Request Error: ' + error.message)
       return Promise.reject(error)
     }
   )
@@ -163,10 +163,7 @@ function createApiClient(): AxiosInstance {
         !response
       
       if (isCorsError) {
-        uiStore.notifyError(
-          'Connection Error',
-          'Cannot reach the AWS endpoint. Make sure your AWS emulator is running on port 4566.'
-        )
+        toast.error('Cannot reach the AWS endpoint. Make sure your AWS emulator is running on port 4566.')
         throw new APIError('Network Error - CORS or Connection Issue', 0, 'network', 'NETWORK_ERROR')
       }
       
@@ -186,10 +183,7 @@ function createApiClient(): AxiosInstance {
         // Log but don't show toast for client errors (400, 401, 403, 404)
         // These are expected when resources don't exist
         if (response.status >= 500) {
-          uiStore.notifyError(
-            `Server Error (${response.status})`,
-            errorMessage
-          )
+          toast.error(`Server Error (${response.status}): ${errorMessage}`)
         }
 
         throw new APIError(

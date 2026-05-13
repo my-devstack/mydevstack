@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useRDS } from './useRDS'
-import { useUIStore } from '@/stores/ui'
 import type { RDSInstance } from '@/api/types/aws'
 
 // Mock RDS API module
@@ -15,18 +14,18 @@ vi.mock('@/api/services/rds', () => ({
   RDSService: vi.fn(),
 }))
 
-// Mock UI store
-const mockNotifySuccess = vi.fn()
-const mockNotifyError = vi.fn()
-const mockNotifyWarning = vi.fn()
-const mockNotifyInfo = vi.fn()
+// Mock toast
+const mockToastSuccess = vi.fn()
+const mockToastError = vi.fn()
+const mockToastWarning = vi.fn()
+const mockToastInfo = vi.fn()
 
-vi.mock('@/stores/ui', () => ({
-  useUIStore: vi.fn(() => ({
-    notifySuccess: mockNotifySuccess,
-    notifyError: mockNotifyError,
-    notifyWarning: mockNotifyWarning,
-    notifyInfo: mockNotifyInfo,
+vi.mock('@/composables/useToast', () => ({
+  useToast: vi.fn(() => ({
+    success: mockToastSuccess,
+    error: mockToastError,
+    warning: mockToastWarning,
+    info: mockToastInfo,
   })),
 }))
 
@@ -133,7 +132,7 @@ describe('useRDS', () => {
       await loadInstances()
 
       expect(loading.value).toBe(false)
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
 
     it('sets loading true during request', async () => {
@@ -201,7 +200,7 @@ describe('useRDS', () => {
       })
       expect(showCreateModal.value).toBe(false)
       expect(creating.value).toBe(false)
-      expect(mockNotifySuccess).toHaveBeenCalled()
+      expect(mockToastSuccess).toHaveBeenCalled()
     })
 
     it('shows warning if instance ID missing', async () => {
@@ -213,7 +212,7 @@ describe('useRDS', () => {
       await createInstance()
 
       expect(rdsApi.createDBInstance).not.toHaveBeenCalled()
-      expect(mockNotifyWarning).toHaveBeenCalledWith('Validation', 'Instance ID and password are required')
+      expect(mockToastWarning).toHaveBeenCalledWith('Instance ID and password are required')
     })
 
     it('shows warning if password missing', async () => {
@@ -225,7 +224,7 @@ describe('useRDS', () => {
       await createInstance()
 
       expect(rdsApi.createDBInstance).not.toHaveBeenCalled()
-      expect(mockNotifyWarning).toHaveBeenCalledWith('Validation', 'Instance ID and password are required')
+      expect(mockToastWarning).toHaveBeenCalledWith('Instance ID and password are required')
     })
 
     it('handles error when creating instance fails', async () => {
@@ -239,7 +238,7 @@ describe('useRDS', () => {
       await createInstance()
 
       expect(creating.value).toBe(false)
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
 
     it('resets form after successful creation', async () => {
@@ -297,7 +296,7 @@ describe('useRDS', () => {
       expect(instances.value).toHaveLength(0)
       expect(showDeleteModal.value).toBe(false)
       expect(instanceToDelete.value).toBeNull()
-      expect(mockNotifySuccess).toHaveBeenCalled()
+      expect(mockToastSuccess).toHaveBeenCalled()
     })
 
     it('does nothing if no instance to delete', async () => {
@@ -330,7 +329,7 @@ describe('useRDS', () => {
 
       await deleteInstance()
 
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
 
     it('removes instance from expanded set after delete', async () => {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 import Button from '@/components/common/Button.vue'
 import Tabs from '@/components/common/Tabs.vue'
 
@@ -23,7 +23,7 @@ onMounted(async () => {
 })
 
 const settingsStore = useSettingsStore()
-const uiStore = useUIStore()
+const toast = useToast()
 
 // Notification state
 const notificationsEnabled = ref(settingsStore.notificationsEnabled)
@@ -68,7 +68,7 @@ const saveAdvanced = () => {
   settingsStore.setRequestTimeout(requestTimeout.value)
   settingsStore.setMaxRetries(maxRetries.value)
   settingsStore.debugMode = debugMode.value
-  uiStore.notifySuccess('Advanced settings saved', 'Your advanced settings have been updated.')
+  toast.success('Your advanced settings have been updated.')
 }
 
 // Clear local storage
@@ -81,7 +81,7 @@ const clearLocalStorage = () => {
     requestTimeout.value = settingsStore.requestTimeout
     maxRetries.value = settingsStore.maxRetries
     debugMode.value = settingsStore.debugMode
-    uiStore.notifySuccess('Local storage cleared', 'All settings have been reset to defaults.')
+    toast.success('All settings have been reset to defaults.')
   }
 }
 </script>

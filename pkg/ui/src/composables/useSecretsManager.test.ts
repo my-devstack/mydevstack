@@ -11,15 +11,15 @@ vi.mock('@/api/services/secrets-manager', () => ({
   deleteSecret: vi.fn(),
 }))
 
-// Create shared mock functions for UI store
-const mockNotifySuccess = vi.fn()
-const mockNotifyError = vi.fn()
+// Create shared mock functions for toast
+const mockToastSuccess = vi.fn()
+const mockToastError = vi.fn()
 
-// Mock the useUIStore store
-vi.mock('@/stores/ui', () => ({
-  useUIStore: vi.fn(() => ({
-    notifySuccess: mockNotifySuccess,
-    notifyError: mockNotifyError,
+// Mock the useToast composable
+vi.mock('@/composables/useToast', () => ({
+  useToast: vi.fn(() => ({
+    success: mockToastSuccess,
+    error: mockToastError,
   })),
 }))
 
@@ -125,7 +125,7 @@ describe('useSecretsManager', () => {
       await loadSecrets()
 
       expect(loading.value).toBe(false)
-      expect(mockNotifyError).toHaveBeenCalledWith('Error', 'Failed to load secrets')
+      expect(mockToastError).toHaveBeenCalledWith('Failed to load secrets')
     })
   })
 
@@ -181,7 +181,7 @@ describe('useSecretsManager', () => {
 
       await createSecret()
 
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
   })
 
@@ -265,7 +265,7 @@ describe('useSecretsManager', () => {
 
       await saveSecretValue()
 
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
   })
 
@@ -302,7 +302,7 @@ describe('useSecretsManager', () => {
 
       await confirmDeleteSecret()
 
-      expect(mockNotifyError).toHaveBeenCalled()
+      expect(mockToastError).toHaveBeenCalled()
     })
   })
 
