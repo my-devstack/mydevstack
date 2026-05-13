@@ -1,5 +1,5 @@
 import { ref, watch, onMounted } from 'vue'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
 import * as secretsManager from '@/api/services/secrets-manager'
 
@@ -17,7 +17,7 @@ export interface SecretDetails {
 }
 
 export function useSecretsManager() {
-  const uiStore = useUIStore()
+  const toast = useToast()
   const { reloadTrigger } = useContentReload()
 
   // State
@@ -196,7 +196,7 @@ fmt.Println(*valueOutput.SecretString)`
     } catch (e: any) {
       error.value = e.message || 'Failed to load secrets'
       secrets.value = []
-      uiStore.notifyError('Error', 'Failed to load secrets')
+      toast.error('Failed to load secrets')
     } finally {
       loading.value = false
     }
@@ -227,9 +227,9 @@ fmt.Println(*valueOutput.SecretString)`
       newSecretValue.value = ''
       newSecretDescription.value = ''
       await loadSecrets()
-      uiStore.notifySuccess('Success', `Secret ${newSecretName.value} created successfully`)
+      toast.success(`Secret ${newSecretName.value} created successfully`)
     } catch (e: any) {
-      uiStore.notifyError('Error', 'Failed to create secret: ' + (e.message || 'Unknown error'))
+      toast.error('Failed to create secret: ' + (e.message || 'Unknown error'))
     } finally {
       creating.value = false
     }
@@ -250,7 +250,7 @@ fmt.Println(*valueOutput.SecretString)`
       editSecretValue.value = response.SecretString || ''
     } catch (e: any) {
       secretError.value = 'Failed to get secret value: ' + (e.message || 'Unknown error')
-      uiStore.notifyError('Error', 'Failed to get secret value')
+      toast.error('Failed to get secret value')
     } finally {
       secretLoading.value = false
     }
@@ -285,10 +285,10 @@ fmt.Println(*valueOutput.SecretString)`
       }
       // Close the modal
       showViewModal.value = false
-      uiStore.notifySuccess('Success', 'Secret value updated successfully')
+      toast.success('Secret value updated successfully')
     } catch (e: any) {
       secretError.value = 'Failed to update secret: ' + (e.message || 'Unknown error')
-      uiStore.notifyError('Error', 'Failed to update secret')
+      toast.error('Failed to update secret')
     } finally {
       secretLoading.value = false
     }
@@ -309,9 +309,9 @@ fmt.Println(*valueOutput.SecretString)`
       showDeleteModal.value = false
       secretToDelete.value = ''
       await loadSecrets()
-      uiStore.notifySuccess('Success', 'Secret deleted successfully')
+      toast.success('Secret deleted successfully')
     } catch (e: any) {
-      uiStore.notifyError('Error', 'Failed to delete secret: ' + (e.message || 'Unknown error'))
+      toast.error('Failed to delete secret: ' + (e.message || 'Unknown error'))
     } finally {
       loading.value = false
     }

@@ -263,7 +263,7 @@ function closeLogDetail() {
 // Clear logs
 function clearLogs() {
   logs.value = []
-  toast.info('Logs cleared', 'All logs have been cleared.')
+  toast.info('All logs have been cleared.')
 }
 
 // Export to JSON
@@ -271,7 +271,7 @@ function exportToJson() {
   const data = JSON.stringify(filteredLogs.value, null, 2)
   downloadFile(data, 'logs.json', 'application/json')
   exportMenuOpen.value = false
-  toast.success('Export complete', 'Logs exported to JSON.')
+  toast.success('Logs exported to JSON.')
 }
 
 // Export to CSV
@@ -290,7 +290,7 @@ function exportToCsv() {
   const csv = [headers.join(','), ...rows.map(row => row.join(','))].join('\n')
   downloadFile(csv, 'logs.csv', 'text/csv')
   exportMenuOpen.value = false
-  toast.success('Export complete', 'Logs exported to CSV.')
+  toast.success('Logs exported to CSV.')
 }
 
 // Download file helper
@@ -309,7 +309,7 @@ function downloadFile(content: string, filename: string, mimeType: string) {
 // Copy to clipboard
 async function copyToClipboard(text: string) {
   await navigator.clipboard.writeText(text)
-  toast.success('Copied', 'Content copied to clipboard.')
+  toast.success('Content copied to clipboard.')
 }
 
 // Refresh logs
@@ -318,7 +318,7 @@ async function refreshLogs() {
   await new Promise(resolve => setTimeout(resolve, 1000))
   logs.value = generateMockLogs(200)
   isLoading.value = false
-  toast.success('Logs refreshed', 'Log data has been updated.')
+  toast.success('Log data has been updated.')
 }
 </script>
 

@@ -1,14 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
-export interface Notification {
-  id: string
-  type: 'success' | 'error' | 'warning' | 'info'
-  title: string
-  message?: string
-  duration?: number
-}
-
 export interface LoadingState {
   global: boolean
   services: Record<string, boolean>
@@ -27,9 +19,6 @@ export const useUIStore = defineStore('ui', () => {
     services: {},
   })
 
-  // Notifications
-  const notifications = ref<Notification[]>([])
-
   // Modal state
   const activeModal = ref<string | null>(null)
   const modalData = ref<Record<string, unknown>>({})
@@ -44,8 +33,6 @@ export const useUIStore = defineStore('ui', () => {
   const isServiceLoading = computed(() => {
     return (service: string) => loadingStates.value.services[service] || false
   })
-
-  const hasNotifications = computed(() => notifications.value.length > 0)
 
   // Actions
   function toggleSidebar() {
@@ -66,38 +53,6 @@ export const useUIStore = defineStore('ui', () => {
 
   function setServiceLoading(service: string, loading: boolean) {
     loadingStates.value.services[service] = loading
-  }
-
-  function addNotification(notification: Omit<Notification, 'id'>) {
-    const id = crypto.randomUUID()
-    const newNotification: Notification = {
-      id,
-      duration: 5000,
-      ...notification,
-    }
-    // Replace array to trigger reactivity
-    notifications.value = [...notifications.value, newNotification]
-    
-    // Auto-remove after duration
-    if (newNotification.duration && newNotification.duration > 0) {
-      setTimeout(() => {
-        removeNotification(id)
-      }, newNotification.duration)
-    }
-    
-    return id
-  }
-
-  function removeNotification(id: string) {
-    const index = notifications.value.findIndex((n) => n.id === id)
-    if (index !== -1) {
-      // Replace array to trigger reactivity
-      notifications.value = notifications.value.filter(n => n.id !== id)
-    }
-  }
-
-  function clearNotifications() {
-    notifications.value = []
   }
 
   function openModal(modalId: string, data: Record<string, unknown> = {}) {
@@ -123,29 +78,11 @@ export const useUIStore = defineStore('ui', () => {
     searchQuery.value = ''
   }
 
-  // Convenience notification methods
-  function notifySuccess(title: string, message?: string) {
-    return addNotification({ type: 'success', title, message })
-  }
-
-  function notifyError(title: string, message?: string) {
-    return addNotification({ type: 'error', title, message, duration: 8000 })
-  }
-
-  function notifyWarning(title: string, message?: string) {
-    return addNotification({ type: 'warning', title, message })
-  }
-
-  function notifyInfo(title: string, message?: string) {
-    return addNotification({ type: 'info', title, message })
-  }
-
   return {
     // State
     sidebarCollapsed,
     currentService,
     loadingStates,
-    notifications,
     activeModal,
     modalData,
     searchQuery,
@@ -153,24 +90,16 @@ export const useUIStore = defineStore('ui', () => {
     // Computed
     isLoading,
     isServiceLoading,
-    hasNotifications,
     // Actions
     toggleSidebar,
     setSidebarCollapsed,
     setCurrentService,
     setGlobalLoading,
     setServiceLoading,
-    addNotification,
-    removeNotification,
-    clearNotifications,
     openModal,
     closeModal,
     setSearchQuery,
     openSearch,
     closeSearch,
-    notifySuccess,
-    notifyError,
-    notifyWarning,
-    notifyInfo,
   }
 })

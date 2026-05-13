@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
-import { useUIStore } from '@/stores/ui'
 import { useContentReload } from '@/composables/useContentReload'
+import { useToast } from '@/composables/useToast'
 import { usePagination } from '@/composables/usePagination'
 import { useS3 } from '@/composables/useS3'
 import { ArchiveBoxIcon } from '@heroicons/vue/24/outline'
@@ -11,7 +11,7 @@ import { S3BucketsList, S3ObjectsList, S3CreateModal, S3ViewModal, S3DeleteModal
 const { reloadTrigger } = useContentReload()
 
 const settingsStore = useSettingsStore()
-const uiStore = useUIStore()
+const toast = useToast()
 
 // Composable state and functions
 const {
@@ -200,7 +200,7 @@ async function copyObjectLink(key: string) {
   try {
     const url = await getPresignedUrl(selectedBucket.value!, key)
     await navigator.clipboard.writeText(url)
-    uiStore.notifySuccess('Link copied!', 'Presigned URL copied to clipboard')
+    toast.success('Presigned URL copied to clipboard')
   } catch (e: any) {
     error.value = 'Failed to copy link: ' + e.message
   }

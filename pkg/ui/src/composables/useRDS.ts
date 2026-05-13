@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
 import * as rdsApi from '@/api/services/rds'
 import type { RDSInstance, CreateDBInstanceInput } from '@/api/types/aws'
@@ -17,7 +17,7 @@ export interface RDSForm {
 }
 
 export function useRDS() {
-  const uiStore = useUIStore()
+  const toast = useToast()
   const { reloadTrigger } = useContentReload()
 
   // State
@@ -77,7 +77,7 @@ export function useRDS() {
       const result = await rdsApi.describeDBInstances()
       instances.value = result
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to load instances: ${error}`)
+      toast.error(`Failed to load instances: ${error}`)
     } finally {
       loading.value = false
     }
@@ -85,7 +85,7 @@ export function useRDS() {
 
   async function createInstance() {
     if (!createForm.value.instanceId || !createForm.value.masterPassword) {
-      uiStore.notifyWarning('Validation', 'Instance ID and password are required')
+      toast.warning('Instance ID and password are required')
       return
     }
 
@@ -103,11 +103,11 @@ export function useRDS() {
       })
 
       await loadInstances()
-      uiStore.notifySuccess('Success', `Instance ${createForm.value.instanceId} is being created`)
+      toast.success(`Instance ${createForm.value.instanceId} is being created`)
       showCreateModal.value = false
       resetForm()
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to create instance: ${error}`)
+      toast.error(`Failed to create instance: ${error}`)
     } finally {
       creating.value = false
     }
@@ -119,11 +119,11 @@ export function useRDS() {
       await rdsApi.deleteDBInstance(instanceToDelete.value.DBInstanceIdentifier, { skipFinalSnapshot: true })
       instances.value = instances.value.filter(i => i.DBInstanceIdentifier !== instanceToDelete.value?.DBInstanceIdentifier)
       expandedInstances.value.delete(instanceToDelete.value.DBInstanceIdentifier)
-      uiStore.notifySuccess('Success', `Instance ${instanceToDelete.value.DBInstanceIdentifier} is being deleted`)
+      toast.success(`Instance ${instanceToDelete.value.DBInstanceIdentifier} is being deleted`)
       showDeleteModal.value = false
       instanceToDelete.value = null
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to delete instance: ${error}`)
+      toast.error(`Failed to delete instance: ${error}`)
     }
   }
 
@@ -133,11 +133,11 @@ export function useRDS() {
     try {
       await rdsApi.rebootDBInstance(instanceToReboot.value.DBInstanceIdentifier)
       await loadInstances()
-      uiStore.notifySuccess('Success', `Instance ${instanceToReboot.value.DBInstanceIdentifier} is rebooting`)
+      toast.success(`Instance ${instanceToReboot.value.DBInstanceIdentifier} is rebooting`)
       showRebootModal.value = false
       instanceToReboot.value = null
     } catch (error: any) {
-      uiStore.notifyError('Error', `Failed to reboot instance: ${error.message || error}`)
+      toast.error(`Failed to reboot instance: ${error.message || error}`)
     } finally {
       rebooting.value = false
     }

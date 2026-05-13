@@ -1,10 +1,10 @@
 import { ref } from 'vue'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 import type { LambdaFunction } from '@/api/types/aws'
 import * as lambdaApi from '@/api/services/lambda'
 
 export function useLambda() {
-  const uiStore = useUIStore()
+  const toast = useToast()
 
   const functions = ref<LambdaFunction[]>([])
   const loading = ref(false)
@@ -21,7 +21,7 @@ export function useLambda() {
       const result = await lambdaApi.listFunctions()
       functions.value = result.functions || []
     } catch (error) {
-      uiStore.notifyError('Failed to load Lambda functions', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to load Lambda functions: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       loading.value = false
     }
@@ -50,7 +50,7 @@ export function useLambda() {
         try {
           environment = { Variables: JSON.parse(data.environment) }
         } catch {
-          uiStore.notifyError('Invalid environment', 'Environment must be valid JSON')
+          toast.error('Invalid environment: Environment must be valid JSON')
           return
         }
       }
@@ -67,10 +67,10 @@ export function useLambda() {
         Environment: environment,
       })
 
-      uiStore.notifySuccess('Function created', `Function "${data.functionName}" created successfully`)
+      toast.success(`Function "${data.functionName}" created successfully`)
       await loadFunctions()
     } catch (error) {
-      uiStore.notifyError('Failed to create function', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to create function: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     } finally {
       creating.value = false
@@ -85,10 +85,10 @@ export function useLambda() {
         MemorySize: memory,
         Timeout: timeout,
       })
-      uiStore.notifySuccess('Configuration updated', 'Function configuration updated successfully')
+      toast.success('Function configuration updated successfully')
       await loadFunctions()
     } catch (error) {
-      uiStore.notifyError('Failed to update configuration', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to update configuration: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     } finally {
       updating.value = false
@@ -103,10 +103,10 @@ export function useLambda() {
         FunctionName: functionName,
         ZipFile: zipFileData,
       })
-      uiStore.notifySuccess('Code updated', 'Function code updated successfully')
+      toast.success('Function code updated successfully')
       await loadFunctions()
     } catch (error) {
-      uiStore.notifyError('Failed to update code', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to update code: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     } finally {
       updating.value = false
@@ -117,13 +117,13 @@ export function useLambda() {
     loading.value = true
     try {
       await lambdaApi.deleteFunction(functionName)
-      uiStore.notifySuccess('Function deleted', `Function "${functionName}" deleted successfully`)
+      toast.success(`Function "${functionName}" deleted successfully`)
       if (selectedFunction.value?.FunctionName === functionName) {
         selectedFunction.value = null
       }
       await loadFunctions()
     } catch (error) {
-      uiStore.notifyError('Failed to delete function', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to delete function: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     } finally {
       loading.value = false
@@ -136,7 +136,7 @@ export function useLambda() {
       const result = await lambdaApi.invoke(functionName, payload)
       return result
     } catch (error) {
-      uiStore.notifyError('Failed to invoke function', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to invoke function: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     } finally {
       invokeLoading.value = false

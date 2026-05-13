@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 import type { SQSMessage } from '@/api/types/aws'
 import * as sqsApi from '@/api/services/sqs'
 
@@ -14,7 +14,7 @@ export interface QueueAttribute {
 }
 
 export function useSQS() {
-  const uiStore = useUIStore()
+  const toast = useToast()
 
   const queues = ref<Queue[]>([])
   const loading = ref(false)
@@ -36,7 +36,7 @@ export function useSQS() {
       }))
       queues.value = queueList
     } catch (error) {
-      uiStore.notifyError('Failed to load queues', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to load queues: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       loading.value = false
     }
@@ -45,13 +45,13 @@ export function useSQS() {
   async function createQueue(name: string, isFifo: boolean) {
     const queueName = isFifo && !name.endsWith('.fifo') ? `${name}.fifo` : name
     await sqsApi.createQueue(queueName, isFifo ? { Attributes: { QueueFifoQueue: 'true' } } : undefined)
-    uiStore.notifySuccess('Queue created', `Queue "${name}" created successfully`)
+    toast.success(`Queue "${name}" created successfully`)
     await loadQueues()
   }
 
   async function deleteQueue(url: string) {
     await sqsApi.deleteQueue(url)
-    uiStore.notifySuccess('Queue deleted', 'Queue deleted successfully')
+    toast.success('Queue deleted successfully')
     expandedQueues.value.delete(url)
     await loadQueues()
   }
@@ -72,7 +72,7 @@ export function useSQS() {
       queueArnMap.value[url] = attributes.QueueArn || ''
       return parsedAttributes
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to load queue attributes: ${error}`)
+      toast.error(`Failed to load queue attributes: ${error}`)
       queueAttributesMap.value[url] = []
       return []
     }
@@ -86,7 +86,7 @@ export function useSQS() {
       messages.value = msgs
       return msgs
     } catch (error) {
-      uiStore.notifyError('Failed to load messages', error instanceof Error ? error.message : 'Unknown error')
+      toast.error('Failed to load messages: ' + (error instanceof Error ? error.message : 'Unknown error'))
       return []
     } finally {
       loadingMessages.value = false
@@ -95,7 +95,7 @@ export function useSQS() {
 
   async function deleteMessageFromQueue(url: string, receiptHandle: string) {
     await sqsApi.deleteMessage(url, receiptHandle)
-    uiStore.notifySuccess('Message deleted', 'Message deleted successfully')
+    toast.success('Message deleted successfully')
     await loadMessages(url)
   }
 

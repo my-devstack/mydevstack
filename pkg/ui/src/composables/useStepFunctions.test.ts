@@ -16,17 +16,17 @@ vi.mock('@/api/services/stepfunctions', () => ({
   getExecutionHistory: vi.fn(),
 }))
 
-// Create shared mock functions for UI store
+// Create shared mock functions for toast
 const mockNotifySuccess = vi.fn()
 const mockNotifyError = vi.fn()
 const mockNotifyWarning = vi.fn()
 
-// Mock the useUIStore store
-vi.mock('@/stores/ui', () => ({
-  useUIStore: vi.fn(() => ({
-    notifySuccess: mockNotifySuccess,
-    notifyError: mockNotifyError,
-    notifyWarning: mockNotifyWarning,
+// Mock the useToast composable
+vi.mock('@/composables/useToast', () => ({
+  useToast: vi.fn(() => ({
+    success: mockNotifySuccess,
+    error: mockNotifyError,
+    warning: mockNotifyWarning,
   })),
 }))
 
@@ -132,7 +132,7 @@ describe('useStepFunctions', () => {
       await loadStateMachines()
 
       expect(loading.value).toBe(false)
-      expect(mockNotifyError).toHaveBeenCalledWith('Failed to load state machines', 'Network error')
+      expect(mockNotifyError).toHaveBeenCalledWith('Failed to load state machines: Network error')
     })
 
     it('handles PascalCase StateMachines from AWS SDK', async () => {
@@ -251,7 +251,7 @@ describe('useStepFunctions', () => {
       expect(newMachineName.value).toBe('')
       expect(newMachineDefinition.value).toBe('')
       expect(newMachineRoleArn.value).toBe('')
-      expect(mockNotifySuccess).toHaveBeenCalledWith('Success', 'State machine test-sm created successfully')
+      expect(mockNotifySuccess).toHaveBeenCalledWith('State machine test-sm created successfully')
     })
 
     it('validates name, definition, and role ARN required', async () => {
@@ -264,7 +264,7 @@ describe('useStepFunctions', () => {
       await createStateMachine()
 
       expect(stepFunctionsApi.createStateMachine).not.toHaveBeenCalled()
-      expect(mockNotifyWarning).toHaveBeenCalledWith('Validation', 'Name, definition, and role ARN are required')
+      expect(mockNotifyWarning).toHaveBeenCalledWith('Name, definition, and role ARN are required')
     })
 
     it('handles error when create fails', async () => {
@@ -304,7 +304,7 @@ describe('useStepFunctions', () => {
       expect(showDeleteModal.value).toBe(false)
       expect(stateMachineToDelete.value).toBeNull()
       expect(selectedStateMachine.value).toBeNull()
-      expect(mockNotifySuccess).toHaveBeenCalledWith('Success', 'State machine del-sm deleted successfully')
+      expect(mockNotifySuccess).toHaveBeenCalledWith('State machine del-sm deleted successfully')
     })
 
     it('clears selection if deleted machine was selected', async () => {
@@ -367,7 +367,7 @@ describe('useStepFunctions', () => {
       })
       expect(showStartExecutionModal.value).toBe(false)
       expect(newExecutionInput.value).toBe('')
-      expect(mockNotifySuccess).toHaveBeenCalledWith('Success', 'Execution started successfully')
+      expect(mockNotifySuccess).toHaveBeenCalledWith('Execution started successfully')
     })
 
     it('does nothing if no state machine selected', async () => {

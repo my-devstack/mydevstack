@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 import { useSettingsStore } from '@/stores/settings'
 import * as elasticacheApi from '@/api/services/elasticache'
 
@@ -30,7 +30,7 @@ export interface CreateGroupInput {
 }
 
 export function useElastiCache() {
-  const uiStore = useUIStore()
+  const toast = useToast()
   const settingsStore = useSettingsStore()
 
   const groups = ref<ReplicationGroup[]>([])
@@ -58,7 +58,7 @@ export function useElastiCache() {
       groups.value = result
     } catch (error: any) {
       console.error('Failed to load groups:', error)
-      uiStore.notifyError('Error', `Failed to load groups: ${error}`)
+      toast.error(`Failed to load groups: ${error}`)
       groups.value = []
     } finally {
       loading.value = false
@@ -67,7 +67,7 @@ export function useElastiCache() {
 
   async function createGroup() {
     if (!createForm.value.ReplicationGroupId) {
-      uiStore.notifyWarning('Validation', 'Group ID is required')
+      toast.warning('Group ID is required')
       return
     }
 
@@ -83,12 +83,12 @@ export function useElastiCache() {
       })
       
       await loadGroups()
-      uiStore.notifySuccess('Success', `Group ${createForm.value.ReplicationGroupId} is being created`)
+      toast.success(`Group ${createForm.value.ReplicationGroupId} is being created`)
       showCreateModal.value = false
       resetForm()
     } catch (error: any) {
       console.error('Failed to create group:', error)
-      uiStore.notifyError('Error', `Failed to create group: ${error}`)
+      toast.error(`Failed to create group: ${error}`)
     } finally {
       creating.value = false
     }
@@ -100,11 +100,11 @@ export function useElastiCache() {
       await elasticacheApi.deleteReplicationGroup(groupToDelete.value.ReplicationGroupId)
       groups.value = groups.value.filter(g => g.ReplicationGroupId !== groupToDelete.value?.ReplicationGroupId)
       expandedGroups.value.delete(groupToDelete.value.ReplicationGroupId)
-      uiStore.notifySuccess('Success', `Group ${groupToDelete.value.ReplicationGroupId} is being deleted`)
+      toast.success(`Group ${groupToDelete.value.ReplicationGroupId} is being deleted`)
       showDeleteConfirm.value = false
       groupToDelete.value = null
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to delete group: ${error}`)
+      toast.error(`Failed to delete group: ${error}`)
     }
   }
 

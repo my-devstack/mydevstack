@@ -1,10 +1,10 @@
 import { ref } from 'vue'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 import type { LambdaEventSourceMapping } from '@/api/types/aws'
 import * as lambdaApi from '@/api/services/lambda'
 
 export function useLambdaEventSourceMapping() {
-  const uiStore = useUIStore()
+  const toast = useToast()
 
   const mappings = ref<LambdaEventSourceMapping[]>([])
   const loading = ref(false)
@@ -20,10 +20,7 @@ export function useLambdaEventSourceMapping() {
       )
       mappings.value = result.EventSourceMappings || []
     } catch (error) {
-      uiStore.notifyError(
-        'Failed to load event source mappings',
-        error instanceof Error ? error.message : 'Unknown error'
-      )
+      toast.error('Failed to load event source mappings: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       loading.value = false
     }
@@ -59,16 +56,10 @@ export function useLambdaEventSourceMapping() {
       }
 
       await lambdaApi.createEventSourceMapping(params)
-      uiStore.notifySuccess(
-        'Event source mapping created',
-        `Mapping for "${data.functionName}" created successfully`
-      )
+      toast.success(`Mapping for "${data.functionName}" created successfully`)
       await loadMappings()
     } catch (error) {
-      uiStore.notifyError(
-        'Failed to create event source mapping',
-        error instanceof Error ? error.message : 'Unknown error'
-      )
+      toast.error('Failed to create event source mapping: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     } finally {
       creating.value = false
@@ -79,16 +70,13 @@ export function useLambdaEventSourceMapping() {
     deleting.value = true
     try {
       await lambdaApi.deleteEventSourceMapping(uuid)
-      uiStore.notifySuccess('Event source mapping deleted', 'Mapping deleted successfully')
+      toast.success('Mapping deleted successfully')
       if (selectedMapping.value?.UUID === uuid) {
         selectedMapping.value = null
       }
       await loadMappings()
     } catch (error) {
-      uiStore.notifyError(
-        'Failed to delete event source mapping',
-        error instanceof Error ? error.message : 'Unknown error'
-      )
+      toast.error('Failed to delete event source mapping: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     } finally {
       deleting.value = false
@@ -101,10 +89,7 @@ export function useLambdaEventSourceMapping() {
       selectedMapping.value = result
       return result
     } catch (error) {
-      uiStore.notifyError(
-        'Failed to get event source mapping',
-        error instanceof Error ? error.message : 'Unknown error'
-      )
+      toast.error('Failed to get event source mapping: ' + (error instanceof Error ? error.message : 'Unknown error'))
       throw error
     }
   }

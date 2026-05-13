@@ -1,5 +1,5 @@
 import { ref, computed, watch, onMounted } from 'vue'
-import { useUIStore } from '@/stores/ui'
+import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
 import * as ssmApi from '@/api/services/ssm'
 
@@ -25,7 +25,7 @@ export interface SSMParameterHistoryItem {
 }
 
 export function useSSM() {
-  const uiStore = useUIStore()
+  const toast = useToast()
   const { reloadTrigger } = useContentReload()
 
   // State
@@ -87,7 +87,7 @@ export function useSSM() {
       const result = await ssmApi.describeParameters()
       parameters.value = result.Parameters || []
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to load parameters: ${error}`)
+      toast.error(`Failed to load parameters: ${error}`)
     } finally {
       loading.value = false
     }
@@ -107,7 +107,7 @@ export function useSSM() {
         selectedParameter.value.Value = result.Parameter.Value
       }
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to load parameter value: ${error}`)
+      toast.error(`Failed to load parameter value: ${error}`)
     }
   }
 
@@ -122,7 +122,7 @@ export function useSSM() {
       })
       parameterHistory.value = result.Parameters || (result.Parameter ? [result.Parameter] : [])
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to load parameter history: ${error}`)
+      toast.error(`Failed to load parameter history: ${error}`)
     } finally {
       historyLoading.value = false
     }
@@ -130,7 +130,7 @@ export function useSSM() {
 
   async function createParameter() {
     if (!newParamName.value || !newParamValue.value) {
-      uiStore.notifyWarning('Validation', 'Name and value are required')
+      toast.warning('Name and value are required')
       return
     }
 
@@ -143,12 +143,12 @@ export function useSSM() {
         Description: newParamDescription.value,
       })
 
-      uiStore.notifySuccess('Success', `Parameter ${newParamName.value} created successfully`)
+      toast.success(`Parameter ${newParamName.value} created successfully`)
       showCreateModal.value = false
       resetForm()
       await loadParameters()
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to create parameter: ${error}`)
+      toast.error(`Failed to create parameter: ${error}`)
     } finally {
       loading.value = false
     }
@@ -156,7 +156,7 @@ export function useSSM() {
 
   async function updateParameter() {
     if (!selectedParameter.value || !newParamValue.value) {
-      uiStore.notifyWarning('Validation', 'Value is required')
+      toast.warning('Value is required')
       return
     }
 
@@ -169,7 +169,7 @@ export function useSSM() {
         Overwrite: true,
       })
 
-      uiStore.notifySuccess('Success', `Parameter ${selectedParameter.value.Name} updated successfully`)
+      toast.success(`Parameter ${selectedParameter.value.Name} updated successfully`)
       showValueModal.value = false
       newParamValue.value = ''
       await loadParameters()
@@ -180,7 +180,7 @@ export function useSSM() {
         await getParameterValue(updatedParam)
       }
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to update parameter: ${error}`)
+      toast.error(`Failed to update parameter: ${error}`)
     } finally {
       loading.value = false
     }
@@ -192,7 +192,7 @@ export function useSSM() {
     loading.value = true
     try {
       await ssmApi.deleteParameter(parameterToDelete.value.Name)
-      uiStore.notifySuccess('Success', `Parameter ${parameterToDelete.value.Name} deleted successfully`)
+      toast.success(`Parameter ${parameterToDelete.value.Name} deleted successfully`)
 
       if (selectedParameter.value?.Name === parameterToDelete.value.Name) {
         selectedParameter.value = null
@@ -202,7 +202,7 @@ export function useSSM() {
       parameterToDelete.value = null
       await loadParameters()
     } catch (error) {
-      uiStore.notifyError('Error', `Failed to delete parameter: ${error}`)
+      toast.error(`Failed to delete parameter: ${error}`)
     } finally {
       loading.value = false
     }
