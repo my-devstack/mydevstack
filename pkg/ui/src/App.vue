@@ -60,7 +60,7 @@ watch(isDark, (dark) => {
     <!-- Notifications -->
     <NotificationToast />
     <Toast
-      :toast="toast.currentToast"
+      :toast="toast.currentToast.value"
       @dismiss="toast.removeToast"
     />
   </div>

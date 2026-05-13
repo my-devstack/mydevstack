@@ -64,7 +64,7 @@ const subscriptionColumns = computed(() => [
 
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text)
-  toast.success('Copied', 'Copied to clipboard')
+  toast.success('Copied to clipboard')
 }
 
 async function handleCreateTopic(name: string, displayName: string) {

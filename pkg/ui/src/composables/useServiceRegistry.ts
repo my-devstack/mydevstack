@@ -4,6 +4,7 @@ import { listFunctions as fetchLambdaFunctions } from '@/api/services/lambda'
 import { listTables as fetchDynamoDBTables } from '@/api/services/dynamodb'
 import { listQueues as fetchSQSQueues } from '@/api/services/sqs'
 import { listTopics as fetchSNSTopics } from '@/api/services/sns'
+import { listEmailIdentities as fetchSESIdentities } from '@/api/services/ses'
 import { listUsers } from '@/api/services/iam'
 import { describeDBInstances as fetchRDSInstances } from '@/api/services/rds'
 import { getRestApis as fetchAPIGatewayRestApis } from '@/api/services/api-gateway'
@@ -94,6 +95,20 @@ const SERVICE_CONFIGS: ServiceConfig[] = [
     bgColor: SERVICE_COLORS.sns.bg,
     statsFetcher: async () => {
       const result = await fetchSNSTopics()
+      return result.length || 0
+    },
+    enabled: true,
+  },
+  {
+    id: 'ses',
+    name: 'SES Identities',
+    category: 'messaging',
+    icon: 'EnvelopeIcon',
+    route: '/services/ses',
+    color: SERVICE_COLORS.ses.text,
+    bgColor: SERVICE_COLORS.ses.bg,
+    statsFetcher: async () => {
+      const result = await fetchSESIdentities()
       return result.length || 0
     },
     enabled: true,

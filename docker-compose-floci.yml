@@ -43,9 +43,19 @@ services:
       FLOCI_SERVICES_LAMBDA_CODE_PATH:	/app/data/lambda
       FLOCI_SERVICES_DOCKER_NETWORK: mydevstack-network
       FLOCI_SERVICES_LAMBDA_HOT_RELOAD_ENABLED: "true"
+      FLOCI_SERVICES_SES_SMTP_HOST: mailpit
+      FLOCI_SERVICES_SES_SMTP_PORT: 1025
     networks:
       - mydevstack-network
     restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8025:8025"   # Web UI
+      - "1025:1025"   # SMTP
+    networks:
+      - mydevstack-network
   
 networks:
   mydevstack-network:

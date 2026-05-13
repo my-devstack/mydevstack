@@ -112,6 +112,8 @@ func (h *ProxyHandler) ServiceRouter(c *gin.Context) {
 		h.handleElastiCache(c)
 	case "cloudformation":
 		h.handleCloudFormation(c)
+	case "sesv2":
+		h.handleSES(c)
 	default:
 		c.JSON(http.StatusNotFound, gin.H{"error": "Service not supported: " + service})
 	}

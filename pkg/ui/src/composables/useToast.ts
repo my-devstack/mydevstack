@@ -1,4 +1,4 @@
-import { shallowRef, computed } from 'vue'
+import { ref, computed } from 'vue'
 
 type ToastType = 'success' | 'error' | 'warning' | 'info'
 
@@ -10,8 +10,8 @@ interface ToastItem {
 }
 
 // Global toast state
-const toasts = shallowRef<ToastItem[]>([])
-const currentToast = shallowRef<ToastItem | null>(null)
+const toasts = ref<ToastItem[]>([])
+const currentToast = ref<ToastItem | null>(null)
 
 // Generate unique ID
 function generateId(): string {
