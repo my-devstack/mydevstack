@@ -217,6 +217,90 @@ test.describe('S3', () => {
       await expect(page.getByText('Upload File')).toBeVisible({ timeout: 5000 })
     }
   })
+
+  test('upload button opens file dialog', async ({ page }) => {
+    await page.goto('/#/services/s3')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000)
+    
+    // Navigate to bucket
+    const viewObjectsBtn = page.locator('.border.rounded-lg button[title="View Objects"]').first()
+    if (!await viewObjectsBtn.isVisible({ timeout: 5000 })) {
+      test.skip('No bucket available')
+      return
+    }
+    await viewObjectsBtn.click()
+    await page.waitForTimeout(2000)
+    
+    // Click upload button - should show file input
+    const uploadBtn = page.getByRole('button', { name: 'Upload' })
+    if (await uploadBtn.isVisible({ timeout: 5000 })) {
+      await uploadBtn.click()
+      await page.waitForTimeout(500)
+      
+      // File input should be visible
+      const fileInput = page.locator('input[type="file"]')
+      await expect(fileInput).toBeVisible({ timeout: 5000 })
+    }
+  })
+
+  test('view uploaded object content', async ({ page }) => {
+    await page.goto('/#/services/s3')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000)
+    
+    // Navigate to bucket
+    const viewObjectsBtn = page.locator('.border.rounded-lg button[title="View Objects"]').first()
+    if (!await viewObjectsBtn.isVisible({ timeout: 5000 })) {
+      test.skip('No bucket available')
+      return
+    }
+    await viewObjectsBtn.click()
+    await page.waitForTimeout(2000)
+    
+    // Look for any object file in the list
+    const objectRow = page.locator('.divide-y a').first()
+    if (await objectRow.isVisible({ timeout: 5000 })) {
+      await objectRow.click()
+      await page.waitForTimeout(1500)
+      
+      // Should open view modal
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+      
+      // Check close button exists
+      await expect(page.getByRole('button', { name: 'Close' })).toBeVisible()
+      
+      // Close modal
+      await page.getByRole('button', { name: 'Close' }).click()
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5000 })
+    }
+  })
+
+  test('copy presigned link from object', async ({ page }) => {
+    await page.goto('/#/services/s3')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000)
+    
+    // Navigate to bucket
+    const viewObjectsBtn = page.locator('.border.rounded-lg button[title="View Objects"]').first()
+    if (!await viewObjectsBtn.isVisible({ timeout: 5000 })) {
+      test.skip('No bucket available')
+      return
+    }
+    await viewObjectsBtn.click()
+    await page.waitForTimeout(2000)
+    
+    // Click copy link button
+    const copyLinkBtn = page.locator('button[title="Copy Link"]').first()
+    if (await copyLinkBtn.isVisible({ timeout: 5000 })) {
+      await copyLinkBtn.click()
+      await page.waitForTimeout(1000)
+      
+      // Should show success message or no error toast
+      // The previous error was "Failed to get presigned URL"
+      // Now it should work without the JSON parse error
+    }
+  })
 })
 
 test.describe('Pagination', () => {

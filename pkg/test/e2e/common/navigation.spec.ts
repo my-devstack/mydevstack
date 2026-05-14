@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures'
+import { test, expect } from '../fixtures.js'
 
 test('S3 loads', async ({ page }) => {
   await page.goto('/#/services/s3')

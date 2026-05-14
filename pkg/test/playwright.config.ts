@@ -2,10 +2,10 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: false,  // Tests within file run serially
+  fullyParallel: false,
   forbidOnly: false,
   retries: 2,
-  workers: 3,  // Run tests serially in CI to avoid race conditions
+  workers: 3,
   reporter: 'list',
   timeout: 30000,
   expect: {
@@ -22,7 +22,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'cd pkg/ui && npm run dev',
+    command: 'cd ../ui && npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: true,
     timeout: 120000,

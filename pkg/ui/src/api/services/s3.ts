@@ -23,9 +23,15 @@ async function s3Request(action: string, body: object = {}): Promise<any> {
       body: JSON.stringify(body),
     })
 
+    const contentLength = response.headers.get('content-length')
     if (!response.ok) {
       const errorText = await response.text()
       throw new APIError(`S3 ${action} failed: ${errorText}`, response.status, 's3')
+    }
+
+    // Handle empty responses
+    if (contentLength === '0' || response.status === 204) {
+      return {}
     }
 
     return response.json()
