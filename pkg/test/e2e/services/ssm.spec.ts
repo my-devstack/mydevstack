@@ -8,7 +8,7 @@ async function findParameterOnPage(page: any, paramName: string, maxPages = 5): 
       return true
     }
     const nextBtn = page.getByRole('button', { name: 'Next' })
-    if (await nextBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+    if (await nextBtn.isEnabled({ timeout: 1000 }).catch(() => false)) {
       await nextBtn.click()
       await page.waitForTimeout(500)
     } else {

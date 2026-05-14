@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useToast } from '@/composables/useToast'
+import { usePagination } from '@/composables/usePagination'
+import { useSettingsStore } from '@/stores/settings'
 import Modal from '@/components/common/Modal.vue'
 import * as apigateway from '@/api/services/api-gateway'
 import { listFunctions } from '@/api/services/lambda'
@@ -18,6 +20,7 @@ const emit = defineEmits<{
   'get-invoke-url': [api: any]
 }>()
 
+const settingsStore = useSettingsStore()
 const toast = useToast()
 
 const apis = ref<any[]>([])
@@ -44,6 +47,16 @@ const showDeleteModal = ref(false)
 const apiToDelete = ref<any>(null)
 
 const lambdaFunctions = ref<any[]>([])
+
+// Pagination
+const {
+  currentPage: restApiPage,
+  itemsPerPage: restApisPerPage,
+  totalPages: totalRestApiPages,
+  paginatedItems: paginatedRestApis,
+  goToPage: goToRestApiPage,
+  perPageOptions,
+} = usePagination(apis, { defaultPerPage: 10 })
 
 onMounted(async () => {
   await loadApis()
@@ -308,7 +321,7 @@ defineExpose({
 
 <template>
   <APIGatewayRestApisList
-    :apis="apis"
+    :apis="paginatedRestApis"
     :resources="resources"
     :loading-resources="false"
     :expanded-apis="expandedApis"
@@ -334,6 +347,42 @@ defineExpose({
     @create-stage="handleCreateStage"
     @delete-stage="confirmDeleteStage"
   />
+
+  <!-- Pagination -->
+  <div
+    v-if="apis.length > 0"
+    class="flex flex-wrap items-center justify-between gap-4 py-4"
+  >
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+      <select
+        v-model="restApisPerPage"
+        class="text-sm border rounded px-2 py-1"
+        :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+      >
+        <option v-for="opt in perPageOptions" :key="opt" :value="opt">{{ opt }}</option>
+      </select>
+      <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+    </div>
+
+    <div v-if="totalRestApiPages > 1" class="flex items-center gap-2">
+      <button
+        class="px-3 py-1 rounded border disabled:opacity-50"
+        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+        :disabled="restApiPage === 1"
+        @click="goToRestApiPage(restApiPage - 1)"
+      >Previous</button>
+      <span class="text-sm" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">
+        Page {{ restApiPage }} of {{ totalRestApiPages }}
+      </span>
+      <button
+        class="px-3 py-1 rounded border disabled:opacity-50"
+        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+        :disabled="restApiPage === totalRestApiPages"
+        @click="goToRestApiPage(restApiPage + 1)"
+      >Next</button>
+    </div>
+  </div>
 
   <!-- Resource Modal -->
   <APIGatewayResourceModal

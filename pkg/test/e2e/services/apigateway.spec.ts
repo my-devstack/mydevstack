@@ -1,5 +1,14 @@
 import { test, expect } from '../fixtures.js'
 
+async function showAllItems(page: any) {
+  const showLabel = page.getByText('Show:')
+  if (await showLabel.isVisible({ timeout: 2000 }).catch(() => false)) {
+    const perPageSelect = showLabel.locator('..').locator('select')
+    await perPageSelect.selectOption('50')
+    await page.waitForTimeout(300)
+  }
+}
+
 // Helper function to create a REST API
 async function createRestApi(page: any, name: string, description?: string) {
   await page.goto('/#/services/api-gateway')
@@ -36,6 +45,7 @@ async function createRestApi(page: any, name: string, description?: string) {
     // Try one more time with longer timeout
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
   }
+  await showAllItems(page)
 }
 
 // Helper function to create an HTTP API
@@ -69,17 +79,18 @@ async function createHttpApi(page: any, name: string, description?: string) {
     }
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
   }
+  await showAllItems(page)
 }
 
 test.describe('API Gateway', () => {
   test('navigate to service', async ({ page }) => {
-    await page.goto('http://localhost:3000/#/services/api-gateway')
+    await page.goto('/#/services/api-gateway')
     await page.waitForLoadState('networkidle')
     await expect(page.locator('h1').first()).toContainText('API Gateway', { timeout: 10000 })
   })
 
   test('navigate to REST APIs tab', async ({ page }) => {
-    await page.goto('http://localhost:3000/#/services/api-gateway')
+    await page.goto('/#/services/api-gateway')
     await page.waitForLoadState('networkidle')
 
 // Click REST APIs tab
@@ -90,7 +101,7 @@ test.describe('API Gateway', () => {
   })
 
   test('navigate to HTTP APIs tab', async ({ page }) => {
-    await page.goto('http://localhost:3000/#/services/api-gateway')
+    await page.goto('/#/services/api-gateway')
     await page.waitForLoadState('networkidle')
 
 // Click HTTP APIs tab
@@ -146,7 +157,7 @@ test.describe('API Gateway', () => {
     await page.waitForTimeout(3000)
 
     // Verify API appears in list - wait for list to populate
-    await expect(page.locator('div').filter({ hasText: apiName }).first()).toBeVisible({ timeout: 25000 })
+    await expect(page.locator('div').filter({ hasText: apiName }).first()).toBeVisible({ timeout: 15000 })
   })
 
   test('create HTTP API and verify in list', async ({ page }) => {
@@ -160,7 +171,7 @@ test.describe('API Gateway', () => {
   })
 
   test('open create REST API modal', async ({ page }) => {
-    await page.goto('http://localhost:3000/#/services/api-gateway')
+    await page.goto('/#/services/api-gateway')
     await page.waitForLoadState('networkidle')
 
     // Click create button
@@ -180,7 +191,7 @@ test.describe('API Gateway', () => {
   })
 
   test('open create HTTP API modal', async ({ page }) => {
-    await page.goto('http://localhost:3000/#/services/api-gateway')
+    await page.goto('/#/services/api-gateway')
     await page.waitForLoadState('networkidle')
 
     // Switch to HTTP APIs tab
@@ -234,23 +245,40 @@ test.describe('API Gateway', () => {
     }
   })
 
-test('tabs switch correctly between REST and HTTP', async ({ page }) => {
-  await page.goto('http://localhost:3000/#/services/api-gateway')
-  await page.waitForLoadState('networkidle')
+  test('tabs switch correctly between REST and HTTP', async ({ page }) => {
+    await page.goto('/#/services/api-gateway')
+    await page.waitForLoadState('networkidle')
 
-  // Default is REST APIs - verify create button says "REST API"
-  await expect(page.getByRole('button', { name: 'Create REST API' }).first()).toBeVisible()
+    // Default is REST APIs - verify create button says "REST API"
+    await expect(page.getByRole('button', { name: 'Create REST API' }).first()).toBeVisible()
 
-  // Switch to HTTP APIs
-  await page.getByRole('tab', { name: 'HTTP APIs' }).click()
+    // Switch to HTTP APIs
+    await page.getByRole('tab', { name: 'HTTP APIs' }).click()
 
-  // Verify create button changes to "HTTP API"
-  await expect(page.getByRole('button', { name: 'Create HTTP API' }).first()).toBeVisible()
+    // Verify create button changes to "HTTP API"
+    await expect(page.getByRole('button', { name: 'Create HTTP API' }).first()).toBeVisible()
 
-  // Switch back to REST
-  await page.getByRole('tab', { name: 'REST APIs' }).click()
+    // Switch back to REST
+    await page.getByRole('tab', { name: 'REST APIs' }).click()
 
-  // Verify create button changes back
-  await expect(page.getByRole('button', { name: 'Create REST API' }).first()).toBeVisible()
-})
+    // Verify create button changes back
+    await expect(page.getByRole('button', { name: 'Create REST API' }).first()).toBeVisible()
+  })
+
+  test.describe('API Gateway - Pagination', () => {
+    test('show per-page selector on REST APIs tab', async ({ page }) => {
+      await page.goto('/#/services/api-gateway')
+      await page.waitForLoadState('networkidle')
+      await expect(page.getByText('Show:').first()).toBeVisible()
+      await expect(page.getByText('per page').first()).toBeVisible()
+    })
+
+    test('show per-page selector on HTTP APIs tab', async ({ page }) => {
+      await page.goto('/#/services/api-gateway')
+      await page.waitForLoadState('networkidle')
+      await page.getByRole('tab', { name: 'HTTP APIs' }).click()
+      await expect(page.getByText('Show:').first()).toBeVisible()
+      await expect(page.getByText('per page').first()).toBeVisible()
+    })
+  })
 })

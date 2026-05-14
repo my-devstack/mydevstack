@@ -8,7 +8,7 @@ async function findSecretOnPage(page: any, secretName: string, maxPages = 5): Pr
       return true
     }
     const nextBtn = page.getByRole('button', { name: 'Next' })
-    if (await nextBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+    if (await nextBtn.isEnabled({ timeout: 1000 }).catch(() => false)) {
       await nextBtn.click()
       await page.waitForTimeout(500)
     } else {
