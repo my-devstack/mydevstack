@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
+	"github.com/aws/aws-sdk-go-v2/service/opensearch"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -318,6 +319,20 @@ type CloudFormationClientPort interface {
 	DescribeStacks(ctx context.Context, input *cloudformation.DescribeStacksInput, opts ...func(*cloudformation.Options)) (*cloudformation.DescribeStacksOutput, error)
 	GetTemplate(ctx context.Context, input *cloudformation.GetTemplateInput, opts ...func(*cloudformation.Options)) (*cloudformation.GetTemplateOutput, error)
 	ListStackResources(ctx context.Context, input *cloudformation.ListStackResourcesInput, opts ...func(*cloudformation.Options)) (*cloudformation.ListStackResourcesOutput, error)
+}
+
+// OpenSearchClientPort defines the interface for the AWS OpenSearch client
+type OpenSearchClientPort interface {
+	ListDomainNames(ctx context.Context, input *opensearch.ListDomainNamesInput, opts ...func(*opensearch.Options)) (*opensearch.ListDomainNamesOutput, error)
+	DescribeDomain(ctx context.Context, input *opensearch.DescribeDomainInput, opts ...func(*opensearch.Options)) (*opensearch.DescribeDomainOutput, error)
+	CreateDomain(ctx context.Context, input *opensearch.CreateDomainInput, opts ...func(*opensearch.Options)) (*opensearch.CreateDomainOutput, error)
+	DeleteDomain(ctx context.Context, input *opensearch.DeleteDomainInput, opts ...func(*opensearch.Options)) (*opensearch.DeleteDomainOutput, error)
+	UpdateDomainConfig(ctx context.Context, input *opensearch.UpdateDomainConfigInput, opts ...func(*opensearch.Options)) (*opensearch.UpdateDomainConfigOutput, error)
+	DescribeDomainConfig(ctx context.Context, input *opensearch.DescribeDomainConfigInput, opts ...func(*opensearch.Options)) (*opensearch.DescribeDomainConfigOutput, error)
+	ListTags(ctx context.Context, input *opensearch.ListTagsInput, opts ...func(*opensearch.Options)) (*opensearch.ListTagsOutput, error)
+	AddTags(ctx context.Context, input *opensearch.AddTagsInput, opts ...func(*opensearch.Options)) (*opensearch.AddTagsOutput, error)
+	RemoveTags(ctx context.Context, input *opensearch.RemoveTagsInput, opts ...func(*opensearch.Options)) (*opensearch.RemoveTagsOutput, error)
+	GetCompatibleVersions(ctx context.Context, input *opensearch.GetCompatibleVersionsInput, opts ...func(*opensearch.Options)) (*opensearch.GetCompatibleVersionsOutput, error)
 }
 
 // SFNClientPort defines the interface for the AWS Step Functions client

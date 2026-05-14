@@ -32,6 +32,7 @@ export const SERVICE_COLORS: Record<string, { text: string; bg: string }> = {
   kms: { text: 'text-amber-500', bg: 'bg-amber-500' },
   secretsmanager: { text: 'text-rose-500', bg: 'bg-rose-500' },
   elasticache: { text: 'text-violet-500', bg: 'bg-violet-500' },
+  opensearch: { text: 'text-indigo-400', bg: 'bg-indigo-400' },
   ssm: { text: 'text-slate-500', bg: 'bg-slate-500' },
   ses: { text: 'text-green-600', bg: 'bg-green-600' },
 }

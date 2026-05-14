@@ -12,6 +12,7 @@ import { listStreams as fetchKinesisStreams } from '@/api/services/kinesis'
 import { listKeys as fetchKMSKeys } from '@/api/services/kms'
 import { listSecrets as fetchSecrets } from '@/api/services/secrets-manager'
 import { describeReplicationGroups as fetchElastiCacheGroups } from '@/api/services/elasticache'
+import { listDomainNames as fetchOpenSearchDomains } from '@/api/services/opensearch'
 import { describeParameters as fetchSSMParameters } from '@/api/services/ssm'
 import type { ServiceCategory } from '@/types/services'
 import { SERVICE_COLORS, type ServiceStats, type ServiceStatus, determineStatus } from '@/types/serviceRegistry'
@@ -218,6 +219,20 @@ const SERVICE_CONFIGS: ServiceConfig[] = [
     bgColor: SERVICE_COLORS.elasticache.bg,
     statsFetcher: async () => {
       const result = await fetchElastiCacheGroups()
+      return result.length
+    },
+    enabled: true,
+  },
+  {
+    id: 'opensearch',
+    name: 'OpenSearch Domains',
+    category: 'analytics',
+    icon: 'MagnifyingGlassIcon',
+    route: '/services/opensearch',
+    color: SERVICE_COLORS.opensearch.text,
+    bgColor: SERVICE_COLORS.opensearch.bg,
+    statsFetcher: async () => {
+      const result = await fetchOpenSearchDomains()
       return result.length
     },
     enabled: true,

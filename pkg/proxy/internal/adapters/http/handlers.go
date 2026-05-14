@@ -110,6 +110,8 @@ func (h *ProxyHandler) ServiceRouter(c *gin.Context) {
 		h.handleRDS(c)
 	case "elasticache":
 		h.handleElastiCache(c)
+	case "opensearch":
+		h.handleOpenSearch(c)
 	case "cloudformation":
 		h.handleCloudFormation(c)
 	case "sesv2":

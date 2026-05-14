@@ -119,6 +119,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/services/StepFunctions.vue'),
     meta: { title: 'Step Functions', service: 'stepfunctions' },
   },
+  // OpenSearch
+  {
+    path: '/services/opensearch',
+    name: 'OpenSearch',
+    component: () => import('@/views/services/OpenSearch.vue'),
+    meta: { title: 'OpenSearch', service: 'opensearch' },
+  },
   // SES
   {
     path: '/services/ses',
