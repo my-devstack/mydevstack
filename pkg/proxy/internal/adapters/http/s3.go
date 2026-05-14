@@ -25,6 +25,10 @@ func (h *ProxyHandler) handleS3(c *gin.Context) {
 		h.listBuckets(ctx, c)
 	case strings.Contains(xAmzTarget, "ListObjectsV2"):
 		h.listObjectsV2(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "PresignGetObject"):
+		h.presignGetObject(ctx, c, bodyBytes)
+	case strings.Contains(xAmzTarget, "PresignPutObject"):
+		h.presignPutObject(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "GetObject"):
 		h.getObject(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "PutObject"):
@@ -45,10 +49,6 @@ func (h *ProxyHandler) handleS3(c *gin.Context) {
 		h.getBucketEncryption(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "GetBucketTagging"):
 		h.getBucketTagging(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "PresignGetObject"):
-		h.presignGetObject(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "PresignPutObject"):
-		h.presignPutObject(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "PutBucketPolicy"):
 		h.putBucketPolicy(ctx, c, bodyBytes)
 	case strings.Contains(xAmzTarget, "PutBucketVersioning"):

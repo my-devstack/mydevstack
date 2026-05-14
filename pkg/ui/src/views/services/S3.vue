@@ -118,12 +118,10 @@ async function uploadFile(event: Event) {
   try {
     const arrayBuffer = await file.arrayBuffer()
     const uint8Array = new Uint8Array(arrayBuffer)
-    // Convert Uint8Array to string for uploadObject (it expects string body)
-    const bodyStr = new TextDecoder().decode(uint8Array)
     await uploadObject(
       selectedBucket.value,
       file.name,
-      bodyStr,
+      uint8Array,
       file.type || 'application/octet-stream'
     )
   } catch (e: any) {

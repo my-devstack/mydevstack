@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures'
+import { test, expect } from '../fixtures.js'
 
 // Helper to find topic on any page (handles pagination, 15 per page)
 async function findTopicOnPage(page: any, topicName: string, maxPages = 5): Promise<boolean> {
