@@ -1,12 +1,21 @@
 import { test, expect } from '../fixtures.js'
 
-test.setTimeout(120000)
+async function showAllItems(page: any) {
+  // Set per-page to 50 so all items visible on one page
+  const showLabel = page.getByText('Show:')
+  if (await showLabel.isVisible({ timeout: 2000 }).catch(() => false)) {
+    const perPageSelect = showLabel.locator('..').locator('select')
+    await perPageSelect.selectOption('50')
+    await page.waitForTimeout(300)
+  }
+}
 
 async function switchTab(page: any, tabName: string) {
   await page.goto('/#/services/iam')
   await page.waitForLoadState('networkidle')
   await page.getByRole('tab', { name: tabName }).click()
   await expect(page.getByRole('tab', { name: tabName })).toBeVisible()
+  await showAllItems(page)
 }
 
 async function createUser(page: any, userName: string) {
@@ -17,7 +26,8 @@ async function createUser(page: any, userName: string) {
   await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
   await page.getByPlaceholder('username').fill(userName)
   await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
-  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 30000 })
+  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+  await showAllItems(page)
 }
 
 async function createRole(page: any, roleName: string) {
@@ -31,7 +41,8 @@ async function createRole(page: any, roleName: string) {
     Statement: [{ Effect: 'Allow', Principal: { Service: 'ec2.amazonaws.com' }, Action: 'sts:AssumeRole' }]
   }))
   await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
-  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 30000 })
+  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+  await showAllItems(page)
 }
 
 async function createGroup(page: any, groupName: string) {
@@ -41,7 +52,8 @@ async function createGroup(page: any, groupName: string) {
   await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
   await page.getByPlaceholder('my-group').fill(groupName)
   await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
-  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 30000 })
+  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+  await showAllItems(page)
 }
 
 async function createPolicy(page: any, policyName: string) {
@@ -56,14 +68,15 @@ async function createPolicy(page: any, policyName: string) {
     Statement: [{ Effect: 'Allow', Action: ['s3:GetObject'], Resource: '*' }]
   }))
   await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
-  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 30000 })
+  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+  await showAllItems(page)
 }
 
 test.describe('IAM - Users', () => {
   test('create user and verify in list', async ({ page }) => {
     const userName = 'test-user-' + Date.now()
     await createUser(page, userName)
-    await expect(page.getByText(userName).first()).toBeVisible({ timeout: 30000 })
+    await expect(page.getByText(userName).first()).toBeVisible({ timeout: 15000 })
   })
 
   test('delete user', async ({ page }) => {
@@ -73,7 +86,7 @@ test.describe('IAM - Users', () => {
     await userRow.locator('button').first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
-    await expect(page.getByText(userName).first()).not.toBeVisible({ timeout: 30000 })
+    await expect(page.getByText(userName).first()).not.toBeVisible({ timeout: 15000 })
   })
 
   test('expand user row and see access keys section', async ({ page }) => {
@@ -98,7 +111,7 @@ test.describe('IAM - Roles', () => {
   test('create role and verify in list', async ({ page }) => {
     const roleName = 'test-role-' + Date.now()
     await createRole(page, roleName)
-    await expect(page.getByText(roleName).first()).toBeVisible({ timeout: 30000 })
+    await expect(page.getByText(roleName).first()).toBeVisible({ timeout: 15000 })
   })
 
   test('delete role', async ({ page }) => {
@@ -108,7 +121,7 @@ test.describe('IAM - Roles', () => {
     await roleRow.locator('button').first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
-    await expect(page.getByText(roleName).first()).not.toBeVisible({ timeout: 30000 })
+    await expect(page.getByText(roleName).first()).not.toBeVisible({ timeout: 15000 })
   })
 
   test('expand role row and see attach policy button', async ({ page }) => {
@@ -133,18 +146,18 @@ test.describe('IAM - Policies', () => {
   test('create policy and verify in list', async ({ page }) => {
     const policyName = 'test-policy-' + Date.now()
     await createPolicy(page, policyName)
-    await expect(page.getByText(policyName).first()).toBeVisible({ timeout: 30000 })
+    await expect(page.getByText(policyName).first()).toBeVisible({ timeout: 15000 })
   })
 
   test('delete policy', async ({ page }) => {
     const policyName = 'test-policy-del-' + Date.now()
     await createPolicy(page, policyName)
-    await expect(page.getByText(policyName).first()).toBeVisible({ timeout: 30000 })
+    await expect(page.getByText(policyName).first()).toBeVisible({ timeout: 15000 })
     const policyRow = page.locator('.rounded-lg').filter({ hasText: policyName }).first()
     await policyRow.locator('button').first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
-    await expect(page.getByText(policyName).first()).not.toBeVisible({ timeout: 30000 })
+    await expect(page.getByText(policyName).first()).not.toBeVisible({ timeout: 15000 })
   })
 
   test('expand policy row', async ({ page }) => {
@@ -160,7 +173,7 @@ test.describe('IAM - Groups', () => {
   test('create group and verify in list', async ({ page }) => {
     const groupName = 'test-group-' + Date.now()
     await createGroup(page, groupName)
-    await expect(page.getByText(groupName).first()).toBeVisible({ timeout: 30000 })
+    await expect(page.getByText(groupName).first()).toBeVisible({ timeout: 15000 })
   })
 
   test('delete group', async ({ page }) => {
@@ -170,7 +183,7 @@ test.describe('IAM - Groups', () => {
     await groupRow.locator('button').first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
-    await expect(page.getByText(groupName).first()).not.toBeVisible({ timeout: 30000 })
+    await expect(page.getByText(groupName).first()).not.toBeVisible({ timeout: 15000 })
   })
 
   test('expand group row and see add user button', async ({ page }) => {
@@ -225,5 +238,38 @@ test.describe('IAM - Navigation', () => {
     await page.goto('/#/services/iam')
     await page.waitForLoadState('networkidle')
     await expect(page.getByRole('button', { name: 'Create User' }).first()).toBeVisible({ timeout: 10000 })
+  })
+})
+
+test.describe('IAM - Pagination', () => {
+  test('show per-page selector on users tab', async ({ page }) => {
+    await page.goto('/#/services/iam')
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText('Show:').first()).toBeVisible()
+    await expect(page.getByText('per page').first()).toBeVisible()
+  })
+
+  test('show per-page selector on roles tab', async ({ page }) => {
+    await page.goto('/#/services/iam')
+    await page.waitForLoadState('networkidle')
+    await page.getByRole('tab', { name: 'Roles' }).click()
+    await expect(page.getByText('Show:').first()).toBeVisible()
+    await expect(page.getByText('per page').first()).toBeVisible()
+  })
+
+  test('show per-page selector on policies tab', async ({ page }) => {
+    await page.goto('/#/services/iam')
+    await page.waitForLoadState('networkidle')
+    await page.getByRole('tab', { name: 'Policies' }).click()
+    await expect(page.getByText('Show:').first()).toBeVisible()
+    await expect(page.getByText('per page').first()).toBeVisible()
+  })
+
+  test('show per-page selector on groups tab', async ({ page }) => {
+    await page.goto('/#/services/iam')
+    await page.waitForLoadState('networkidle')
+    await page.getByRole('tab', { name: 'Groups' }).click()
+    await expect(page.getByText('Show:').first()).toBeVisible()
+    await expect(page.getByText('per page').first()).toBeVisible()
   })
 })

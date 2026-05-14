@@ -1,6 +1,21 @@
 import { test, expect } from '../fixtures.js'
 
-test.setTimeout(60000)
+async function findStateMachineOnPage(page: any, machineName: string, maxPages = 5): Promise<boolean> {
+  for (let i = 0; i < maxPages; i++) {
+    const item = page.getByText(machineName, { exact: true })
+    if (await item.isVisible({ timeout: 2000 }).catch(() => false)) {
+      return true
+    }
+    const nextBtn = page.getByRole('button', { name: 'Next' })
+    if (await nextBtn.isEnabled({ timeout: 1000 }).catch(() => false)) {
+      await nextBtn.click()
+      await page.waitForTimeout(500)
+    } else {
+      break
+    }
+  }
+  return false
+}
 
 async function createStateMachine(page: any, machineName: string) {
   await page.goto('/#/services/step-functions')
@@ -12,7 +27,7 @@ async function createStateMachine(page: any, machineName: string) {
   await page.getByLabel('Role ARN').fill('arn:aws:iam::123456789012:role/test-role')
   await page.getByLabel('Definition').fill('{"StartAt": "HelloWorld", "States": {"HelloWorld": {"Type": "Pass", "End": true}}}')
   await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
-  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 30000 })
+  await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 }
 
 test.describe('Step Functions', () => {
@@ -31,7 +46,8 @@ test.describe('Step Functions', () => {
   test('create state machine and verify in list', async ({ page }) => {
     const machineName = 'test-machine-create-' + Date.now()
     await createStateMachine(page, machineName)
-    await expect(page.getByText(machineName).first()).toBeVisible({ timeout: 30000 })
+    const found = await findStateMachineOnPage(page, machineName)
+    expect(found).toBe(true)
   })
 
   test('delete state machine', async ({ page }) => {
@@ -39,19 +55,22 @@ test.describe('Step Functions', () => {
     await createStateMachine(page, machineName)
     // Wait for page to settle after creation
     await page.waitForLoadState('networkidle')
-    await expect(page.getByText(machineName).first()).toBeVisible({ timeout: 30000 })
+    const found = await findStateMachineOnPage(page, machineName)
+    expect(found).toBe(true)
     // Use more specific selector: find div with both 'border' and 'rounded-lg' classes
     const machineRow = page.locator('div.border.rounded-lg').filter({ hasText: machineName }).first()
     await machineRow.locator('[aria-label="Delete"]').click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
-    await expect(page.getByText(machineName).first()).not.toBeVisible({ timeout: 30000 })
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText(machineName).first()).not.toBeVisible({ timeout: 15000 })
   })
 
   test('accordion expands and shows details', async ({ page }) => {
     const machineName = 'test-machine-acc-' + Date.now()
     await createStateMachine(page, machineName)
-    await expect(page.getByText(machineName).first()).toBeVisible({ timeout: 30000 })
+    const found = await findStateMachineOnPage(page, machineName)
+    expect(found).toBe(true)
     // Click the machine name text to expand accordion
     await page.getByText(machineName).first().click()
     await expect(page.getByText('ARN:').first()).toBeVisible({ timeout: 5000 })
@@ -60,7 +79,8 @@ test.describe('Step Functions', () => {
   test('back button returns to list view', async ({ page }) => {
     const machineName = 'test-machine-back-' + Date.now()
     await createStateMachine(page, machineName)
-    await expect(page.getByText(machineName).first()).toBeVisible({ timeout: 30000 })
+    const found = await findStateMachineOnPage(page, machineName)
+    expect(found).toBe(true)
     // Click View Detail to go to detail view
     await page.getByRole('button', { name: 'View Detail' }).first().click()
     await expect(page.getByRole('button', { name: /back to state machines/i }).first()).toBeVisible({ timeout: 10000 })
@@ -72,7 +92,8 @@ test.describe('Step Functions', () => {
   test('view detail shows full state machine info', async ({ page }) => {
     const machineName = 'test-machine-detail-' + Date.now()
     await createStateMachine(page, machineName)
-    await expect(page.getByText(machineName).first()).toBeVisible({ timeout: 30000 })
+    const found = await findStateMachineOnPage(page, machineName)
+    expect(found).toBe(true)
     // Click View Detail
     await page.getByRole('button', { name: 'View Detail' }).first().click()
     await expect(page.getByText(/arn/i).first()).toBeVisible({ timeout: 10000 })
@@ -82,7 +103,8 @@ test.describe('Step Functions', () => {
   test('detail view shows executions section', async ({ page }) => {
     const machineName = 'test-machine-execs-' + Date.now()
     await createStateMachine(page, machineName)
-    await expect(page.getByText(machineName).first()).toBeVisible({ timeout: 30000 })
+    const found = await findStateMachineOnPage(page, machineName)
+    expect(found).toBe(true)
     // Click View Detail to go to detail view
     await page.getByRole('button', { name: 'View Detail' }).first().click()
     await expect(page.locator('h2', { hasText: 'Executions' })).toBeVisible({ timeout: 10000 })
@@ -117,8 +139,14 @@ test.describe('Step Functions', () => {
   test('pagination shows previous/next buttons when enough state machines', async ({ page }) => {
     const machineName = 'test-machine-page-' + Date.now()
     await createStateMachine(page, machineName)
-    await expect(page.getByText(machineName).first()).toBeVisible({ timeout: 30000 })
-    // Check if pagination is visible (need > 15 items to trigger)
+    // Ensure on page 1 by setting per-page to 5
+    const showLabel = page.getByText('Show:')
+    if (await showLabel.isVisible({ timeout: 2000 }).catch(() => false)) {
+      const perPageSelect = showLabel.locator('..').locator('select')
+      await perPageSelect.selectOption('5')
+      await page.waitForTimeout(300)
+    }
+    // Check if pagination is visible (need > 5 items to trigger)
     const pagination = page.locator('text=/Page \\d+ of \\d+/').first()
     if (await pagination.isVisible({ timeout: 3000 }).catch(() => false)) {
       const prevBtn = page.getByRole('button', { name: 'Previous' })
@@ -137,7 +165,8 @@ test.describe('Step Functions', () => {
   test('view execution shows status, dates, input, output', async ({ page }) => {
     const machineName = 'test-machine-view-exec-' + Date.now()
     await createStateMachine(page, machineName)
-    await expect(page.getByText(machineName).first()).toBeVisible({ timeout: 30000 })
+    const found = await findStateMachineOnPage(page, machineName)
+    expect(found).toBe(true)
     // Click View Detail to go to detail view
     await page.getByRole('button', { name: 'View Detail' }).first().click()
     await page.waitForLoadState('networkidle')

@@ -1,6 +1,6 @@
 # MyDevStack
 
-<img src="pkg/ui/public/logo.svg" alt="MyDevStack Logo" width="128" align="center" />
+<img src="./logo.svg" alt="MyDevStack Logo" width="128" align="center" />
 
 A modern, developer-friendly web interface for managing AWS services running locally via AWS emulators like LocalStack, FloCi, or MiniStack.
 

@@ -1,5 +1,22 @@
 import { test, expect } from '../fixtures.js'
 
+async function findKeyOnPage(page: any, keyDescription: string, maxPages = 5): Promise<boolean> {
+  for (let i = 0; i < maxPages; i++) {
+    const key = page.getByText(keyDescription, { exact: true })
+    if (await key.isVisible({ timeout: 2000 }).catch(() => false)) {
+      return true
+    }
+    const nextBtn = page.getByRole('button', { name: 'Next' })
+    if (await nextBtn.isEnabled({ timeout: 1000 }).catch(() => false)) {
+      await nextBtn.click()
+      await page.waitForTimeout(500)
+    } else {
+      break
+    }
+  }
+  return false
+}
+
 // Helper function to create a KMS key
 async function createKey(page: any, description: string) {
   await page.goto('/#/services/kms')
@@ -28,7 +45,7 @@ test.describe('KMS', () => {
 
     await createKey(page, keyDescription)
 
-    // Verify key appears in list (pagination-safe: new key always on page 1)
+    // Key descriptions not visible in list view, verify any key card exists
     await expect(page.locator('div.border.rounded-lg').first()).toBeVisible({ timeout: 15000 })
   })
 

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useToast } from '@/composables/useToast'
+import { usePagination } from '@/composables/usePagination'
+import { useSettingsStore } from '@/stores/settings'
 import * as apigateway from '@/api/services/api-gateway'
 import * as lambda from '@/api/services/lambda'
 
@@ -20,6 +22,7 @@ const emit = defineEmits<{
   'edit-api': [api: any]
 }>()
 
+const settingsStore = useSettingsStore()
 const toast = useToast()
 
 const loading = ref(false)
@@ -32,6 +35,16 @@ const expandedApis = ref<Set<string>>(new Set())
 
 const lambdaFunctions = ref<any[]>([])
 const lambdaLoading = ref(false)
+
+// Pagination
+const {
+  currentPage: httpApiPage,
+  itemsPerPage: httpApisPerPage,
+  totalPages: totalHttpApiPages,
+  paginatedItems: paginatedHttpApis,
+  goToPage: goToHttpApiPage,
+  perPageOptions,
+} = usePagination(apis, { defaultPerPage: 10 })
 
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
@@ -294,7 +307,7 @@ defineExpose({
 
 <template>
   <APIGatewayHttpApisList
-    :apis="apis"
+    :apis="paginatedHttpApis"
     :loading="loading"
     :expanded-apis="expandedApis"
     :stages="stages"
@@ -316,6 +329,42 @@ defineExpose({
     @edit-stage="handleEditStage"
     @delete-stage="handleDeleteStage"
   />
+
+  <!-- Pagination -->
+  <div
+    v-if="apis.length > 0"
+    class="flex flex-wrap items-center justify-between gap-4 py-4"
+  >
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+      <select
+        v-model="httpApisPerPage"
+        class="text-sm border rounded px-2 py-1"
+        :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+      >
+        <option v-for="opt in perPageOptions" :key="opt" :value="opt">{{ opt }}</option>
+      </select>
+      <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+    </div>
+
+    <div v-if="totalHttpApiPages > 1" class="flex items-center gap-2">
+      <button
+        class="px-3 py-1 rounded border disabled:opacity-50"
+        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+        :disabled="httpApiPage === 1"
+        @click="goToHttpApiPage(httpApiPage - 1)"
+      >Previous</button>
+      <span class="text-sm" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">
+        Page {{ httpApiPage }} of {{ totalHttpApiPages }}
+      </span>
+      <button
+        class="px-3 py-1 rounded border disabled:opacity-50"
+        :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
+        :disabled="httpApiPage === totalHttpApiPages"
+        @click="goToHttpApiPage(httpApiPage + 1)"
+      >Next</button>
+    </div>
+  </div>
 
   <APIGatewayIntegrationModal
     v-if="showIntegrationModal"

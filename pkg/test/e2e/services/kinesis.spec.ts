@@ -9,7 +9,7 @@ async function findStreamOnPage(page: any, streamName: string, maxPages = 5): Pr
     }
     // Try clicking Next button if available
     const nextBtn = page.getByRole('button', { name: 'Next' })
-    if (await nextBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+    if (await nextBtn.isEnabled({ timeout: 1000 }).catch(() => false)) {
       await nextBtn.click()
       await page.waitForTimeout(500)
     } else {
