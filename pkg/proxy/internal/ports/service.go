@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/opensearch"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
@@ -44,6 +45,7 @@ type ProxyService interface {
 	Kinesis() KinesisPort
 	RDS() RDSPort
 	ElastiCache() ElastiCachePort
+	OpenSearch() OpenSearchPort
 	CloudFormation() CloudFormationPort
 	Config() *configloader.Config
 	Region() string
@@ -327,6 +329,19 @@ type ElastiCachePort interface {
 	DescribeReplicationGroups(ctx context.Context, input *elasticache.DescribeReplicationGroupsInput) (*elasticache.DescribeReplicationGroupsOutput, error)
 	CreateReplicationGroup(ctx context.Context, input *elasticache.CreateReplicationGroupInput) (*elasticache.CreateReplicationGroupOutput, error)
 	DeleteReplicationGroup(ctx context.Context, input *elasticache.DeleteReplicationGroupInput) (*elasticache.DeleteReplicationGroupOutput, error)
+}
+
+type OpenSearchPort interface {
+	ListDomainNames(ctx context.Context, input *opensearch.ListDomainNamesInput) (*opensearch.ListDomainNamesOutput, error)
+	DescribeDomain(ctx context.Context, input *opensearch.DescribeDomainInput) (*opensearch.DescribeDomainOutput, error)
+	CreateDomain(ctx context.Context, input *opensearch.CreateDomainInput) (*opensearch.CreateDomainOutput, error)
+	DeleteDomain(ctx context.Context, input *opensearch.DeleteDomainInput) (*opensearch.DeleteDomainOutput, error)
+	UpdateDomainConfig(ctx context.Context, input *opensearch.UpdateDomainConfigInput) (*opensearch.UpdateDomainConfigOutput, error)
+	DescribeDomainConfig(ctx context.Context, input *opensearch.DescribeDomainConfigInput) (*opensearch.DescribeDomainConfigOutput, error)
+	ListTags(ctx context.Context, input *opensearch.ListTagsInput) (*opensearch.ListTagsOutput, error)
+	AddTags(ctx context.Context, input *opensearch.AddTagsInput) (*opensearch.AddTagsOutput, error)
+	RemoveTags(ctx context.Context, input *opensearch.RemoveTagsInput) (*opensearch.RemoveTagsOutput, error)
+	GetCompatibleVersions(ctx context.Context, input *opensearch.GetCompatibleVersionsInput) (*opensearch.GetCompatibleVersionsOutput, error)
 }
 
 type CloudFormationPort interface {

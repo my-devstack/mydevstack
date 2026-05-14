@@ -234,6 +234,16 @@ export {
   getExecutionHistory,
 } from './stepfunctions'
 
+// OpenSearch Service
+export {
+  openSearchService,
+  listDomainNames,
+  describeDomain,
+  createDomain,
+  deleteDomain,
+  OpenSearchService,
+} from './opensearch'
+
 // Re-export APIError for convenience
 export { APIError } from '../client'
 

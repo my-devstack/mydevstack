@@ -543,6 +543,52 @@ func (_c *ProxyService_Lambda_Call) RunAndReturn(run func() ports.LambdaPort) *P
 	return _c
 }
 
+// OpenSearch provides a mock function for the type ProxyService
+func (_mock *ProxyService) OpenSearch() ports.OpenSearchPort {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for OpenSearch")
+	}
+
+	var r0 ports.OpenSearchPort
+	if returnFunc, ok := ret.Get(0).(func() ports.OpenSearchPort); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ports.OpenSearchPort)
+		}
+	}
+	return r0
+}
+
+// ProxyService_OpenSearch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OpenSearch'
+type ProxyService_OpenSearch_Call struct {
+	*mock.Call
+}
+
+// OpenSearch is a helper method to define mock.On call
+func (_e *ProxyService_Expecter) OpenSearch() *ProxyService_OpenSearch_Call {
+	return &ProxyService_OpenSearch_Call{Call: _e.mock.On("OpenSearch")}
+}
+
+func (_c *ProxyService_OpenSearch_Call) Run(run func()) *ProxyService_OpenSearch_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ProxyService_OpenSearch_Call) Return(openSearchPort ports.OpenSearchPort) *ProxyService_OpenSearch_Call {
+	_c.Call.Return(openSearchPort)
+	return _c
+}
+
+func (_c *ProxyService_OpenSearch_Call) RunAndReturn(run func() ports.OpenSearchPort) *ProxyService_OpenSearch_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RDS provides a mock function for the type ProxyService
 func (_mock *ProxyService) RDS() ports.RDSPort {
 	ret := _mock.Called()

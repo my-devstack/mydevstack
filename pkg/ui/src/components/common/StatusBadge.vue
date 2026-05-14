@@ -89,9 +89,10 @@ const statusConfig = computed(() => {
     },
   }
 
-  // Get config or return default for unknown statuses
-  const normalizedStatus = props.status?.toUpperCase?.() || props.status
-  return configs[normalizedStatus] || {
+  // Get config matching UPPERCASE or lowercase keys
+  const upper = props.status?.toUpperCase?.() || ''
+  const lower = props.status?.toLowerCase?.() || ''
+  return configs[upper] || configs[lower] || {
     color: 'text-gray-700 dark:text-gray-400',
     bgColor: 'bg-gray-100 dark:bg-gray-800',
     dotColor: 'bg-gray-400',

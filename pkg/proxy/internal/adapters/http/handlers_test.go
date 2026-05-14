@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/opensearch"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	configloader "github.com/my-devstack/mydevstack/pkg/proxy/internal/config"
@@ -20,6 +21,7 @@ import (
 type testProxyService struct {
 	s3Port   ports.S3Port
 	cfPort   ports.CloudFormationPort
+	osPort   ports.OpenSearchPort
 	cfg      *configloader.Config
 	emulator string
 }
@@ -45,6 +47,7 @@ func (s *testProxyService) RDS() ports.RDSPort                         { return 
 func (s *testProxyService) ElastiCache() ports.ElastiCachePort         { return nil }
 func (s *testProxyService) CloudFormation() ports.CloudFormationPort   { return s.cfPort }
 func (s *testProxyService) SESv2() ports.SESv2Port                     { return nil }
+func (s *testProxyService) OpenSearch() ports.OpenSearchPort           { return s.osPort }
 func (s *testProxyService) Config() *configloader.Config {
 	if s.cfg != nil {
 		return s.cfg
@@ -221,6 +224,13 @@ func TestServiceRouter(t *testing.T) {
 			target:     "cloudformation.UnknownAction",
 			wantStatus: http.StatusBadRequest,
 		},
+		{
+			name:       "OpenSearch ListDomainNames",
+			method:     "GET",
+			path:       "/opensearch/",
+			target:     "opensearch.ListDomainNames",
+			wantStatus: http.StatusOK,
+		},
 	}
 
 	for _, tt := range tests {
@@ -234,9 +244,16 @@ func TestServiceRouter(t *testing.T) {
 				mockCF.EXPECT().ListStacks(mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{}, nil).Maybe()
 			}
 
+			var mockOS *mockports.OpenSearchPort
+			if tt.path == "/opensearch/" {
+				mockOS = mockports.NewOpenSearchPort(t)
+				mockOS.EXPECT().ListDomainNames(mock.Anything, mock.Anything).Return(&opensearch.ListDomainNamesOutput{}, nil).Maybe()
+			}
+
 			svc := &testProxyService{
 				s3Port: mockS3,
 				cfPort: mockCF,
+				osPort: mockOS,
 			}
 			handler := NewProxyHandler(svc, createTestVersionService())
 			r := setupTestRouter(handler)
