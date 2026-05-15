@@ -101,6 +101,7 @@ const services: Service[] = [
   { name: 'ElastiCache', path: '/services/elasticache', icon: 'elasticache', color: 'service-elasticache' },
   { name: 'OpenSearch', path: '/services/opensearch', icon: 'opensearch', color: 'service-opensearch' },
   { name: 'RDS', path: '/services/rds', icon: 'rds', color: 'service-rds' },
+  { name: 'MSK', path: '/services/msk', icon: 'msk', color: 'service-msk' },
 ]
 
 const navItems = [
@@ -523,6 +524,26 @@ const handleServiceClick = (service: Service) => {
               stroke-linejoin="round"
               stroke-width="2"
               d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+            />
+          </svg>
+          <svg
+            v-else-if="service.icon === 'msk'"
+            class="w-5 h-5 flex-shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125m1.125-1.125v-1.5c0-.621.504-1.125 1.125-1.125m0 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M18 5.625v5.25m0-5.25c0 .621.504 1.125 1.125 1.125M18 5.625c0-.621.504-1.125 1.125-1.125m0 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M6 5.625v5.25m0-5.25c0 .621.504 1.125 1.125 1.125M6 5.625C6 5.004 5.496 4.5 4.875 4.5m0 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125"
             />
           </svg>
           <svg

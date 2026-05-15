@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
@@ -45,6 +46,7 @@ type ProxyService interface {
 	Kinesis() KinesisPort
 	RDS() RDSPort
 	ElastiCache() ElastiCachePort
+	MSK() MSKPort
 	OpenSearch() OpenSearchPort
 	CloudFormation() CloudFormationPort
 	Config() *configloader.Config
@@ -323,6 +325,14 @@ type RDSPort interface {
 	DescribeDBEngineVersions(ctx context.Context, input *rds.DescribeDBEngineVersionsInput) (*rds.DescribeDBEngineVersionsOutput, error)
 	ModifyDBInstance(ctx context.Context, input *rds.ModifyDBInstanceInput) (*rds.ModifyDBInstanceOutput, error)
 	RebootDBInstance(ctx context.Context, input *rds.RebootDBInstanceInput) (*rds.RebootDBInstanceOutput, error)
+}
+
+type MSKPort interface {
+	ListClustersV2(ctx context.Context, input *kafka.ListClustersV2Input) (*kafka.ListClustersV2Output, error)
+	DescribeClusterV2(ctx context.Context, input *kafka.DescribeClusterV2Input) (*kafka.DescribeClusterV2Output, error)
+	CreateClusterV2(ctx context.Context, input *kafka.CreateClusterV2Input) (*kafka.CreateClusterV2Output, error)
+	DeleteCluster(ctx context.Context, input *kafka.DeleteClusterInput) (*kafka.DeleteClusterOutput, error)
+	GetBootstrapBrokers(ctx context.Context, input *kafka.GetBootstrapBrokersInput) (*kafka.GetBootstrapBrokersOutput, error)
 }
 
 type ElastiCachePort interface {

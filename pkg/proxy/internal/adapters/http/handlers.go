@@ -112,6 +112,8 @@ func (h *ProxyHandler) ServiceRouter(c *gin.Context) {
 		h.handleElastiCache(c)
 	case "opensearch":
 		h.handleOpenSearch(c)
+	case "kafka":
+		h.handleMSK(c)
 	case "cloudformation":
 		h.handleCloudFormation(c)
 	case "sesv2":

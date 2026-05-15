@@ -30,6 +30,7 @@ type ProxyService struct {
 	kinesis          ports.KinesisPort
 	rds              ports.RDSPort
 	elasticache      ports.ElastiCachePort
+	msk              ports.MSKPort
 	opensearch      ports.OpenSearchPort
 	cloudformation   ports.CloudFormationPort
 	sesv2            ports.SESv2Port
@@ -97,6 +98,7 @@ func (s *ProxyService) SetServices() error {
 	s.kinesis = awsadapter.NewKinesisAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.rds = awsadapter.NewRDSAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.elasticache = awsadapter.NewElastiCacheAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.msk = awsadapter.NewMSKAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.opensearch = awsadapter.NewOpenSearchAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.cloudformation = awsadapter.NewCloudFormationAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.sesv2 = awsadapter.NewSESv2Adapter(awsCfg, s.cfg.AWS.Endpoint)
@@ -165,6 +167,10 @@ func (s *ProxyService) RDS() ports.RDSPort {
 
 func (s *ProxyService) ElastiCache() ports.ElastiCachePort {
 	return s.elasticache
+}
+
+func (s *ProxyService) MSK() ports.MSKPort {
+	return s.msk
 }
 
 func (s *ProxyService) OpenSearch() ports.OpenSearchPort {

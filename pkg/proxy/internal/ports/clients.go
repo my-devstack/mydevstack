@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/opensearch"
@@ -319,6 +320,15 @@ type CloudFormationClientPort interface {
 	DescribeStacks(ctx context.Context, input *cloudformation.DescribeStacksInput, opts ...func(*cloudformation.Options)) (*cloudformation.DescribeStacksOutput, error)
 	GetTemplate(ctx context.Context, input *cloudformation.GetTemplateInput, opts ...func(*cloudformation.Options)) (*cloudformation.GetTemplateOutput, error)
 	ListStackResources(ctx context.Context, input *cloudformation.ListStackResourcesInput, opts ...func(*cloudformation.Options)) (*cloudformation.ListStackResourcesOutput, error)
+}
+
+// MSKClientPort defines the interface for the AWS MSK (Kafka) client
+type MSKClientPort interface {
+	ListClustersV2(ctx context.Context, input *kafka.ListClustersV2Input, opts ...func(*kafka.Options)) (*kafka.ListClustersV2Output, error)
+	DescribeClusterV2(ctx context.Context, input *kafka.DescribeClusterV2Input, opts ...func(*kafka.Options)) (*kafka.DescribeClusterV2Output, error)
+	CreateClusterV2(ctx context.Context, input *kafka.CreateClusterV2Input, opts ...func(*kafka.Options)) (*kafka.CreateClusterV2Output, error)
+	DeleteCluster(ctx context.Context, input *kafka.DeleteClusterInput, opts ...func(*kafka.Options)) (*kafka.DeleteClusterOutput, error)
+	GetBootstrapBrokers(ctx context.Context, input *kafka.GetBootstrapBrokersInput, opts ...func(*kafka.Options)) (*kafka.GetBootstrapBrokersOutput, error)
 }
 
 // OpenSearchClientPort defines the interface for the AWS OpenSearch client

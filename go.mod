@@ -13,6 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.32.16
 	github.com/aws/aws-sdk-go-v2/service/elasticache v1.52.0
 	github.com/aws/aws-sdk-go-v2/service/iam v1.53.7
+	github.com/aws/aws-sdk-go-v2/service/kafka v1.51.0
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.43.5
 	github.com/aws/aws-sdk-go-v2/service/kms v1.50.4
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.89.0
