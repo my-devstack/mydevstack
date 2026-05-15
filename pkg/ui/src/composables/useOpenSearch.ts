@@ -253,11 +253,11 @@ export function useOpenSearch() {
       language: 'aws-cli',
       label: 'AWS CLI',
       code: `# List all domains
-aws opensearch list-domain-names --region ${settingsStore.region}
+aws opensearch list-domain-names --endpoint-url http://127.0.0.1:4566
 
 # Describe a domain
 aws opensearch describe-domain \\
-  --domain-name my-domain --region ${settingsStore.region}
+  --domain-name my-domain --endpoint-url http://127.0.0.1:4566
 
 # Create a domain
 aws opensearch create-domain \\
@@ -265,20 +265,20 @@ aws opensearch create-domain \\
   --engine-version OpenSearch_2.13 \\
   --cluster-config InstanceType=t3.medium.search,InstanceCount=1 \\
   --ebs-options EBSEnabled=true,VolumeType=gp2,VolumeSize=10 \\
-  --region ${settingsStore.region}
+  --endpoint-url http://127.0.0.1:4566
 
 # Delete a domain
 aws opensearch delete-domain \\
   --domain-name my-domain \\
-  --region ${settingsStore.region}
+  --endpoint-url http://127.0.0.1:4566
 
 # List tags
 aws opensearch list-tags \\
-  --arn arn:aws:es:${settingsStore.region}:123456789012:domain/my-domain \\
-  --region ${settingsStore.region}
+  --arn arn:aws:es:us-east-1:123456789012:domain/my-domain \\
+  --endpoint-url http://127.0.0.1:4566
 
 # Get compatible versions
-aws opensearch get-compatible-versions --region ${settingsStore.region}`,
+aws opensearch get-compatible-versions --endpoint-url http://127.0.0.1:4566`,
     },
     {
       language: 'javascript',

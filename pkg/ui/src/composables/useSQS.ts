@@ -1,5 +1,6 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useToast } from '@/composables/useToast'
+import { useSettingsStore } from '@/stores/settings'
 import type { SQSMessage } from '@/api/types/aws'
 import * as sqsApi from '@/api/services/sqs'
 
@@ -15,6 +16,7 @@ export interface QueueAttribute {
 
 export function useSQS() {
   const toast = useToast()
+  const settingsStore = useSettingsStore()
 
   const queues = ref<Queue[]>([])
   const loading = ref(false)
@@ -120,6 +122,168 @@ export function useSQS() {
     }
   }
 
+  // Code examples
+  const codeExamples = computed(() => [
+    {
+      language: 'aws-cli',
+      label: 'AWS CLI',
+      code: `# List queues
+aws sqs list-queues --endpoint-url http://127.0.0.1:4566
+
+# Create standard queue
+aws sqs create-queue --queue-name my-queue --endpoint-url http://127.0.0.1:4566
+
+# Create FIFO queue
+aws sqs create-queue --queue-name my-queue.fifo --attributes FIFOQueue=true --endpoint-url http://127.0.0.1:4566
+
+# Get queue URL
+aws sqs get-queue-url --queue-name my-queue --endpoint-url http://127.0.0.1:4566
+
+# Send message
+aws sqs send-message --queue-url http://127.0.0.1:4566/000000000000/my-queue --message-body "Hello World"
+
+# Receive messages
+aws sqs receive-message --queue-url http://127.0.0.1:4566/000000000000/my-queue --endpoint-url http://127.0.0.1:4566
+
+# Delete message
+aws sqs delete-message --queue-url http://127.0.0.1:4566/000000000000/my-queue --receipt-handle "<receipt-handle>" --endpoint-url http://127.0.0.1:4566
+
+# Delete queue
+aws sqs delete-queue --queue-url http://127.0.0.1:4566/000000000000/my-queue --endpoint-url http://127.0.0.1:4566`
+    },
+    {
+      language: 'javascript',
+      label: 'JavaScript',
+      code: `// Using AWS SDK v3
+import { SQSClient, ListQueuesCommand, CreateQueueCommand, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
+
+const client = new SQSClient({
+  region: '${settingsStore.region}',
+  endpoint: 'http://127.0.0.1:4566',
+  credentials: {
+    accessKeyId: '${settingsStore.accessKey}',
+    secretAccessKey: '${settingsStore.secretKey}',
+  },
+});
+
+// List queues
+const listResponse = await client.send(new ListQueuesCommand({}));
+console.log(listResponse.QueueUrls);
+
+// Create queue
+const createResponse = await client.send(new CreateQueueCommand({
+  QueueName: 'my-queue',
+}));
+console.log(createResponse.QueueUrl);
+
+// Send message
+await client.send(new SendMessageCommand({
+  QueueUrl: 'http://127.0.0.1:4566/000000000000/my-queue',
+  MessageBody: 'Hello World',
+}));
+
+// Receive messages
+const receiveResponse = await client.send(new ReceiveMessageCommand({
+  QueueUrl: 'http://127.0.0.1:4566/000000000000/my-queue',
+  MaxNumberOfMessages: 10,
+}));
+console.log(receiveResponse.Messages);
+
+// Delete message
+if (receiveResponse.Messages?.[0]) {
+  await client.send(new DeleteMessageCommand({
+    QueueUrl: 'http://127.0.0.1:4566/000000000000/my-queue',
+    ReceiptHandle: receiveResponse.Messages[0].ReceiptHandle,
+  }));
+}`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `# Using boto3
+import boto3
+import json
+
+client = boto3.client(
+    'sqs',
+    region_name='${settingsStore.region}',
+    endpoint_url='http://127.0.0.1:4566',
+    aws_access_key_id='${settingsStore.accessKey}',
+    aws_secret_access_key='${settingsStore.secretKey}',
+)
+
+# List queues
+response = client.list_queues()
+print(response.get('QueueUrls', []))
+
+# Create queue
+response = client.create_queue(QueueName='my-queue')
+queue_url = response['QueueUrl']
+
+# Send message
+client.send_message(
+    QueueUrl=queue_url,
+    MessageBody=json.dumps({'key': 'value', 'message': 'Hello World'})
+)
+
+# Receive messages
+response = client.receive_message(QueueUrl=queue_url, MaxNumberOfMessages=10)
+for message in response.get('Messages', []):
+    print(message['Body'])
+    # Delete message
+    client.delete_message(QueueUrl=queue_url, ReceiptHandle=message['ReceiptHandle'])`
+    },
+    {
+      language: 'go',
+      label: 'Go',
+      code: `// Using AWS SDK for Go v2
+import (
+    "context"
+    "fmt"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/sqs"
+)
+
+cfg, _ := config.LoadDefaultConfig(context.Background(),
+    config.WithRegion("${settingsStore.region}"),
+)
+
+client := sqs.NewFromConfig(cfg, func(o *sqs.Options) {
+    o.BaseURL = "http://127.0.0.1:4566"
+})
+
+// List queues
+listOutput, _ := client.ListQueues(context.Background(), &sqs.ListQueuesInput{})
+fmt.Println(listOutput.QueueUrls)
+
+// Create queue
+createOutput, _ := client.CreateQueue(context.Background(), &sqs.CreateQueueInput{
+    QueueName: aws.String("my-queue"),
+})
+fmt.Println(createOutput.QueueUrl)
+
+// Send message
+_, _ = client.SendMessage(context.Background(), &sqs.SendMessageInput{
+    QueueUrl:    aws.String("http://127.0.0.1:4566/000000000000/my-queue"),
+    MessageBody: aws.String("Hello World"),
+})
+
+// Receive messages
+receiveOutput, _ := client.ReceiveMessage(context.Background(), &sqs.ReceiveMessageInput{
+    QueueUrl: aws.String("http://127.0.0.1:4566/000000000000/my-queue"),
+})
+fmt.Println(receiveOutput.Messages)
+
+// Delete message
+if len(receiveOutput.Messages) > 0 {
+    _, _ = client.DeleteMessage(context.Background(), &sqs.DeleteMessageInput{
+        QueueUrl:    aws.String("http://127.0.0.1:4566/000000000000/my-queue"),
+        ReceiptHandle: receiveOutput.Messages[0].ReceiptHandle,
+    })
+}`
+    },
+  ])
+
   return {
     queues,
     loading,
@@ -129,6 +293,7 @@ export function useSQS() {
     messages,
     loadingMessages,
     messagesByQueue,
+    codeExamples,
     loadQueues,
     createQueue,
     deleteQueue,

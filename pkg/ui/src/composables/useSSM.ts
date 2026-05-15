@@ -229,6 +229,127 @@ export function useSSM() {
     loadParameters()
   })
 
+  // Code examples
+  const codeExamples = computed(() => [
+    {
+      language: 'aws-cli',
+      label: 'AWS CLI',
+      code: `# List parameters
+aws ssm describe-parameters --endpoint-url http://localhost:4566
+
+# Get parameter
+aws ssm get-parameter \\
+  --name /my-app/config \\
+  --endpoint-url http://localhost:4566
+
+# Put parameter
+aws ssm put-parameter \\
+  --name /my-app/config \\
+  --value "my-value" \\
+  --type String \\
+  --endpoint-url http://localhost:4566
+
+# Get parameters by path
+aws ssm get-parameters-by-path \\
+  --path /my-app/ \\
+  --endpoint-url http://localhost:4566
+
+# Delete parameter
+aws ssm delete-parameter \\
+  --name /my-app/config \\
+  --endpoint-url http://localhost:4566`
+    },
+    {
+      language: 'javascript',
+      label: 'JavaScript',
+      code: `// Using AWS SDK v3
+import { SSMClient, PutParameterCommand, GetParameterCommand } from "@aws-sdk/client-ssm";
+
+const client = new SSMClient({
+  region: 'us-east-1',
+  endpoint: 'http://localhost:4566',
+  credentials: {
+    accessKeyId: 'test',
+    secretAccessKey: 'test',
+  },
+});
+
+// Put parameter
+await client.send(new PutParameterCommand({
+  Name: '/my-app/config',
+  Value: 'my-value',
+  Type: 'String',
+}));
+
+// Get parameter
+const result = await client.send(new GetParameterCommand({
+  Name: '/my-app/config',
+}));
+console.log(result.Parameter.Value);`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `# Using boto3
+import boto3
+
+client = boto3.client(
+    'ssm',
+    region_name='us-east-1',
+    endpoint_url='http://localhost:4566',
+    aws_access_key_id='test',
+    aws_secret_access_key='test',
+)
+
+# Put parameter
+client.put_parameter(
+    Name='/my-app/config',
+    Value='my-value',
+    Type='String',
+)
+
+# Get parameter
+response = client.get_parameter(
+    Name='/my-app/config',
+)
+print(response['Parameter']['Value'])`
+    },
+    {
+      language: 'go',
+      label: 'Go',
+      code: `// Using AWS SDK for Go v2
+import (
+    "context"
+    "fmt"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/ssm"
+    "github.com/aws/aws-sdk-go-v2/service/ssm/types"
+    "github.com/aws/aws-sdk-go/aws"
+)
+
+cfg, _ := config.LoadDefaultConfig(context.Background(),
+    config.WithRegion("us-east-1"),
+)
+
+client := ssm.NewFromConfig(cfg, func(o *ssm.Options) {
+    o.BaseEndpoint = aws.String("http://localhost:4566")
+})
+
+// Put parameter (String type)
+client.PutParameter(context.Background(), &ssm.PutParameterInput{
+    Name:  aws.String("/my-app/config"),
+    Value: aws.String("my-value"),
+    Type:  types.ParameterTypeString,
+})
+
+// Get parameter
+result, _ := client.GetParameter(context.Background(), &ssm.GetParameterInput{
+    Name: aws.String("/my-app/config"),
+})
+fmt.Println(*result.Parameter.Value)`,
+    },
+  ])
+
   return {
     // State
     loading,
@@ -250,6 +371,7 @@ export function useSSM() {
     // Computed
     paramColumns,
     historyColumns,
+    codeExamples,
 
     // Functions
     loadParameters,

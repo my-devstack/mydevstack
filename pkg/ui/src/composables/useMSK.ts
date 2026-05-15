@@ -220,6 +220,195 @@ export function useMSK() {
     }
   }
 
+  // Code examples
+  const codeExamples = computed(() => [
+    {
+      language: 'aws-cli',
+      label: 'AWS CLI',
+      code: `# List MSK clusters
+aws kafka list-clusters-v2 --endpoint-url http://localhost:4566
+
+# Create cluster
+aws kafka create-cluster-v2 \\
+  --cluster-name my-cluster \\
+  --provisioned '{
+    "KafkaVersion": "3.6.0",
+    "NumberOfBrokerNodes": 2,
+    "BrokerNodeGroupInfo": {
+      "InstanceType": "kafka.m5.large",
+      "ClientSubnets": ["subnet-123456"],
+      "StorageInfo": {
+        "EbsStorageInfo": { "VolumeSize": 100 }
+      }
+    }
+  }' \\
+  --endpoint-url http://localhost:4566
+
+# Describe cluster
+aws kafka describe-cluster-v2 \\
+  --cluster-arn arn:aws:kafka:us-east-1:123456789:cluster/my-cluster \\
+  --endpoint-url http://localhost:4566
+
+# Get bootstrap brokers
+aws kafka get-bootstrap-brokers \\
+  --cluster-arn arn:aws:kafka:us-east-1:123456789:cluster/my-cluster \\
+  --endpoint-url http://localhost:4566
+
+# List nodes
+aws kafka list-nodes \\
+  --cluster-arn arn:aws:kafka:us-east-1:123456789:cluster/my-cluster \\
+  --endpoint-url http://localhost:4566
+
+# Delete cluster
+aws kafka delete-cluster \\
+  --cluster-arn arn:aws:kafka:us-east-1:123456789:cluster/my-cluster \\
+  --endpoint-url http://localhost:4566`
+    },
+    {
+      language: 'javascript',
+      label: 'JavaScript',
+      code: `// Using AWS SDK v3
+import { KafkaClient, CreateClusterV2Command, ListClustersV2Command, DeleteClusterCommand } from "@aws-sdk/client-kafka";
+
+const client = new KafkaClient({
+  region: 'us-east-1',
+  endpoint: 'http://localhost:4566',
+  credentials: {
+    accessKeyId: 'test',
+    secretAccessKey: 'test',
+  },
+});
+
+// Create cluster (type is PROVISIONED when Provisioned field is set)
+await client.send(new CreateClusterV2Command({
+  ClusterName: 'my-cluster',
+  Provisioned: {
+    KafkaVersion: '3.6.0',
+    NumberOfBrokerNodes: 2,
+    BrokerNodeGroupInfo: {
+      InstanceType: 'kafka.m5.large',
+      ClientSubnets: ['subnet-123456'],
+      StorageInfo: {
+        EbsStorageInfo: { VolumeSize: 100 },
+      },
+    },
+  },
+}));
+
+// List clusters
+const { ClusterInfoList } = await client.send(new ListClustersV2Command({}));
+console.log(ClusterInfoList);
+
+// Delete cluster
+await client.send(new DeleteClusterCommand({
+  ClusterArn: 'arn:aws:kafka:us-east-1:123456789:cluster/my-cluster',
+}));`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `# Using boto3
+import boto3
+import json
+
+client = boto3.client(
+    'kafka',
+    region_name='us-east-1',
+    endpoint_url='http://localhost:4566',
+    aws_access_key_id='test',
+    aws_secret_access_key='test',
+)
+
+# List clusters
+response = client.list_clusters_v2()
+for cluster in response['ClusterInfoList']:
+    print(cluster['ClusterName'], cluster['State'])
+
+# Create cluster (type is PROVISIONED when Provisioned is provided)
+client.create_cluster_v2(
+    ClusterName='my-cluster',
+    Provisioned={
+        'KafkaVersion': '3.6.0',
+        'NumberOfBrokerNodes': 2,
+        'BrokerNodeGroupInfo': {
+            'InstanceType': 'kafka.m5.large',
+            'ClientSubnets': ['subnet-123456'],
+            'StorageInfo': {
+                'EbsStorageInfo': {'VolumeSize': 100},
+            },
+        },
+    },
+)
+
+# Get bootstrap brokers
+brokers = client.get_bootstrap_brokers(
+    ClusterArn='arn:aws:kafka:us-east-1:123456789:cluster/my-cluster'
+)
+print(brokers['BootstrapBrokerString'])
+
+# Delete cluster
+client.delete_cluster(
+    ClusterArn='arn:aws:kafka:us-east-1:123456789:cluster/my-cluster'
+)`
+    },
+    {
+      language: 'go',
+      label: 'Go',
+      code: `// Using AWS SDK for Go v2
+import (
+    "context"
+    "fmt"
+    "github.com/aws/aws-sdk-go-v2/aws"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/kafka"
+    "github.com/aws/aws-sdk-go-v2/service/kafka/types"
+)
+
+cfg, _ := config.LoadDefaultConfig(context.Background(),
+    config.WithRegion("us-east-1"),
+)
+
+client := kafka.NewFromConfig(cfg, func(o *kafka.Options) {
+    o.BaseEndpoint = aws.String("http://localhost:4566")
+})
+
+// List clusters
+clusters, _ := client.ListClustersV2(context.Background(), &kafka.ListClustersV2Input{})
+for _, c := range clusters.ClusterInfoList {
+    fmt.Println(*c.ClusterName, *c.State)
+}
+
+// Create cluster (type is PROVISIONED when Provisioned is set)
+client.CreateClusterV2(context.Background(), &kafka.CreateClusterV2Input{
+    ClusterName: aws.String("my-cluster"),
+    Provisioned: &types.ProvisionedRequest{
+        KafkaVersion:       aws.String("3.6.0"),
+        NumberOfBrokerNodes: aws.Int32(2),
+        BrokerNodeGroupInfo: &types.BrokerNodeGroupInfo{
+            InstanceType:   aws.String("kafka.m5.large"),
+            ClientSubnets:  []string{"subnet-123456"},
+            StorageInfo: &types.StorageInfo{
+                EbsStorageInfo: &types.EBSStorageInfo{
+                    VolumeSize: aws.Int32(100),
+                },
+            },
+        },
+    },
+})
+
+// Get bootstrap brokers
+brokers, _ := client.GetBootstrapBrokers(context.Background(), &kafka.GetBootstrapBrokersInput{
+    ClusterArn: aws.String("arn:aws:kafka:us-east-1:123456789:cluster/my-cluster"),
+})
+fmt.Println(*brokers.BootstrapBrokerString)
+
+// Delete cluster
+client.DeleteCluster(context.Background(), &kafka.DeleteClusterInput{
+    ClusterArn: aws.String("arn:aws:kafka:us-east-1:123456789:cluster/my-cluster"),
+})`
+    },
+  ])
+
   return {
     // State
     clusters,
@@ -236,6 +425,7 @@ export function useMSK() {
     // Computed
     clusterCount,
     clusterColumns,
+    codeExamples,
 
     // Functions
     loadClusters,

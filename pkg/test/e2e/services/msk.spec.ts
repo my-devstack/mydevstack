@@ -101,7 +101,7 @@ test.describe('MSK', () => {
     // Verify cluster details section is visible in accordion
     await expect(page.getByText('Cluster ARN').first()).toBeVisible({ timeout: 15000 })
     await expect(page.getByText('State').first()).toBeVisible({ timeout: 15000 })
-    await expect(page.getByText('Kafka Version').first()).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText('Current Version').first()).toBeVisible({ timeout: 15000 })
   })
 
   test('view bootstrap brokers', async ({ page }) => {
