@@ -25,6 +25,7 @@ import {
 const {
   domains,
   loading,
+  isAvailable,
   expandedDomains,
   showCreateModal,
   showDeleteConfirm,
@@ -126,6 +127,7 @@ watch(reloadTrigger, () => {
           </Button>
           <Button
             size="sm"
+            :disabled="!isAvailable"
             @click="showCreateModal = true"
           >
             <PlusIcon class="h-4 w-4 mr-1" />
@@ -137,13 +139,43 @@ watch(reloadTrigger, () => {
 
     <!-- Content -->
     <div class="flex-1 overflow-y-auto p-4">
+      <!-- Unavailable message -->
+      <div
+        v-if="!isAvailable && !loading"
+        class="mb-6 p-4 rounded-lg border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20"
+      >
+        <div class="flex items-center gap-3">
+          <svg
+            class="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+            />
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+              OpenSearch is not available in this environment
+            </p>
+            <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-0.5">
+              The OpenSearch API is not supported by the current emulator. Some features may not work until a compatible backend is available.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <!-- Empty State -->
       <EmptyState
         v-if="!loading && domains.length === 0"
         icon="server"
         title="No Domains"
         description="Create a new OpenSearch domain to get started."
-        action-label="Create Domain"
+        :action-label="isAvailable ? 'Create Domain' : undefined"
         @action="showCreateModal = true"
       />
 

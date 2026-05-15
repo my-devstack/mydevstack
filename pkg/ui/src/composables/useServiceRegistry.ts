@@ -15,6 +15,7 @@ import { listSecrets as fetchSecrets } from '@/api/services/secrets-manager'
 import { describeReplicationGroups as fetchElastiCacheGroups } from '@/api/services/elasticache'
 import { listDomainNames as fetchOpenSearchDomains } from '@/api/services/opensearch'
 import { describeParameters as fetchSSMParameters } from '@/api/services/ssm'
+import { useSettingsStore } from '@/stores/settings'
 import type { ServiceCategory } from '@/types/services'
 import { SERVICE_COLORS, type ServiceStats, type ServiceStatus, determineStatus } from '@/types/serviceRegistry'
 
@@ -331,6 +332,19 @@ export function useServiceRegistry() {
         continue
       }
 
+      // Skip API calls for MSK and OpenSearch on ministack
+      const settingsStore = useSettingsStore()
+      if (settingsStore.emulator && settingsStore.emulator.toLowerCase() === 'ministack' &&
+          (service.id === 'msk' || service.id === 'opensearch')) {
+        stats.value.set(service.id, {
+          serviceId: service.id,
+          count: 0,
+          status: 'unknown',
+          loading: false,
+        })
+        continue
+      }
+
       try {
         const count = await service.statsFetcher()
         stats.value.set(service.id, {
@@ -359,6 +373,15 @@ export function useServiceRegistry() {
 
     if (!service.enabled) {
       return { serviceId, count: 0, status: 'unknown', loading: false }
+    }
+
+    // Skip API calls for MSK and OpenSearch on ministack
+    const settingsStore = useSettingsStore()
+    if (settingsStore.emulator && settingsStore.emulator.toLowerCase() === 'ministack' &&
+        (service.id === 'msk' || service.id === 'opensearch')) {
+      const result = { serviceId, count: 0, status: 'unknown' as ServiceStatus, loading: false }
+      stats.value.set(serviceId, result)
+      return result
     }
 
     try {
