@@ -9,6 +9,7 @@ import { listUsers } from '@/api/services/iam'
 import { describeDBInstances as fetchRDSInstances } from '@/api/services/rds'
 import { getRestApis as fetchAPIGatewayRestApis } from '@/api/services/api-gateway'
 import { listStreams as fetchKinesisStreams } from '@/api/services/kinesis'
+import { listClustersV2 as fetchMSKClusters } from '@/api/services/msk'
 import { listKeys as fetchKMSKeys } from '@/api/services/kms'
 import { listSecrets as fetchSecrets } from '@/api/services/secrets-manager'
 import { describeReplicationGroups as fetchElastiCacheGroups } from '@/api/services/elasticache'
@@ -178,6 +179,20 @@ const SERVICE_CONFIGS: ServiceConfig[] = [
     statsFetcher: async () => {
       const result = await fetchKinesisStreams()
       return result.StreamNames?.length || 0
+    },
+    enabled: true,
+  },
+  {
+    id: 'msk',
+    name: 'MSK Clusters',
+    category: 'analytics',
+    icon: 'WaveformIcon',
+    route: '/services/msk',
+    color: SERVICE_COLORS.msk.text,
+    bgColor: SERVICE_COLORS.msk.bg,
+    statsFetcher: async () => {
+      const result = await fetchMSKClusters()
+      return result.ClusterInfoList?.length || 0
     },
     enabled: true,
   },

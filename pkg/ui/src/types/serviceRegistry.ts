@@ -35,6 +35,7 @@ export const SERVICE_COLORS: Record<string, { text: string; bg: string }> = {
   opensearch: { text: 'text-indigo-400', bg: 'bg-indigo-400' },
   ssm: { text: 'text-slate-500', bg: 'bg-slate-500' },
   ses: { text: 'text-green-600', bg: 'bg-green-600' },
+  msk: { text: 'text-purple-600', bg: 'bg-purple-600' },
 }
 
 export const getServiceColor = (serviceId: string): string => {

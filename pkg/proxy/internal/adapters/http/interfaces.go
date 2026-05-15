@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
@@ -252,6 +253,14 @@ type KinesisService interface {
 	DisableEnhancedMonitoring(ctx context.Context, input *kinesis.DisableEnhancedMonitoringInput) (*kinesis.DisableEnhancedMonitoringOutput, error)
 }
 
+type MSKService interface {
+	ListClustersV2(ctx context.Context, input *kafka.ListClustersV2Input) (*kafka.ListClustersV2Output, error)
+	DescribeClusterV2(ctx context.Context, input *kafka.DescribeClusterV2Input) (*kafka.DescribeClusterV2Output, error)
+	CreateClusterV2(ctx context.Context, input *kafka.CreateClusterV2Input) (*kafka.CreateClusterV2Output, error)
+	DeleteCluster(ctx context.Context, input *kafka.DeleteClusterInput) (*kafka.DeleteClusterOutput, error)
+	GetBootstrapBrokers(ctx context.Context, input *kafka.GetBootstrapBrokersInput) (*kafka.GetBootstrapBrokersOutput, error)
+}
+
 type OpenSearchService interface {
 	ListDomainNames(ctx context.Context, input *opensearch.ListDomainNamesInput) (*opensearch.ListDomainNamesOutput, error)
 	DescribeDomain(ctx context.Context, input *opensearch.DescribeDomainInput) (*opensearch.DescribeDomainOutput, error)
@@ -289,6 +298,7 @@ type ProxyService interface {
 	SSM() SSMService
 	IAM() IAMService
 	Kinesis() KinesisService
+	MSK() MSKService
 	OpenSearch() OpenSearchService
 	Config() *HandlerConfig
 }

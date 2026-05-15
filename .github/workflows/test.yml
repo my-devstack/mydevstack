@@ -126,7 +126,10 @@ jobs:
 
       - name: Start Floci
         run: |
-          docker run -d --name floci -p 4566:4566 floci/floci:latest
+          docker run -d --name floci -p 4566:4566 \
+            -e FLOCI_SERVICES_OPENSEARCH_MOCK=true \
+            -e FLOCI_SERVICES_MSK_MOCK=true \
+            floci/floci:latest
           sleep 5
           for i in {1..30}; do
             curl -s http://localhost:4566/_localstack/health | grep -q '"available"' && break

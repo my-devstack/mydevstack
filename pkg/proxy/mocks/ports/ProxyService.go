@@ -543,6 +543,52 @@ func (_c *ProxyService_Lambda_Call) RunAndReturn(run func() ports.LambdaPort) *P
 	return _c
 }
 
+// MSK provides a mock function for the type ProxyService
+func (_mock *ProxyService) MSK() ports.MSKPort {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for MSK")
+	}
+
+	var r0 ports.MSKPort
+	if returnFunc, ok := ret.Get(0).(func() ports.MSKPort); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ports.MSKPort)
+		}
+	}
+	return r0
+}
+
+// ProxyService_MSK_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MSK'
+type ProxyService_MSK_Call struct {
+	*mock.Call
+}
+
+// MSK is a helper method to define mock.On call
+func (_e *ProxyService_Expecter) MSK() *ProxyService_MSK_Call {
+	return &ProxyService_MSK_Call{Call: _e.mock.On("MSK")}
+}
+
+func (_c *ProxyService_MSK_Call) Run(run func()) *ProxyService_MSK_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ProxyService_MSK_Call) Return(mSKPort ports.MSKPort) *ProxyService_MSK_Call {
+	_c.Call.Return(mSKPort)
+	return _c
+}
+
+func (_c *ProxyService_MSK_Call) RunAndReturn(run func() ports.MSKPort) *ProxyService_MSK_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // OpenSearch provides a mock function for the type ProxyService
 func (_mock *ProxyService) OpenSearch() ports.OpenSearchPort {
 	ret := _mock.Called()

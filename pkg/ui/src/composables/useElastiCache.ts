@@ -151,11 +151,11 @@ export function useElastiCache() {
       language: 'aws-cli',
       label: 'AWS CLI',
       code: `# Describe all replication groups
-aws elasticache describe-replication-groups --region ${settingsStore.region}
+aws elasticache describe-replication-groups --endpoint-url http://127.0.0.1:4566
 
 # Describe specific group
 aws elasticache describe-replication-group \\
-  --replication-group-id my-cache --region ${settingsStore.region}
+  --replication-group-id my-cache --endpoint-url http://127.0.0.1:4566
 
 # Create replication group (starts Valkey container)
 aws elasticache create-replication-group \\
@@ -165,12 +165,12 @@ aws elasticache create-replication-group \\
   --cache-node-type cache.t3.micro \\
   --num-node-groups 1 \\
   --port 6379 \\
-  --region ${settingsStore.region}
+  --endpoint-url http://127.0.0.1:4566
 
 # Delete replication group
 aws elasticache delete-replication-group \\
   --replication-group-id my-cache \\
-  --region ${settingsStore.region}`,
+  --endpoint-url http://127.0.0.1:4566`,
     },
     {
       language: 'javascript',

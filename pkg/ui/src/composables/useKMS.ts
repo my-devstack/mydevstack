@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
+import { useSettingsStore } from '@/stores/settings'
 import * as kmsApi from '@/api/services/kms'
 import type { KMSKey } from '@/api/types/aws'
 
@@ -27,6 +28,7 @@ export interface DecryptForm {
 
 export function useKMS() {
   const toast = useToast()
+  const settingsStore = useSettingsStore()
   const { reloadTrigger } = useContentReload()
 
   // State
@@ -290,6 +292,177 @@ export function useKMS() {
     return reloadTrigger
   }
 
+  // Code examples
+  const codeExamples = computed(() => [
+    {
+      language: 'aws-cli',
+      label: 'AWS CLI',
+      code: `# List KMS keys
+aws kms list-keys --endpoint-url http://127.0.0.1:4566
+
+# Create key
+aws kms create-key \\
+  --description "My encryption key" \\
+  --key-usage ENCRYPT_DECRYPT \\
+  --endpoint-url http://127.0.0.1:4566
+
+# Describe key
+aws kms describe-key \\
+  --key-id 1234abcd-12ab-12ab-12ab-1234567890ab \\
+  --endpoint-url http://127.0.0.1:4566
+
+# Enable/Disable key
+aws kms enable-key --key-id 1234abcd-12ab-12ab-12ab-1234567890ab --endpoint-url http://127.0.0.1:4566
+aws kms disable-key --key-id 1234abcd-12ab-12ab-12ab-1234567890ab --endpoint-url http://127.0.0.1:4566
+
+# Encrypt data
+aws kms encrypt \\
+  --key-id 1234abcd-12ab-12ab-12ab-1234567890ab \\
+  --plaintext fileb://plaintext.txt \\
+  --endpoint-url http://127.0.0.1:4566
+
+# Decrypt data
+aws kms decrypt \\
+  --ciphertext-blob fileb://ciphertext.bin \\
+  --endpoint-url http://127.0.0.1:4566
+
+# Get key policy
+aws kms get-key-policy \\
+  --key-id 1234abcd-12ab-12ab-12ab-1234567890ab \\
+  --policy-name default \\
+  --endpoint-url http://127.0.0.1:4566
+
+# Schedule key deletion
+aws kms schedule-key-deletion \\
+  --key-id 1234abcd-12ab-12ab-12ab-1234567890ab \\
+  --pending-window-in-days 7 \\
+  --endpoint-url http://127.0.0.1:4566`
+    },
+    {
+      language: 'javascript',
+      label: 'JavaScript',
+      code: `// Using AWS SDK v3
+import { KMSClient, ListKeysCommand, CreateKeyCommand, EncryptCommand, DecryptCommand, DescribeKeyCommand, EnableKeyCommand, DisableKeyCommand } from "@aws-sdk/client-kms";
+
+const client = new KMSClient({
+  region: '${settingsStore.region}',
+  endpoint: 'http://127.0.0.1:4566',
+  credentials: {
+    accessKeyId: '${settingsStore.accessKey}',
+    secretAccessKey: '${settingsStore.secretKey}',
+  },
+});
+
+// List keys
+const keys = await client.send(new ListKeysCommand({}));
+console.log(keys.Keys);
+
+// Create key
+const createResponse = await client.send(new CreateKeyCommand({
+  Description: 'My encryption key',
+  KeyUsage: 'ENCRYPT_DECRYPT',
+}));
+console.log(createResponse.KeyMetadata);
+
+// Encrypt data
+const encryptResponse = await client.send(new EncryptCommand({
+  KeyId: '1234abcd-12ab-12ab-12ab-1234567890ab',
+  Plaintext: Buffer.from('Hello World'),
+}));
+console.log(encryptResponse.CiphertextBlob);
+
+// Decrypt data
+const decryptResponse = await client.send(new DecryptCommand({
+  CiphertextBlob: encryptResponse.CiphertextBlob,
+}));
+console.log(decryptResponse.Plaintext.toString());`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `# Using boto3
+import boto3
+
+client = boto3.client(
+    'kms',
+    region_name='${settingsStore.region}',
+    endpoint_url='http://127.0.0.1:4566',
+    aws_access_key_id='${settingsStore.accessKey}',
+    aws_secret_access_key='${settingsStore.secretKey}',
+)
+
+# List keys
+response = client.list_keys()
+for key in response['Keys']:
+    print(key['KeyId'])
+
+# Create key
+response = client.create_key(
+    Description='My encryption key',
+    KeyUsage='ENCRYPT_DECRYPT'
+)
+print(response['KeyMetadata'])
+
+# Encrypt data
+response = client.encrypt(
+    KeyId='1234abcd-12ab-12ab-12ab-1234567890ab',
+    Plaintext=b'Hello World'
+)
+print(response['CiphertextBlob'])
+
+# Decrypt data
+response = client.decrypt(
+    CiphertextBlob=response['CiphertextBlob']
+)
+print(response['Plaintext'])`
+    },
+    {
+      language: 'go',
+      label: 'Go',
+      code: `// Using AWS SDK for Go v2
+import (
+    "context"
+    "encoding/base64"
+    "fmt"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/kms"
+    "github.com/aws/aws-sdk-go/aws"
+)
+
+cfg, _ := config.LoadDefaultConfig(context.Background(),
+    config.WithRegion("${settingsStore.region}"),
+)
+
+client := kms.NewFromConfig(cfg, func(o *kms.Options) {
+    o.BaseURL = aws.String("http://127.0.0.1:4566")
+})
+
+// List keys
+listOutput, _ := client.ListKeys(context.Background(), &kms.ListKeysInput{})
+fmt.Println(listOutput.Keys)
+
+// Create key
+createOutput, _ := client.CreateKey(context.Background(), &kms.CreateKeyInput{
+    Description: aws.String("My encryption key"),
+    KeyUsage:    kms.KeyUsageTypeEncryptDecrypt,
+})
+fmt.Println(createOutput.KeyMetadata)
+
+// Encrypt data
+encryptOutput, _ := client.Encrypt(context.Background(), &kms.EncryptInput{
+    KeyId:     aws.String("1234abcd-12ab-12ab-12ab-1234567890ab"),
+    Plaintext: []byte("Hello World"),
+})
+fmt.Println(base64.StdEncoding.EncodeToString(encryptOutput.CiphertextBlob))
+
+// Decrypt data
+decryptOutput, _ := client.Decrypt(context.Background(), &kms.DecryptInput{
+    CiphertextBlob: encryptOutput.CiphertextBlob,
+})
+fmt.Println(string(decryptOutput.Plaintext))`
+    },
+  ])
+
   return {
     // State
     keys,
@@ -313,6 +486,7 @@ export function useKMS() {
 
     // Computed
     keyCount,
+    codeExamples,
 
     // Functions
     loadKeys,

@@ -244,6 +244,15 @@ export {
   OpenSearchService,
 } from './opensearch'
 
+// MSK Service
+export {
+  listClustersV2,
+  describeClusterV2,
+  createClusterV2,
+  deleteCluster,
+  getBootstrapBrokers,
+} from './msk'
+
 // Re-export APIError for convenience
 export { APIError } from '../client'
 

@@ -17,4 +17,5 @@ var (
 	_ ports.SSMPort            = (*SSMAdapter)(nil)
 	_ ports.IAMPort            = (*IAMAdapter)(nil)
 	_ ports.KinesisPort        = (*KinesisAdapter)(nil)
+	_ ports.MSKPort            = (*MSKAdapter)(nil)
 )

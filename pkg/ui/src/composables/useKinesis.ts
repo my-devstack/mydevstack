@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { useSettingsStore } from '@/stores/settings'
 import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
 import * as kinesisApi from '@/api/services/kinesis'
@@ -303,6 +304,145 @@ export function useKinesis() {
     return reloadTrigger
   }
 
+  // Code examples
+  const codeExamples = computed(() => [
+    {
+      language: 'aws-cli',
+      label: 'AWS CLI',
+      code: `# List Kinesis streams
+aws kinesis list-streams --endpoint-url http://localhost:4566
+
+# Create stream
+aws kinesis create-stream \\
+  --stream-name my-stream \\
+  --shard-count 1 \\
+  --endpoint-url http://localhost:4566
+
+# Describe stream
+aws kinesis describe-stream \\
+  --stream-name my-stream \\
+  --endpoint-url http://localhost:4566
+
+# Put record
+aws kinesis put-record \\
+  --stream-name my-stream \\
+  --partition-key key1 \\
+  --data "hello world" \\
+  --endpoint-url http://localhost:4566
+
+# Delete stream
+aws kinesis delete-stream \\
+  --stream-name my-stream \\
+  --endpoint-url http://localhost:4566`,
+    },
+    {
+      language: 'javascript',
+      label: 'JavaScript',
+      code: `// Using AWS SDK v3
+import { KinesisClient, CreateStreamCommand, PutRecordCommand, GetRecordsCommand } from "@aws-sdk/client-kinesis";
+
+const client = new KinesisClient({
+  region: 'us-east-1',
+  endpoint: 'http://localhost:4566',
+  credentials: {
+    accessKeyId: 'test',
+    secretAccessKey: 'test',
+  },
+});
+
+// Create stream
+await client.send(new CreateStreamCommand({
+  StreamName: 'my-stream',
+  ShardCount: 1,
+}));
+
+// Put record
+await client.send(new PutRecordCommand({
+  StreamName: 'my-stream',
+  PartitionKey: 'key1',
+  Data: new TextEncoder().encode('hello world'),
+}));
+
+// Get records
+const result = await client.send(new GetRecordsCommand({
+  ShardIterator: shardIterator,
+}));
+console.log(result.Records);`,
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `# Using boto3
+import boto3
+import json
+
+client = boto3.client(
+    'kinesis',
+    region_name='us-east-1',
+    endpoint_url='http://localhost:4566',
+    aws_access_key_id='test',
+    aws_secret_access_key='test',
+)
+
+# Create stream
+client.create_stream(
+    StreamName='my-stream',
+    ShardCount=1,
+)
+
+# Put record
+client.put_record(
+    StreamName='my-stream',
+    PartitionKey='key1',
+    Data=json.dumps({'message': 'hello world'}),
+)
+
+# Get records
+response = client.get_records(
+    ShardIterator=shard_iterator,
+)
+for record in response['Records']:
+    print(record['Data'])`,
+    },
+    {
+      language: 'go',
+      label: 'Go',
+      code: `// Using AWS SDK for Go v2
+import (
+    "context"
+    "fmt"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/kinesis"
+    "github.com/aws/aws-sdk-go/aws"
+)
+
+cfg, _ := config.LoadDefaultConfig(context.Background(),
+    config.WithRegion("us-east-1"),
+)
+
+client := kinesis.NewFromConfig(cfg, func(o *kinesis.Options) {
+    o.BaseEndpoint = aws.String("http://localhost:4566")
+})
+
+// Create stream
+client.CreateStream(context.Background(), &kinesis.CreateStreamInput{
+    StreamName: aws.String("my-stream"),
+    ShardCount: aws.Int32(1),
+})
+
+// List streams
+streams, _ := client.ListStreams(context.Background(), &kinesis.ListStreamsInput{})
+fmt.Println(streams.StreamNames)
+
+// Put record
+client.PutRecord(context.Background(), &kinesis.PutRecordInput{
+    StreamName:   aws.String("my-stream"),
+    PartitionKey: aws.String("key1"),
+    Data:         []byte("hello world"),
+})`,
+    },
+  ])
+
   return {
     // State
     streams,
@@ -327,6 +467,7 @@ export function useKinesis() {
     streamColumns,
     shardColumns,
     recordColumns,
+    codeExamples,
 
     // Functions
     loadStreams,

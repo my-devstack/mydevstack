@@ -133,6 +133,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/services/SES.vue'),
     meta: { title: 'SES', service: 'ses' },
   },
+  // MSK
+  {
+    path: '/services/msk',
+    name: 'MSK',
+    component: () => import('@/views/services/MSK.vue'),
+    meta: { title: 'MSK', service: 'msk' },
+  },
   
   // Explicit redirect for /services to dashboard
   {
