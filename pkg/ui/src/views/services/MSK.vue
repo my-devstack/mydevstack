@@ -91,6 +91,7 @@ watch(reloadTrigger, () => {
           </Button>
           <Button
             size="sm"
+            :disabled="!isAvailable"
             @click="showCreateModal = true"
           >
             <PlusIcon class="h-4 w-4 mr-1" />

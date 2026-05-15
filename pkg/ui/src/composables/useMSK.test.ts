@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+import { useSettingsStore } from '@/stores/settings'
 import { useMSK } from './useMSK'
 
 // Mock the MSK API module
@@ -105,6 +106,20 @@ describe('useMSK', () => {
 
       await loadClusters()
 
+      expect(clusters.value).toEqual([])
+      expect(isAvailable.value).toBe(false)
+      expect(isLoading.value).toBe(false)
+    })
+
+    it('skips API call and sets unavailable when emulator is ministack', async () => {
+      const settingsStore = useSettingsStore()
+      settingsStore.emulator = 'MINISTACK'
+
+      const { loadClusters, clusters, isAvailable, isLoading } = useMSK()
+
+      await loadClusters()
+
+      expect(mskApi.listClustersV2).not.toHaveBeenCalled()
       expect(clusters.value).toEqual([])
       expect(isAvailable.value).toBe(false)
       expect(isLoading.value).toBe(false)

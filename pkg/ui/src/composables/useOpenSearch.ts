@@ -10,6 +10,7 @@ export function useOpenSearch() {
 
   const domains = ref<DomainInfo[]>([])
   const loading = ref(false)
+  const isAvailable = ref(true)
   const expandedDomains = ref<Set<string>>(new Set())
 
   const showCreateModal = ref(false)
@@ -44,13 +45,20 @@ export function useOpenSearch() {
 
   async function loadDomains() {
     loading.value = true
+    // Check if emulator is ministack — skip API calls
+    if (settingsStore.emulator && settingsStore.emulator.toLowerCase() === 'ministack') {
+      isAvailable.value = false
+      domains.value = []
+      loading.value = false
+      return
+    }
     try {
       const result = await openSearchApi.listDomainNames()
       domains.value = result
+      isAvailable.value = true
     } catch (error: any) {
-      console.error('Failed to load domains:', error)
-      toast.error(`Failed to load domains: ${error}`)
       domains.value = []
+      isAvailable.value = false
     } finally {
       loading.value = false
     }
@@ -174,11 +182,16 @@ export function useOpenSearch() {
 
   async function loadCompatibleVersions() {
     loadingCompatibleVersions.value = true
+    // Check if emulator is ministack — skip API calls
+    if (settingsStore.emulator && settingsStore.emulator.toLowerCase() === 'ministack') {
+      compatibleVersions.value = []
+      loadingCompatibleVersions.value = false
+      return
+    }
     try {
       const result = await openSearchApi.getCompatibleVersions()
       compatibleVersions.value = result.CompatibleVersions || []
-    } catch (error: any) {
-      console.error('Failed to load compatible versions:', error)
+    } catch {
       compatibleVersions.value = []
     } finally {
       loadingCompatibleVersions.value = false
@@ -399,6 +412,7 @@ client.DeleteDomain(context.Background(), &opensearch.DeleteDomainInput{
   return {
     domains,
     loading,
+    isAvailable,
     expandedDomains,
     showCreateModal,
     creating,

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useOpenSearch } from './useOpenSearch'
+import { useSettingsStore } from '@/stores/settings'
 
 const mockDescribeDomain = vi.fn()
 const mockListTags = vi.fn()
@@ -22,6 +23,7 @@ vi.mock('@/api/services/opensearch', () => ({
 vi.mock('@/stores/settings', () => ({
   useSettingsStore: vi.fn(() => ({
     region: 'us-east-1',
+    emulator: '',
     accessKey: 'test-key',
     secretKey: 'test-secret',
   })),
@@ -36,9 +38,10 @@ describe('useOpenSearch', () => {
   })
 
   it('initializes with empty state', () => {
-    const { domains, loading, expandedDomains, showCreateModal, showDeleteConfirm } = useOpenSearch()
+    const { domains, loading, isAvailable, expandedDomains, showCreateModal, showDeleteConfirm } = useOpenSearch()
     expect(domains.value).toEqual([])
     expect(loading.value).toBe(false)
+    expect(isAvailable.value).toBe(true)
     expect(expandedDomains.value).toEqual(new Set())
     expect(showCreateModal.value).toBe(false)
     expect(showDeleteConfirm.value).toBe(false)
@@ -64,12 +67,31 @@ describe('useOpenSearch', () => {
   it('loadDomains handles error', async () => {
     vi.mocked(openSearchApi.listDomainNames).mockRejectedValue(new Error('Network error'))
 
-    const { loadDomains, loading, domains } = useOpenSearch()
+    const { loadDomains, loading, domains, isAvailable } = useOpenSearch()
 
     await loadDomains()
 
     expect(loading.value).toBe(false)
     expect(domains.value).toEqual([])
+    expect(isAvailable.value).toBe(false)
+  })
+
+  it('skips API call and sets unavailable when emulator is ministack', async () => {
+    vi.mocked(useSettingsStore).mockReturnValueOnce({
+      region: 'us-east-1',
+      emulator: 'MINISTACK',
+      accessKey: 'test-key',
+      secretKey: 'test-secret',
+    })
+
+    const { loadDomains, domains, loading, isAvailable } = useOpenSearch()
+
+    await loadDomains()
+
+    expect(openSearchApi.listDomainNames).not.toHaveBeenCalled()
+    expect(domains.value).toEqual([])
+    expect(isAvailable.value).toBe(false)
+    expect(loading.value).toBe(false)
   })
 
   it('createDomain validates required name', async () => {

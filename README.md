@@ -139,6 +139,8 @@ mydevstack/
 
 ## Supported AWS Services
 
+> **MiniStack note**: MSK and OpenSearch are not supported by MiniStack. The UI shows a warning banner and disables create actions when running on MiniStack.
+
 | Service | Status | Description |
 |---------|--------|-------------|
 | S3 | ✅ | Buckets, Objects, Presigned URLs |
@@ -158,6 +160,8 @@ mydevstack/
 | RDS | ✅ | Databases, Instances, Snapshots |
 | SES | ✅ | Emails, Templates, Send |
 | Step Functions | ✅ | State Machines, Executions |
+| OpenSearch | ✅ | Domains, Config (requires LocalStack or FloCi) |
+| MSK | ✅ | Clusters, Bootstrap Brokers (requires LocalStack or FloCi) |
 
 ---
 

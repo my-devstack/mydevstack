@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { useToast } from '@/composables/useToast'
+import { useSettingsStore } from '@/stores/settings'
 import * as mskApi from '@/api/services/msk'
 
 // Types
@@ -52,6 +53,7 @@ export interface MSKNodeInfo {
 
 export function useMSK() {
   const toast = useToast()
+  const settingsStore = useSettingsStore()
 
   // State
   const clusters = ref<MSKClusterSummary[]>([])
@@ -113,6 +115,13 @@ export function useMSK() {
   // API functions
   async function loadClusters() {
     isLoading.value = true
+    // Check if emulator is ministack — skip API calls
+    if (settingsStore.emulator && settingsStore.emulator.toLowerCase() === 'ministack') {
+      isAvailable.value = false
+      clusters.value = []
+      isLoading.value = false
+      return
+    }
     try {
       const result = await mskApi.listClustersV2()
       clusters.value = result.ClusterInfoList || []
