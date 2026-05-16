@@ -133,6 +133,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/services/SES.vue'),
     meta: { title: 'SES', service: 'ses' },
   },
+  // CloudWatch
+  {
+    path: '/services/cloudwatch',
+    name: 'CloudWatch',
+    component: () => import('@/views/services/CloudWatch.vue'),
+    meta: { title: 'CloudWatch', service: 'cloudwatch' },
+  },
   // MSK
   {
     path: '/services/msk',

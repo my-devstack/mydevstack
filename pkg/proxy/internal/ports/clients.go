@@ -6,6 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
@@ -320,6 +322,33 @@ type CloudFormationClientPort interface {
 	DescribeStacks(ctx context.Context, input *cloudformation.DescribeStacksInput, opts ...func(*cloudformation.Options)) (*cloudformation.DescribeStacksOutput, error)
 	GetTemplate(ctx context.Context, input *cloudformation.GetTemplateInput, opts ...func(*cloudformation.Options)) (*cloudformation.GetTemplateOutput, error)
 	ListStackResources(ctx context.Context, input *cloudformation.ListStackResourcesInput, opts ...func(*cloudformation.Options)) (*cloudformation.ListStackResourcesOutput, error)
+}
+
+// CloudWatchClientPort defines the interface for the AWS CloudWatch client
+type CloudWatchClientPort interface {
+	DescribeAlarms(ctx context.Context, input *cloudwatch.DescribeAlarmsInput, opts ...func(*cloudwatch.Options)) (*cloudwatch.DescribeAlarmsOutput, error)
+	PutMetricAlarm(ctx context.Context, input *cloudwatch.PutMetricAlarmInput, opts ...func(*cloudwatch.Options)) (*cloudwatch.PutMetricAlarmOutput, error)
+	DeleteAlarms(ctx context.Context, input *cloudwatch.DeleteAlarmsInput, opts ...func(*cloudwatch.Options)) (*cloudwatch.DeleteAlarmsOutput, error)
+	SetAlarmState(ctx context.Context, input *cloudwatch.SetAlarmStateInput, opts ...func(*cloudwatch.Options)) (*cloudwatch.SetAlarmStateOutput, error)
+	DescribeAlarmHistory(ctx context.Context, input *cloudwatch.DescribeAlarmHistoryInput, opts ...func(*cloudwatch.Options)) (*cloudwatch.DescribeAlarmHistoryOutput, error)
+	ListMetrics(ctx context.Context, input *cloudwatch.ListMetricsInput, opts ...func(*cloudwatch.Options)) (*cloudwatch.ListMetricsOutput, error)
+	GetMetricData(ctx context.Context, input *cloudwatch.GetMetricDataInput, opts ...func(*cloudwatch.Options)) (*cloudwatch.GetMetricDataOutput, error)
+	GetMetricStatistics(ctx context.Context, input *cloudwatch.GetMetricStatisticsInput, opts ...func(*cloudwatch.Options)) (*cloudwatch.GetMetricStatisticsOutput, error)
+	PutMetricData(ctx context.Context, input *cloudwatch.PutMetricDataInput, opts ...func(*cloudwatch.Options)) (*cloudwatch.PutMetricDataOutput, error)
+}
+
+// CloudWatchLogsClientPort defines the interface for the AWS CloudWatch Logs client
+type CloudWatchLogsClientPort interface {
+	DescribeLogGroups(ctx context.Context, input *cloudwatchlogs.DescribeLogGroupsInput, opts ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeLogGroupsOutput, error)
+	CreateLogGroup(ctx context.Context, input *cloudwatchlogs.CreateLogGroupInput, opts ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.CreateLogGroupOutput, error)
+	DeleteLogGroup(ctx context.Context, input *cloudwatchlogs.DeleteLogGroupInput, opts ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DeleteLogGroupOutput, error)
+	DescribeLogStreams(ctx context.Context, input *cloudwatchlogs.DescribeLogStreamsInput, opts ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeLogStreamsOutput, error)
+	CreateLogStream(ctx context.Context, input *cloudwatchlogs.CreateLogStreamInput, opts ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.CreateLogStreamOutput, error)
+	PutLogEvents(ctx context.Context, input *cloudwatchlogs.PutLogEventsInput, opts ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.PutLogEventsOutput, error)
+	GetLogEvents(ctx context.Context, input *cloudwatchlogs.GetLogEventsInput, opts ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.GetLogEventsOutput, error)
+	PutRetentionPolicy(ctx context.Context, input *cloudwatchlogs.PutRetentionPolicyInput, opts ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.PutRetentionPolicyOutput, error)
+	PutMetricFilter(ctx context.Context, input *cloudwatchlogs.PutMetricFilterInput, opts ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.PutMetricFilterOutput, error)
+	DescribeMetricFilters(ctx context.Context, input *cloudwatchlogs.DescribeMetricFiltersInput, opts ...func(*cloudwatchlogs.Options)) (*cloudwatchlogs.DescribeMetricFiltersOutput, error)
 }
 
 // MSKClientPort defines the interface for the AWS MSK (Kafka) client

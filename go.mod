@@ -9,6 +9,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.39.1
 	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.34.1
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.71.11
+	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.43.3
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.48.0
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.57.1
 	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.32.16
 	github.com/aws/aws-sdk-go-v2/service/elasticache v1.52.0
@@ -60,6 +62,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.1 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect

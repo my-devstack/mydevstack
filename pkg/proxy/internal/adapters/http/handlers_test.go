@@ -46,7 +46,9 @@ func (s *testProxyService) Kinesis() ports.KinesisPort                 { return 
 func (s *testProxyService) RDS() ports.RDSPort                         { return nil }
 func (s *testProxyService) ElastiCache() ports.ElastiCachePort         { return nil }
 func (s *testProxyService) CloudFormation() ports.CloudFormationPort   { return s.cfPort }
-func (s *testProxyService) SESv2() ports.SESv2Port                     { return nil }
+func (s *testProxyService) CloudWatch() ports.CloudWatchPort                     { return nil }
+func (s *testProxyService) CloudWatchLogs() ports.CloudWatchLogsPort              { return nil }
+func (s *testProxyService) SESv2() ports.SESv2Port                               { return nil }
 func (s *testProxyService) OpenSearch() ports.OpenSearchPort           { return s.osPort }
 func (s *testProxyService) MSK() ports.MSKPort { return nil }
 func (s *testProxyService) Config() *configloader.Config {

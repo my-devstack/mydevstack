@@ -175,6 +175,98 @@ func (_c *ProxyService_CloudFormation_Call) RunAndReturn(run func() ports.CloudF
 	return _c
 }
 
+// CloudWatch provides a mock function for the type ProxyService
+func (_mock *ProxyService) CloudWatch() ports.CloudWatchPort {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for CloudWatch")
+	}
+
+	var r0 ports.CloudWatchPort
+	if returnFunc, ok := ret.Get(0).(func() ports.CloudWatchPort); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ports.CloudWatchPort)
+		}
+	}
+	return r0
+}
+
+// ProxyService_CloudWatch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CloudWatch'
+type ProxyService_CloudWatch_Call struct {
+	*mock.Call
+}
+
+// CloudWatch is a helper method to define mock.On call
+func (_e *ProxyService_Expecter) CloudWatch() *ProxyService_CloudWatch_Call {
+	return &ProxyService_CloudWatch_Call{Call: _e.mock.On("CloudWatch")}
+}
+
+func (_c *ProxyService_CloudWatch_Call) Run(run func()) *ProxyService_CloudWatch_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ProxyService_CloudWatch_Call) Return(cloudWatchPort ports.CloudWatchPort) *ProxyService_CloudWatch_Call {
+	_c.Call.Return(cloudWatchPort)
+	return _c
+}
+
+func (_c *ProxyService_CloudWatch_Call) RunAndReturn(run func() ports.CloudWatchPort) *ProxyService_CloudWatch_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CloudWatchLogs provides a mock function for the type ProxyService
+func (_mock *ProxyService) CloudWatchLogs() ports.CloudWatchLogsPort {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for CloudWatchLogs")
+	}
+
+	var r0 ports.CloudWatchLogsPort
+	if returnFunc, ok := ret.Get(0).(func() ports.CloudWatchLogsPort); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ports.CloudWatchLogsPort)
+		}
+	}
+	return r0
+}
+
+// ProxyService_CloudWatchLogs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CloudWatchLogs'
+type ProxyService_CloudWatchLogs_Call struct {
+	*mock.Call
+}
+
+// CloudWatchLogs is a helper method to define mock.On call
+func (_e *ProxyService_Expecter) CloudWatchLogs() *ProxyService_CloudWatchLogs_Call {
+	return &ProxyService_CloudWatchLogs_Call{Call: _e.mock.On("CloudWatchLogs")}
+}
+
+func (_c *ProxyService_CloudWatchLogs_Call) Run(run func()) *ProxyService_CloudWatchLogs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ProxyService_CloudWatchLogs_Call) Return(cloudWatchLogsPort ports.CloudWatchLogsPort) *ProxyService_CloudWatchLogs_Call {
+	_c.Call.Return(cloudWatchLogsPort)
+	return _c
+}
+
+func (_c *ProxyService_CloudWatchLogs_Call) RunAndReturn(run func() ports.CloudWatchLogsPort) *ProxyService_CloudWatchLogs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Config provides a mock function for the type ProxyService
 func (_mock *ProxyService) Config() *configloader.Config {
 	ret := _mock.Called()
