@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSettingsStore } from '@/stores/settings'
 import { PROXY_BACKEND } from '@/config'
@@ -120,6 +120,34 @@ const isServiceRoute = computed(() => route.path.startsWith('/services'))
 const handleServiceClick = (service: Service) => {
   router.push(service.path)
 }
+
+// Scroll indicators for services list
+const servicesScrollRef = ref<HTMLElement | null>(null)
+const canScrollUp = ref(false)
+const canScrollDown = ref(false)
+
+function checkScroll() {
+  const el = servicesScrollRef.value
+  if (!el) return
+  canScrollUp.value = el.scrollTop > 4
+  canScrollDown.value = el.scrollTop + el.clientHeight < el.scrollHeight - 4
+}
+
+let scrollObserver: MutationObserver | null = null
+
+onMounted(() => {
+  // Initial check after render
+  setTimeout(checkScroll, 100)
+  // Watch for DOM changes (e.g. version notification appearing)
+  if (servicesScrollRef.value) {
+    scrollObserver = new MutationObserver(checkScroll)
+    scrollObserver.observe(servicesScrollRef.value, { childList: true, subtree: true, attributes: false })
+  }
+})
+
+onUnmounted(() => {
+  scrollObserver?.disconnect()
+})
 </script>
 
 <template>
@@ -254,14 +282,26 @@ const handleServiceClick = (service: Service) => {
       </div>
       
       <!-- Services list -->
-      <div
-        class="space-y-0.5 overflow-y-auto"
-        :class="collapsed ? 'max-h-[calc(100vh-300px)]' : 'max-h-[calc(100vh-300px\)]'"
-      >
-        <button
-          v-for="service in services"
-          :key="service.path"
-          class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left"
+      <div class="relative">
+        <!-- Top scroll indicator -->
+        <div
+          v-show="canScrollUp"
+          class="absolute top-0 left-0 right-0 h-6 pointer-events-none z-10"
+          :class="settingsStore.darkMode
+            ? 'bg-gradient-to-b from-dark-surface to-transparent'
+            : 'bg-gradient-to-b from-light-surface to-transparent'"
+        />
+
+        <div
+          ref="servicesScrollRef"
+          class="space-y-0.5 overflow-y-auto"
+          :class="collapsed ? 'max-h-[calc(100vh-300px)]' : 'max-h-[calc(100vh-300px\)]'"
+          @scroll="checkScroll"
+        >
+          <button
+            v-for="service in services"
+            :key="service.path"
+            class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left"
           :class="[
             route.path === service.path
               ? 'bg-primary-600/10 text-primary-600'
@@ -582,57 +622,91 @@ const handleServiceClick = (service: Service) => {
           >{{ service.name }}</span>
         </button>
       </div>
+
+      <!-- Bottom scroll indicator -->
+      <div
+        v-show="canScrollDown"
+        class="absolute bottom-0 left-0 right-0 h-6 pointer-events-none z-10"
+        :class="settingsStore.darkMode
+          ? 'bg-gradient-to-t from-dark-surface to-transparent'
+          : 'bg-gradient-to-t from-light-surface to-transparent'"
+      />
+    </div>
     </div>
 
-    <!-- Version Notification -->
+    <!-- Version Info -->
     <div
-      v-if="showVersionNotification && latestVersion"
-      class="mx-2 mb-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+      v-if="currentVersion"
+      class="mx-2 mb-2 mt-4 p-3 rounded-lg"
+      :class="showVersionNotification
+        ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
+        : (settingsStore.darkMode ? 'bg-dark-border/30' : 'bg-light-border/30')"
     >
       <div class="flex items-start gap-2">
         <svg
-          class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5"
+          class="w-5 h-5 flex-shrink-0 mt-0.5"
+          :class="showVersionNotification
+            ? 'text-blue-600 dark:text-blue-400'
+            : 'text-light-muted dark:text-dark-muted'"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
         >
           <path
+            v-if="showVersionNotification"
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          />
+          <path
+            v-else
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
         <div
           v-if="!collapsed"
           class="flex-1 min-w-0"
         >
-          <p class="text-sm font-medium text-blue-800 dark:text-blue-200">
-            A new version has been released
-          </p>
-          <p class="text-sm text-blue-600 dark:text-blue-300">
-            v{{ latestVersion }}
-          </p>
-          <a
-            :href="getReleaseUrl()"
-            target="_blank"
-            class="inline-flex items-center gap-1 mt-1 text-xs font-medium text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 hover:underline"
-          >
-            View Release
-            <svg
-              class="w-3 h-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          <template v-if="showVersionNotification">
+            <p class="text-sm font-medium text-blue-800 dark:text-blue-200">
+              A new version has been released
+            </p>
+            <p class="text-sm text-blue-600 dark:text-blue-300">
+              {{ latestVersion }}
+            </p>
+            <a
+              :href="getReleaseUrl()"
+              target="_blank"
+              class="inline-flex items-center gap-1 mt-1 text-xs font-medium text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 hover:underline"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-              />
-            </svg>
-          </a>
+              View Release
+              <svg
+                class="w-3 h-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </a>
+          </template>
+          <template v-else>
+            <p class="text-xs text-light-muted dark:text-dark-muted">
+              Current version
+            </p>
+            <p class="text-sm font-medium" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">
+              v{{ currentVersion }}
+            </p>
+          </template>
         </div>
       </div>
     </div>
