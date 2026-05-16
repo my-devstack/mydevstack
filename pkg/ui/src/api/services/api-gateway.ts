@@ -532,8 +532,8 @@ export const createMethod = (restApiId: string, resourceId: string, httpMethod: 
   apiGatewayService.createMethod(restApiId, resourceId, httpMethod, options)
 
 // REST API v1 Stage aliases
-export const createStage = (apiId: string, deploymentId: string, stageName: string) =>
-  apiGatewayService.createStage(apiId, deploymentId, stageName)
+export const createStage = (apiId: string, deploymentId: string, stageName: string, stageDescription?: string) =>
+  apiGatewayService.createStage(apiId, deploymentId, stageName, stageDescription)
 export const getStages = (apiId: string) => apiGatewayService.getStages(apiId)
 export const updateStage = (apiId: string, stageName: string, options?: any) =>
   apiGatewayService.updateStage(apiId, stageName, options)

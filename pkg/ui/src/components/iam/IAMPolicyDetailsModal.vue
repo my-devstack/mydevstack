@@ -6,7 +6,7 @@ interface IAMPolicy {
   PolicyName: string
   Arn: string
   PolicyId: string
-  AttachmentCount: number
+  AttachmentCount?: number
 }
 
 const props = defineProps<{
@@ -48,7 +48,7 @@ function handleClose() {
             ARN
           </label>
           <p class="text-sm text-light-text dark:text-dark-text font-mono">
-            {{ props.policy.PolicyArn }}
+            {{ props.policy.Arn }}
           </p>
         </div>
         <div>
@@ -64,7 +64,7 @@ function handleClose() {
             Attachments
           </label>
           <p class="text-sm text-light-text dark:text-dark-text">
-            {{ props.policy.AttachmentCount }}
+            {{ props.policy.AttachmentCount ?? '-' }}
           </p>
         </div>
       </div>

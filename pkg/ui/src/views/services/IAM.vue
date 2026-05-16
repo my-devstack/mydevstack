@@ -66,7 +66,7 @@ import {
   deletePolicy,
   createPolicy,
 } from '@/api/services/iam'
-import type { IAMUser, IAMRole, IAMPolicy, IAMGroup } from '@/api/types/aws'
+import type { IAMUser, IAMRole, IAMGroup, IAMPolicy } from '@/api/services/iam'
 import { useIAM } from '@/composables/useIAM'
 
 // Components
@@ -926,19 +926,33 @@ watch(reloadTrigger, () => {
                 class="text-sm border rounded px-2 py-1"
                 :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
               >
-                <option v-for="opt in perPageOptions" :key="opt" :value="opt">{{ opt }}</option>
+                <option
+                  v-for="opt in perPageOptions"
+                  :key="opt"
+                  :value="opt"
+                >
+                  {{ opt }}
+                </option>
               </select>
               <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
             </div>
 
-            <div v-if="totalUserPages > 1" class="flex items-center gap-2">
+            <div
+              v-if="totalUserPages > 1"
+              class="flex items-center gap-2"
+            >
               <button
                 class="px-3 py-1 rounded border disabled:opacity-50"
                 :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
                 :disabled="userPage === 1"
                 @click="goToUserPage(userPage - 1)"
-              >Previous</button>
-              <span class="text-sm" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">
+              >
+                Previous
+              </button>
+              <span
+                class="text-sm"
+                :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+              >
                 Page {{ userPage }} of {{ totalUserPages }}
               </span>
               <button
@@ -946,7 +960,9 @@ watch(reloadTrigger, () => {
                 :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
                 :disabled="userPage === totalUserPages"
                 @click="goToUserPage(userPage + 1)"
-              >Next</button>
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>
@@ -1085,19 +1101,33 @@ watch(reloadTrigger, () => {
                 class="text-sm border rounded px-2 py-1"
                 :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
               >
-                <option v-for="opt in perPageOptions" :key="opt" :value="opt">{{ opt }}</option>
+                <option
+                  v-for="opt in perPageOptions"
+                  :key="opt"
+                  :value="opt"
+                >
+                  {{ opt }}
+                </option>
               </select>
               <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
             </div>
 
-            <div v-if="totalRolePages > 1" class="flex items-center gap-2">
+            <div
+              v-if="totalRolePages > 1"
+              class="flex items-center gap-2"
+            >
               <button
                 class="px-3 py-1 rounded border disabled:opacity-50"
                 :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
                 :disabled="rolePage === 1"
                 @click="goToRolePage(rolePage - 1)"
-              >Previous</button>
-              <span class="text-sm" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">
+              >
+                Previous
+              </button>
+              <span
+                class="text-sm"
+                :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+              >
                 Page {{ rolePage }} of {{ totalRolePages }}
               </span>
               <button
@@ -1105,7 +1135,9 @@ watch(reloadTrigger, () => {
                 :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
                 :disabled="rolePage === totalRolePages"
                 @click="goToRolePage(rolePage + 1)"
-              >Next</button>
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>
@@ -1230,19 +1262,33 @@ watch(reloadTrigger, () => {
                 class="text-sm border rounded px-2 py-1"
                 :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
               >
-                <option v-for="opt in perPageOptions" :key="opt" :value="opt">{{ opt }}</option>
+                <option
+                  v-for="opt in perPageOptions"
+                  :key="opt"
+                  :value="opt"
+                >
+                  {{ opt }}
+                </option>
               </select>
               <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
             </div>
 
-            <div v-if="totalPolicyPages > 1" class="flex items-center gap-2">
+            <div
+              v-if="totalPolicyPages > 1"
+              class="flex items-center gap-2"
+            >
               <button
                 class="px-3 py-1 rounded border disabled:opacity-50"
                 :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
                 :disabled="policyPage === 1"
                 @click="goToPolicyPage(policyPage - 1)"
-              >Previous</button>
-              <span class="text-sm" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">
+              >
+                Previous
+              </button>
+              <span
+                class="text-sm"
+                :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+              >
                 Page {{ policyPage }} of {{ totalPolicyPages }}
               </span>
               <button
@@ -1250,7 +1296,9 @@ watch(reloadTrigger, () => {
                 :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
                 :disabled="policyPage === totalPolicyPages"
                 @click="goToPolicyPage(policyPage + 1)"
-              >Next</button>
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>
@@ -1401,19 +1449,33 @@ watch(reloadTrigger, () => {
                 class="text-sm border rounded px-2 py-1"
                 :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
               >
-                <option v-for="opt in perPageOptions" :key="opt" :value="opt">{{ opt }}</option>
+                <option
+                  v-for="opt in perPageOptions"
+                  :key="opt"
+                  :value="opt"
+                >
+                  {{ opt }}
+                </option>
               </select>
               <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
             </div>
 
-            <div v-if="totalGroupPages > 1" class="flex items-center gap-2">
+            <div
+              v-if="totalGroupPages > 1"
+              class="flex items-center gap-2"
+            >
               <button
                 class="px-3 py-1 rounded border disabled:opacity-50"
                 :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
                 :disabled="groupPage === 1"
                 @click="goToGroupPage(groupPage - 1)"
-              >Previous</button>
-              <span class="text-sm" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">
+              >
+                Previous
+              </button>
+              <span
+                class="text-sm"
+                :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+              >
                 Page {{ groupPage }} of {{ totalGroupPages }}
               </span>
               <button
@@ -1421,7 +1483,9 @@ watch(reloadTrigger, () => {
                 :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
                 :disabled="groupPage === totalGroupPages"
                 @click="goToGroupPage(groupPage + 1)"
-              >Next</button>
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>

@@ -61,23 +61,42 @@ function retentionLabel(days?: number): string {
           <ChartBarIcon class="w-5 h-5 text-amber-500 flex-shrink-0" />
           <span class="text-sm text-light-text dark:text-dark-text truncate font-medium">{{ group.logGroupName }}</span>
         </div>
-        <div class="col-span-5 text-sm text-light-muted dark:text-dark-muted">{{ retentionLabel(group.retentionInDays) }}</div>
+        <div class="col-span-5 text-sm text-light-muted dark:text-dark-muted">
+          {{ retentionLabel(group.retentionInDays) }}
+        </div>
         <div class="col-span-1 flex items-center justify-end gap-1">
           <button
             class="text-red-500 hover:text-red-700 text-xs px-1"
             title="Delete log group"
             @click.stop="emit('deleteLogGroup', group.logGroupName)"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
             </svg>
           </button>
           <svg
             class="w-5 h-5 text-light-muted dark:text-dark-muted transition-transform"
             :class="expandedLogGroups.has(group.logGroupName) ? 'rotate-90' : ''"
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </div>
       </div>
@@ -94,13 +113,19 @@ function retentionLabel(days?: number): string {
             <button
               class="text-xs text-primary-600 hover:text-primary-700 font-medium"
               @click.stop="emit('createStream', group.logGroupName)"
-            >+ Create Stream</button>
+            >
+              + Create Stream
+            </button>
           </div>
           <template v-if="!logStreams[group.logGroupName]">
-            <p class="text-xs text-light-muted dark:text-dark-muted py-2">Loading streams...</p>
+            <p class="text-xs text-light-muted dark:text-dark-muted py-2">
+              Loading streams...
+            </p>
           </template>
           <template v-else-if="logStreams[group.logGroupName].length === 0">
-            <p class="text-xs text-light-muted dark:text-dark-muted py-2">No log streams found.</p>
+            <p class="text-xs text-light-muted dark:text-dark-muted py-2">
+              No log streams found.
+            </p>
           </template>
           <template v-else>
             <div
@@ -114,20 +139,41 @@ function retentionLabel(days?: number): string {
                 @click="emit('toggleLogStream', group.logGroupName, stream.logStreamName)"
               >
                 <div class="col-span-5 flex items-center gap-2">
-                  <svg class="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <svg
+                    class="w-4 h-4 text-blue-500 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
                   <span class="text-sm text-light-text dark:text-dark-text truncate">{{ stream.logStreamName }}</span>
                 </div>
-                <div class="col-span-3 text-sm text-light-muted dark:text-dark-muted">{{ formatTimestamp(stream.lastEventTimestamp) }}</div>
-                <div class="col-span-3 text-sm text-light-muted dark:text-dark-muted">{{ formatBytes(stream.storedBytes) }}</div>
+                <div class="col-span-3 text-sm text-light-muted dark:text-dark-muted">
+                  {{ formatTimestamp(stream.lastEventTimestamp) }}
+                </div>
+                <div class="col-span-3 text-sm text-light-muted dark:text-dark-muted">
+                  {{ formatBytes(stream.storedBytes) }}
+                </div>
                 <div class="col-span-1 flex justify-end">
                   <svg
                     class="w-4 h-4 text-light-muted dark:text-dark-muted transition-transform"
                     :class="expandedLogStreams.has(group.logGroupName + ':' + stream.logStreamName) ? 'rotate-90' : ''"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -139,12 +185,19 @@ function retentionLabel(days?: number): string {
                 :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
               >
                 <template v-if="!logEvents[group.logGroupName + ':' + stream.logStreamName]">
-                  <p class="text-xs text-light-muted dark:text-dark-muted py-1">Loading events...</p>
+                  <p class="text-xs text-light-muted dark:text-dark-muted py-1">
+                    Loading events...
+                  </p>
                 </template>
                 <template v-else-if="logEvents[group.logGroupName + ':' + stream.logStreamName].length === 0">
-                  <p class="text-xs text-light-muted dark:text-dark-muted py-1">No log events found.</p>
+                  <p class="text-xs text-light-muted dark:text-dark-muted py-1">
+                    No log events found.
+                  </p>
                 </template>
-                <div v-else class="space-y-1 py-1 max-h-64 overflow-y-auto">
+                <div
+                  v-else
+                  class="space-y-1 py-1 max-h-64 overflow-y-auto"
+                >
                   <div
                     v-for="(event, i) in logEvents[group.logGroupName + ':' + stream.logStreamName]"
                     :key="event.eventId || i"

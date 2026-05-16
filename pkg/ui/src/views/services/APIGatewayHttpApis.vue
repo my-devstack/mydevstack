@@ -342,19 +342,33 @@ defineExpose({
         class="text-sm border rounded px-2 py-1"
         :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
       >
-        <option v-for="opt in perPageOptions" :key="opt" :value="opt">{{ opt }}</option>
+        <option
+          v-for="opt in perPageOptions"
+          :key="opt"
+          :value="opt"
+        >
+          {{ opt }}
+        </option>
       </select>
       <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
     </div>
 
-    <div v-if="totalHttpApiPages > 1" class="flex items-center gap-2">
+    <div
+      v-if="totalHttpApiPages > 1"
+      class="flex items-center gap-2"
+    >
       <button
         class="px-3 py-1 rounded border disabled:opacity-50"
         :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
         :disabled="httpApiPage === 1"
         @click="goToHttpApiPage(httpApiPage - 1)"
-      >Previous</button>
-      <span class="text-sm" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">
+      >
+        Previous
+      </button>
+      <span
+        class="text-sm"
+        :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+      >
         Page {{ httpApiPage }} of {{ totalHttpApiPages }}
       </span>
       <button
@@ -362,7 +376,9 @@ defineExpose({
         :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
         :disabled="httpApiPage === totalHttpApiPages"
         @click="goToHttpApiPage(httpApiPage + 1)"
-      >Next</button>
+      >
+        Next
+      </button>
     </div>
   </div>
 
