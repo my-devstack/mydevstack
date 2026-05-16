@@ -175,7 +175,9 @@ const headerResourceCount = computed(() => {
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
           <ChartBarIcon class="h-6 w-6 text-light-text dark:text-dark-text" />
-          <h1 class="text-xl font-semibold text-light-text dark:text-dark-text">CloudWatch</h1>
+          <h1 class="text-xl font-semibold text-light-text dark:text-dark-text">
+            CloudWatch
+          </h1>
           <span class="text-sm text-light-muted dark:text-dark-muted">
             {{ headerResourceCount }}
           </span>
@@ -197,7 +199,8 @@ const headerResourceCount = computed(() => {
     >
       <div class="flex gap-6">
         <button
-          v-for="tab in tabs" :key="tab.id"
+          v-for="tab in tabs"
+          :key="tab.id"
           class="py-3 text-sm font-medium border-b-2 transition-colors"
           :class="cw.selectedTab.value === tab.id
             ? 'border-primary-500 text-primary-600 dark:text-primary-400'
@@ -211,7 +214,10 @@ const headerResourceCount = computed(() => {
 
     <!-- Content -->
     <div class="flex-1 overflow-auto p-6">
-      <LoadingSpinner v-if="cw.loading.value" size="lg" />
+      <LoadingSpinner
+        v-if="cw.loading.value"
+        size="lg"
+      />
 
       <!-- Logs Tab -->
       <template v-if="cw.selectedTab.value === 'logs' && !cw.loading.value">
@@ -224,7 +230,10 @@ const headerResourceCount = computed(() => {
           @action="showCreateLogGroupModal = true"
         />
 
-        <div v-else class="space-y-4">
+        <div
+          v-else
+          class="space-y-4"
+        >
           <CloudWatchLogsList
             :log-groups="paginatedLogGroups"
             :expanded-log-groups="cw.expandedLogGroups.value"
@@ -239,7 +248,10 @@ const headerResourceCount = computed(() => {
           />
 
           <!-- Pagination for log groups -->
-          <div v-if="cw.logGroups.value.length > 0" class="flex flex-wrap items-center justify-between gap-4 py-4">
+          <div
+            v-if="cw.logGroups.value.length > 0"
+            class="flex flex-wrap items-center justify-between gap-4 py-4"
+          >
             <div class="flex items-center gap-2">
               <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
               <select
@@ -247,22 +259,35 @@ const headerResourceCount = computed(() => {
                 class="text-sm border rounded px-2 py-1"
                 :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
               >
-                <option v-for="opt in perPageOptions" :key="opt" :value="opt">{{ opt }}</option>
+                <option
+                  v-for="opt in perPageOptions"
+                  :key="opt"
+                  :value="opt"
+                >
+                  {{ opt }}
+                </option>
               </select>
               <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
             </div>
-            <div v-if="totalLogGroupPages > 1" class="flex items-center gap-2">
+            <div
+              v-if="totalLogGroupPages > 1"
+              class="flex items-center gap-2"
+            >
               <button
                 class="px-3 py-1 rounded border disabled:opacity-50"
                 :disabled="logGroupPage === 1"
                 @click="goToLogGroupPage(logGroupPage - 1)"
-              >Previous</button>
+              >
+                Previous
+              </button>
               <span class="text-sm text-light-muted dark:text-dark-muted">Page {{ logGroupPage }} of {{ totalLogGroupPages }}</span>
               <button
                 class="px-3 py-1 rounded border disabled:opacity-50"
                 :disabled="logGroupPage === totalLogGroupPages"
                 @click="goToLogGroupPage(logGroupPage + 1)"
-              >Next</button>
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>

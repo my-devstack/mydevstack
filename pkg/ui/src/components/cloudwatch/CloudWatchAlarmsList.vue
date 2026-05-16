@@ -56,17 +56,31 @@ function getAlarmStatus(state: string): 'active' | 'pending' | 'inactive' {
           <span class="text-sm text-light-text dark:text-dark-text truncate font-medium">{{ alarm.AlarmName }}</span>
         </div>
         <div class="col-span-2">
-          <StatusBadge :status="getAlarmStatus(alarm.StateValue)" :label="alarm.StateValue" />
+          <StatusBadge
+            :status="getAlarmStatus(alarm.StateValue)"
+            :label="alarm.StateValue"
+          />
         </div>
-        <div class="col-span-2 text-sm text-light-muted dark:text-dark-muted">{{ alarm.MetricName || '-' }}</div>
-        <div class="col-span-2 text-sm text-light-muted dark:text-dark-muted truncate">{{ alarm.Namespace || '-' }}</div>
+        <div class="col-span-2 text-sm text-light-muted dark:text-dark-muted">
+          {{ alarm.MetricName || '-' }}
+        </div>
+        <div class="col-span-2 text-sm text-light-muted dark:text-dark-muted truncate">
+          {{ alarm.Namespace || '-' }}
+        </div>
         <div class="col-span-1 flex items-center justify-end gap-1">
           <svg
             class="w-5 h-5 text-light-muted dark:text-dark-muted transition-transform"
             :class="expandedAlarms.has(alarm.AlarmName) ? 'rotate-90' : ''"
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </div>
       </div>
@@ -108,7 +122,8 @@ function getAlarmStatus(state: string): 'active' | 'pending' | 'inactive' {
             <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Dimensions</label>
             <div class="flex flex-wrap gap-2">
               <span
-                v-for="(d, i) in alarm.Dimensions" :key="i"
+                v-for="(d, i) in alarm.Dimensions"
+                :key="i"
                 class="text-xs bg-light-border dark:bg-dark-border px-2 py-0.5 rounded"
               >
                 {{ d.Name }}={{ d.Value }}
@@ -117,15 +132,43 @@ function getAlarmStatus(state: string): 'active' | 'pending' | 'inactive' {
           </div>
 
           <div class="flex gap-2">
-            <Button variant="primary" size="sm" @click.stop="emit('setAlarmState', alarm.AlarmName, 'ALARM')">Set ALARM</Button>
-            <Button variant="secondary" size="sm" @click.stop="emit('setAlarmState', alarm.AlarmName, 'OK')">Set OK</Button>
-            <Button variant="secondary" size="sm" @click.stop="emit('setAlarmState', alarm.AlarmName, 'INSUFFICIENT_DATA')">Set INSUFFICIENT</Button>
-            <Button variant="danger" size="sm" @click.stop="emit('deleteAlarm', alarm.AlarmName)">Delete</Button>
+            <Button
+              variant="primary"
+              size="sm"
+              @click.stop="emit('setAlarmState', alarm.AlarmName, 'ALARM')"
+            >
+              Set ALARM
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              @click.stop="emit('setAlarmState', alarm.AlarmName, 'OK')"
+            >
+              Set OK
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              @click.stop="emit('setAlarmState', alarm.AlarmName, 'INSUFFICIENT_DATA')"
+            >
+              Set INSUFFICIENT
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              @click.stop="emit('deleteAlarm', alarm.AlarmName)"
+            >
+              Delete
+            </Button>
           </div>
 
           <div v-if="alarmHistory[alarm.AlarmName]?.length">
             <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">History</label>
-            <div v-for="(h, i) in alarmHistory[alarm.AlarmName]" :key="i" class="text-xs py-1">
+            <div
+              v-for="(h, i) in alarmHistory[alarm.AlarmName]"
+              :key="i"
+              class="text-xs py-1"
+            >
               {{ h.Timestamp ? new Date(h.Timestamp).toLocaleString() : '' }} — {{ h.HistorySummary }}
             </div>
           </div>
@@ -133,7 +176,10 @@ function getAlarmStatus(state: string): 'active' | 'pending' | 'inactive' {
       </div>
     </div>
 
-    <div v-if="alarms.length > 0" class="flex flex-wrap items-center justify-between gap-4 py-4">
+    <div
+      v-if="alarms.length > 0"
+      class="flex flex-wrap items-center justify-between gap-4 py-4"
+    >
       <div class="flex items-center gap-2">
         <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
         <select
@@ -142,22 +188,35 @@ function getAlarmStatus(state: string): 'active' | 'pending' | 'inactive' {
           :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
           @change="emit('updateAlarmsPerPage', Number(($event.target as HTMLSelectElement).value))"
         >
-          <option v-for="opt in perPageOptions" :key="opt" :value="opt">{{ opt }}</option>
+          <option
+            v-for="opt in perPageOptions"
+            :key="opt"
+            :value="opt"
+          >
+            {{ opt }}
+          </option>
         </select>
         <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
       </div>
-      <div v-if="totalAlarmPages > 1" class="flex items-center gap-2">
+      <div
+        v-if="totalAlarmPages > 1"
+        class="flex items-center gap-2"
+      >
         <button
           class="px-3 py-1 rounded border disabled:opacity-50"
           :disabled="alarmPage === 1"
           @click="emit('goToPage', alarmPage - 1)"
-        >Previous</button>
+        >
+          Previous
+        </button>
         <span class="text-sm text-light-muted dark:text-dark-muted">Page {{ alarmPage }} of {{ totalAlarmPages }}</span>
         <button
           class="px-3 py-1 rounded border disabled:opacity-50"
           :disabled="alarmPage === totalAlarmPages"
           @click="emit('goToPage', alarmPage + 1)"
-        >Next</button>
+        >
+          Next
+        </button>
       </div>
     </div>
   </div>

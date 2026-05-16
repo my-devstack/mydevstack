@@ -36,6 +36,14 @@ func main() {
 	setupRoutes(r, container.Handler)
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
+	log.Println("")
+	log.Println("   _____         ________                _________ __                 __    ")
+	log.Println("  /     \\ ___.__.\\______ \\   _______  __/   _____//  |______    ____ |  | __")
+	log.Println(" /  \\ /  <   |  | |    |  \\_/ __ \\  \\/ /\\_____  \\\\   __\\__  \\ _/ ___\\|  |/ /")
+	log.Println("/    Y    \\___  | |    `   \\  ___/\\   / /        \\|  |  / __ \\\\  \\___|    < ")
+	log.Println("\\____|__  / ____|/_______  /\\___  >\\_/ /_______  /|__| (____  /\\___  >__|_ \\")
+	log.Println("        \\/\\/             \\/     \\/             \\/           \\/     \\/     \\/")
+	log.Println("")
 	log.Printf("Server listening on %s", addr)
 	log.Printf("Proxy endpoints:")
 	log.Printf("  Secrets Manager: http://localhost:%s/secretsmanager/", cfg.Port)
@@ -52,7 +60,11 @@ func main() {
 	log.Printf("  SES:             http://localhost:%s/sesv2/", cfg.Port)
 	log.Printf("  MSK (Kafka):     http://localhost:%s/kafka/", cfg.Port)
 	log.Printf("  OpenSearch:      http://localhost:%s/opensearch/", cfg.Port)
-
+	log.Printf("")
+	log.Println("https://my-devstack.github.io/")
+	log.Println("")
+	log.Println("Support me on https://buymeacoffee.com/beabys")
+	log.Println("")
 	if err := r.Run(addr); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}

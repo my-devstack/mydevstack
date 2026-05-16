@@ -106,8 +106,18 @@ watch(reloadTrigger, () => {
     <div class="flex-shrink-0 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface px-6 py-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
-          <svg class="h-6 w-6 text-light-text dark:text-dark-text" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <svg
+            class="h-6 w-6 text-light-text dark:text-dark-text"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
           </svg>
           <h1 class="text-xl font-semibold text-light-text dark:text-dark-text">
             OpenSearch
@@ -195,8 +205,18 @@ watch(reloadTrigger, () => {
               @click="toggleDomain(domain.DomainName)"
             >
               <div class="flex items-center gap-3">
-                <svg class="h-5 w-5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg
+                  class="h-5 w-5 text-primary-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
                 <div>
                   <span
@@ -253,10 +273,29 @@ watch(reloadTrigger, () => {
               :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
             >
               <!-- Loading indicator for domain details -->
-              <div v-if="loadingDomainDetails[domain.DomainName]" class="mt-4 flex items-center gap-2 text-sm" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">
-                <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              <div
+                v-if="loadingDomainDetails[domain.DomainName]"
+                class="mt-4 flex items-center gap-2 text-sm"
+                :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+              >
+                <svg
+                  class="animate-spin h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
                 </svg>
                 Loading details...
               </div>
@@ -339,47 +378,107 @@ watch(reloadTrigger, () => {
               </div>
 
               <!-- Engine Version Section -->
-              <div class="mt-4 border-t pt-4" :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'">
-                <h4 class="text-sm font-semibold mb-2 uppercase tracking-wider" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">Engine Version</h4>
+              <div
+                class="mt-4 border-t pt-4"
+                :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
+              >
+                <h4
+                  class="text-sm font-semibold mb-2 uppercase tracking-wider"
+                  :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                >
+                  Engine Version
+                </h4>
                 <div class="grid grid-cols-2 gap-4">
                   <div>
-                    <p class="text-xs" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">Current Version</p>
-                    <p class="mt-1 text-sm font-medium" :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'">{{ domainDetails[domain.DomainName]?.EngineVersion || domain.EngineVersion || '-' }}</p>
+                    <p
+                      class="text-xs"
+                      :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                    >
+                      Current Version
+                    </p>
+                    <p
+                      class="mt-1 text-sm font-medium"
+                      :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                    >
+                      {{ domainDetails[domain.DomainName]?.EngineVersion || domain.EngineVersion || '-' }}
+                    </p>
                   </div>
                   <div v-if="domainDetails[domain.DomainName]?.EngineVersion">
-                    <p class="text-xs" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">Compatible Versions</p>
-                    <div v-if="loadingCompatibleVersions" class="mt-1 text-sm" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">Loading...</div>
-                    <div v-else class="mt-1">
-                      <span v-for="(v, idx) in getCompatibleVersionFor(domainDetails[domain.DomainName]?.EngineVersion || domain.EngineVersion)" :key="idx"
-                        class="inline-block mr-1 mb-1 px-2 py-0.5 text-xs rounded bg-light-border dark:bg-dark-border text-light-text dark:text-dark-text">
+                    <p
+                      class="text-xs"
+                      :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                    >
+                      Compatible Versions
+                    </p>
+                    <div
+                      v-if="loadingCompatibleVersions"
+                      class="mt-1 text-sm"
+                      :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                    >
+                      Loading...
+                    </div>
+                    <div
+                      v-else
+                      class="mt-1"
+                    >
+                      <span
+                        v-for="(v, idx) in getCompatibleVersionFor(domainDetails[domain.DomainName]?.EngineVersion || domain.EngineVersion)"
+                        :key="idx"
+                        class="inline-block mr-1 mb-1 px-2 py-0.5 text-xs rounded bg-light-border dark:bg-dark-border text-light-text dark:text-dark-text"
+                      >
                         {{ v }}
                       </span>
-                      <span v-if="!getCompatibleVersionFor(domainDetails[domain.DomainName]?.EngineVersion || domain.EngineVersion).length" class="text-sm" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">None</span>
+                      <span
+                        v-if="!getCompatibleVersionFor(domainDetails[domain.DomainName]?.EngineVersion || domain.EngineVersion).length"
+                        class="text-sm"
+                        :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                      >None</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               <!-- Tags Section -->
-              <div class="mt-4 border-t pt-4" :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'">
+              <div
+                class="mt-4 border-t pt-4"
+                :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
+              >
                 <div class="flex items-center justify-between mb-2">
-                  <h4 class="text-sm font-semibold uppercase tracking-wider" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">Tags</h4>
+                  <h4
+                    class="text-sm font-semibold uppercase tracking-wider"
+                    :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                  >
+                    Tags
+                  </h4>
                   <button
                     type="button"
                     class="text-xs text-primary-500 hover:text-primary-700 flex items-center gap-1"
                     title="Add tag"
                     @click.stop="openAddTagModal(domain.DomainName)"
                   >
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    <svg
+                      class="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v16m8-8H4"
+                      />
                     </svg>
                     Add Tag
                   </button>
                 </div>
                 <div v-if="getDomainTags(domain.DomainName).length">
                   <div class="flex flex-wrap gap-2">
-                    <span v-for="(tag, idx) in getDomainTags(domain.DomainName)" :key="idx"
-                      class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded bg-light-border dark:bg-dark-border text-light-text dark:text-dark-text">
+                    <span
+                      v-for="(tag, idx) in getDomainTags(domain.DomainName)"
+                      :key="idx"
+                      class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded bg-light-border dark:bg-dark-border text-light-text dark:text-dark-text"
+                    >
                       <span class="font-medium">{{ tag.Key }}:</span>
                       <span>{{ tag.Value }}</span>
                       <button
@@ -388,14 +487,30 @@ watch(reloadTrigger, () => {
                         title="Remove tag"
                         @click="removeDomainTag(domain.DomainName, tag.Key)"
                       >
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          class="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     </span>
                   </div>
                 </div>
-                <p v-else class="text-sm" :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'">No tags</p>
+                <p
+                  v-else
+                  class="text-sm"
+                  :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                >
+                  No tags
+                </p>
               </div>
             </div>
           </div>
@@ -491,8 +606,19 @@ watch(reloadTrigger, () => {
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <Button variant="secondary" @click="showAddTagModal = false">Cancel</Button>
-          <Button :loading="addingTag" :disabled="!newTagKey" @click="handleAddTag">Add Tag</Button>
+          <Button
+            variant="secondary"
+            @click="showAddTagModal = false"
+          >
+            Cancel
+          </Button>
+          <Button
+            :loading="addingTag"
+            :disabled="!newTagKey"
+            @click="handleAddTag"
+          >
+            Add Tag
+          </Button>
         </div>
       </template>
     </Modal>
