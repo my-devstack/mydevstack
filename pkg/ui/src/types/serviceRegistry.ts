@@ -36,6 +36,7 @@ export const SERVICE_COLORS: Record<string, { text: string; bg: string }> = {
   ssm: { text: 'text-slate-500', bg: 'bg-slate-500' },
   ses: { text: 'text-green-600', bg: 'bg-green-600' },
   msk: { text: 'text-purple-600', bg: 'bg-purple-600' },
+  cloudwatch: { text: 'text-orange-500', bg: 'bg-orange-500' },
 }
 
 export const getServiceColor = (serviceId: string): string => {

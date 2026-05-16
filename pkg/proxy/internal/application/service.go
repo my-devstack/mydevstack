@@ -33,6 +33,8 @@ type ProxyService struct {
 	msk              ports.MSKPort
 	opensearch      ports.OpenSearchPort
 	cloudformation   ports.CloudFormationPort
+	cloudwatch       ports.CloudWatchPort
+	cloudwatchlogs   ports.CloudWatchLogsPort
 	sesv2            ports.SESv2Port
 	mu              sync.RWMutex
 }
@@ -101,6 +103,8 @@ func (s *ProxyService) SetServices() error {
 	s.msk = awsadapter.NewMSKAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.opensearch = awsadapter.NewOpenSearchAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.cloudformation = awsadapter.NewCloudFormationAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.cloudwatch = awsadapter.NewCloudWatchAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.cloudwatchlogs = awsadapter.NewCloudWatchLogsAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.sesv2 = awsadapter.NewSESv2Adapter(awsCfg, s.cfg.AWS.Endpoint)
 	return nil
 }
@@ -183,4 +187,12 @@ func (s *ProxyService) CloudFormation() ports.CloudFormationPort {
 
 func (s *ProxyService) SESv2() ports.SESv2Port {
 	return s.sesv2
+}
+
+func (s *ProxyService) CloudWatch() ports.CloudWatchPort {
+	return s.cloudwatch
+}
+
+func (s *ProxyService) CloudWatchLogs() ports.CloudWatchLogsPort {
+	return s.cloudwatchlogs
 }

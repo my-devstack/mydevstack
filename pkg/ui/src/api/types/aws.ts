@@ -577,6 +577,18 @@ export interface CloudWatchLogStream {
   storedBytes: number
 }
 
+export interface CWLogEvent {
+  timestamp: number
+  message: string
+  ingestionTime: number
+  eventId: string
+}
+
+export interface CWCreateLogGroupInput {
+  logGroupName: string
+  tags?: Record<string, string>
+}
+
 // Step Functions Types
 export interface StepFunctionsStateMachine {
   name: string
@@ -928,6 +940,77 @@ export interface DescribeDBEngineVersionsOutput {
     EngineVersion: string
     DBEngineVersionDescription?: string
   }[]
+}
+
+// CloudWatch Alarm Types
+export interface CWAlarm {
+  AlarmName: string
+  AlarmArn: string
+  AlarmDescription?: string
+  AlarmConfigurationUpdatedTimestamp?: string
+  StateValue: 'OK' | 'ALARM' | 'INSUFFICIENT_DATA'
+  StateReason?: string
+  StateUpdatedTimestamp?: string
+  MetricName?: string
+  Namespace?: string
+  Period?: number
+  EvaluationPeriods?: number
+  Threshold?: number
+  ComparisonOperator?: string
+  Statistic?: string
+  ActionsEnabled?: boolean
+  AlarmActions?: string[]
+  OKActions?: string[]
+  InsufficientDataActions?: string[]
+  Dimensions?: { Name: string; Value: string }[]
+  Tags?: { Key: string; Value: string }[]
+}
+
+export interface CWAlarmHistoryItem {
+  AlarmName: string
+  AlarmType?: string
+  Timestamp: string
+  HistoryItemType: 'ConfigurationUpdate' | 'StateUpdate' | 'Action'
+  HistorySummary: string
+  HistoryData?: string
+}
+
+export interface CWMetric {
+  MetricName: string
+  Namespace: string
+  Dimensions?: { Name: string; Value: string }[]
+}
+
+export interface CWMetricStat {
+  Statistic: 'SampleCount' | 'Average' | 'Sum' | 'Minimum' | 'Maximum'
+  Period: number
+  Unit?: string
+}
+
+export interface CWMetricDataResult {
+  Id: string
+  Label?: string
+  Timestamps?: string[]
+  Values?: number[]
+  StatusCode: 'Complete' | 'InternalError' | 'PartialData'
+  Messages?: { Code: string; Value: string }[]
+}
+
+export interface CWPutMetricAlarmInput {
+  AlarmName: string
+  AlarmDescription?: string
+  MetricName: string
+  Namespace: string
+  Period: number
+  EvaluationPeriods: number
+  Threshold: number
+  ComparisonOperator: string
+  Statistic?: string
+  ActionsEnabled?: boolean
+  AlarmActions?: string[]
+  OKActions?: string[]
+  InsufficientDataActions?: string[]
+  Dimensions?: { Name: string; Value: string }[]
 }
 
 // SES Types

@@ -47,6 +47,7 @@ func main() {
 	log.Printf("  DynamoDB:        http://localhost:%s/dynamodb/", cfg.Port)
 	log.Printf("  RDS:             http://localhost:%s/rds/", cfg.Port)
 	log.Printf("  CloudFormation:  http://localhost:%s/cloudformation/", cfg.Port)
+	log.Printf("  CloudWatch:      http://localhost:%s/cloudwatch/", cfg.Port)
 	log.Printf("  Step Functions:  http://localhost:%s/api/stepfunctions", cfg.Port)
 	log.Printf("  SES:             http://localhost:%s/sesv2/", cfg.Port)
 	log.Printf("  MSK (Kafka):     http://localhost:%s/kafka/", cfg.Port)

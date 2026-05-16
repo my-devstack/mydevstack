@@ -15,6 +15,7 @@ import { listSecrets as fetchSecrets } from '@/api/services/secrets-manager'
 import { describeReplicationGroups as fetchElastiCacheGroups } from '@/api/services/elasticache'
 import { listDomainNames as fetchOpenSearchDomains } from '@/api/services/opensearch'
 import { describeParameters as fetchSSMParameters } from '@/api/services/ssm'
+import { describeAlarms as fetchCWAlarms } from '@/api/services/cloudwatch'
 import { useSettingsStore } from '@/stores/settings'
 import type { ServiceCategory } from '@/types/services'
 import { SERVICE_COLORS, type ServiceStats, type ServiceStatus, determineStatus } from '@/types/serviceRegistry'
@@ -250,6 +251,20 @@ const SERVICE_CONFIGS: ServiceConfig[] = [
     statsFetcher: async () => {
       const result = await fetchOpenSearchDomains()
       return result.length
+    },
+    enabled: true,
+  },
+  {
+    id: 'cloudwatch',
+    name: 'CloudWatch Alarms',
+    category: 'monitoring',
+    icon: 'ChartBarIcon',
+    route: '/services/cloudwatch',
+    color: SERVICE_COLORS.cloudwatch.text,
+    bgColor: SERVICE_COLORS.cloudwatch.bg,
+    statsFetcher: async () => {
+      const result = await fetchCWAlarms()
+      return result.MetricAlarms?.length || 0
     },
     enabled: true,
   },

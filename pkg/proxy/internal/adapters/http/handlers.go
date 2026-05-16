@@ -116,6 +116,10 @@ func (h *ProxyHandler) ServiceRouter(c *gin.Context) {
 		h.handleMSK(c)
 	case "cloudformation":
 		h.handleCloudFormation(c)
+	case "cloudwatch":
+		h.handleCloudWatch(c)
+	case "cloudwatchlogs":
+		h.handleCloudWatchLogs(c)
 	case "sesv2":
 		h.handleSES(c)
 	default:
