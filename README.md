@@ -156,6 +156,7 @@ mydevstack/
 | API Gateway | ✅ | REST APIs, HTTP APIs, Integrations |
 | Kinesis | ✅ | Streams, Shards, Records |
 | CloudFormation | ✅ | Stacks, Templates, Resources |
+| CloudWatch | ✅ | Metric Alarms, Logs |
 | ElastiCache | ✅ | Redis Server Groups, Cache Nodes |
 | RDS | ✅ | Databases, Instances, Snapshots |
 | SES | ✅ | Emails, Templates, Send |
