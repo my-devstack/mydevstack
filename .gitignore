@@ -22,3 +22,5 @@ plans/
 *storybook.log
 storybook-static
 pkg/ui/storybook-static
+.graphifyignore
+graphify-out/
