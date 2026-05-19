@@ -12,7 +12,7 @@ import (
 func (h *ProxyHandler) handleSSM(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "GetParameter"):
@@ -46,7 +46,7 @@ func (h *ProxyHandler) getParameter(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SSM().GetParameter(ctx, input)
+	result, err := h.Svc.SSM().GetParameter(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get parameter", err)
 		return
@@ -60,7 +60,7 @@ func (h *ProxyHandler) getParameters(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SSM().GetParameters(ctx, input)
+	result, err := h.Svc.SSM().GetParameters(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get parameters", err)
 		return
@@ -74,7 +74,7 @@ func (h *ProxyHandler) getParametersByPath(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SSM().GetParametersByPath(ctx, input)
+	result, err := h.Svc.SSM().GetParametersByPath(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get parameters by path", err)
 		return
@@ -88,7 +88,7 @@ func (h *ProxyHandler) putParameter(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SSM().PutParameter(ctx, input)
+	result, err := h.Svc.SSM().PutParameter(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to put parameter", err)
 		return
@@ -102,7 +102,7 @@ func (h *ProxyHandler) deleteParameter(ctx context.Context, c *gin.Context, body
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SSM().DeleteParameter(ctx, input)
+	result, err := h.Svc.SSM().DeleteParameter(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete parameter", err)
 		return
@@ -116,7 +116,7 @@ func (h *ProxyHandler) describeParameters(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SSM().DescribeParameters(ctx, input)
+	result, err := h.Svc.SSM().DescribeParameters(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe parameters", err)
 		return
@@ -130,7 +130,7 @@ func (h *ProxyHandler) getParameterHistory(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SSM().GetParameterHistory(ctx, input)
+	result, err := h.Svc.SSM().GetParameterHistory(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get parameter history", err)
 		return
@@ -144,7 +144,7 @@ func (h *ProxyHandler) listTagsForResource(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SSM().ListTagsForResource(ctx, input)
+	result, err := h.Svc.SSM().ListTagsForResource(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list tags for resource", err)
 		return
@@ -158,7 +158,7 @@ func (h *ProxyHandler) addTagsToResource(ctx context.Context, c *gin.Context, bo
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SSM().AddTagsToResource(ctx, input)
+	result, err := h.Svc.SSM().AddTagsToResource(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to add tags to resource", err)
 		return
@@ -172,7 +172,7 @@ func (h *ProxyHandler) removeTagsFromResource(ctx context.Context, c *gin.Contex
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SSM().RemoveTagsFromResource(ctx, input)
+	result, err := h.Svc.SSM().RemoveTagsFromResource(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to remove tags from resource", err)
 		return

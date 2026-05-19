@@ -1,6 +1,7 @@
 package httphandlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,12 +13,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
-	"github.com/my-devstack/mydevstack/pkg/proxy/internal/service"
 )
 
 type ProxyHandler struct {
-	svc        ports.ProxyService
-	versionSvc *service.VersionService
+	Svc        ports.ProxyService
+	VersionSvc ports.VersionServicePort
+	ctx        context.Context
 
 	// health check cache
 	mu              sync.RWMutex
@@ -26,8 +27,8 @@ type ProxyHandler struct {
 	healthCheckURL  string
 }
 
-func NewProxyHandler(svc ports.ProxyService, versionSvc *service.VersionService) *ProxyHandler {
-	h := &ProxyHandler{svc: svc, versionSvc: versionSvc}
+func NewProxyHandler(ctx context.Context, svc ports.ProxyService, versionSvc ports.VersionServicePort) *ProxyHandler {
+	h := &ProxyHandler{Svc: svc, VersionSvc: versionSvc, ctx: ctx}
 	// Compute health check URL from emulator config
 	if emulator := svc.Config().Emulator; emulator != "" {
 		h.healthCheckURL = strings.TrimRight(svc.Config().AWS.Endpoint, "/") + "/_localstack/health"
@@ -114,6 +115,8 @@ func (h *ProxyHandler) ServiceRouter(c *gin.Context) {
 		h.handleOpenSearch(c)
 	case "kafka":
 		h.handleMSK(c)
+	case "stepfunctions":
+		h.handleStepFunctions(c)
 	case "cloudformation":
 		h.handleCloudFormation(c)
 	case "cloudwatch":
@@ -138,16 +141,16 @@ func (h *ProxyHandler) HealthCheck(c *gin.Context) {
 	response := gin.H{
 		"status":        status,
 		"proxy":         "aws-proxy",
-		"target":        h.svc.Config().AWS.Endpoint,
-		"endpoint_url":  h.svc.Config().AWS.Endpoint,
-		"region":        h.svc.Region(),
-		"emulator":      h.svc.Config().Emulator,
-		"github_repo":   h.versionSvc.GetGitHubRepo(),
+		"target":        h.Svc.Config().AWS.Endpoint,
+		"endpoint_url":  h.Svc.Config().AWS.Endpoint,
+		"region":        h.Svc.Region(),
+		"emulator":      h.Svc.Config().Emulator,
+		"github_repo":   h.VersionSvc.GetGitHubRepo(),
 		"latestVersion": "",
 	}
 
 	// Add latest version if available
-	if latest, ok := h.versionSvc.GetLatestVersion(); ok && latest != "" {
+	if latest, ok := h.VersionSvc.GetLatestVersion(); ok && latest != "" {
 		response["latestVersion"] = latest
 	}
 
@@ -169,7 +172,7 @@ func (h *ProxyHandler) SetRegion(c *gin.Context) {
 		return
 	}
 
-	if err := h.svc.SetRegion(req.Region); err != nil {
+	if err := h.Svc.SetRegion(req.Region); err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update region", err)
 		return
 	}

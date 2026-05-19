@@ -31,6 +31,7 @@ require (
 	github.com/beabys/ayotl v0.0.13
 	github.com/gin-gonic/gin v1.12.0
 	github.com/stretchr/testify v1.11.1
+	golang.org/x/sync v0.19.0
 )
 
 require (

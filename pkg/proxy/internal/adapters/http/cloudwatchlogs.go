@@ -12,7 +12,7 @@ import (
 func (h *ProxyHandler) handleCloudWatchLogs(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "DescribeLogGroups"):
@@ -46,7 +46,7 @@ func (h *ProxyHandler) describeLogGroups(ctx context.Context, c *gin.Context, bo
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatchLogs().DescribeLogGroups(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().DescribeLogGroups(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe log groups", err)
 		return
@@ -60,7 +60,7 @@ func (h *ProxyHandler) createLogGroup(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatchLogs().CreateLogGroup(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().CreateLogGroup(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create log group", err)
 		return
@@ -74,7 +74,7 @@ func (h *ProxyHandler) deleteLogGroup(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatchLogs().DeleteLogGroup(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().DeleteLogGroup(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete log group", err)
 		return
@@ -88,7 +88,7 @@ func (h *ProxyHandler) describeLogStreams(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatchLogs().DescribeLogStreams(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().DescribeLogStreams(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe log streams", err)
 		return
@@ -102,7 +102,7 @@ func (h *ProxyHandler) createLogStream(ctx context.Context, c *gin.Context, body
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatchLogs().CreateLogStream(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().CreateLogStream(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create log stream", err)
 		return
@@ -116,7 +116,7 @@ func (h *ProxyHandler) putLogEvents(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatchLogs().PutLogEvents(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().PutLogEvents(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to put log events", err)
 		return
@@ -130,7 +130,7 @@ func (h *ProxyHandler) getLogEvents(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatchLogs().GetLogEvents(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().GetLogEvents(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get log events", err)
 		return
@@ -144,7 +144,7 @@ func (h *ProxyHandler) putMetricFilter(ctx context.Context, c *gin.Context, body
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatchLogs().PutMetricFilter(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().PutMetricFilter(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to put metric filter", err)
 		return
@@ -158,7 +158,7 @@ func (h *ProxyHandler) describeMetricFilters(ctx context.Context, c *gin.Context
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatchLogs().DescribeMetricFilters(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().DescribeMetricFilters(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe metric filters", err)
 		return
@@ -172,7 +172,7 @@ func (h *ProxyHandler) putRetentionPolicy(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatchLogs().PutRetentionPolicy(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().PutRetentionPolicy(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to put retention policy", err)
 		return

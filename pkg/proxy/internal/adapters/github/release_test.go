@@ -68,7 +68,7 @@ func TestClient_GetLatestRelease_Success(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		capturedRequest = r
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(Release{
+		if err := json.NewEncoder(w).Encode(releaseResponse{
 			TagName: "v1.2.3",
 			HTMLURL: "https://github.com/owner/repo/releases/tag/v1.2.3",
 		}); err != nil {
@@ -235,7 +235,7 @@ func TestClient_GetLatestRelease_EmptyPath(t *testing.T) {
 func TestRelease_JSONParsing(t *testing.T) {
 	jsonStr := `{"tag_name": "v2.0.0", "html_url": "https://github.com/test/repo/releases/tag/v2.0.0"}`
 
-	var release Release
+	var release releaseResponse
 	err := json.Unmarshal([]byte(jsonStr), &release)
 	if err != nil {
 		t.Fatalf("failed to unmarshal: %v", err)

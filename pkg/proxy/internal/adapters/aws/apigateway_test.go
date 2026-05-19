@@ -530,3 +530,381 @@ func TestAPIGatewayAdapter_CreateRestApi_Error(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, output)
 }
+
+func TestAPIGatewayAdapter_ImportRestApi_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.ImportRestApiInput{Body: []byte("{}")}
+
+	mockClient.EXPECT().ImportRestApi(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.ImportRestApi(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_DeleteRestApi_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.DeleteRestApiInput{RestApiId: aws.String("api-123")}
+
+	mockClient.EXPECT().DeleteRestApi(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.DeleteRestApi(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_GetRestApi_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.GetRestApiInput{RestApiId: aws.String("api-123")}
+
+	mockClient.EXPECT().GetRestApi(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.GetRestApi(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_UpdateRestApi_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.UpdateRestApiInput{RestApiId: aws.String("api-123")}
+
+	mockClient.EXPECT().UpdateRestApi(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.UpdateRestApi(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_GetResources_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.GetResourcesInput{RestApiId: aws.String("api-123")}
+
+	mockClient.EXPECT().GetResources(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.GetResources(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_GetResource_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.GetResourceInput{
+		RestApiId:  aws.String("api-123"),
+		ResourceId: aws.String("resource-123"),
+	}
+
+	mockClient.EXPECT().GetResource(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.GetResource(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_CreateResource_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.CreateResourceInput{
+		RestApiId: aws.String("api-123"),
+		ParentId:  aws.String("parent-123"),
+		PathPart:  aws.String("users"),
+	}
+
+	mockClient.EXPECT().CreateResource(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.CreateResource(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_DeleteResource_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.DeleteResourceInput{
+		RestApiId:  aws.String("api-123"),
+		ResourceId: aws.String("resource-123"),
+	}
+
+	mockClient.EXPECT().DeleteResource(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.DeleteResource(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_PutMethod_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.PutMethodInput{
+		RestApiId:         aws.String("api-123"),
+		ResourceId:        aws.String("resource-123"),
+		HttpMethod:        aws.String("GET"),
+		AuthorizationType: aws.String("NONE"),
+	}
+
+	mockClient.EXPECT().PutMethod(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.PutMethod(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_GetMethod_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.GetMethodInput{
+		RestApiId:  aws.String("api-123"),
+		ResourceId: aws.String("resource-123"),
+		HttpMethod: aws.String("GET"),
+	}
+
+	mockClient.EXPECT().GetMethod(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.GetMethod(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_DeleteMethod_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.DeleteMethodInput{
+		RestApiId:  aws.String("api-123"),
+		ResourceId: aws.String("resource-123"),
+		HttpMethod: aws.String("GET"),
+	}
+
+	mockClient.EXPECT().DeleteMethod(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.DeleteMethod(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_PutIntegration_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.PutIntegrationInput{
+		RestApiId:  aws.String("api-123"),
+		ResourceId: aws.String("resource-123"),
+		HttpMethod: aws.String("GET"),
+		Type:       types.IntegrationTypeAwsProxy,
+	}
+
+	mockClient.EXPECT().PutIntegration(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.PutIntegration(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_GetIntegration_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.GetIntegrationInput{
+		RestApiId:  aws.String("api-123"),
+		ResourceId: aws.String("resource-123"),
+		HttpMethod: aws.String("GET"),
+	}
+
+	mockClient.EXPECT().GetIntegration(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.GetIntegration(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_DeleteIntegration_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.DeleteIntegrationInput{
+		RestApiId:  aws.String("api-123"),
+		ResourceId: aws.String("resource-123"),
+		HttpMethod: aws.String("GET"),
+	}
+
+	mockClient.EXPECT().DeleteIntegration(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.DeleteIntegration(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_CreateDeployment_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.CreateDeploymentInput{RestApiId: aws.String("api-123")}
+
+	mockClient.EXPECT().CreateDeployment(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.CreateDeployment(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_DeleteDeployment_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.DeleteDeploymentInput{
+		RestApiId:    aws.String("api-123"),
+		DeploymentId: aws.String("deployment-123"),
+	}
+
+	mockClient.EXPECT().DeleteDeployment(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.DeleteDeployment(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_GetDeployments_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.GetDeploymentsInput{RestApiId: aws.String("api-123")}
+
+	mockClient.EXPECT().GetDeployments(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.GetDeployments(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_CreateStage_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.CreateStageInput{
+		RestApiId:    aws.String("api-123"),
+		StageName:    aws.String("prod"),
+		DeploymentId: aws.String("deployment-123"),
+	}
+
+	mockClient.EXPECT().CreateStage(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.CreateStage(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_GetStages_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.GetStagesInput{RestApiId: aws.String("api-123")}
+
+	mockClient.EXPECT().GetStages(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.GetStages(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_UpdateStage_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.UpdateStageInput{
+		RestApiId: aws.String("api-123"),
+		StageName: aws.String("prod"),
+	}
+
+	mockClient.EXPECT().UpdateStage(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.UpdateStage(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_DeleteStage_Error(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	input := &apigateway.DeleteStageInput{
+		RestApiId: aws.String("api-123"),
+		StageName: aws.String("prod"),
+	}
+
+	mockClient.EXPECT().DeleteStage(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &APIGatewayAdapter{client: mockClient}
+	output, err := adapter.DeleteStage(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayAdapter_GetInvokeUrl(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	adapter := &APIGatewayAdapter{client: mockClient, region: "us-east-1"}
+
+	url, err := adapter.GetInvokeUrl(ctx, "api123", "prod")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "https://api123.execute-api.us-east-1.amazonaws.com/prod", url)
+}
+
+func TestAPIGatewayAdapter_GetInvokeUrl_EmptyApiId(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	adapter := &APIGatewayAdapter{client: mockClient, region: "us-east-1"}
+
+	url, err := adapter.GetInvokeUrl(ctx, "", "prod")
+
+	assert.Error(t, err)
+	assert.Equal(t, "", url)
+	assert.Contains(t, err.Error(), "apiId is required")
+}
+
+func TestAPIGatewayAdapter_GetInvokeUrl_EmptyStageName(t *testing.T) {
+	mockClient := apimocks.NewAPIGatewayClientPort(t)
+	ctx := context.Background()
+	adapter := &APIGatewayAdapter{client: mockClient, region: "us-east-1"}
+
+	url, err := adapter.GetInvokeUrl(ctx, "api123", "")
+
+	assert.Error(t, err)
+	assert.Equal(t, "", url)
+	assert.Contains(t, err.Error(), "stageName is required")
+}

@@ -18,7 +18,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.ts', 'src/**/*.vue'],
-      exclude: ['src/**/*.d.ts', 'src/main.ts', 'src/env.d.ts', 'src/api/client.ts', 'src/vite-env.d.ts']
+      exclude: ['src/**/*.d.ts', 'src/**/*.stories.ts', 'src/main.ts', 'src/env.d.ts', 'src/api/client.ts', 'src/vite-env.d.ts']
     },
     globals: true,
     environment: 'happy-dom',

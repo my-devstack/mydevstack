@@ -1,4 +1,4 @@
-package application
+package proxy
 
 import (
 	"context"
@@ -12,30 +12,30 @@ import (
 )
 
 type ProxyService struct {
-	cfg               *configloader.Config
-	region            string
-	secretsManager    ports.SecretsManagerPort
-	stepfunctions     ports.StepFunctionsPort
-	s3                ports.S3Port
-	lambda            ports.LambdaPort
-	sqs               ports.SQSPort
-	sns               ports.SNSPort
-	kms               ports.KMSPort
-	dynamodb          ports.DynamoDBPort
-	dynamodbstreams   ports.DynamoDBStreamsPort
-	apigateway       ports.APIGatewayPort
-	apigatewayv2     ports.APIGatewayV2Port
-	ssm              ports.SSMPort
-	iam              ports.IAMPort
-	kinesis          ports.KinesisPort
-	rds              ports.RDSPort
-	elasticache      ports.ElastiCachePort
-	msk              ports.MSKPort
+	cfg             *configloader.Config
+	region          string
+	secretsManager  ports.SecretsManagerPort
+	stepfunctions   ports.StepFunctionsPort
+	s3              ports.S3Port
+	lambda          ports.LambdaPort
+	sqs             ports.SQSPort
+	sns             ports.SNSPort
+	kms             ports.KMSPort
+	dynamodb        ports.DynamoDBPort
+	dynamodbstreams ports.DynamoDBStreamsPort
+	apigateway      ports.APIGatewayPort
+	apigatewayv2    ports.APIGatewayV2Port
+	ssm             ports.SSMPort
+	iam             ports.IAMPort
+	kinesis         ports.KinesisPort
+	rds             ports.RDSPort
+	elasticache     ports.ElastiCachePort
+	msk             ports.MSKPort
 	opensearch      ports.OpenSearchPort
-	cloudformation   ports.CloudFormationPort
-	cloudwatch       ports.CloudWatchPort
-	cloudwatchlogs   ports.CloudWatchLogsPort
-	sesv2            ports.SESv2Port
+	cloudformation  ports.CloudFormationPort
+	cloudwatch      ports.CloudWatchPort
+	cloudwatchlogs  ports.CloudWatchLogsPort
+	sesv2           ports.SESv2Port
 	mu              sync.RWMutex
 }
 

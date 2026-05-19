@@ -12,7 +12,7 @@ import (
 func (h *ProxyHandler) handleCloudWatch(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "DescribeAlarms"):
@@ -44,7 +44,7 @@ func (h *ProxyHandler) describeAlarms(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatch().DescribeAlarms(ctx, input)
+	result, err := h.Svc.CloudWatch().DescribeAlarms(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe alarms", err)
 		return
@@ -58,7 +58,7 @@ func (h *ProxyHandler) putMetricAlarm(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatch().PutMetricAlarm(ctx, input)
+	result, err := h.Svc.CloudWatch().PutMetricAlarm(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to put metric alarm", err)
 		return
@@ -72,7 +72,7 @@ func (h *ProxyHandler) deleteAlarms(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatch().DeleteAlarms(ctx, input)
+	result, err := h.Svc.CloudWatch().DeleteAlarms(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete alarms", err)
 		return
@@ -86,7 +86,7 @@ func (h *ProxyHandler) setAlarmState(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatch().SetAlarmState(ctx, input)
+	result, err := h.Svc.CloudWatch().SetAlarmState(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to set alarm state", err)
 		return
@@ -100,7 +100,7 @@ func (h *ProxyHandler) describeAlarmHistory(ctx context.Context, c *gin.Context,
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatch().DescribeAlarmHistory(ctx, input)
+	result, err := h.Svc.CloudWatch().DescribeAlarmHistory(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe alarm history", err)
 		return
@@ -114,7 +114,7 @@ func (h *ProxyHandler) listMetrics(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatch().ListMetrics(ctx, input)
+	result, err := h.Svc.CloudWatch().ListMetrics(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list metrics", err)
 		return
@@ -128,7 +128,7 @@ func (h *ProxyHandler) getMetricData(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatch().GetMetricData(ctx, input)
+	result, err := h.Svc.CloudWatch().GetMetricData(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get metric data", err)
 		return
@@ -142,7 +142,7 @@ func (h *ProxyHandler) getMetricStatistics(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatch().GetMetricStatistics(ctx, input)
+	result, err := h.Svc.CloudWatch().GetMetricStatistics(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get metric statistics", err)
 		return
@@ -156,7 +156,7 @@ func (h *ProxyHandler) putMetricData(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudWatch().PutMetricData(ctx, input)
+	result, err := h.Svc.CloudWatch().PutMetricData(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to put metric data", err)
 		return

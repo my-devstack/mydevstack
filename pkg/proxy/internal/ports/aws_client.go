@@ -3,6 +3,7 @@ package ports
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -236,6 +237,12 @@ type S3ClientPort interface {
 	GetPublicAccessBlock(ctx context.Context, input *s3.GetPublicAccessBlockInput, opts ...func(*s3.Options)) (*s3.GetPublicAccessBlockOutput, error)
 	PutBucketNotificationConfiguration(ctx context.Context, input *s3.PutBucketNotificationConfigurationInput, opts ...func(*s3.Options)) (*s3.PutBucketNotificationConfigurationOutput, error)
 	GetBucketNotificationConfiguration(ctx context.Context, input *s3.GetBucketNotificationConfigurationInput, opts ...func(*s3.Options)) (*s3.GetBucketNotificationConfigurationOutput, error)
+}
+
+// PresignClientPort defines the interface for S3 presign operations
+type PresignClientPort interface {
+	PresignGetObject(ctx context.Context, input *s3.GetObjectInput, opts ...func(*s3.PresignOptions)) (*v4.PresignedHTTPRequest, error)
+	PresignPutObject(ctx context.Context, input *s3.PutObjectInput, opts ...func(*s3.PresignOptions)) (*v4.PresignedHTTPRequest, error)
 }
 
 // SecretsManagerClientPort defines the interface for the AWS Secrets Manager client

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	cfmocks "github.com/my-devstack/mydevstack/pkg/proxy/mocks/ports"
 	"github.com/stretchr/testify/assert"
@@ -164,4 +165,14 @@ func TestCloudFormationAdapter_ListStackResources(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "list stack resources")
 	})
+}
+
+func TestNewCloudFormationAdapter(t *testing.T) {
+	awsCfg := aws.Config{Region: "us-east-1"}
+	endpoint := "http://localhost:4566"
+	adapter := NewCloudFormationAdapter(awsCfg, endpoint)
+	assert.NotNil(t, adapter)
+	assert.IsType(t, &CloudFormationAdapter{}, adapter)
+	cfAdapter := adapter.(*CloudFormationAdapter)
+	assert.NotNil(t, cfAdapter.client)
 }

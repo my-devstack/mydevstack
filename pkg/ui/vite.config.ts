@@ -118,12 +118,17 @@ export default defineConfig(({ mode }) => {
           target,
           changeOrigin: true,
         },
-        // RDS
-        '/rds': {
-          target,
-          changeOrigin: true,
-        },
-      },
+		// RDS
+		'/rds': {
+		  target,
+		  changeOrigin: true,
+		},
+		// Step Functions
+		'/stepfunctions': {
+		  target,
+		  changeOrigin: true,
+		},
+	      },
     },
     build: {
       target: 'esnext',

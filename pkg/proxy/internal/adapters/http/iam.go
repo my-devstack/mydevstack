@@ -12,7 +12,7 @@ import (
 func (h *ProxyHandler) handleIAM(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "CreateUser"):
@@ -86,7 +86,7 @@ func (h *ProxyHandler) createUser(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().CreateUser(ctx, input)
+	result, err := h.Svc.IAM().CreateUser(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create user", err)
 		return
@@ -100,7 +100,7 @@ func (h *ProxyHandler) getUser(ctx context.Context, c *gin.Context, bodyBytes []
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().GetUser(ctx, input)
+	result, err := h.Svc.IAM().GetUser(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get user", err)
 		return
@@ -114,7 +114,7 @@ func (h *ProxyHandler) listUsers(ctx context.Context, c *gin.Context, bodyBytes 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().ListUsers(ctx, input)
+	result, err := h.Svc.IAM().ListUsers(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list users", err)
 		return
@@ -128,7 +128,7 @@ func (h *ProxyHandler) deleteUser(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().DeleteUser(ctx, input)
+	result, err := h.Svc.IAM().DeleteUser(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete user", err)
 		return
@@ -142,7 +142,7 @@ func (h *ProxyHandler) createRole(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().CreateRole(ctx, input)
+	result, err := h.Svc.IAM().CreateRole(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create role", err)
 		return
@@ -156,7 +156,7 @@ func (h *ProxyHandler) getRole(ctx context.Context, c *gin.Context, bodyBytes []
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().GetRole(ctx, input)
+	result, err := h.Svc.IAM().GetRole(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get role", err)
 		return
@@ -170,7 +170,7 @@ func (h *ProxyHandler) listRoles(ctx context.Context, c *gin.Context, bodyBytes 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().ListRoles(ctx, input)
+	result, err := h.Svc.IAM().ListRoles(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list roles", err)
 		return
@@ -184,7 +184,7 @@ func (h *ProxyHandler) deleteRole(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().DeleteRole(ctx, input)
+	result, err := h.Svc.IAM().DeleteRole(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete role", err)
 		return
@@ -198,7 +198,7 @@ func (h *ProxyHandler) listPolicies(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().ListPolicies(ctx, input)
+	result, err := h.Svc.IAM().ListPolicies(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list policies", err)
 		return
@@ -212,7 +212,7 @@ func (h *ProxyHandler) getPolicy(ctx context.Context, c *gin.Context, bodyBytes 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().GetPolicy(ctx, input)
+	result, err := h.Svc.IAM().GetPolicy(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get policy", err)
 		return
@@ -226,7 +226,7 @@ func (h *ProxyHandler) createPolicy(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().CreatePolicy(ctx, input)
+	result, err := h.Svc.IAM().CreatePolicy(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create policy", err)
 		return
@@ -240,7 +240,7 @@ func (h *ProxyHandler) deletePolicy(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().DeletePolicy(ctx, input)
+	result, err := h.Svc.IAM().DeletePolicy(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete policy", err)
 		return
@@ -254,7 +254,7 @@ func (h *ProxyHandler) createAccessKey(ctx context.Context, c *gin.Context, body
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().CreateAccessKey(ctx, input)
+	result, err := h.Svc.IAM().CreateAccessKey(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create access key", err)
 		return
@@ -268,7 +268,7 @@ func (h *ProxyHandler) listAccessKeys(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().ListAccessKeys(ctx, input)
+	result, err := h.Svc.IAM().ListAccessKeys(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list access keys", err)
 		return
@@ -282,7 +282,7 @@ func (h *ProxyHandler) deleteAccessKey(ctx context.Context, c *gin.Context, body
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().DeleteAccessKey(ctx, input)
+	result, err := h.Svc.IAM().DeleteAccessKey(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete access key", err)
 		return
@@ -296,7 +296,7 @@ func (h *ProxyHandler) updateAccessKeyStatus(ctx context.Context, c *gin.Context
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().UpdateAccessKeyStatus(ctx, input)
+	result, err := h.Svc.IAM().UpdateAccessKeyStatus(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update access key status", err)
 		return
@@ -310,7 +310,7 @@ func (h *ProxyHandler) attachRolePolicy(ctx context.Context, c *gin.Context, bod
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().AttachRolePolicy(ctx, input)
+	result, err := h.Svc.IAM().AttachRolePolicy(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to attach role policy", err)
 		return
@@ -324,7 +324,7 @@ func (h *ProxyHandler) detachRolePolicy(ctx context.Context, c *gin.Context, bod
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().DetachRolePolicy(ctx, input)
+	result, err := h.Svc.IAM().DetachRolePolicy(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to detach role policy", err)
 		return
@@ -338,7 +338,7 @@ func (h *ProxyHandler) listAttachedRolePolicies(ctx context.Context, c *gin.Cont
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().ListAttachedRolePolicies(ctx, input)
+	result, err := h.Svc.IAM().ListAttachedRolePolicies(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list attached role policies", err)
 		return
@@ -352,7 +352,7 @@ func (h *ProxyHandler) createGroup(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().CreateGroup(ctx, input)
+	result, err := h.Svc.IAM().CreateGroup(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create group", err)
 		return
@@ -366,7 +366,7 @@ func (h *ProxyHandler) getGroup(ctx context.Context, c *gin.Context, bodyBytes [
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().GetGroup(ctx, input)
+	result, err := h.Svc.IAM().GetGroup(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get group", err)
 		return
@@ -380,7 +380,7 @@ func (h *ProxyHandler) listGroups(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().ListGroups(ctx, input)
+	result, err := h.Svc.IAM().ListGroups(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list groups", err)
 		return
@@ -394,7 +394,7 @@ func (h *ProxyHandler) deleteGroup(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().DeleteGroup(ctx, input)
+	result, err := h.Svc.IAM().DeleteGroup(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete group", err)
 		return
@@ -408,7 +408,7 @@ func (h *ProxyHandler) addUserToGroup(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().AddUserToGroup(ctx, input)
+	result, err := h.Svc.IAM().AddUserToGroup(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to add user to group", err)
 		return
@@ -422,7 +422,7 @@ func (h *ProxyHandler) removeUserFromGroup(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().RemoveUserFromGroup(ctx, input)
+	result, err := h.Svc.IAM().RemoveUserFromGroup(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to remove user from group", err)
 		return
@@ -436,7 +436,7 @@ func (h *ProxyHandler) listGroupsForUser(ctx context.Context, c *gin.Context, bo
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().ListGroupsForUser(ctx, input)
+	result, err := h.Svc.IAM().ListGroupsForUser(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list groups for user", err)
 		return
@@ -450,7 +450,7 @@ func (h *ProxyHandler) listUsersForGroup(ctx context.Context, c *gin.Context, bo
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().GetGroup(ctx, input)
+	result, err := h.Svc.IAM().GetGroup(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get group", err)
 		return
@@ -468,7 +468,7 @@ func (h *ProxyHandler) listUserPolicies(ctx context.Context, c *gin.Context, bod
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().ListUserPolicies(ctx, input)
+	result, err := h.Svc.IAM().ListUserPolicies(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list user policies", err)
 		return
@@ -482,7 +482,7 @@ func (h *ProxyHandler) listRolePolicies(ctx context.Context, c *gin.Context, bod
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().ListRolePolicies(ctx, input)
+	result, err := h.Svc.IAM().ListRolePolicies(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list role policies", err)
 		return
@@ -496,7 +496,7 @@ func (h *ProxyHandler) getRolePolicy(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.IAM().GetRolePolicy(ctx, input)
+	result, err := h.Svc.IAM().GetRolePolicy(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get role policy", err)
 		return

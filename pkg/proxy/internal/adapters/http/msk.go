@@ -12,7 +12,7 @@ import (
 func (h *ProxyHandler) handleMSK(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "ListClustersV2"):
@@ -37,7 +37,7 @@ func (h *ProxyHandler) listClustersV2(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.MSK().ListClustersV2(ctx, input)
+	result, err := h.Svc.MSK().ListClustersV2(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list clusters", err)
 		return
@@ -51,7 +51,7 @@ func (h *ProxyHandler) describeClusterV2(ctx context.Context, c *gin.Context, bo
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.MSK().DescribeClusterV2(ctx, input)
+	result, err := h.Svc.MSK().DescribeClusterV2(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe cluster", err)
 		return
@@ -65,7 +65,7 @@ func (h *ProxyHandler) createClusterV2(ctx context.Context, c *gin.Context, body
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.MSK().CreateClusterV2(ctx, input)
+	result, err := h.Svc.MSK().CreateClusterV2(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create cluster", err)
 		return
@@ -79,7 +79,7 @@ func (h *ProxyHandler) deleteCluster(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.MSK().DeleteCluster(ctx, input)
+	result, err := h.Svc.MSK().DeleteCluster(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete cluster", err)
 		return
@@ -93,12 +93,10 @@ func (h *ProxyHandler) getBootstrapBrokers(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.MSK().GetBootstrapBrokers(ctx, input)
+	result, err := h.Svc.MSK().GetBootstrapBrokers(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get bootstrap brokers", err)
 		return
 	}
 	c.JSON(http.StatusOK, result)
 }
-
-

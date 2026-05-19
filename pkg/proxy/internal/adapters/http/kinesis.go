@@ -12,7 +12,7 @@ import (
 func (h *ProxyHandler) handleKinesis(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "ListStreams"):
@@ -56,7 +56,7 @@ func (h *ProxyHandler) listStreams(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().ListStreams(ctx, input)
+	result, err := h.Svc.Kinesis().ListStreams(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list streams", err)
 		return
@@ -70,7 +70,7 @@ func (h *ProxyHandler) createStream(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().CreateStream(ctx, input)
+	result, err := h.Svc.Kinesis().CreateStream(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create stream", err)
 		return
@@ -84,7 +84,7 @@ func (h *ProxyHandler) deleteStream(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().DeleteStream(ctx, input)
+	result, err := h.Svc.Kinesis().DeleteStream(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete stream", err)
 		return
@@ -98,7 +98,7 @@ func (h *ProxyHandler) describeStream(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().DescribeStream(ctx, input)
+	result, err := h.Svc.Kinesis().DescribeStream(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe stream", err)
 		return
@@ -112,7 +112,7 @@ func (h *ProxyHandler) describeStreamSummary(ctx context.Context, c *gin.Context
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().DescribeStreamSummary(ctx, input)
+	result, err := h.Svc.Kinesis().DescribeStreamSummary(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe stream summary", err)
 		return
@@ -126,7 +126,7 @@ func (h *ProxyHandler) listShards(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().ListShards(ctx, input)
+	result, err := h.Svc.Kinesis().ListShards(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list shards", err)
 		return
@@ -140,7 +140,7 @@ func (h *ProxyHandler) getShardIterator(ctx context.Context, c *gin.Context, bod
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().GetShardIterator(ctx, input)
+	result, err := h.Svc.Kinesis().GetShardIterator(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get shard iterator", err)
 		return
@@ -154,7 +154,7 @@ func (h *ProxyHandler) getRecords(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().GetRecords(ctx, input)
+	result, err := h.Svc.Kinesis().GetRecords(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get records", err)
 		return
@@ -168,7 +168,7 @@ func (h *ProxyHandler) putRecord(ctx context.Context, c *gin.Context, bodyBytes 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().PutRecord(ctx, input)
+	result, err := h.Svc.Kinesis().PutRecord(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to put record", err)
 		return
@@ -182,7 +182,7 @@ func (h *ProxyHandler) putRecords(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().PutRecords(ctx, input)
+	result, err := h.Svc.Kinesis().PutRecords(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to put records", err)
 		return
@@ -196,7 +196,7 @@ func (h *ProxyHandler) mergeShards(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().MergeShards(ctx, input)
+	result, err := h.Svc.Kinesis().MergeShards(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to merge shards", err)
 		return
@@ -210,7 +210,7 @@ func (h *ProxyHandler) splitShard(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().SplitShard(ctx, input)
+	result, err := h.Svc.Kinesis().SplitShard(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to split shard", err)
 		return
@@ -224,7 +224,7 @@ func (h *ProxyHandler) updateShardCount(ctx context.Context, c *gin.Context, bod
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().UpdateShardCount(ctx, input)
+	result, err := h.Svc.Kinesis().UpdateShardCount(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update shard count", err)
 		return
@@ -238,7 +238,7 @@ func (h *ProxyHandler) enableEnhancedMonitoring(ctx context.Context, c *gin.Cont
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().EnableEnhancedMonitoring(ctx, input)
+	result, err := h.Svc.Kinesis().EnableEnhancedMonitoring(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to enable enhanced monitoring", err)
 		return
@@ -252,7 +252,7 @@ func (h *ProxyHandler) disableEnhancedMonitoring(ctx context.Context, c *gin.Con
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Kinesis().DisableEnhancedMonitoring(ctx, input)
+	result, err := h.Svc.Kinesis().DisableEnhancedMonitoring(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to disable enhanced monitoring", err)
 		return

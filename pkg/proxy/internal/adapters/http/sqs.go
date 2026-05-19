@@ -12,7 +12,7 @@ import (
 func (h *ProxyHandler) handleSQS(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "ListQueues"):
@@ -46,7 +46,7 @@ func (h *ProxyHandler) listQueues(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SQS().ListQueues(ctx, input)
+	result, err := h.Svc.SQS().ListQueues(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list queues", err)
 		return
@@ -60,7 +60,7 @@ func (h *ProxyHandler) createQueue(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SQS().CreateQueue(ctx, input)
+	result, err := h.Svc.SQS().CreateQueue(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create queue", err)
 		return
@@ -74,7 +74,7 @@ func (h *ProxyHandler) deleteQueue(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SQS().DeleteQueue(ctx, input)
+	result, err := h.Svc.SQS().DeleteQueue(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete queue", err)
 		return
@@ -88,7 +88,7 @@ func (h *ProxyHandler) getQueueUrl(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SQS().GetQueueUrl(ctx, input)
+	result, err := h.Svc.SQS().GetQueueUrl(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get queue URL", err)
 		return
@@ -102,7 +102,7 @@ func (h *ProxyHandler) sendMessage(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SQS().SendMessage(ctx, input)
+	result, err := h.Svc.SQS().SendMessage(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to send message", err)
 		return
@@ -116,7 +116,7 @@ func (h *ProxyHandler) receiveMessage(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SQS().ReceiveMessage(ctx, input)
+	result, err := h.Svc.SQS().ReceiveMessage(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to receive message", err)
 		return
@@ -130,7 +130,7 @@ func (h *ProxyHandler) deleteMessage(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SQS().DeleteMessage(ctx, input)
+	result, err := h.Svc.SQS().DeleteMessage(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete message", err)
 		return
@@ -144,7 +144,7 @@ func (h *ProxyHandler) purgeQueue(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SQS().PurgeQueue(ctx, input)
+	result, err := h.Svc.SQS().PurgeQueue(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to purge queue", err)
 		return
@@ -158,7 +158,7 @@ func (h *ProxyHandler) getQueueAttributes(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SQS().GetQueueAttributes(ctx, input)
+	result, err := h.Svc.SQS().GetQueueAttributes(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get queue attributes", err)
 		return
@@ -172,7 +172,7 @@ func (h *ProxyHandler) setQueueAttributes(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SQS().SetQueueAttributes(ctx, input)
+	result, err := h.Svc.SQS().SetQueueAttributes(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to set queue attributes", err)
 		return

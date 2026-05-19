@@ -10,9 +10,11 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	ports "github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
 )
 
-type Release struct {
+type releaseResponse struct {
 	TagName string `json:"tag_name"`
 	HTMLURL string `json:"html_url"`
 }
@@ -29,7 +31,7 @@ func NewClient() *Client {
 	}
 }
 
-func (c *Client) GetLatestRelease(ctx context.Context, repoURL string) (release *Release, err error) {
+func (c *Client) GetLatestRelease(ctx context.Context, repoURL string) (*ports.Release, error) {
 	owner, repo, err := parseGitHubURL(repoURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse GitHub URL: %w", err)
@@ -63,12 +65,15 @@ func (c *Client) GetLatestRelease(ctx context.Context, repoURL string) (release 
 		return nil, fmt.Errorf("GitHub API returned status %d: %s", resp.StatusCode, string(body))
 	}
 
-	var releaseResp Release
+	var releaseResp releaseResponse
 	if err := json.NewDecoder(resp.Body).Decode(&releaseResp); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	return &releaseResp, nil
+	return &ports.Release{
+		TagName: releaseResp.TagName,
+		HTMLURL: releaseResp.HTMLURL,
+	}, nil
 }
 
 func parseGitHubURL(repoURL string) (owner, repo string, err error) {

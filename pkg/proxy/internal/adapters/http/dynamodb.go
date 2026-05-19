@@ -19,7 +19,7 @@ import (
 func (h *ProxyHandler) handleDynamoDB(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "ListTables"):
@@ -63,7 +63,7 @@ func (h *ProxyHandler) listTables(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.DynamoDB().ListTables(ctx, input)
+	result, err := h.Svc.DynamoDB().ListTables(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list tables", err)
 		return
@@ -77,7 +77,7 @@ func (h *ProxyHandler) createTable(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.DynamoDB().CreateTable(ctx, input)
+	result, err := h.Svc.DynamoDB().CreateTable(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create table", err)
 		return
@@ -91,7 +91,7 @@ func (h *ProxyHandler) describeTable(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.DynamoDB().DescribeTable(ctx, input)
+	result, err := h.Svc.DynamoDB().DescribeTable(ctx, input)
 	if err != nil {
 		errMsg := err.Error()
 		if strings.Contains(errMsg, "InvalidParameterValue") && strings.Contains(errMsg, "TableName") {
@@ -110,7 +110,7 @@ func (h *ProxyHandler) deleteTable(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.DynamoDB().DeleteTable(ctx, input)
+	result, err := h.Svc.DynamoDB().DeleteTable(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete table", err)
 		return
@@ -124,7 +124,7 @@ func (h *ProxyHandler) updateTable(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.DynamoDB().UpdateTable(ctx, input)
+	result, err := h.Svc.DynamoDB().UpdateTable(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update table", err)
 		return
@@ -167,7 +167,7 @@ func (h *ProxyHandler) putItem(ctx context.Context, c *gin.Context, bodyBytes []
 		input.ReturnValues = types.ReturnValue(val)
 	}
 
-	result, err := h.svc.DynamoDB().PutItem(ctx, input)
+	result, err := h.Svc.DynamoDB().PutItem(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to put item", err)
 		return
@@ -298,7 +298,7 @@ func (h *ProxyHandler) getItem(ctx context.Context, c *gin.Context, bodyBytes []
 		input.ProjectionExpression = aws.String(val)
 	}
 
-	result, err := h.svc.DynamoDB().GetItem(ctx, input)
+	result, err := h.Svc.DynamoDB().GetItem(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get item", err)
 		return
@@ -341,7 +341,7 @@ func (h *ProxyHandler) deleteItem(ctx context.Context, c *gin.Context, bodyBytes
 		input.ReturnValues = types.ReturnValue(val)
 	}
 
-	result, err := h.svc.DynamoDB().DeleteItem(ctx, input)
+	result, err := h.Svc.DynamoDB().DeleteItem(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete item", err)
 		return
@@ -389,7 +389,7 @@ func (h *ProxyHandler) updateItem(ctx context.Context, c *gin.Context, bodyBytes
 		input.ReturnValues = types.ReturnValue(val)
 	}
 
-	result, err := h.svc.DynamoDB().UpdateItem(ctx, input)
+	result, err := h.Svc.DynamoDB().UpdateItem(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update item", err)
 		return
@@ -432,7 +432,7 @@ func (h *ProxyHandler) query(ctx context.Context, c *gin.Context, bodyBytes []by
 		input.ExclusiveStartKey = convertMapToAttributeValue(val)
 	}
 
-	result, err := h.svc.DynamoDB().Query(ctx, input)
+	result, err := h.Svc.DynamoDB().Query(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to query", err)
 		return
@@ -469,7 +469,7 @@ func (h *ProxyHandler) scan(ctx context.Context, c *gin.Context, bodyBytes []byt
 		input.ExclusiveStartKey = convertMapToAttributeValue(val)
 	}
 
-	result, err := h.svc.DynamoDB().Scan(ctx, input)
+	result, err := h.Svc.DynamoDB().Scan(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to scan", err)
 		return
@@ -495,7 +495,7 @@ func (h *ProxyHandler) batchWriteItem(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.DynamoDB().BatchWriteItem(ctx, input)
+	result, err := h.Svc.DynamoDB().BatchWriteItem(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to batch write", err)
 		return
@@ -509,7 +509,7 @@ func (h *ProxyHandler) batchGetItem(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.DynamoDB().BatchGetItem(ctx, input)
+	result, err := h.Svc.DynamoDB().BatchGetItem(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to batch get", err)
 		return
@@ -523,7 +523,7 @@ func (h *ProxyHandler) describeTimeToLive(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.DynamoDB().DescribeTimeToLive(ctx, input)
+	result, err := h.Svc.DynamoDB().DescribeTimeToLive(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe TTL", err)
 		return
@@ -537,7 +537,7 @@ func (h *ProxyHandler) updateTimeToLive(ctx context.Context, c *gin.Context, bod
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.DynamoDB().UpdateTimeToLive(ctx, input)
+	result, err := h.Svc.DynamoDB().UpdateTimeToLive(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update TTL", err)
 		return

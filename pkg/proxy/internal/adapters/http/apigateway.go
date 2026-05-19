@@ -19,7 +19,7 @@ import (
 func (h *ProxyHandler) handleAPIGateway(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	// HTTP API v2 operations (must be before REST API operations)
@@ -150,7 +150,7 @@ func (h *ProxyHandler) getRestApis(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().GetRestApis(ctx, input)
+	result, err := h.Svc.APIGateway().GetRestApis(ctx, input)
 	if err != nil {
 		log.Printf("getRestApis error: %v", err)
 		sendError(c, http.StatusInternalServerError, "Failed to get REST APIs", err)
@@ -166,7 +166,7 @@ func (h *ProxyHandler) createRestApi(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().CreateRestApi(ctx, input)
+	result, err := h.Svc.APIGateway().CreateRestApi(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create REST API", err)
 		return
@@ -192,7 +192,7 @@ func (h *ProxyHandler) importRestApi(ctx context.Context, c *gin.Context, bodyBy
 			input := &apigateway.ImportRestApiInput{
 				Body: decoded,
 			}
-			result, err := h.svc.APIGateway().ImportRestApi(ctx, input)
+			result, err := h.Svc.APIGateway().ImportRestApi(ctx, input)
 			if err != nil {
 				log.Printf("ImportRestApi error (base64): %v", err)
 				sendError(c, http.StatusInternalServerError, "Failed to import REST API", err)
@@ -209,7 +209,7 @@ func (h *ProxyHandler) importRestApi(ctx context.Context, c *gin.Context, bodyBy
 		input := &apigateway.ImportRestApiInput{
 			Body: bodyBytes,
 		}
-		result, err := h.svc.APIGateway().ImportRestApi(ctx, input)
+		result, err := h.Svc.APIGateway().ImportRestApi(ctx, input)
 		if err != nil {
 			log.Printf("ImportRestApi error (JSON): %v", err)
 			sendError(c, http.StatusInternalServerError, "Failed to import REST API", err)
@@ -224,7 +224,7 @@ func (h *ProxyHandler) importRestApi(ctx context.Context, c *gin.Context, bodyBy
 	input := &apigateway.ImportRestApiInput{
 		Body: bodyBytes,
 	}
-	result, err := h.svc.APIGateway().ImportRestApi(ctx, input)
+	result, err := h.Svc.APIGateway().ImportRestApi(ctx, input)
 	if err != nil {
 		log.Printf("ImportRestApi error (raw): %v", err)
 		sendError(c, http.StatusInternalServerError, "Failed to import REST API", err)
@@ -239,7 +239,7 @@ func (h *ProxyHandler) deleteRestApi(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().DeleteRestApi(ctx, input)
+	result, err := h.Svc.APIGateway().DeleteRestApi(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete REST API", err)
 		return
@@ -257,7 +257,7 @@ func (h *ProxyHandler) getRestApi(ctx context.Context, c *gin.Context, bodyBytes
 	}
 	log.Printf("GetRestApi input: RestApiId=%s", aws.ToString(input.RestApiId))
 
-	result, err := h.svc.APIGateway().GetRestApi(ctx, input)
+	result, err := h.Svc.APIGateway().GetRestApi(ctx, input)
 	if err != nil {
 		log.Printf("GetRestApi error: %v", err)
 		sendError(c, http.StatusInternalServerError, "Failed to get REST API", err)
@@ -318,7 +318,7 @@ func (h *ProxyHandler) updateRestApi(ctx context.Context, c *gin.Context, bodyBy
 			PatchOperations: patchOperations,
 		}
 
-		result, err := h.svc.APIGateway().UpdateRestApi(ctx, input)
+		result, err := h.Svc.APIGateway().UpdateRestApi(ctx, input)
 		if err != nil {
 			log.Printf("UpdateRestApi error: %v", err)
 			sendError(c, http.StatusInternalServerError, "Failed to update REST API", err)
@@ -335,7 +335,7 @@ func (h *ProxyHandler) updateRestApi(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().UpdateRestApi(ctx, input)
+	result, err := h.Svc.APIGateway().UpdateRestApi(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update REST API", err)
 		return
@@ -349,7 +349,7 @@ func (h *ProxyHandler) getResources(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().GetResources(ctx, input)
+	result, err := h.Svc.APIGateway().GetResources(ctx, input)
 	if err != nil {
 		errStr := err.Error()
 		if strings.Contains(errStr, "NotFoundException") || strings.Contains(errStr, "not found") || strings.Contains(errStr, "Invalid API") {
@@ -368,7 +368,7 @@ func (h *ProxyHandler) getResource(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().GetResource(ctx, input)
+	result, err := h.Svc.APIGateway().GetResource(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get resource", err)
 		return
@@ -388,7 +388,7 @@ func (h *ProxyHandler) createResource(ctx context.Context, c *gin.Context, bodyB
 	log.Printf("createResource input: RestApiId=%s, ParentId=%s, PathPart=%s",
 		aws.ToString(input.RestApiId), aws.ToString(input.ParentId), aws.ToString(input.PathPart))
 
-	result, err := h.svc.APIGateway().CreateResource(ctx, input)
+	result, err := h.Svc.APIGateway().CreateResource(ctx, input)
 	if err != nil {
 		log.Printf("createResource error: %v", err)
 		sendError(c, http.StatusInternalServerError, "Failed to create resource", err)
@@ -403,7 +403,7 @@ func (h *ProxyHandler) deleteResource(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().DeleteResource(ctx, input)
+	result, err := h.Svc.APIGateway().DeleteResource(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete resource", err)
 		return
@@ -417,7 +417,7 @@ func (h *ProxyHandler) putMethod(ctx context.Context, c *gin.Context, bodyBytes 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().PutMethod(ctx, input)
+	result, err := h.Svc.APIGateway().PutMethod(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to put method", err)
 		return
@@ -431,7 +431,7 @@ func (h *ProxyHandler) getMethod(ctx context.Context, c *gin.Context, bodyBytes 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().GetMethod(ctx, input)
+	result, err := h.Svc.APIGateway().GetMethod(ctx, input)
 	if err != nil {
 		errStr := err.Error()
 		if strings.Contains(errStr, "NotFound") || strings.Contains(errStr, "not found") {
@@ -451,7 +451,7 @@ func (h *ProxyHandler) deleteMethod(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().DeleteMethod(ctx, input)
+	result, err := h.Svc.APIGateway().DeleteMethod(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete method", err)
 		return
@@ -466,7 +466,7 @@ func (h *ProxyHandler) putIntegration(ctx context.Context, c *gin.Context, bodyB
 		return
 	}
 	log.Printf("PutIntegration input: %+v", input)
-	result, err := h.svc.APIGateway().PutIntegration(ctx, input)
+	result, err := h.Svc.APIGateway().PutIntegration(ctx, input)
 	if err != nil {
 		log.Printf("PutIntegration error: %v", err)
 		sendError(c, http.StatusInternalServerError, "Failed to put integration", err)
@@ -481,7 +481,7 @@ func (h *ProxyHandler) getIntegration(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().GetIntegration(ctx, input)
+	result, err := h.Svc.APIGateway().GetIntegration(ctx, input)
 	if err != nil {
 		errStr := err.Error()
 		if strings.Contains(errStr, "NotFound") || strings.Contains(errStr, "not found") || strings.Contains(errStr, "Invalid integration") {
@@ -501,7 +501,7 @@ func (h *ProxyHandler) deleteIntegration(ctx context.Context, c *gin.Context, bo
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().DeleteIntegration(ctx, input)
+	result, err := h.Svc.APIGateway().DeleteIntegration(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete integration", err)
 		return
@@ -515,7 +515,7 @@ func (h *ProxyHandler) createDeployment(ctx context.Context, c *gin.Context, bod
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().CreateDeployment(ctx, input)
+	result, err := h.Svc.APIGateway().CreateDeployment(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create deployment", err)
 		return
@@ -539,7 +539,7 @@ func (h *ProxyHandler) deleteDeployment(ctx context.Context, c *gin.Context, bod
 		input.DeploymentId = aws.String(v.(string))
 	}
 
-	result, err := h.svc.APIGateway().DeleteDeployment(ctx, input)
+	result, err := h.Svc.APIGateway().DeleteDeployment(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete deployment", err)
 		return
@@ -553,7 +553,7 @@ func (h *ProxyHandler) getDeployments(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().GetDeployments(ctx, input)
+	result, err := h.Svc.APIGateway().GetDeployments(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get deployments", err)
 		return
@@ -567,7 +567,7 @@ func (h *ProxyHandler) createStage(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().CreateStage(ctx, input)
+	result, err := h.Svc.APIGateway().CreateStage(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create stage", err)
 		return
@@ -581,7 +581,7 @@ func (h *ProxyHandler) getStages(ctx context.Context, c *gin.Context, bodyBytes 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().GetStages(ctx, input)
+	result, err := h.Svc.APIGateway().GetStages(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get stages", err)
 		return
@@ -595,7 +595,7 @@ func (h *ProxyHandler) updateStage(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGateway().UpdateStage(ctx, input)
+	result, err := h.Svc.APIGateway().UpdateStage(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update stage", err)
 		return
@@ -622,7 +622,7 @@ func (h *ProxyHandler) deleteStage(ctx context.Context, c *gin.Context, bodyByte
 		input.StageName = aws.String(v.(string))
 	}
 
-	result, err := h.svc.APIGateway().DeleteStage(ctx, input)
+	result, err := h.Svc.APIGateway().DeleteStage(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete stage", err)
 		return
@@ -637,7 +637,7 @@ func (h *ProxyHandler) getApis(ctx context.Context, c *gin.Context, bodyBytes []
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGatewayV2().GetApis(ctx, input)
+	result, err := h.Svc.APIGatewayV2().GetApis(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get HTTP APIs", err)
 		return
@@ -668,7 +668,7 @@ func (h *ProxyHandler) createApi(ctx context.Context, c *gin.Context, bodyBytes 
 		input.Description = aws.String(v.(string))
 	}
 
-	result, err := h.svc.APIGatewayV2().CreateApi(ctx, input)
+	result, err := h.Svc.APIGatewayV2().CreateApi(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create HTTP API", err)
 		return
@@ -682,7 +682,7 @@ func (h *ProxyHandler) deleteApi(ctx context.Context, c *gin.Context, bodyBytes 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGatewayV2().DeleteApi(ctx, input)
+	result, err := h.Svc.APIGatewayV2().DeleteApi(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete HTTP API", err)
 		return
@@ -696,7 +696,7 @@ func (h *ProxyHandler) getApi(ctx context.Context, c *gin.Context, bodyBytes []b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGatewayV2().GetApi(ctx, input)
+	result, err := h.Svc.APIGatewayV2().GetApi(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get HTTP API", err)
 		return
@@ -710,7 +710,7 @@ func (h *ProxyHandler) getRoutes(ctx context.Context, c *gin.Context, bodyBytes 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGatewayV2().GetRoutes(ctx, input)
+	result, err := h.Svc.APIGatewayV2().GetRoutes(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get routes", err)
 		return
@@ -760,7 +760,7 @@ func (h *ProxyHandler) createRoute(ctx context.Context, c *gin.Context, bodyByte
 		input.AuthorizerId = aws.String(v.(string))
 	}
 
-	result, err := h.svc.APIGatewayV2().CreateRoute(ctx, input)
+	result, err := h.Svc.APIGatewayV2().CreateRoute(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create route", err)
 		return
@@ -774,7 +774,7 @@ func (h *ProxyHandler) deleteRoute(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGatewayV2().DeleteRoute(ctx, input)
+	result, err := h.Svc.APIGatewayV2().DeleteRoute(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete route", err)
 		return
@@ -828,7 +828,7 @@ func (h *ProxyHandler) updateRoute(ctx context.Context, c *gin.Context, bodyByte
 		input.AuthorizerId = aws.String(v.(string))
 	}
 
-	result, err := h.svc.APIGatewayV2().UpdateRoute(ctx, input)
+	result, err := h.Svc.APIGatewayV2().UpdateRoute(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update route", err)
 		return
@@ -842,7 +842,7 @@ func (h *ProxyHandler) getIntegrationsV2(ctx context.Context, c *gin.Context, bo
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGatewayV2().GetIntegrations(ctx, input)
+	result, err := h.Svc.APIGatewayV2().GetIntegrations(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get integrations", err)
 		return
@@ -917,7 +917,7 @@ func (h *ProxyHandler) createIntegrationV2(ctx context.Context, c *gin.Context, 
 		input.PayloadFormatVersion = aws.String(v.(string))
 	}
 
-	result, err := h.svc.APIGatewayV2().CreateIntegration(ctx, input)
+	result, err := h.Svc.APIGatewayV2().CreateIntegration(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create integration", err)
 		return
@@ -971,7 +971,7 @@ func (h *ProxyHandler) updateIntegrationV2(ctx context.Context, c *gin.Context, 
 		input.Description = aws.String(v.(string))
 	}
 
-	result, err := h.svc.APIGatewayV2().UpdateIntegration(ctx, input)
+	result, err := h.Svc.APIGatewayV2().UpdateIntegration(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update integration", err)
 		return
@@ -985,7 +985,7 @@ func (h *ProxyHandler) deleteIntegrationV2(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGatewayV2().DeleteIntegration(ctx, input)
+	result, err := h.Svc.APIGatewayV2().DeleteIntegration(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete integration", err)
 		return
@@ -1014,7 +1014,7 @@ func (h *ProxyHandler) getStagesV2(ctx context.Context, c *gin.Context, bodyByte
 		return
 	}
 
-	result, err := h.svc.APIGatewayV2().GetStages(ctx, input)
+	result, err := h.Svc.APIGatewayV2().GetStages(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get stages", err)
 		return
@@ -1028,7 +1028,7 @@ func (h *ProxyHandler) getStageV2(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGatewayV2().GetStage(ctx, input)
+	result, err := h.Svc.APIGatewayV2().GetStage(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get stage", err)
 		return
@@ -1077,7 +1077,7 @@ func (h *ProxyHandler) createStageV2(ctx context.Context, c *gin.Context, bodyBy
 		}
 	}
 
-	result, err := h.svc.APIGatewayV2().CreateStage(ctx, input)
+	result, err := h.Svc.APIGatewayV2().CreateStage(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create stage", err)
 		return
@@ -1130,7 +1130,7 @@ func (h *ProxyHandler) updateStageV2(ctx context.Context, c *gin.Context, bodyBy
 		}
 	}
 
-	result, err := h.svc.APIGatewayV2().UpdateStage(ctx, input)
+	result, err := h.Svc.APIGatewayV2().UpdateStage(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update stage", err)
 		return
@@ -1144,7 +1144,7 @@ func (h *ProxyHandler) deleteStageV2(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.APIGatewayV2().DeleteStage(ctx, input)
+	result, err := h.Svc.APIGatewayV2().DeleteStage(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete stage", err)
 		return
@@ -1161,7 +1161,7 @@ func (h *ProxyHandler) getInvokeUrl(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	url, err := h.svc.APIGateway().GetInvokeUrl(ctx, bodyData.ApiID, bodyData.StageName)
+	url, err := h.Svc.APIGateway().GetInvokeUrl(ctx, bodyData.ApiID, bodyData.StageName)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get invoke URL", err)
 		return
@@ -1178,7 +1178,7 @@ func (h *ProxyHandler) getInvokeUrlV2(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	url, err := h.svc.APIGatewayV2().GetInvokeUrl(ctx, bodyData.ApiID, bodyData.StageName)
+	url, err := h.Svc.APIGatewayV2().GetInvokeUrl(ctx, bodyData.ApiID, bodyData.StageName)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get invoke URL", err)
 		return
