@@ -12,7 +12,7 @@ import (
 func (h *ProxyHandler) handleSecretsManager(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "ListSecrets"):
@@ -46,7 +46,7 @@ func (h *ProxyHandler) listSecrets(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SecretsManager().ListSecrets(ctx, input)
+	result, err := h.Svc.SecretsManager().ListSecrets(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list secrets", err)
 		return
@@ -60,7 +60,7 @@ func (h *ProxyHandler) createSecret(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SecretsManager().CreateSecret(ctx, input)
+	result, err := h.Svc.SecretsManager().CreateSecret(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create secret", err)
 		return
@@ -74,7 +74,7 @@ func (h *ProxyHandler) getSecretValue(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SecretsManager().GetSecretValue(ctx, input)
+	result, err := h.Svc.SecretsManager().GetSecretValue(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get secret value", err)
 		return
@@ -88,7 +88,7 @@ func (h *ProxyHandler) putSecretValue(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SecretsManager().PutSecretValue(ctx, input)
+	result, err := h.Svc.SecretsManager().PutSecretValue(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to put secret value", err)
 		return
@@ -102,7 +102,7 @@ func (h *ProxyHandler) deleteSecret(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SecretsManager().DeleteSecret(ctx, input)
+	result, err := h.Svc.SecretsManager().DeleteSecret(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete secret", err)
 		return
@@ -116,7 +116,7 @@ func (h *ProxyHandler) describeSecret(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SecretsManager().DescribeSecret(ctx, input)
+	result, err := h.Svc.SecretsManager().DescribeSecret(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe secret", err)
 		return
@@ -130,7 +130,7 @@ func (h *ProxyHandler) updateSecret(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SecretsManager().UpdateSecret(ctx, input)
+	result, err := h.Svc.SecretsManager().UpdateSecret(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update secret", err)
 		return
@@ -144,7 +144,7 @@ func (h *ProxyHandler) restoreSecret(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SecretsManager().RestoreSecret(ctx, input)
+	result, err := h.Svc.SecretsManager().RestoreSecret(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to restore secret", err)
 		return
@@ -158,7 +158,7 @@ func (h *ProxyHandler) rotateSecret(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SecretsManager().RotateSecret(ctx, input)
+	result, err := h.Svc.SecretsManager().RotateSecret(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to rotate secret", err)
 		return
@@ -172,7 +172,7 @@ func (h *ProxyHandler) getRandomPassword(ctx context.Context, c *gin.Context, bo
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SecretsManager().GetRandomPassword(ctx, input)
+	result, err := h.Svc.SecretsManager().GetRandomPassword(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get random password", err)
 		return

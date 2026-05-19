@@ -12,7 +12,7 @@ import (
 func (h *ProxyHandler) handleOpenSearch(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "ListDomainNames"):
@@ -50,7 +50,7 @@ func (h *ProxyHandler) listDomainNames(ctx context.Context, c *gin.Context, body
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.OpenSearch().ListDomainNames(ctx, input)
+	result, err := h.Svc.OpenSearch().ListDomainNames(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list domain names", err)
 		return
@@ -64,7 +64,7 @@ func (h *ProxyHandler) describeDomain(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.OpenSearch().DescribeDomain(ctx, input)
+	result, err := h.Svc.OpenSearch().DescribeDomain(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe domain", err)
 		return
@@ -78,7 +78,7 @@ func (h *ProxyHandler) createDomain(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.OpenSearch().CreateDomain(ctx, input)
+	result, err := h.Svc.OpenSearch().CreateDomain(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create domain", err)
 		return
@@ -92,7 +92,7 @@ func (h *ProxyHandler) deleteDomain(ctx context.Context, c *gin.Context, bodyByt
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.OpenSearch().DeleteDomain(ctx, input)
+	result, err := h.Svc.OpenSearch().DeleteDomain(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete domain", err)
 		return
@@ -106,7 +106,7 @@ func (h *ProxyHandler) updateDomainConfig(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.OpenSearch().UpdateDomainConfig(ctx, input)
+	result, err := h.Svc.OpenSearch().UpdateDomainConfig(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update domain config", err)
 		return
@@ -120,7 +120,7 @@ func (h *ProxyHandler) describeDomainConfig(ctx context.Context, c *gin.Context,
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.OpenSearch().DescribeDomainConfig(ctx, input)
+	result, err := h.Svc.OpenSearch().DescribeDomainConfig(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe domain config", err)
 		return
@@ -134,7 +134,7 @@ func (h *ProxyHandler) listOpenSearchTags(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.OpenSearch().ListTags(ctx, input)
+	result, err := h.Svc.OpenSearch().ListTags(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list tags", err)
 		return
@@ -148,7 +148,7 @@ func (h *ProxyHandler) addOpenSearchTags(ctx context.Context, c *gin.Context, bo
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.OpenSearch().AddTags(ctx, input)
+	result, err := h.Svc.OpenSearch().AddTags(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to add tags", err)
 		return
@@ -162,7 +162,7 @@ func (h *ProxyHandler) removeOpenSearchTags(ctx context.Context, c *gin.Context,
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.OpenSearch().RemoveTags(ctx, input)
+	result, err := h.Svc.OpenSearch().RemoveTags(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to remove tags", err)
 		return
@@ -176,7 +176,7 @@ func (h *ProxyHandler) getCompatibleVersions(ctx context.Context, c *gin.Context
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.OpenSearch().GetCompatibleVersions(ctx, input)
+	result, err := h.Svc.OpenSearch().GetCompatibleVersions(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get compatible versions", err)
 		return

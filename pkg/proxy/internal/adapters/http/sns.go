@@ -13,7 +13,7 @@ import (
 func (h *ProxyHandler) handleSNS(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "ListTopics"):
@@ -43,7 +43,7 @@ func (h *ProxyHandler) listTopics(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SNS().ListTopics(ctx, input)
+	result, err := h.Svc.SNS().ListTopics(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list topics", err)
 		return
@@ -57,7 +57,7 @@ func (h *ProxyHandler) createTopic(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SNS().CreateTopic(ctx, input)
+	result, err := h.Svc.SNS().CreateTopic(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create topic", err)
 		return
@@ -71,7 +71,7 @@ func (h *ProxyHandler) deleteTopic(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SNS().DeleteTopic(ctx, input)
+	result, err := h.Svc.SNS().DeleteTopic(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete topic", err)
 		return
@@ -85,7 +85,7 @@ func (h *ProxyHandler) subscribe(ctx context.Context, c *gin.Context, bodyBytes 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SNS().Subscribe(ctx, input)
+	result, err := h.Svc.SNS().Subscribe(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to subscribe", err)
 		return
@@ -99,7 +99,7 @@ func (h *ProxyHandler) unsubscribe(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SNS().Unsubscribe(ctx, input)
+	result, err := h.Svc.SNS().Unsubscribe(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to unsubscribe", err)
 		return
@@ -113,7 +113,7 @@ func (h *ProxyHandler) listSubscriptions(ctx context.Context, c *gin.Context, bo
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SNS().ListSubscriptions(ctx, input)
+	result, err := h.Svc.SNS().ListSubscriptions(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list subscriptions", err)
 		return
@@ -134,7 +134,7 @@ func (h *ProxyHandler) listSubscriptionsByTopic(ctx context.Context, c *gin.Cont
 	if body.TopicArn != "" {
 		input.TopicArn = &body.TopicArn
 	}
-	result, err := h.svc.SNS().ListSubscriptionsByTopic(ctx, input)
+	result, err := h.Svc.SNS().ListSubscriptionsByTopic(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list subscriptions by topic", err)
 		return
@@ -148,7 +148,7 @@ func (h *ProxyHandler) publish(ctx context.Context, c *gin.Context, bodyBytes []
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SNS().Publish(ctx, input)
+	result, err := h.Svc.SNS().Publish(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to publish", err)
 		return

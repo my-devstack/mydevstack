@@ -12,7 +12,7 @@ import (
 func (h *ProxyHandler) handleDynamoDBStreams(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "ListStreams"):
@@ -34,7 +34,7 @@ func (h *ProxyHandler) listStreamsStreams(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.DynamoDBStreams().ListStreams(ctx, input)
+	result, err := h.Svc.DynamoDBStreams().ListStreams(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list streams", err)
 		return
@@ -48,7 +48,7 @@ func (h *ProxyHandler) describeStreamStreams(ctx context.Context, c *gin.Context
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.DynamoDBStreams().DescribeStream(ctx, input)
+	result, err := h.Svc.DynamoDBStreams().DescribeStream(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe stream", err)
 		return
@@ -62,7 +62,7 @@ func (h *ProxyHandler) getShardIteratorStreams(ctx context.Context, c *gin.Conte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.DynamoDBStreams().GetShardIterator(ctx, input)
+	result, err := h.Svc.DynamoDBStreams().GetShardIterator(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get shard iterator", err)
 		return
@@ -76,7 +76,7 @@ func (h *ProxyHandler) getRecordsStreams(ctx context.Context, c *gin.Context, bo
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.DynamoDBStreams().GetRecords(ctx, input)
+	result, err := h.Svc.DynamoDBStreams().GetRecords(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get records", err)
 		return

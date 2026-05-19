@@ -39,7 +39,7 @@ func (h *ProxyHandler) listStacks(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudFormation().ListStacks(ctx, input)
+	result, err := h.Svc.CloudFormation().ListStacks(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list stacks", err)
 		return
@@ -53,7 +53,7 @@ func (h *ProxyHandler) createStack(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudFormation().CreateStack(ctx, input)
+	result, err := h.Svc.CloudFormation().CreateStack(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create stack", err)
 		return
@@ -67,7 +67,7 @@ func (h *ProxyHandler) deleteStack(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudFormation().DeleteStack(ctx, input)
+	result, err := h.Svc.CloudFormation().DeleteStack(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete stack", err)
 		return
@@ -81,7 +81,7 @@ func (h *ProxyHandler) describeStacks(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudFormation().DescribeStacks(ctx, input)
+	result, err := h.Svc.CloudFormation().DescribeStacks(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe stacks", err)
 		return
@@ -95,7 +95,7 @@ func (h *ProxyHandler) getTemplate(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudFormation().GetTemplate(ctx, input)
+	result, err := h.Svc.CloudFormation().GetTemplate(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get template", err)
 		return
@@ -109,7 +109,7 @@ func (h *ProxyHandler) listStackResources(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.CloudFormation().ListStackResources(ctx, input)
+	result, err := h.Svc.CloudFormation().ListStackResources(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list stack resources", err)
 		return

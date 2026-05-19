@@ -13,7 +13,7 @@ import (
 func (h *ProxyHandler) handleLambda(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "ListFunctions"):
@@ -51,7 +51,7 @@ func (h *ProxyHandler) listFunctions(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Lambda().ListFunctions(ctx, input)
+	result, err := h.Svc.Lambda().ListFunctions(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list functions", err)
 		return
@@ -65,7 +65,7 @@ func (h *ProxyHandler) createFunction(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Lambda().CreateFunction(ctx, input)
+	result, err := h.Svc.Lambda().CreateFunction(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create function", err)
 		return
@@ -79,7 +79,7 @@ func (h *ProxyHandler) getFunction(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Lambda().GetFunction(ctx, input)
+	result, err := h.Svc.Lambda().GetFunction(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get function", err)
 		return
@@ -93,7 +93,7 @@ func (h *ProxyHandler) deleteFunction(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Lambda().DeleteFunction(ctx, input)
+	result, err := h.Svc.Lambda().DeleteFunction(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete function", err)
 		return
@@ -107,7 +107,7 @@ func (h *ProxyHandler) invokeFunction(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Lambda().Invoke(ctx, input)
+	result, err := h.Svc.Lambda().Invoke(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to invoke function", err)
 		return
@@ -134,7 +134,7 @@ func (h *ProxyHandler) updateFunctionConfiguration(ctx context.Context, c *gin.C
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Lambda().UpdateFunctionConfiguration(ctx, input)
+	result, err := h.Svc.Lambda().UpdateFunctionConfiguration(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update function configuration", err)
 		return
@@ -148,7 +148,7 @@ func (h *ProxyHandler) updateFunctionCode(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Lambda().UpdateFunctionCode(ctx, input)
+	result, err := h.Svc.Lambda().UpdateFunctionCode(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update function code", err)
 		return
@@ -162,7 +162,7 @@ func (h *ProxyHandler) getFunctionConfiguration(ctx context.Context, c *gin.Cont
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Lambda().GetFunctionConfiguration(ctx, input)
+	result, err := h.Svc.Lambda().GetFunctionConfiguration(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get function configuration", err)
 		return
@@ -176,7 +176,7 @@ func (h *ProxyHandler) listEventSourceMappings(ctx context.Context, c *gin.Conte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Lambda().ListEventSourceMappings(ctx, input)
+	result, err := h.Svc.Lambda().ListEventSourceMappings(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list event source mappings", err)
 		return
@@ -190,7 +190,7 @@ func (h *ProxyHandler) createEventSourceMapping(ctx context.Context, c *gin.Cont
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Lambda().CreateEventSourceMapping(ctx, input)
+	result, err := h.Svc.Lambda().CreateEventSourceMapping(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create event source mapping", err)
 		return
@@ -204,7 +204,7 @@ func (h *ProxyHandler) getEventSourceMapping(ctx context.Context, c *gin.Context
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Lambda().GetEventSourceMapping(ctx, input)
+	result, err := h.Svc.Lambda().GetEventSourceMapping(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get event source mapping", err)
 		return
@@ -218,7 +218,7 @@ func (h *ProxyHandler) deleteEventSourceMapping(ctx context.Context, c *gin.Cont
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.Lambda().DeleteEventSourceMapping(ctx, input)
+	result, err := h.Svc.Lambda().DeleteEventSourceMapping(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete event source mapping", err)
 		return

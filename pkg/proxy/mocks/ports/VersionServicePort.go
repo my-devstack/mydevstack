@@ -5,6 +5,9 @@
 package ports
 
 import (
+	"context"
+	"time"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -129,5 +132,84 @@ func (_c *VersionServicePort_GetLatestVersion_Call) Return(s string, b bool) *Ve
 
 func (_c *VersionServicePort_GetLatestVersion_Call) RunAndReturn(run func() (string, bool)) *VersionServicePort_GetLatestVersion_Call {
 	_c.Call.Return(run)
+	return _c
+}
+
+// StartScheduler provides a mock function for the type VersionServicePort
+func (_mock *VersionServicePort) StartScheduler(context1 context.Context, ticker *time.Ticker) {
+	_mock.Called(context1, ticker)
+	return
+}
+
+// VersionServicePort_StartScheduler_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartScheduler'
+type VersionServicePort_StartScheduler_Call struct {
+	*mock.Call
+}
+
+// StartScheduler is a helper method to define mock.On call
+//   - context1 context.Context
+//   - ticker *time.Ticker
+func (_e *VersionServicePort_Expecter) StartScheduler(context1 interface{}, ticker interface{}) *VersionServicePort_StartScheduler_Call {
+	return &VersionServicePort_StartScheduler_Call{Call: _e.mock.On("StartScheduler", context1, ticker)}
+}
+
+func (_c *VersionServicePort_StartScheduler_Call) Run(run func(context1 context.Context, ticker *time.Ticker)) *VersionServicePort_StartScheduler_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *time.Ticker
+		if args[1] != nil {
+			arg1 = args[1].(*time.Ticker)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *VersionServicePort_StartScheduler_Call) Return() *VersionServicePort_StartScheduler_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *VersionServicePort_StartScheduler_Call) RunAndReturn(run func(context1 context.Context, ticker *time.Ticker)) *VersionServicePort_StartScheduler_Call {
+	_c.Run(run)
+	return _c
+}
+
+// Stop provides a mock function for the type VersionServicePort
+func (_mock *VersionServicePort) Stop() {
+	_mock.Called()
+	return
+}
+
+// VersionServicePort_Stop_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Stop'
+type VersionServicePort_Stop_Call struct {
+	*mock.Call
+}
+
+// Stop is a helper method to define mock.On call
+func (_e *VersionServicePort_Expecter) Stop() *VersionServicePort_Stop_Call {
+	return &VersionServicePort_Stop_Call{Call: _e.mock.On("Stop")}
+}
+
+func (_c *VersionServicePort_Stop_Call) Run(run func()) *VersionServicePort_Stop_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *VersionServicePort_Stop_Call) Return() *VersionServicePort_Stop_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *VersionServicePort_Stop_Call) RunAndReturn(run func()) *VersionServicePort_Stop_Call {
+	_c.Run(run)
 	return _c
 }

@@ -48,7 +48,10 @@ func (s *VersionService) StartScheduler(ctx context.Context, t *time.Ticker) {
 		case <-t.C:
 			s.checkAndUpdateVersion(ctx)
 		case <-s.stopCh:
-			log.Printf("[VersionService] Scheduler stopped")
+			log.Printf("[VersionService] Scheduler stopped (stop signal)")
+			return
+		case <-ctx.Done():
+			log.Printf("[VersionService] Scheduler stopped (context cancelled)")
 			return
 		}
 	}

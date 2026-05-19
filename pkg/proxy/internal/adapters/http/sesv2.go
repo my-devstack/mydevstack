@@ -12,7 +12,7 @@ import (
 func (h *ProxyHandler) handleSES(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "ListEmailIdentities"):
@@ -50,7 +50,7 @@ func (h *ProxyHandler) listEmailIdentities(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SESv2().ListEmailIdentities(ctx, input)
+	result, err := h.Svc.SESv2().ListEmailIdentities(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list email identities", err)
 		return
@@ -64,7 +64,7 @@ func (h *ProxyHandler) getEmailIdentity(ctx context.Context, c *gin.Context, bod
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SESv2().GetEmailIdentity(ctx, input)
+	result, err := h.Svc.SESv2().GetEmailIdentity(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get email identity", err)
 		return
@@ -78,7 +78,7 @@ func (h *ProxyHandler) createEmailIdentity(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SESv2().CreateEmailIdentity(ctx, input)
+	result, err := h.Svc.SESv2().CreateEmailIdentity(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create email identity", err)
 		return
@@ -92,7 +92,7 @@ func (h *ProxyHandler) deleteEmailIdentity(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SESv2().DeleteEmailIdentity(ctx, input)
+	result, err := h.Svc.SESv2().DeleteEmailIdentity(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete email identity", err)
 		return
@@ -106,7 +106,7 @@ func (h *ProxyHandler) sendEmail(ctx context.Context, c *gin.Context, bodyBytes 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SESv2().SendEmail(ctx, input)
+	result, err := h.Svc.SESv2().SendEmail(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to send email", err)
 		return
@@ -120,7 +120,7 @@ func (h *ProxyHandler) sendBulkEmail(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SESv2().SendBulkEmail(ctx, input)
+	result, err := h.Svc.SESv2().SendBulkEmail(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to send bulk email", err)
 		return
@@ -134,7 +134,7 @@ func (h *ProxyHandler) listEmailTemplates(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SESv2().ListEmailTemplates(ctx, input)
+	result, err := h.Svc.SESv2().ListEmailTemplates(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list email templates", err)
 		return
@@ -148,7 +148,7 @@ func (h *ProxyHandler) getEmailTemplate(ctx context.Context, c *gin.Context, bod
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SESv2().GetEmailTemplate(ctx, input)
+	result, err := h.Svc.SESv2().GetEmailTemplate(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get email template", err)
 		return
@@ -162,7 +162,7 @@ func (h *ProxyHandler) createEmailTemplate(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SESv2().CreateEmailTemplate(ctx, input)
+	result, err := h.Svc.SESv2().CreateEmailTemplate(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create email template", err)
 		return
@@ -176,7 +176,7 @@ func (h *ProxyHandler) updateEmailTemplate(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SESv2().UpdateEmailTemplate(ctx, input)
+	result, err := h.Svc.SESv2().UpdateEmailTemplate(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update email template", err)
 		return
@@ -190,7 +190,7 @@ func (h *ProxyHandler) deleteEmailTemplate(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SESv2().DeleteEmailTemplate(ctx, input)
+	result, err := h.Svc.SESv2().DeleteEmailTemplate(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete email template", err)
 		return
@@ -204,7 +204,7 @@ func (h *ProxyHandler) getAccount(ctx context.Context, c *gin.Context, bodyBytes
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.SESv2().GetAccount(ctx, input)
+	result, err := h.Svc.SESv2().GetAccount(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get account", err)
 		return

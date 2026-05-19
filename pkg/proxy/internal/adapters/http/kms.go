@@ -13,7 +13,7 @@ import (
 func (h *ProxyHandler) handleKMS(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "ListKeys"):
@@ -52,7 +52,7 @@ func (h *ProxyHandler) listKeys(ctx context.Context, c *gin.Context, bodyBytes [
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.KMS().ListKeys(ctx, input)
+	result, err := h.Svc.KMS().ListKeys(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list keys", err)
 		return
@@ -66,7 +66,7 @@ func (h *ProxyHandler) createKey(ctx context.Context, c *gin.Context, bodyBytes 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.KMS().CreateKey(ctx, input)
+	result, err := h.Svc.KMS().CreateKey(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create key", err)
 		return
@@ -80,7 +80,7 @@ func (h *ProxyHandler) deleteAlias(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.KMS().DeleteAlias(ctx, input)
+	result, err := h.Svc.KMS().DeleteAlias(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete alias", err)
 		return
@@ -94,7 +94,7 @@ func (h *ProxyHandler) describeKey(ctx context.Context, c *gin.Context, bodyByte
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.KMS().DescribeKey(ctx, input)
+	result, err := h.Svc.KMS().DescribeKey(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe key", err)
 		return
@@ -108,7 +108,7 @@ func (h *ProxyHandler) encrypt(ctx context.Context, c *gin.Context, bodyBytes []
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.KMS().Encrypt(ctx, input)
+	result, err := h.Svc.KMS().Encrypt(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to encrypt: "+err.Error(), err)
 		return
@@ -122,7 +122,7 @@ func (h *ProxyHandler) decrypt(ctx context.Context, c *gin.Context, bodyBytes []
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.KMS().Decrypt(ctx, input)
+	result, err := h.Svc.KMS().Decrypt(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to decrypt: "+err.Error(), err)
 		return
@@ -136,7 +136,7 @@ func (h *ProxyHandler) generateDataKey(ctx context.Context, c *gin.Context, body
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.KMS().GenerateDataKey(ctx, input)
+	result, err := h.Svc.KMS().GenerateDataKey(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to generate data key", err)
 		return
@@ -150,7 +150,7 @@ func (h *ProxyHandler) generateRandom(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.KMS().GenerateRandom(ctx, input)
+	result, err := h.Svc.KMS().GenerateRandom(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to generate random", err)
 		return

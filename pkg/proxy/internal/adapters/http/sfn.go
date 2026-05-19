@@ -12,7 +12,7 @@ import (
 func (h *ProxyHandler) handleStepFunctions(c *gin.Context) {
 	xAmzTarget := c.GetHeader("X-Amz-Target")
 	bodyBytes := readBody(c)
-	ctx := context.Background()
+	ctx := h.ctx
 
 	switch {
 	case strings.HasSuffix(xAmzTarget, "ListStateMachines"):
@@ -46,7 +46,7 @@ func (h *ProxyHandler) listStateMachines(ctx context.Context, c *gin.Context, bo
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.StepFunctions().ListStateMachines(ctx, input)
+	result, err := h.Svc.StepFunctions().ListStateMachines(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list state machines", err)
 		return
@@ -60,7 +60,7 @@ func (h *ProxyHandler) createStateMachine(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.StepFunctions().CreateStateMachine(ctx, input)
+	result, err := h.Svc.StepFunctions().CreateStateMachine(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create state machine", err)
 		return
@@ -74,7 +74,7 @@ func (h *ProxyHandler) describeStateMachine(ctx context.Context, c *gin.Context,
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.StepFunctions().DescribeStateMachine(ctx, input)
+	result, err := h.Svc.StepFunctions().DescribeStateMachine(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe state machine", err)
 		return
@@ -88,7 +88,7 @@ func (h *ProxyHandler) updateStateMachine(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.StepFunctions().UpdateStateMachine(ctx, input)
+	result, err := h.Svc.StepFunctions().UpdateStateMachine(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update state machine", err)
 		return
@@ -102,7 +102,7 @@ func (h *ProxyHandler) deleteStateMachine(ctx context.Context, c *gin.Context, b
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.StepFunctions().DeleteStateMachine(ctx, input)
+	result, err := h.Svc.StepFunctions().DeleteStateMachine(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to delete state machine", err)
 		return
@@ -116,7 +116,7 @@ func (h *ProxyHandler) startExecution(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.StepFunctions().StartExecution(ctx, input)
+	result, err := h.Svc.StepFunctions().StartExecution(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to start execution", err)
 		return
@@ -130,7 +130,7 @@ func (h *ProxyHandler) listExecutions(ctx context.Context, c *gin.Context, bodyB
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.StepFunctions().ListExecutions(ctx, input)
+	result, err := h.Svc.StepFunctions().ListExecutions(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to list executions", err)
 		return
@@ -144,7 +144,7 @@ func (h *ProxyHandler) stopExecution(ctx context.Context, c *gin.Context, bodyBy
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.StepFunctions().StopExecution(ctx, input)
+	result, err := h.Svc.StepFunctions().StopExecution(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to stop execution", err)
 		return
@@ -158,7 +158,7 @@ func (h *ProxyHandler) describeExecution(ctx context.Context, c *gin.Context, bo
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.StepFunctions().DescribeExecution(ctx, input)
+	result, err := h.Svc.StepFunctions().DescribeExecution(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to describe execution", err)
 		return
@@ -172,7 +172,7 @@ func (h *ProxyHandler) getExecutionHistory(ctx context.Context, c *gin.Context, 
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.svc.StepFunctions().GetExecutionHistory(ctx, input)
+	result, err := h.Svc.StepFunctions().GetExecutionHistory(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get execution history", err)
 		return
