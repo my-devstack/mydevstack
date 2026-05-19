@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	s3mocks "github.com/my-devstack/mydevstack/pkg/proxy/mocks/ports"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestNewS3Adapter(t *testing.T) {
@@ -26,6 +29,7 @@ func TestNewS3Adapter(t *testing.T) {
 
 	s3Adapter := adapter.(*S3Adapter)
 	assert.NotNil(t, s3Adapter.client, "S3Adapter client should not be nil")
+	assert.NotNil(t, s3Adapter.presignClient, "S3Adapter presignClient should not be nil")
 }
 
 func TestS3Adapter_ListBuckets(t *testing.T) {
@@ -191,3 +195,475 @@ func TestS3Adapter_ListBuckets_Error(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, output)
 }
+
+// --- GetBucketVersioning ---
+
+func TestS3Adapter_GetBucketVersioning(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetBucketVersioningInput{Bucket: aws.String("test-bucket")}
+	expectedOutput := &s3.GetBucketVersioningOutput{}
+
+	mockClient.EXPECT().GetBucketVersioning(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetBucketVersioning(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_GetBucketVersioning_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetBucketVersioningInput{Bucket: aws.String("test-bucket")}
+
+	mockClient.EXPECT().GetBucketVersioning(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetBucketVersioning(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- GetBucketEncryption ---
+
+func TestS3Adapter_GetBucketEncryption(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetBucketEncryptionInput{Bucket: aws.String("test-bucket")}
+	expectedOutput := &s3.GetBucketEncryptionOutput{}
+
+	mockClient.EXPECT().GetBucketEncryption(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetBucketEncryption(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_GetBucketEncryption_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetBucketEncryptionInput{Bucket: aws.String("test-bucket")}
+
+	mockClient.EXPECT().GetBucketEncryption(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetBucketEncryption(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- GetBucketTagging ---
+
+func TestS3Adapter_GetBucketTagging(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetBucketTaggingInput{Bucket: aws.String("test-bucket")}
+	expectedOutput := &s3.GetBucketTaggingOutput{}
+
+	mockClient.EXPECT().GetBucketTagging(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetBucketTagging(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_GetBucketTagging_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetBucketTaggingInput{Bucket: aws.String("test-bucket")}
+
+	mockClient.EXPECT().GetBucketTagging(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetBucketTagging(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- GetBucketPolicy ---
+
+func TestS3Adapter_GetBucketPolicy(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetBucketPolicyInput{Bucket: aws.String("test-bucket")}
+	expectedOutput := &s3.GetBucketPolicyOutput{}
+
+	mockClient.EXPECT().GetBucketPolicy(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetBucketPolicy(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_GetBucketPolicy_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetBucketPolicyInput{Bucket: aws.String("test-bucket")}
+
+	mockClient.EXPECT().GetBucketPolicy(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetBucketPolicy(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- PutBucketPolicy ---
+
+func TestS3Adapter_PutBucketPolicy(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutBucketPolicyInput{
+		Bucket: aws.String("test-bucket"),
+		Policy: aws.String("{}"),
+	}
+	expectedOutput := &s3.PutBucketPolicyOutput{}
+
+	mockClient.EXPECT().PutBucketPolicy(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutBucketPolicy(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_PutBucketPolicy_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutBucketPolicyInput{
+		Bucket: aws.String("test-bucket"),
+		Policy: aws.String("{}"),
+	}
+
+	mockClient.EXPECT().PutBucketPolicy(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutBucketPolicy(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- PutBucketVersioning ---
+
+func TestS3Adapter_PutBucketVersioning(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutBucketVersioningInput{
+		Bucket: aws.String("test-bucket"),
+		VersioningConfiguration: &types.VersioningConfiguration{Status: types.BucketVersioningStatusEnabled},
+	}
+	expectedOutput := &s3.PutBucketVersioningOutput{}
+
+	mockClient.EXPECT().PutBucketVersioning(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutBucketVersioning(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_PutBucketVersioning_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutBucketVersioningInput{
+		Bucket: aws.String("test-bucket"),
+		VersioningConfiguration: &types.VersioningConfiguration{Status: types.BucketVersioningStatusEnabled},
+	}
+
+	mockClient.EXPECT().PutBucketVersioning(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutBucketVersioning(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- PutBucketEncryption ---
+
+func TestS3Adapter_PutBucketEncryption(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutBucketEncryptionInput{
+		Bucket: aws.String("test-bucket"),
+		ServerSideEncryptionConfiguration: &types.ServerSideEncryptionConfiguration{
+			Rules: []types.ServerSideEncryptionRule{},
+		},
+	}
+	expectedOutput := &s3.PutBucketEncryptionOutput{}
+
+	mockClient.EXPECT().PutBucketEncryption(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutBucketEncryption(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_PutBucketEncryption_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutBucketEncryptionInput{
+		Bucket: aws.String("test-bucket"),
+		ServerSideEncryptionConfiguration: &types.ServerSideEncryptionConfiguration{
+			Rules: []types.ServerSideEncryptionRule{},
+		},
+	}
+
+	mockClient.EXPECT().PutBucketEncryption(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutBucketEncryption(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- PutBucketTagging ---
+
+func TestS3Adapter_PutBucketTagging(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutBucketTaggingInput{
+		Bucket:  aws.String("test-bucket"),
+		Tagging: &types.Tagging{TagSet: []types.Tag{}},
+	}
+	expectedOutput := &s3.PutBucketTaggingOutput{}
+
+	mockClient.EXPECT().PutBucketTagging(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutBucketTagging(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_PutBucketTagging_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutBucketTaggingInput{
+		Bucket:  aws.String("test-bucket"),
+		Tagging: &types.Tagging{TagSet: []types.Tag{}},
+	}
+
+	mockClient.EXPECT().PutBucketTagging(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutBucketTagging(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- PutPublicAccessBlock ---
+
+func TestS3Adapter_PutPublicAccessBlock(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutPublicAccessBlockInput{
+		Bucket:                       aws.String("test-bucket"),
+		PublicAccessBlockConfiguration: &types.PublicAccessBlockConfiguration{},
+	}
+	expectedOutput := &s3.PutPublicAccessBlockOutput{}
+
+	mockClient.EXPECT().PutPublicAccessBlock(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutPublicAccessBlock(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_PutPublicAccessBlock_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutPublicAccessBlockInput{
+		Bucket:                       aws.String("test-bucket"),
+		PublicAccessBlockConfiguration: &types.PublicAccessBlockConfiguration{},
+	}
+
+	mockClient.EXPECT().PutPublicAccessBlock(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutPublicAccessBlock(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- GetPublicAccessBlock ---
+
+func TestS3Adapter_GetPublicAccessBlock(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetPublicAccessBlockInput{Bucket: aws.String("test-bucket")}
+	expectedOutput := &s3.GetPublicAccessBlockOutput{}
+
+	mockClient.EXPECT().GetPublicAccessBlock(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetPublicAccessBlock(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_GetPublicAccessBlock_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetPublicAccessBlockInput{Bucket: aws.String("test-bucket")}
+
+	mockClient.EXPECT().GetPublicAccessBlock(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetPublicAccessBlock(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- PutBucketNotificationConfiguration ---
+
+func TestS3Adapter_PutBucketNotificationConfiguration(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutBucketNotificationConfigurationInput{
+		Bucket:                    aws.String("test-bucket"),
+		NotificationConfiguration: &types.NotificationConfiguration{},
+	}
+	expectedOutput := &s3.PutBucketNotificationConfigurationOutput{}
+
+	mockClient.EXPECT().PutBucketNotificationConfiguration(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutBucketNotificationConfiguration(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_PutBucketNotificationConfiguration_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutBucketNotificationConfigurationInput{
+		Bucket:                    aws.String("test-bucket"),
+		NotificationConfiguration: &types.NotificationConfiguration{},
+	}
+
+	mockClient.EXPECT().PutBucketNotificationConfiguration(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutBucketNotificationConfiguration(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- GetBucketNotificationConfiguration ---
+
+func TestS3Adapter_GetBucketNotificationConfiguration(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetBucketNotificationConfigurationInput{Bucket: aws.String("test-bucket")}
+	expectedOutput := &s3.GetBucketNotificationConfigurationOutput{}
+
+	mockClient.EXPECT().GetBucketNotificationConfiguration(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetBucketNotificationConfiguration(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_GetBucketNotificationConfiguration_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetBucketNotificationConfigurationInput{Bucket: aws.String("test-bucket")}
+
+	mockClient.EXPECT().GetBucketNotificationConfiguration(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetBucketNotificationConfiguration(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- PresignGetObject ---
+
+func TestS3Adapter_PresignGetObject(t *testing.T) {
+	mockPresign := s3mocks.NewPresignClientPort(t)
+	ctx := context.Background()
+	expected := &v4.PresignedHTTPRequest{URL: "https://presigned.example.com/get"}
+
+	mockPresign.EXPECT().PresignGetObject(mock.Anything, mock.Anything, mock.Anything).Return(expected, nil)
+
+	adapter := &S3Adapter{presignClient: mockPresign, region: "us-east-1"}
+	url, err := adapter.PresignGetObject(ctx, "bucket", "key", time.Hour)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "https://presigned.example.com/get", url)
+}
+
+func TestS3Adapter_PresignGetObject_Error(t *testing.T) {
+	mockPresign := s3mocks.NewPresignClientPort(t)
+	ctx := context.Background()
+
+	mockPresign.EXPECT().PresignGetObject(mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("presign error"))
+
+	adapter := &S3Adapter{presignClient: mockPresign, region: "us-east-1"}
+	url, err := adapter.PresignGetObject(ctx, "bucket", "key", time.Hour)
+
+	assert.Error(t, err)
+	assert.Equal(t, "", url)
+}
+
+// --- PresignPutObject ---
+
+func TestS3Adapter_PresignPutObject(t *testing.T) {
+	mockPresign := s3mocks.NewPresignClientPort(t)
+	ctx := context.Background()
+	expected := &v4.PresignedHTTPRequest{URL: "https://presigned.example.com/put"}
+
+	mockPresign.EXPECT().PresignPutObject(mock.Anything, mock.Anything, mock.Anything).Return(expected, nil)
+
+	adapter := &S3Adapter{presignClient: mockPresign, region: "us-east-1"}
+	url, err := adapter.PresignPutObject(ctx, "bucket", "key", time.Hour)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "https://presigned.example.com/put", url)
+}
+
+func TestS3Adapter_PresignPutObject_Error(t *testing.T) {
+	mockPresign := s3mocks.NewPresignClientPort(t)
+	ctx := context.Background()
+
+	mockPresign.EXPECT().PresignPutObject(mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("presign error"))
+
+	adapter := &S3Adapter{presignClient: mockPresign, region: "us-east-1"}
+	url, err := adapter.PresignPutObject(ctx, "bucket", "key", time.Hour)
+
+	assert.Error(t, err)
+	assert.Equal(t, "", url)
+}
+
+

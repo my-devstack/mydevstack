@@ -1,4 +1,4 @@
-package service
+package version
 
 import (
 	"context"
@@ -7,51 +7,46 @@ import (
 	"sync"
 	"time"
 
-	"github.com/my-devstack/mydevstack/pkg/proxy/internal/adapters/github"
-	"github.com/my-devstack/mydevstack/pkg/proxy/internal/cache"
+	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
 )
 
 const (
 	cacheKeyLatestRelease = "github_latest_release"
 	cacheTTL              = 25 * time.Hour // Slightly longer than check interval to avoid cache miss
 	maxRetries            = 2
-	retryDelay            = 5 * time.Minute
 )
 
+var retryDelay = 5 * time.Minute //nolint:gochecknoglobals // mutable for tests
+
 type VersionService struct {
-	cache     *cache.Cache
-	github    *github.Client
+	cache     ports.CachePort
+	github    ports.GitHubClientPort
 	githubURL string
 
-	mu           sync.RWMutex
+	mu            sync.RWMutex
 	latestVersion string
-	stopCh       chan struct{}
+	stopCh        chan struct{}
 }
 
-func NewVersionService(githubURL string) *VersionService {
+func NewVersionService(cache ports.CachePort, github ports.GitHubClientPort, githubURL string) *VersionService {
 	return &VersionService{
-		cache:     cache.New(),
-		github:    github.NewClient(),
+		cache:     cache,
+		github:    github,
 		githubURL: githubURL,
 		stopCh:    make(chan struct{}),
 	}
 }
 
-func (s *VersionService) StartScheduler(intervalHours int) {
-	interval := time.Duration(intervalHours) * time.Hour
+func (s *VersionService) StartScheduler(ctx context.Context, t *time.Ticker) {
+	defer t.Stop()
 
-	// Run immediately on start
-	s.checkAndUpdateVersion(context.Background())
+	log.Print("[VersionService] Scheduler started)")
 
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-
-	log.Printf("[VersionService] Scheduler started, checking every %d hours", intervalHours)
-
+	s.checkAndUpdateVersion(ctx)
 	for {
 		select {
-		case <-ticker.C:
-			s.checkAndUpdateVersion(context.Background())
+		case <-t.C:
+			s.checkAndUpdateVersion(ctx)
 		case <-s.stopCh:
 			log.Printf("[VersionService] Scheduler stopped")
 			return
@@ -100,13 +95,13 @@ func (s *VersionService) checkAndUpdateVersion(ctx context.Context) {
 
 func (s *VersionService) GetLatestVersion() (string, bool) {
 	s.mu.RLock()
-	defer s.mu.RUnlock()
-
 	if s.latestVersion != "" {
+		s.mu.RUnlock()
 		return s.latestVersion, true
 	}
+	s.mu.RUnlock()
 
-	// Try to get from cache
+	// Try to get from cache (outside RLock to avoid RLock→Lock upgrade deadlock)
 	if cached, found := s.cache.Get(cacheKeyLatestRelease); found {
 		s.mu.Lock()
 		s.latestVersion = cached

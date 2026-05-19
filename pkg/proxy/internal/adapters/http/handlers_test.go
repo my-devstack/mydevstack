@@ -11,12 +11,17 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/opensearch"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
-	configloader "github.com/my-devstack/mydevstack/pkg/proxy/internal/config"
-	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
-	"github.com/my-devstack/mydevstack/pkg/proxy/internal/service"
 	mockports "github.com/my-devstack/mydevstack/pkg/proxy/mocks/ports"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/my-devstack/mydevstack/pkg/proxy/internal/cache"
+	configloader "github.com/my-devstack/mydevstack/pkg/proxy/internal/config"
+	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
+	"github.com/my-devstack/mydevstack/pkg/proxy/internal/version"
 )
+
+// Compile-time check: *version.VersionService implements ports.VersionServicePort
+var _ ports.VersionServicePort = (*version.VersionService)(nil)
 
 type testProxyService struct {
 	s3Port   ports.S3Port
@@ -46,11 +51,11 @@ func (s *testProxyService) Kinesis() ports.KinesisPort                 { return 
 func (s *testProxyService) RDS() ports.RDSPort                         { return nil }
 func (s *testProxyService) ElastiCache() ports.ElastiCachePort         { return nil }
 func (s *testProxyService) CloudFormation() ports.CloudFormationPort   { return s.cfPort }
-func (s *testProxyService) CloudWatch() ports.CloudWatchPort                     { return nil }
-func (s *testProxyService) CloudWatchLogs() ports.CloudWatchLogsPort              { return nil }
-func (s *testProxyService) SESv2() ports.SESv2Port                               { return nil }
+func (s *testProxyService) CloudWatch() ports.CloudWatchPort           { return nil }
+func (s *testProxyService) CloudWatchLogs() ports.CloudWatchLogsPort   { return nil }
+func (s *testProxyService) SESv2() ports.SESv2Port                     { return nil }
 func (s *testProxyService) OpenSearch() ports.OpenSearchPort           { return s.osPort }
-func (s *testProxyService) MSK() ports.MSKPort { return nil }
+func (s *testProxyService) MSK() ports.MSKPort                         { return nil }
 func (s *testProxyService) Config() *configloader.Config {
 	if s.cfg != nil {
 		return s.cfg
@@ -78,9 +83,10 @@ func (s *testProxyService) SetServices() error {
 	return nil
 }
 
-// createTestVersionService creates a mock version service for testing
-func createTestVersionService() *service.VersionService {
-	return service.NewVersionService("https://github.com/test/test")
+// createTestVersionService creates a version service for testing.
+// Uses real cache, nil github client (github methods not called by handler tests).
+func createTestVersionService() ports.VersionServicePort {
+	return version.NewVersionService(cache.New(), nil, "https://github.com/test/test")
 }
 
 func setupTestRouter(handler *ProxyHandler) *gin.Engine {

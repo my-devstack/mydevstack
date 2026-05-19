@@ -11,9 +11,9 @@ import (
 )
 
 type S3Adapter struct {
-	client      ports.S3ClientPort
-	presignClient *s3.PresignClient
-	region     string
+	client        ports.S3ClientPort
+	presignClient ports.PresignClientPort
+	region        string
 }
 
 func NewS3Adapter(awsCfg aws.Config, endpoint string, region string) ports.S3Port {

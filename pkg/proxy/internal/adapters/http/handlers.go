@@ -12,12 +12,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
-	"github.com/my-devstack/mydevstack/pkg/proxy/internal/service"
 )
 
 type ProxyHandler struct {
 	svc        ports.ProxyService
-	versionSvc *service.VersionService
+	versionSvc ports.VersionServicePort
 
 	// health check cache
 	mu              sync.RWMutex
@@ -26,7 +25,7 @@ type ProxyHandler struct {
 	healthCheckURL  string
 }
 
-func NewProxyHandler(svc ports.ProxyService, versionSvc *service.VersionService) *ProxyHandler {
+func NewProxyHandler(svc ports.ProxyService, versionSvc ports.VersionServicePort) *ProxyHandler {
 	h := &ProxyHandler{svc: svc, versionSvc: versionSvc}
 	// Compute health check URL from emulator config
 	if emulator := svc.Config().Emulator; emulator != "" {
@@ -114,6 +113,8 @@ func (h *ProxyHandler) ServiceRouter(c *gin.Context) {
 		h.handleOpenSearch(c)
 	case "kafka":
 		h.handleMSK(c)
+	case "stepfunctions":
+		h.handleStepFunctions(c)
 	case "cloudformation":
 		h.handleCloudFormation(c)
 	case "cloudwatch":
