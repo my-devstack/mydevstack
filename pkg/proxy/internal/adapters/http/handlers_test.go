@@ -417,7 +417,7 @@ func TestSetRegion(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 		assert.Equal(t, "us-west-2", resp["region"])
 	})
 
@@ -636,7 +636,7 @@ func TestSendError(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		var resp map[string]interface{}
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 		assert.Equal(t, "something failed", resp["error"])
 	})
 
@@ -650,7 +650,7 @@ func TestSendError(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var resp map[string]interface{}
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 		assert.Equal(t, "bad request", resp["error"])
 	})
 }

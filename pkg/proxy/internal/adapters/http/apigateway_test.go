@@ -178,7 +178,7 @@ func TestAPIGateway_ImportRestApi_Base64Body(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp apigateway.ImportRestApiOutput
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Equal(t, "abc", *resp.Id)
 }
 
@@ -195,7 +195,7 @@ func TestAPIGateway_ImportRestApi_Base64DecodeError(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp apigateway.ImportRestApiOutput
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Equal(t, "abc", *resp.Id)
 }
 
@@ -234,7 +234,7 @@ func TestAPIGateway_GetResources_Success(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp apigateway.GetResourcesOutput
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Len(t, resp.Items, 1)
 }
 
@@ -249,7 +249,7 @@ func TestAPIGateway_GetResources_NotFoundException(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp, "items")
 }
 
@@ -264,7 +264,7 @@ func TestAPIGateway_GetResources_InvalidAPI(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp, "items")
 }
 
@@ -554,7 +554,7 @@ func TestAPIGateway_GetInvokeUrl_V1(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["invokeUrl"], "execute-api")
 }
 
@@ -979,7 +979,7 @@ func TestAPIGateway_GetInvokeUrl_V2(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["invokeUrl"], "execute-api")
 }
 
@@ -995,7 +995,7 @@ func TestAPIGateway_GetInvokeUrl_V2_Default(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["invokeUrl"], "execute-api")
 }
 
@@ -1011,7 +1011,7 @@ func TestAPIGateway_UnknownAction(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Unknown API Gateway action")
 }
 

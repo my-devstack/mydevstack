@@ -71,7 +71,7 @@ func TestKinesis_ListStreams_Error(t *testing.T) {
 	w := performKinesisRequest(handler, "ListStreams", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to list streams")
 }
 
@@ -96,7 +96,7 @@ func TestKinesis_CreateStream_Error(t *testing.T) {
 	w := performKinesisRequest(handler, "CreateStream", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to create stream")
 }
 
@@ -121,7 +121,7 @@ func TestKinesis_DeleteStream_Error(t *testing.T) {
 	w := performKinesisRequest(handler, "DeleteStream", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to delete stream")
 }
 
@@ -146,7 +146,7 @@ func TestKinesis_DescribeStream_Error(t *testing.T) {
 	w := performKinesisRequest(handler, "DescribeStream", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to describe stream")
 }
 
@@ -184,7 +184,7 @@ func TestKinesis_DescribeStreamSummary_Error(t *testing.T) {
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to describe stream summary")
 }
 
@@ -209,7 +209,7 @@ func TestKinesis_ListShards_Error(t *testing.T) {
 	w := performKinesisRequest(handler, "ListShards", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to list shards")
 }
 
@@ -234,7 +234,7 @@ func TestKinesis_GetShardIterator_Error(t *testing.T) {
 	w := performKinesisRequest(handler, "GetShardIterator", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to get shard iterator")
 }
 
@@ -259,7 +259,7 @@ func TestKinesis_GetRecords_Error(t *testing.T) {
 	w := performKinesisRequest(handler, "GetRecords", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to get records")
 }
 
@@ -284,7 +284,7 @@ func TestKinesis_PutRecord_Error(t *testing.T) {
 	w := performKinesisRequest(handler, "PutRecord", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to put record")
 }
 
@@ -320,7 +320,7 @@ func TestKinesis_PutRecords_Error(t *testing.T) {
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to put records")
 }
 
@@ -345,7 +345,7 @@ func TestKinesis_MergeShards_Error(t *testing.T) {
 	w := performKinesisRequest(handler, "MergeShards", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to merge shards")
 }
 
@@ -370,7 +370,7 @@ func TestKinesis_SplitShard_Error(t *testing.T) {
 	w := performKinesisRequest(handler, "SplitShard", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to split shard")
 }
 
@@ -395,7 +395,7 @@ func TestKinesis_UpdateShardCount_Error(t *testing.T) {
 	w := performKinesisRequest(handler, "UpdateShardCount", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to update shard count")
 }
 
@@ -420,7 +420,7 @@ func TestKinesis_EnableEnhancedMonitoring_Error(t *testing.T) {
 	w := performKinesisRequest(handler, "EnableEnhancedMonitoring", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to enable enhanced monitoring")
 }
 
@@ -445,7 +445,7 @@ func TestKinesis_DisableEnhancedMonitoring_Error(t *testing.T) {
 	w := performKinesisRequest(handler, "DisableEnhancedMonitoring", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to disable enhanced monitoring")
 }
 

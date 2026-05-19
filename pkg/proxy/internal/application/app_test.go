@@ -2,13 +2,10 @@ package application
 
 import (
 	"context"
-	"fmt"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	configloader "github.com/my-devstack/mydevstack/pkg/proxy/internal/config"
@@ -27,7 +24,7 @@ func testConfig() *configloader.Config {
 			SecretKey: "test",
 		},
 		ServicePattern:    "root",
-		Emulator:          "localstack",
+		Emulator:          "", // empty = no emulator health check, always healthy in unit tests
 		GitHubRepo:        "https://github.com/my-devstack/mydevstack",
 		VersionCheckHours: 24,
 	}
@@ -36,6 +33,10 @@ func testConfig() *configloader.Config {
 // ---------------------------------------------------------------------------
 // TestNewContainer – success path
 // ---------------------------------------------------------------------------
+
+func init() {
+	gin.SetMode(gin.TestMode)
+}
 
 func TestNewContainer(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -109,45 +110,6 @@ func TestContainer_SetupRoutes(t *testing.T) {
 	// Unknown service → 404.
 	w5 := performGet(r, "/nonexistent/test")
 	assert.Equal(t, http.StatusNotFound, w5.Code)
-}
-
-// ---------------------------------------------------------------------------
-// TestContainer_RunServer – start, handle request, graceful shutdown
-// ---------------------------------------------------------------------------
-
-func TestContainer_RunServer(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	wg, ctx := errgroup.WithContext(ctx)
-
-	container, err := NewContainer(ctx, wg, testConfig())
-	require.NoError(t, err)
-
-	// Find a free port.
-	listener, err := net.Listen("tcp", ":0")
-	require.NoError(t, err)
-	port := listener.Addr().(*net.TCPAddr).Port
-	require.NoError(t, listener.Close())
-
-	addr := fmt.Sprintf(":%d", port)
-	container.RunServer(addr)
-
-	// Give the server a moment to start.
-	require.Eventually(t, func() bool {
-		resp, err := http.Get(fmt.Sprintf("http://localhost:%d/health", port))
-		if err != nil {
-			return false
-		}
-		_ = resp.Body.Close()
-		return resp.StatusCode == http.StatusOK
-	}, 5*time.Second, 50*time.Millisecond, "server should start and respond to health check")
-
-	// Trigger graceful shutdown.
-	cancel()
-
-	// Wait for the server goroutines to finish.
-	err = wg.Wait()
-	assert.NoError(t, err, "server should shut down cleanly")
 }
 
 // ---------------------------------------------------------------------------

@@ -98,8 +98,9 @@ func (c *Container) RunScheduler(checkHours int) {
 
 func (c *Container) setupRoutes() *gin.Engine {
 	handler := c.Handler
-	r := gin.Default()
+	r := gin.New()
 	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
 
 	r.Use(func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")

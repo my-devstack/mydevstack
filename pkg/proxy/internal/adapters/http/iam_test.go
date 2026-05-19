@@ -78,7 +78,7 @@ func TestIAM_CreateUser_Error(t *testing.T) {
 	w := performIAMRequest(handler, "CreateUser", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to create user")
 }
 
@@ -103,7 +103,7 @@ func TestIAM_GetUser_Error(t *testing.T) {
 	w := performIAMRequest(handler, "GetUser", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to get user")
 }
 
@@ -128,7 +128,7 @@ func TestIAM_ListUsers_Error(t *testing.T) {
 	w := performIAMRequest(handler, "ListUsers", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to list users")
 }
 
@@ -153,7 +153,7 @@ func TestIAM_DeleteUser_Error(t *testing.T) {
 	w := performIAMRequest(handler, "DeleteUser", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to delete user")
 }
 
@@ -178,7 +178,7 @@ func TestIAM_CreateRole_Error(t *testing.T) {
 	w := performIAMRequest(handler, "CreateRole", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to create role")
 }
 
@@ -203,7 +203,7 @@ func TestIAM_GetRole_Error(t *testing.T) {
 	w := performIAMRequest(handler, "GetRole", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to get role")
 }
 
@@ -228,7 +228,7 @@ func TestIAM_ListRoles_Error(t *testing.T) {
 	w := performIAMRequest(handler, "ListRoles", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to list roles")
 }
 
@@ -253,7 +253,7 @@ func TestIAM_DeleteRole_Error(t *testing.T) {
 	w := performIAMRequest(handler, "DeleteRole", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to delete role")
 }
 
@@ -278,7 +278,7 @@ func TestIAM_ListPolicies_Error(t *testing.T) {
 	w := performIAMRequest(handler, "ListPolicies", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to list policies")
 }
 
@@ -303,7 +303,7 @@ func TestIAM_GetPolicy_Error(t *testing.T) {
 	w := performIAMRequest(handler, "GetPolicy", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to get policy")
 }
 
@@ -328,7 +328,7 @@ func TestIAM_CreatePolicy_Error(t *testing.T) {
 	w := performIAMRequest(handler, "CreatePolicy", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to create policy")
 }
 
@@ -353,7 +353,7 @@ func TestIAM_DeletePolicy_Error(t *testing.T) {
 	w := performIAMRequest(handler, "DeletePolicy", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to delete policy")
 }
 
@@ -378,7 +378,7 @@ func TestIAM_CreateAccessKey_Error(t *testing.T) {
 	w := performIAMRequest(handler, "CreateAccessKey", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to create access key")
 }
 
@@ -403,7 +403,7 @@ func TestIAM_ListAccessKeys_Error(t *testing.T) {
 	w := performIAMRequest(handler, "ListAccessKeys", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to list access keys")
 }
 
@@ -428,7 +428,7 @@ func TestIAM_DeleteAccessKey_Error(t *testing.T) {
 	w := performIAMRequest(handler, "DeleteAccessKey", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to delete access key")
 }
 
@@ -453,7 +453,7 @@ func TestIAM_UpdateAccessKeyStatus_Error(t *testing.T) {
 	w := performIAMRequest(handler, "UpdateAccessKeyStatus", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to update access key status")
 }
 
@@ -478,7 +478,7 @@ func TestIAM_AttachRolePolicy_Error(t *testing.T) {
 	w := performIAMRequest(handler, "AttachRolePolicy", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to attach role policy")
 }
 
@@ -503,7 +503,7 @@ func TestIAM_DetachRolePolicy_Error(t *testing.T) {
 	w := performIAMRequest(handler, "DetachRolePolicy", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to detach role policy")
 }
 
@@ -528,7 +528,7 @@ func TestIAM_ListAttachedRolePolicies_Error(t *testing.T) {
 	w := performIAMRequest(handler, "ListAttachedRolePolicies", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to list attached role policies")
 }
 
@@ -553,7 +553,7 @@ func TestIAM_CreateGroup_Error(t *testing.T) {
 	w := performIAMRequest(handler, "CreateGroup", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to create group")
 }
 
@@ -578,7 +578,7 @@ func TestIAM_GetGroup_Error(t *testing.T) {
 	w := performIAMRequest(handler, "GetGroup", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to get group")
 }
 
@@ -606,7 +606,7 @@ func TestIAM_ListGroups_Error(t *testing.T) {
 	w := performIAMRequest(handler, "ListGroups", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to list groups")
 }
 
@@ -631,7 +631,7 @@ func TestIAM_DeleteGroup_Error(t *testing.T) {
 	w := performIAMRequest(handler, "DeleteGroup", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to delete group")
 }
 
@@ -656,7 +656,7 @@ func TestIAM_AddUserToGroup_Error(t *testing.T) {
 	w := performIAMRequest(handler, "AddUserToGroup", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to add user to group")
 }
 
@@ -681,7 +681,7 @@ func TestIAM_RemoveUserFromGroup_Error(t *testing.T) {
 	w := performIAMRequest(handler, "RemoveUserFromGroup", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to remove user from group")
 }
 
@@ -706,7 +706,7 @@ func TestIAM_ListGroupsForUser_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	var resp iam.ListGroupsForUserOutput
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Len(t, resp.Groups, 1)
 }
 
@@ -723,7 +723,7 @@ func TestIAM_ListGroupsForUser_Error(t *testing.T) {
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to list groups for user")
 }
 
@@ -752,7 +752,7 @@ func TestIAM_ListUsersForGroup_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.NotNil(t, resp["Users"])
 	assert.Equal(t, true, resp["IsTruncated"])
 	assert.Equal(t, "mkr1", resp["Marker"])
@@ -775,7 +775,7 @@ func TestIAM_ListUsersForGroup_Empty(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Empty(t, resp["Users"])
 	assert.Equal(t, false, resp["IsTruncated"])
 	assert.Nil(t, resp["Marker"])
@@ -794,7 +794,7 @@ func TestIAM_ListUsersForGroup_Error(t *testing.T) {
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to get group")
 }
 
@@ -819,7 +819,7 @@ func TestIAM_ListUserPolicies_Error(t *testing.T) {
 	w := performIAMRequest(handler, "ListUserPolicies", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to list user policies")
 }
 
@@ -844,7 +844,7 @@ func TestIAM_ListRolePolicies_Error(t *testing.T) {
 	w := performIAMRequest(handler, "ListRolePolicies", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to list role policies")
 }
 
@@ -880,7 +880,7 @@ func TestIAM_GetRolePolicy_Error(t *testing.T) {
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Contains(t, resp["error"], "Failed to get role policy")
 }
 
