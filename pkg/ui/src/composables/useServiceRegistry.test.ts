@@ -1,61 +1,118 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { setActivePinia, createPinia } from 'pinia'
 import { useServiceRegistry, SERVICE_CONFIGS, ENABLED_SERVICES } from '@/composables/useServiceRegistry'
 
 vi.mock('@/api/services/s3', () => ({
-  listBuckets: vi.fn().mockResolvedValue([{ Name: 'bucket1' }, { Name: 'bucket2' }]),
+  listBuckets: vi.fn(),
 }))
 
 vi.mock('@/api/services/lambda', () => ({
-  listFunctions: vi.fn().mockResolvedValue({ Functions: [{ FunctionName: 'fn1' }, { FunctionName: 'fn2' }, { FunctionName: 'fn3' }] }),
+  listFunctions: vi.fn(),
 }))
 
 vi.mock('@/api/services/dynamodb', () => ({
-  listTables: vi.fn().mockResolvedValue({ TableNames: ['table1'] }),
+  listTables: vi.fn(),
 }))
 
 vi.mock('@/api/services/sqs', () => ({
-  listQueues: vi.fn().mockResolvedValue(['queue1', 'queue2', 'queue3', 'queue4']),
+  listQueues: vi.fn(),
 }))
 
 vi.mock('@/api/services/sns', () => ({
-  listTopics: vi.fn().mockResolvedValue([{ TopicArn: 'topic1' }]),
+  listTopics: vi.fn(),
 }))
 
 vi.mock('@/api/services/iam', () => ({
-  listUsers: vi.fn().mockResolvedValue({ Users: [{ UserName: 'user1' }] }),
+  listUsers: vi.fn(),
 }))
 
 vi.mock('@/api/services/rds', () => ({
-  describeDBInstances: vi.fn().mockResolvedValue([{ DBInstanceIdentifier: 'db1' }, { DBInstanceIdentifier: 'db2' }]),
+  describeDBInstances: vi.fn(),
 }))
 
 vi.mock('@/api/services/api-gateway', () => ({
-  getRestApis: vi.fn().mockResolvedValue({ Items: [{ Id: 'api1' }] }),
+  getRestApis: vi.fn(),
 }))
 
 vi.mock('@/api/services/kinesis', () => ({
-  listStreams: vi.fn().mockResolvedValue({ StreamNames: ['stream1', 'stream2'] }),
+  listStreams: vi.fn(),
 }))
 
 vi.mock('@/api/services/kms', () => ({
-  listKeys: vi.fn().mockResolvedValue({ Keys: [{ KeyId: 'key1' }] }),
+  listKeys: vi.fn(),
 }))
 
 vi.mock('@/api/services/secrets-manager', () => ({
-  listSecrets: vi.fn().mockResolvedValue({ SecretList: [{ Name: 'secret1' }, { Name: 'secret2' }, { Name: 'secret3' }] }),
+  listSecrets: vi.fn(),
 }))
 
 vi.mock('@/api/services/elasticache', () => ({
-  describeReplicationGroups: vi.fn().mockResolvedValue([{ ReplicationGroupId: 'rg1' }]),
+  describeReplicationGroups: vi.fn(),
+}))
+
+vi.mock('@/api/services/opensearch', () => ({
+  listDomainNames: vi.fn(),
+}))
+
+vi.mock('@/api/services/msk', () => ({
+  listClustersV2: vi.fn(),
+}))
+
+vi.mock('@/api/services/ses', () => ({
+  listEmailIdentities: vi.fn(),
 }))
 
 vi.mock('@/api/services/ssm', () => ({
-  describeParameters: vi.fn().mockResolvedValue({ Parameters: [{ Name: 'param1' }] }),
+  describeParameters: vi.fn(),
 }))
+
+vi.mock('@/api/services/cloudwatch', () => ({
+  describeAlarms: vi.fn(),
+}))
+
+const mockEmulator = { value: '' }
+vi.mock('@/stores/settings', () => ({
+  useSettingsStore: vi.fn(() => ({
+    get emulator() { return mockEmulator.value },
+  })),
+}))
+
+import { useSettingsStore } from '@/stores/settings'
+
+import * as s3Api from '@/api/services/s3'
+import * as lambdaApi from '@/api/services/lambda'
+import * as dynamodbApi from '@/api/services/dynamodb'
+import * as sqsApi from '@/api/services/sqs'
+import * as snsApi from '@/api/services/sns'
+import * as iamApi from '@/api/services/iam'
+import * as rdsApi from '@/api/services/rds'
+import * as apigwApi from '@/api/services/api-gateway'
+import * as kinesisApi from '@/api/services/kinesis'
+import * as kmsApi from '@/api/services/kms'
+import * as secretsApi from '@/api/services/secrets-manager'
+import * as elasticacheApi from '@/api/services/elasticache'
+import * as ssmApi from '@/api/services/ssm'
+import * as cwApi from '@/api/services/cloudwatch'
 
 describe('useServiceRegistry', () => {
   beforeEach(() => {
+    setActivePinia(createPinia())
     vi.clearAllMocks()
+    // Set default mocks for all API calls
+    vi.mocked(s3Api.listBuckets).mockResolvedValue([{ Name: 'bucket1' }])
+    vi.mocked(lambdaApi.listFunctions).mockResolvedValue({ Functions: [{ FunctionName: 'fn1' }] })
+    vi.mocked(dynamodbApi.listTables).mockResolvedValue({ TableNames: ['table1'] })
+    vi.mocked(sqsApi.listQueues).mockResolvedValue(['queue1'])
+    vi.mocked(snsApi.listTopics).mockResolvedValue([{ TopicArn: 'topic1' }])
+    vi.mocked(iamApi.listUsers).mockResolvedValue({ Users: [{ UserName: 'user1' }] })
+    vi.mocked(rdsApi.describeDBInstances).mockResolvedValue([{ DBInstanceIdentifier: 'db1' }])
+    vi.mocked(apigwApi.getRestApis).mockResolvedValue({ Items: [{ Id: 'api1' }] })
+    vi.mocked(kinesisApi.listStreams).mockResolvedValue({ StreamNames: ['stream1'] })
+    vi.mocked(kmsApi.listKeys).mockResolvedValue({ Keys: [{ KeyId: 'key1' }] })
+    vi.mocked(secretsApi.listSecrets).mockResolvedValue({ SecretList: [{ Name: 'secret1' }] })
+    vi.mocked(elasticacheApi.describeReplicationGroups).mockResolvedValue([{ ReplicationGroupId: 'rg1' }])
+    vi.mocked(ssmApi.describeParameters).mockResolvedValue({ Parameters: [{ Name: 'param1' }] })
+    vi.mocked(cwApi.describeAlarms).mockResolvedValue({ MetricAlarms: [{ AlarmName: 'alarm1' }] })
   })
 
   describe('service configurations', () => {
@@ -181,6 +238,147 @@ describe('useServiceRegistry', () => {
       expect(enabled.length).toBe(ENABLED_SERVICES.length)
       enabled.forEach(service => {
         expect(service.enabled).toBe(true)
+      })
+    })
+  })
+
+  describe('fetchStats', () => {
+    it('fetches stats for all enabled services', async () => {
+      const { fetchStats, stats, isLoading, quickStats, allServices } = useServiceRegistry()
+
+      await fetchStats()
+
+      expect(isLoading.value).toBe(false)
+      expect(stats.value.size).toBe(SERVICE_CONFIGS.length)
+      // S3 should have count 1 (from mock)
+      expect(stats.value.get('s3')?.count).toBe(1)
+      expect(stats.value.get('s3')?.status).toBe('healthy')
+      expect(stats.value.get('ec2')?.count).toBe(0)
+      expect(stats.value.get('ec2')?.status).toBe('healthy')
+    })
+
+    it('quickStats reflects fetched stats', async () => {
+      const { fetchStats, quickStats } = useServiceRegistry()
+
+      await fetchStats()
+
+      const s3Stat = quickStats.value.find(s => s.serviceId === 's3')
+      expect(s3Stat).toBeDefined()
+      expect(s3Stat!.value).toBe(1)
+      expect(s3Stat!.loading).toBe(false)
+    })
+
+    it('allServices reflects fetched stats', async () => {
+      const { fetchStats, allServices } = useServiceRegistry()
+
+      await fetchStats()
+
+      const s3Service = allServices.value.find(s => s.id === 's3')
+      expect(s3Service).toBeDefined()
+      expect(s3Service!.count).toBe(1)
+      expect(s3Service!.loading).toBe(false)
+    })
+
+    it('handles API errors gracefully', async () => {
+      vi.mocked(s3Api.listBuckets).mockRejectedValue(new Error('S3 error'))
+
+      const { fetchStats, stats } = useServiceRegistry()
+
+      await fetchStats()
+
+      expect(stats.value.get('s3')?.status).toBe('error')
+      expect(stats.value.get('s3')?.count).toBe(0)
+      expect(stats.value.get('s3')?.loading).toBe(false)
+    })
+
+    it('lastChecked is set after fetch', async () => {
+      const { fetchStats, lastChecked } = useServiceRegistry()
+
+      await fetchStats()
+
+      expect(lastChecked.value).toBeInstanceOf(Date)
+    })
+
+    it('fetchStats skips MSK and OpenSearch on ministack', async () => {
+      mockEmulator.value = 'ministack'
+      const { fetchStats, stats } = useServiceRegistry()
+
+      await fetchStats()
+
+      // MSK and OpenSearch should be skipped (count 0, status unknown)
+      expect(stats.value.get('msk')?.status).toBe('unknown')
+      expect(stats.value.get('msk')?.count).toBe(0)
+      expect(stats.value.get('opensearch')?.status).toBe('unknown')
+      expect(stats.value.get('opensearch')?.count).toBe(0)
+      // Other services should still be fetched
+      expect(stats.value.get('s3')?.status).toBe('healthy')
+      expect(stats.value.get('s3')?.count).toBe(1)
+      mockEmulator.value = ''
+    })
+  })
+
+  describe('fetchServiceStats', () => {
+    it('fetches stats for a specific service', async () => {
+      const { fetchServiceStats, stats } = useServiceRegistry()
+
+      const result = await fetchServiceStats('s3')
+
+      expect(result).not.toBeNull()
+      expect(result!.count).toBe(1)
+      expect(result!.status).toBe('healthy')
+      expect(stats.value.get('s3')?.count).toBe(1)
+    })
+
+    it('returns null for unknown service', async () => {
+      const { fetchServiceStats } = useServiceRegistry()
+
+      const result = await fetchServiceStats('unknown')
+
+      expect(result).toBeNull()
+    })
+
+    it('handles API error', async () => {
+      vi.mocked(s3Api.listBuckets).mockRejectedValue(new Error('S3 error'))
+
+      const { fetchServiceStats } = useServiceRegistry()
+
+      const result = await fetchServiceStats('s3')
+
+      expect(result).not.toBeNull()
+      expect(result!.status).toBe('error')
+      expect(result!.count).toBe(0)
+    })
+
+    it('fetchServiceStats skips MSK on ministack', async () => {
+      mockEmulator.value = 'ministack'
+      const { fetchServiceStats, stats } = useServiceRegistry()
+
+      const result = await fetchServiceStats('msk')
+
+      expect(result).not.toBeNull()
+      expect(result!.status).toBe('unknown')
+      expect(result!.count).toBe(0)
+      expect(stats.value.get('msk')?.status).toBe('unknown')
+      mockEmulator.value = ''
+    })
+  })
+
+  describe('quickStats computed', () => {
+    it('returns empty stats when nothing fetched', () => {
+      const { quickStats } = useServiceRegistry()
+      expect(quickStats.value.length).toBeGreaterThan(0)
+      quickStats.value.forEach(stat => {
+        expect(stat.value).toBe(0)
+        expect(stat.loading).toBe(false)
+      })
+    })
+  })
+
+  describe('allServices computed', () => {
+    it('returns unknown status when nothing fetched', () => {
+      const { allServices } = useServiceRegistry()
+      allServices.value.forEach(service => {
+        expect(service.status).toBe('unknown')
       })
     })
   })

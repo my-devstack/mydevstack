@@ -152,4 +152,84 @@ describe('useCloudFormation', () => {
 
     expect(selectedStackName.value).toBeNull()
   })
+
+  it('clearError resets error', () => {
+    const { clearError, error } = useCloudFormation()
+    error.value = 'Some error'
+
+    clearError()
+
+    expect(error.value).toBeNull()
+  })
+
+  it('getStackDetails returns stack details', async () => {
+    const mockDetails = { StackName: 'stack1', StackStatus: 'CREATE_COMPLETE' }
+    vi.mocked(cfApi.getStackDetails).mockResolvedValue(mockDetails as any)
+
+    const { getStackDetails } = useCloudFormation()
+    const result = await getStackDetails('stack1')
+
+    expect(cfApi.getStackDetails).toHaveBeenCalledWith({ StackName: 'stack1' })
+    expect(result).toEqual(mockDetails)
+  })
+
+  it('getStackDetails propagates error', async () => {
+    vi.mocked(cfApi.getStackDetails).mockRejectedValue(new Error('Not found'))
+
+    const { getStackDetails } = useCloudFormation()
+    await expect(getStackDetails('nonexistent')).rejects.toThrow('Not found')
+  })
+
+  it('getStackTemplate returns template', async () => {
+    const mockTemplate = { TemplateBody: '{"Resources":{}}' }
+    vi.mocked(cfApi.getStackTemplate).mockResolvedValue(mockTemplate as any)
+
+    const { getStackTemplate } = useCloudFormation()
+    const result = await getStackTemplate('stack1')
+
+    expect(cfApi.getStackTemplate).toHaveBeenCalledWith('stack1')
+    expect(result).toEqual(mockTemplate)
+  })
+
+  it('getStackTemplate propagates error', async () => {
+    vi.mocked(cfApi.getStackTemplate).mockRejectedValue(new Error('No template'))
+
+    const { getStackTemplate } = useCloudFormation()
+    await expect(getStackTemplate('nonexistent')).rejects.toThrow('No template')
+  })
+
+  it('deleteStack error sets error and throws', async () => {
+    vi.mocked(cfApi.deleteStack).mockRejectedValue(new Error('Delete failed'))
+
+    const { deleteStack, error, loading } = useCloudFormation()
+    await expect(deleteStack('stack1')).rejects.toThrow('Delete failed')
+
+    expect(error.value).not.toBeNull()
+    expect(error.value).toContain('Delete failed')
+    expect(loading.value).toBe(false)
+  })
+
+  it('deleteStack handles non-Error rejection', async () => {
+    vi.mocked(cfApi.deleteStack).mockRejectedValue('String error')
+
+    const { deleteStack, loading } = useCloudFormation()
+    await expect(deleteStack('stack1')).rejects.toBe('String error')
+    expect(loading.value).toBe(false)
+  })
+
+  it('fetchStacks handles non-Error rejection', async () => {
+    vi.mocked(cfApi.listStacks).mockRejectedValue('String error')
+
+    const { fetchStacks, error, loading } = useCloudFormation()
+    await fetchStacks()
+
+    expect(error.value).toBe('Failed to load stacks')
+    expect(loading.value).toBe(false)
+  })
+
+  it('codeExamples contains code snippets', () => {
+    const { codeExamples } = useCloudFormation()
+    expect(codeExamples.value.length).toBeGreaterThan(0)
+    expect(codeExamples.value[0].language).toBe('aws-cli')
+  })
 })
