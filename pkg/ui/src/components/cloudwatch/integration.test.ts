@@ -41,6 +41,17 @@ const mockLogGroups = [
   { logGroupName: '/aws/ecs/service', creationTime: 1700001000000, retentionInDays: 7, metricFilterCount: 0, arn: 'arn:aws:logs:test2', storedBytes: 4096 },
 ]
 
+const modalStub = {
+  template: '<div v-if="open" class="modal-dialog"><div class="modal-content"><slot /></div></div>',
+  props: ['open', 'title', 'size'],
+  emits: ['update:open'],
+}
+const buttonStub = {
+  template: '<button :disabled="disabled" :loading="loading" @click="$emit(\'click\')"><slot /></button>',
+  props: ['variant', 'loading', 'disabled', 'size'],
+  emits: ['click'],
+}
+
 describe('CloudWatch Integration', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -121,26 +132,99 @@ describe('CloudWatch Integration', () => {
     expect(wrapper.emitted('toggleMetric')).toBeTruthy()
   })
 
-  it('CloudWatchCreateAlarmModal renders when open', () => {
-    const wrapper = mount(CloudWatchCreateAlarmModal, {
-      props: {
-        open: true,
-        form: {
-          AlarmName: '',
-          AlarmDescription: '',
-          Namespace: '',
-          MetricName: '',
-          Statistic: 'Average',
-          Period: 300,
-          EvaluationPeriods: 1,
-          Threshold: 0,
-          ComparisonOperator: 'GreaterThanThreshold',
-          ActionsEnabled: false,
-          Dimensions: [],
-        },
+  describe('CloudWatchCreateAlarmModal', () => {
+    const baseProps = {
+      open: true,
+      form: {
+        AlarmName: '',
+        AlarmDescription: '',
+        Namespace: '',
+        MetricName: '',
+        Statistic: 'Average',
+        Period: 300,
+        EvaluationPeriods: 1,
+        Threshold: 0,
+        ComparisonOperator: 'GreaterThanThreshold',
+        ActionsEnabled: false,
+        Dimensions: [] as { Name: string; Value: string }[],
       },
+    }
+
+    it('renders when open', () => {
+      const wrapper = mount(CloudWatchCreateAlarmModal, {
+        props: baseProps,
+        global: { stubs: { Modal: modalStub, Button: buttonStub } },
+      })
+      expect(wrapper.text()).toContain('Create CloudWatch Alarm')
     })
-    expect(wrapper.text()).toContain('Create CloudWatch Alarm')
+
+    it('adds dimension when clicking Add Dimension button', async () => {
+      const wrapper = mount(CloudWatchCreateAlarmModal, {
+        props: baseProps,
+        global: { stubs: { Modal: modalStub, Button: buttonStub } },
+      })
+
+      // Click "Add Dimension" button
+      const addBtn = wrapper.findAll('button').find(b => b.text().includes('Add Dimension'))
+      expect(addBtn).toBeTruthy()
+      await addBtn!.trigger('click')
+
+      // Verify the form was updated
+      expect(wrapper.emitted('update:form')).toBeTruthy()
+      const formUpdate = wrapper.emitted('update:form') as any[][]
+      const lastForm = formUpdate[formUpdate.length - 1][0]
+      expect(lastForm.Dimensions.length).toBeGreaterThan(0)
+    })
+
+    it('emits update:open false when clicking Cancel', async () => {
+      const wrapper = mount(CloudWatchCreateAlarmModal, {
+        props: baseProps,
+        global: { stubs: { Modal: modalStub, Button: buttonStub } },
+      })
+
+      const cancelBtn = wrapper.findAll('button').find(b => b.text().includes('Cancel'))
+      expect(cancelBtn).toBeTruthy()
+      await cancelBtn!.trigger('click')
+      expect(wrapper.emitted('update:open')).toBeTruthy()
+      expect(wrapper.emitted('update:open')![0]).toEqual([false])
+    })
+
+    it('does not emit create when form is empty', async () => {
+      const wrapper = mount(CloudWatchCreateAlarmModal, {
+        props: baseProps,
+        global: { stubs: { Modal: modalStub, Button: buttonStub } },
+      })
+
+      const createBtn = wrapper.findAll('button').find(b => b.text().includes('Create'))
+      // Button should be disabled because form is empty
+      expect(createBtn).toBeTruthy()
+      if (createBtn) {
+        expect(createBtn.attributes('disabled')).toBeDefined()
+      }
+      await createBtn!.trigger('click')
+      expect(wrapper.emitted('create')).toBeFalsy()
+    })
+
+    it('emits create when form is valid', async () => {
+      const filledForm = {
+        ...baseProps.form,
+        AlarmName: 'test-alarm',
+        Namespace: 'AWS/EC2',
+        MetricName: 'CPUUtilization',
+      }
+      const wrapper = mount(CloudWatchCreateAlarmModal, {
+        props: { ...baseProps, form: filledForm },
+        global: { stubs: { Modal: modalStub, Button: buttonStub } },
+      })
+
+      const createBtn = wrapper.findAll('button').find(b => b.text().includes('Create'))
+      expect(createBtn).toBeTruthy()
+      if (createBtn) {
+        expect(createBtn.attributes('disabled')).toBeUndefined()
+      }
+      await createBtn!.trigger('click')
+      expect(wrapper.emitted('create')).toBeTruthy()
+    })
   })
 
   it('CloudWatchDeleteAlarmModal renders alarm name', () => {
@@ -149,9 +233,22 @@ describe('CloudWatch Integration', () => {
         open: true,
         alarmName: 'test-alarm',
       },
+      global: { stubs: { Modal: modalStub, Button: buttonStub } },
     })
     expect(wrapper.text()).toContain('test-alarm')
     expect(wrapper.text()).toContain('Are you sure')
+  })
+
+  it('CloudWatchDeleteAlarmModal emits delete and close', async () => {
+    const wrapper = mount(CloudWatchDeleteAlarmModal, {
+      props: { open: true, alarmName: 'test-alarm' },
+      global: { stubs: { Modal: modalStub, Button: buttonStub } },
+    })
+
+    const deleteBtn = wrapper.findAll('button').find(b => b.text().includes('Delete'))
+    expect(deleteBtn).toBeTruthy()
+    await deleteBtn!.trigger('click')
+    expect(wrapper.emitted('delete')).toBeTruthy()
   })
 
   // --- Logs integration tests ---
@@ -207,9 +304,8 @@ describe('CloudWatch Integration', () => {
 
   it('CloudWatchCreateLogGroupModal renders when open', () => {
     const wrapper = mount(CloudWatchCreateLogGroupModal, {
-      props: {
-        open: true,
-      },
+      props: { open: true },
+      global: { stubs: { Modal: modalStub, Button: buttonStub } },
     })
     expect(wrapper.text()).toContain('Create Log Group')
     expect(wrapper.find('#cw-log-group-name').exists()).toBe(true)
@@ -217,12 +313,22 @@ describe('CloudWatch Integration', () => {
 
   it('CloudWatchDeleteLogGroupModal renders log group name', () => {
     const wrapper = mount(CloudWatchDeleteLogGroupModal, {
-      props: {
-        open: true,
-        logGroupName: '/aws/lambda/test',
-      },
+      props: { open: true, logGroupName: '/aws/lambda/test' },
+      global: { stubs: { Modal: modalStub, Button: buttonStub } },
     })
     expect(wrapper.text()).toContain('/aws/lambda/test')
     expect(wrapper.text()).toContain('Are you sure')
+  })
+
+  it('CloudWatchDeleteLogGroupModal emits delete event', async () => {
+    const wrapper = mount(CloudWatchDeleteLogGroupModal, {
+      props: { open: true, logGroupName: '/aws/lambda/test' },
+      global: { stubs: { Modal: modalStub, Button: buttonStub } },
+    })
+
+    const deleteBtn = wrapper.findAll('button').find(b => b.text().includes('Delete'))
+    expect(deleteBtn).toBeTruthy()
+    await deleteBtn!.trigger('click')
+    expect(wrapper.emitted('delete')).toBeTruthy()
   })
 })

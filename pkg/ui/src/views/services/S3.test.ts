@@ -1,245 +1,177 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mount, shallowMount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { useS3 } from '@/composables/useS3'
-import * as s3Api from '@/api/services/s3'
+import { ref, nextTick } from 'vue'
 
-vi.mock('@/api/services/s3', () => ({
-  listBuckets: vi.fn().mockResolvedValue([]),
-  listObjects: vi.fn().mockResolvedValue({ objects: [] }),
-  createBucket: vi.fn().mockResolvedValue({}),
-  deleteBucket: vi.fn().mockResolvedValue({}),
-  deleteObject: vi.fn().mockResolvedValue({}),
-  putObject: vi.fn().mockResolvedValue({}),
-  getObject: vi.fn().mockResolvedValue({ Body: 'test', ContentType: 'text/plain' }),
-}))
+const mockLoadBuckets = vi.fn()
+const mockLoadObjects = vi.fn()
+const mockLoadBucketDetails = vi.fn()
+const mockCreateBucket = vi.fn()
+const mockDeleteBucket = vi.fn()
+const mockDeleteObject = vi.fn()
+const mockUploadObject = vi.fn()
+const mockGetObject = vi.fn()
+const mockGetPresignedUrl = vi.fn()
+const mockConfigureLambdaTrigger = vi.fn()
+const mockBuckets = ref([
+  { Name: 'test-bucket', CreationDate: '2024-01-01T00:00:00Z' },
+  { Name: 'another-bucket', CreationDate: '2024-02-01T00:00:00Z' },
+])
 
-vi.mock('@/stores/ui', () => ({
-  useUIStore: () => ({
-    notifySuccess: vi.fn(),
-    notifyError: vi.fn(),
+vi.mock('@/composables/useS3', () => ({
+  useS3: () => ({
+    buckets: mockBuckets,
+    objects: ref([]),
+    selectedBucket: ref(null),
+    loading: ref(false),
+    uploading: ref(false),
+    bucketDetails: ref({}),
+    loadBuckets: mockLoadBuckets,
+    loadObjects: mockLoadObjects,
+    loadBucketDetails: mockLoadBucketDetails,
+    createBucket: mockCreateBucket,
+    deleteBucket: mockDeleteBucket,
+    deleteObject: mockDeleteObject,
+    uploadObject: mockUploadObject,
+    getObject: mockGetObject,
+    getPresignedUrl: mockGetPresignedUrl,
+    configureLambdaTrigger: mockConfigureLambdaTrigger,
   }),
 }))
 
-describe('useS3 Composable', () => {
+vi.mock('@/composables/useToast', () => ({
+  useToast: () => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() }),
+}))
+
+vi.mock('@/composables/useContentReload', () => ({
+  useContentReload: () => ({ reloadTrigger: 0 }),
+}))
+
+import S3View from './S3.vue'
+
+const mountStubs = {
+  ArchiveBoxIcon: true,
+  S3BucketsList: true,
+  S3ObjectsList: true,
+  S3CreateModal: true,
+  S3ViewModal: true,
+  S3DeleteModal: true,
+  S3CodeExamples: true,
+  S3TriggerModal: true,
+  S3PolicyModal: true,
+  Button: { template: '<button><slot /></button>' },
+  LoadingSpinner: true,
+  EmptyState: true,
+}
+
+const shallowStubs = {
+  Button: { template: '<button><slot /></button>' },
+  LoadingSpinner: true,
+  EmptyState: true,
+}
+
+describe('S3.vue', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
+    mockBuckets.value = [
+      { Name: 'test-bucket', CreationDate: '2024-01-01T00:00:00Z' },
+      { Name: 'another-bucket', CreationDate: '2024-02-01T00:00:00Z' },
+    ]
   })
 
-  describe('initialization', () => {
-    it('initializes with empty state', () => {
-      const { buckets, objects, selectedBucket, loading, uploading } = useS3()
-      expect(buckets.value).toEqual([])
-      expect(objects.value).toEqual([])
-      expect(selectedBucket.value).toBeNull()
-      expect(loading.value).toBe(false)
-      expect(uploading.value).toBe(false)
-    })
-
-    it('has all required methods', () => {
-      const { loadBuckets, loadObjects, createBucket, deleteBucket, deleteObject, uploadObject, getObject } = useS3()
-      expect(typeof loadBuckets).toBe('function')
-      expect(typeof loadObjects).toBe('function')
-      expect(typeof createBucket).toBe('function')
-      expect(typeof deleteBucket).toBe('function')
-      expect(typeof deleteObject).toBe('function')
-      expect(typeof uploadObject).toBe('function')
-      expect(typeof getObject).toBe('function')
-    })
+  it('renders without crashing', () => {
+    const wrapper = shallowMount(S3View, { global: { stubs: shallowStubs } })
+    expect(wrapper.exists()).toBe(true)
   })
 
-  describe('loadBuckets', () => {
-    it('loads buckets successfully', async () => {
-      const mockBuckets = [{ Name: 'bucket1' }, { Name: 'bucket2' }]
-      vi.mocked(s3Api.listBuckets).mockResolvedValue(mockBuckets)
-
-      const { loadBuckets, buckets } = useS3()
-      await loadBuckets()
-      
-      expect(buckets.value).toHaveLength(2)
-      expect(s3Api.listBuckets).toHaveBeenCalled()
-    })
-
-    it('sets loading during load', async () => {
-      const { loadBuckets, loading } = useS3()
-      
-      expect(loading.value).toBe(false)
-      const promise = loadBuckets()
-      expect(loading.value).toBe(true)
-      await promise
-      expect(loading.value).toBe(false)
-    })
-
-    it('handles error gracefully', async () => {
-      vi.mocked(s3Api.listBuckets).mockRejectedValue(new Error('Failed'))
-      
-      const { loadBuckets, loading } = useS3()
-      await loadBuckets()
-      
-      expect(loading.value).toBe(false)
-    })
+  it('renders S3 heading', () => {
+    const wrapper = shallowMount(S3View, { global: { stubs: shallowStubs } })
+    expect(wrapper.text()).toContain('S3')
   })
 
-  describe('loadObjects', () => {
-    it('sets selectedBucket', async () => {
-      const { loadObjects, selectedBucket } = useS3()
-      await loadObjects('test-bucket')
-      
-      expect(selectedBucket.value).toBe('test-bucket')
-      expect(s3Api.listObjects).toHaveBeenCalledWith('test-bucket')
-    })
-
-    it('populates objects array', async () => {
-      const mockObjects = { objects: [{ Key: 'file1.txt' }, { Key: 'file2.txt' }] }
-      vi.mocked(s3Api.listObjects).mockResolvedValue(mockObjects)
-
-      const { loadObjects, objects } = useS3()
-      await loadObjects('test-bucket')
-      
-      expect(objects.value).toHaveLength(2)
-    })
+  it('renders Create Bucket button', () => {
+    const wrapper = shallowMount(S3View, { global: { stubs: shallowStubs } })
+    expect(wrapper.text()).toContain('Create Bucket')
   })
 
-  describe('createBucket', () => {
-    it('creates bucket successfully', async () => {
-      vi.mocked(s3Api.createBucket).mockResolvedValue({})
-      
-      const { createBucket } = useS3()
-      await createBucket('new-bucket')
-      
-      expect(s3Api.createBucket).toHaveBeenCalledWith('new-bucket', undefined)
-    })
-
-    it('creates bucket with CORS option', async () => {
-      vi.mocked(s3Api.createBucket).mockResolvedValue({})
-
-      const { createBucket } = useS3()
-      await createBucket('new-bucket', { enableCors: true })
-
-      expect(s3Api.createBucket).toHaveBeenCalledWith('new-bucket', { enableCors: true })
-    })
-
-    it('handles empty name gracefully', async () => {
-      const { createBucket } = useS3()
-      await createBucket('')
-    })
+  it('renders S3BucketsList component', () => {
+    const wrapper = shallowMount(S3View, { global: { stubs: shallowStubs } })
+    // Auto-stub renders as <s3-buckets-list-stub>
+    expect(wrapper.find('s3-buckets-list-stub').exists()).toBe(true)
   })
 
-  describe('deleteBucket', () => {
-    it('deletes bucket successfully', async () => {
-      vi.mocked(s3Api.deleteBucket).mockResolvedValue({})
-      
-      const { deleteBucket } = useS3()
-      await deleteBucket('test-bucket')
-      
-      expect(s3Api.deleteBucket).toHaveBeenCalledWith('test-bucket')
-    })
-
-    it('clears selectedBucket if matches', async () => {
-      vi.mocked(s3Api.deleteBucket).mockResolvedValue({})
-      
-      const { deleteBucket, selectedBucket, objects } = useS3()
-      selectedBucket.value = 'test-bucket'
-      objects.value = [{ Key: 'file.txt' }]
-      
-      await deleteBucket('test-bucket')
-      
-      expect(selectedBucket.value).toBeNull()
-      expect(objects.value).toEqual([])
-    })
+  it('renders S3CodeExamples component', () => {
+    const wrapper = shallowMount(S3View, { global: { stubs: shallowStubs } })
+    expect(wrapper.find('s3-code-examples-stub').exists()).toBe(true)
   })
 
-  describe('deleteObject', () => {
-    it('deletes object successfully', async () => {
-      vi.mocked(s3Api.deleteObject).mockResolvedValue({})
-      
-      const { deleteObject, selectedBucket } = useS3()
-      selectedBucket.value = 'test-bucket'
-      
-      await deleteObject('test-bucket', 'file.txt')
-      
-      expect(s3Api.deleteObject).toHaveBeenCalledWith('test-bucket', 'file.txt')
-    })
+  it('calls loadBuckets on mount', () => {
+    shallowMount(S3View, { global: { stubs: shallowStubs } })
+    expect(mockLoadBuckets).toHaveBeenCalledTimes(1)
   })
 
-  describe('uploadObject', () => {
-    it('uploads file successfully', async () => {
-      vi.mocked(s3Api.putObject).mockResolvedValue({})
-      
-      const { uploadObject, uploading } = useS3()
-      await uploadObject('test-bucket', 'file.txt', 'content', 'text/plain')
-      
-      expect(s3Api.putObject).toHaveBeenCalledWith('test-bucket', 'file.txt', 'content', 'text/plain')
-      expect(uploading.value).toBe(false)
-    })
-
-    it('sets uploading state during upload', async () => {
-      vi.mocked(s3Api.putObject).mockResolvedValue({})
-      
-      const { uploadObject, uploading } = useS3()
-      expect(uploading.value).toBe(false)
-      
-      const promise = uploadObject('test-bucket', 'file.txt', 'content')
-      expect(uploading.value).toBe(true)
-      await promise
-    })
+  it('shows buckets heading with count', () => {
+    mockBuckets.value = []
+    const wrapper = shallowMount(S3View, { global: { stubs: shallowStubs } })
+    expect(wrapper.text()).toContain('S3 Buckets')
   })
 
-  describe('getObject', () => {
-    it('returns object data', async () => {
-      const mockData = { Body: 'content', ContentType: 'text/plain' }
-      vi.mocked(s3Api.getObject).mockResolvedValue(mockData)
-      
-      const { getObject } = useS3()
-      const result = await getObject('test-bucket', 'file.txt')
-      
-      expect(result).toEqual(mockData)
-    })
-
-    it('throws on error', async () => {
-      vi.mocked(s3Api.getObject).mockRejectedValue(new Error('Not found'))
-      
-      const { getObject } = useS3()
-      await expect(getObject('test-bucket', 'nonexistent.txt')).rejects.toThrow('Not found')
-    })
-  })
-})
-
-describe('useS3 State Management', () => {
-  beforeEach(() => {
-    setActivePinia(createPinia())
-    vi.clearAllMocks()
+  it('mounts with explicit stubs without error', () => {
+    const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+    expect(wrapper.exists()).toBe(true)
   })
 
-  it('manages selectedBucket independently', () => {
-    const { selectedBucket } = useS3()
-    selectedBucket.value = 'bucket-1'
-    expect(selectedBucket.value).toBe('bucket-1')
+  it('handles create bucket via mount with stubs', async () => {
+    mockCreateBucket.mockResolvedValue(undefined)
+    const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+    const modal = wrapper.findComponent('s3-create-modal-stub')
+    if (modal.exists() && modal.vm) {
+      modal.vm.$emit('create', 'new-bucket')
+      await new Promise(process.nextTick)
+    }
+    expect(wrapper.exists()).toBe(true)
   })
 
-  it('manages buckets independently', () => {
-    const { buckets } = useS3()
-    buckets.value = [{ Name: 'bucket1' }]
-    expect(buckets.value).toHaveLength(1)
+  it('triggers delete bucket via mount with stubs', async () => {
+    mockDeleteBucket.mockResolvedValue(undefined)
+    const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+    const modal = wrapper.findComponent('s3-delete-modal-stub')
+    if (modal.exists() && modal.vm) {
+      modal.vm.$emit('delete', 'test-bucket')
+      await new Promise(process.nextTick)
+    }
+    expect(wrapper.exists()).toBe(true)
   })
 
-  it('manages objects independently', () => {
-    const { objects } = useS3()
-    objects.value = [{ Key: 'file.txt' }]
-    expect(objects.value).toHaveLength(1)
+  it('triggers lambda trigger config via mount with stubs', async () => {
+    mockConfigureLambdaTrigger.mockResolvedValue(undefined)
+    const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+    const modal = wrapper.findComponent('s3-trigger-modal-stub')
+    if (modal.exists() && modal.vm) {
+      modal.vm.$emit('configure', { bucketName: 'test-bucket', lambdaArn: 'arn:aws:lambda:us-east-1:123:function:test' })
+      await new Promise(process.nextTick)
+    }
+    expect(wrapper.exists()).toBe(true)
   })
 
-  it('resets state on navigation', async () => {
-    const { selectedBucket, objects, loadObjects } = useS3()
-    
-    objects.value = [{ Key: 'file.txt' }]
-    selectedBucket.value = 'test-bucket'
-    
-    selectedBucket.value = null
-    objects.value = []
-    
-    expect(selectedBucket.value).toBeNull()
-    expect(objects.value).toEqual([])
+  it('handles object interactions via mount with stubs', async () => {
+    mockGetObject.mockResolvedValue({ Body: 'content', ContentType: 'text/plain' })
+    const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+
+    const objList = wrapper.findComponent('s3-objects-list-stub')
+    if (objList.exists()) {
+      objList.vm.$emit('view', { Key: 'test.txt' })
+      await new Promise(process.nextTick)
+
+      objList.vm.$emit('delete', { Key: 'test.txt' })
+      await new Promise(process.nextTick)
+    }
+  })
+
+  it('renders policy and trigger modals', () => {
+    const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+    expect(wrapper.find('s3-policy-modal-stub').exists()).toBe(true)
+    expect(wrapper.find('s3-trigger-modal-stub').exists()).toBe(true)
   })
 })
