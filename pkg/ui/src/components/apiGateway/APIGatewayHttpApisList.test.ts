@@ -10,7 +10,7 @@ vi.mock('@/stores/settings', () => ({
 const mockApi = {
   apiId: 'http-api-456',
   name: 'My HTTP API',
-  protocol: 'HTTP',
+  protocolType: 'HTTP',
   description: 'An HTTP API',
 }
 
@@ -66,7 +66,21 @@ describe('APIGatewayHttpApisList', () => {
 
   it('shows default protocol when not provided', () => {
     const wrapper = mount(APIGatewayHttpApisList, {
-      props: { ...defaultProps, apis: [{ ...mockApi, protocol: undefined }] },
+      props: { ...defaultProps, apis: [{ ...mockApi, protocolType: undefined }] },
+    })
+    expect(wrapper.text()).toContain('HTTP')
+  })
+
+  it('renders WebSocket protocol', () => {
+    const wrapper = mount(APIGatewayHttpApisList, {
+      props: { ...defaultProps, apis: [{ ...mockApi, protocolType: 'WEBSOCKET' }] },
+    })
+    expect(wrapper.text()).toContain('WEBSOCKET')
+  })
+
+  it('renders protocol from api.protocolType field', () => {
+    const wrapper = mount(APIGatewayHttpApisList, {
+      props: { ...defaultProps, apis: [{ ...mockApi, protocolType: 'HTTP' }] },
     })
     expect(wrapper.text()).toContain('HTTP')
   })

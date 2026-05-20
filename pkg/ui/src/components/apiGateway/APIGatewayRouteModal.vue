@@ -5,12 +5,15 @@ import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
 import FormSelect from '@/components/common/FormSelect.vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   open: boolean
   integrations?: string[]
   loading?: boolean
   showMockTarget?: boolean
-}>()
+  protocolType?: string
+}>(), {
+  protocolType: 'HTTP',
+})
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
@@ -70,8 +73,8 @@ function handleClose() {
       <FormInput
         v-model="routeKey"
         label="Route Key"
-        placeholder="GET /items"
-        help-text="Format: METHOD /path, e.g., GET /users"
+        :placeholder="props.protocolType === 'WEBSOCKET' ? '$connect' : 'GET /items'"
+        :help-text="props.protocolType === 'WEBSOCKET' ? 'WebSocket route keys: $connect, $disconnect, $default' : 'Format: METHOD /path, e.g., GET /users'"
       />
       
       <FormSelect

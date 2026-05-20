@@ -85,8 +85,8 @@ async function loadApis() {
     const result = await apigateway.getHttpApis()
     apis.value = result?.items || result?.Items || []
   } catch (e) {
-    console.error('Error loading HTTP APIs:', e)
-    toast.error('Failed to load HTTP APIs')
+    console.error('Error loading APIs:', e)
+    toast.error('Failed to load APIs')
   } finally {
     loading.value = false
   }
@@ -190,14 +190,18 @@ function handleEditStage(stage: any, apiId: string) {
   showEditStageModal.value = true
 }
 
-async function confirmCreateIntegration(integrationType: string, httpMethod: string, uri: string) {
+async function confirmCreateIntegration(integrationType: string, httpMethod: string, uri: string, mappingTemplate?: string) {
   if (!selectedApi.value) return
   try {
-    await apigateway.createHttpIntegration(selectedApi.value.apiId, {
+    const options: any = {
       integrationType,
       integrationMethod: httpMethod,
       integrationUri: uri,
-    })
+    }
+    if (mappingTemplate && (integrationType === 'AWS' || integrationType === 'HTTP')) {
+      options.requestTemplates = { 'application/json': mappingTemplate }
+    }
+    await apigateway.createHttpIntegration(selectedApi.value.apiId, options)
     toast.success('Integration created successfully')
     showIntegrationModal.value = false
     await loadDetailsForApi(selectedApi.value.apiId)
@@ -206,10 +210,17 @@ async function confirmCreateIntegration(integrationType: string, httpMethod: str
   }
 }
 
-async function confirmUpdateIntegration(integrationType: string, httpMethod: string, uri: string, payloadFormat: string) {
+async function confirmUpdateIntegration(integrationType: string, httpMethod: string, uri: string, payloadFormat: string, mappingTemplate?: string) {
   if (!selectedApi.value || !integrationToEdit.value) return
   try {
-    await apigateway.updateHttpIntegration(selectedApi.value.apiId, integrationToEdit.value.integrationId, { integrationType, integrationUri: uri })
+    const options: any = {
+      integrationType,
+      integrationUri: uri,
+    }
+    if (mappingTemplate && (integrationType === 'AWS' || integrationType === 'HTTP')) {
+      options.requestTemplates = { 'application/json': mappingTemplate }
+    }
+    await apigateway.updateHttpIntegration(selectedApi.value.apiId, integrationToEdit.value.integrationId, options)
     toast.success('Integration updated successfully')
     showIntegrationModal.value = false
     await loadDetailsForApi(selectedApi.value.apiId)
@@ -399,6 +410,7 @@ defineExpose({
   <APIGatewayRouteModal
     v-if="showRouteModal"
     :open="showRouteModal"
+    :protocol-type="selectedApi?.protocolType || 'HTTP'"
     :integrations="selectedApi ? (integrations[selectedApi.apiId] || []).map((i: any) => i.integrationId) : []"
     @close="showRouteModal = false"
     @update:open="showRouteModal = $event"

@@ -275,14 +275,14 @@ export function useApiGateway() {
     }
   }
 
-  async function createHttpApi(name: string, description?: string) {
+  async function createHttpApi(name: string, description?: string, protocol?: string) {
     loading.value = true
     try {
-      await apigateway.createHttpApi({ name, description })
-      toast.success('HTTP API created successfully')
+      await apigateway.createHttpApi({ name, description, protocolType: protocol || 'HTTP' })
+      toast.success('API created successfully')
     } catch (e) {
       console.error('Error creating HTTP API:', e)
-      toast.error('Failed to create HTTP API')
+      toast.error('Failed to create API')
       throw e
     } finally {
       loading.value = false

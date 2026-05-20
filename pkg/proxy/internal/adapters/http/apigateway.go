@@ -646,31 +646,25 @@ func (h *ProxyHandler) getApis(ctx context.Context, c *gin.Context, bodyBytes []
 }
 
 func (h *ProxyHandler) createApi(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	data := make(map[string]interface{})
-	if err := json.Unmarshal(bodyBytes, &data); err != nil {
+	input := &apigatewayv2.CreateApiInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
-	input := &apigatewayv2.CreateApiInput{
-		ProtocolType: apigwV2Types.ProtocolTypeHttp,
+	// Default ProtocolType to HTTP if not provided
+	if input.ProtocolType == "" {
+		input.ProtocolType = apigwV2Types.ProtocolTypeHttp
 	}
 
-	// Handle both lowercase and TitleCase keys
-	if v, ok := data["name"]; ok && v != nil {
-		input.Name = aws.String(v.(string))
-	} else if v, ok := data["Name"]; ok && v != nil {
-		input.Name = aws.String(v.(string))
-	}
-	if v, ok := data["description"]; ok && v != nil {
-		input.Description = aws.String(v.(string))
-	} else if v, ok := data["Description"]; ok && v != nil {
-		input.Description = aws.String(v.(string))
+	// RouteSelectionExpression is required for WEBSOCKET protocol
+	if input.ProtocolType == apigwV2Types.ProtocolTypeWebsocket && input.RouteSelectionExpression == nil {
+		input.RouteSelectionExpression = aws.String("$request.body.action")
 	}
 
 	result, err := h.Svc.APIGatewayV2().CreateApi(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create HTTP API", err)
+		sendError(c, http.StatusInternalServerError, "Failed to create API", err)
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -916,6 +910,28 @@ func (h *ProxyHandler) createIntegrationV2(ctx context.Context, c *gin.Context, 
 	} else if v, ok := data["PayloadFormatVersion"]; ok && v != nil {
 		input.PayloadFormatVersion = aws.String(v.(string))
 	}
+	// Parse request templates for VTL support (AWS and HTTP types)
+	if v, ok := data["requestTemplates"]; ok && v != nil {
+		if rtMap, ok := v.(map[string]interface{}); ok {
+			rt := make(map[string]string, len(rtMap))
+			for k, val := range rtMap {
+				if s, ok := val.(string); ok {
+					rt[k] = s
+				}
+			}
+			input.RequestTemplates = rt
+		}
+	} else if v, ok := data["RequestTemplates"]; ok && v != nil {
+		if rtMap, ok := v.(map[string]interface{}); ok {
+			rt := make(map[string]string, len(rtMap))
+			for k, val := range rtMap {
+				if s, ok := val.(string); ok {
+					rt[k] = s
+				}
+			}
+			input.RequestTemplates = rt
+		}
+	}
 
 	result, err := h.Svc.APIGatewayV2().CreateIntegration(ctx, input)
 	if err != nil {
@@ -969,6 +985,28 @@ func (h *ProxyHandler) updateIntegrationV2(ctx context.Context, c *gin.Context, 
 		input.Description = aws.String(v.(string))
 	} else if v, ok := data["Description"]; ok && v != nil {
 		input.Description = aws.String(v.(string))
+	}
+	// Parse request templates for VTL support (AWS and HTTP types)
+	if v, ok := data["requestTemplates"]; ok && v != nil {
+		if rtMap, ok := v.(map[string]interface{}); ok {
+			rt := make(map[string]string, len(rtMap))
+			for k, val := range rtMap {
+				if s, ok := val.(string); ok {
+					rt[k] = s
+				}
+			}
+			input.RequestTemplates = rt
+		}
+	} else if v, ok := data["RequestTemplates"]; ok && v != nil {
+		if rtMap, ok := v.(map[string]interface{}); ok {
+			rt := make(map[string]string, len(rtMap))
+			for k, val := range rtMap {
+				if s, ok := val.(string); ok {
+					rt[k] = s
+				}
+			}
+			input.RequestTemplates = rt
+		}
 	}
 
 	result, err := h.Svc.APIGatewayV2().UpdateIntegration(ctx, input)
