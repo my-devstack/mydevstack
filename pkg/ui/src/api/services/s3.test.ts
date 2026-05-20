@@ -50,6 +50,7 @@ import {
   configureNotification,
   getNotificationConfig,
 } from './s3'
+import { S3Service } from './s3'
 
 describe('S3 Service', () => {
   beforeEach(() => {
@@ -80,6 +81,111 @@ describe('S3 Service', () => {
       expect(result.Location).toBe('/my-bucket')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Bucket).toBe('my-bucket')
+    })
+
+    it('creates bucket with CORS enabled', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      const service = new S3Service()
+      await service.createBucket('my-bucket', { enableCors: true })
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.Bucket).toBe('my-bucket')
+      expect(body.CORSConfiguration).toBeDefined()
+      expect(body.CORSConfiguration.CORSRules[0].AllowedMethods).toContain('GET')
+    })
+
+    it('creates bucket with versioning enabled', async () => {
+      mockFetch
+        .mockResolvedValueOnce(mockResponse({}))
+        .mockResolvedValueOnce(mockResponse({}))
+      const service = new S3Service()
+      await service.createBucket('my-bucket', { enableVersioning: true })
+      expect(mockFetch).toHaveBeenCalledTimes(2)
+      const versionBody = JSON.parse(mockFetch.mock.calls[1][1].body)
+      expect(versionBody.VersioningConfiguration.Status).toBe('Enabled')
+    })
+
+    it('creates bucket with AES256 encryption', async () => {
+      mockFetch
+        .mockResolvedValueOnce(mockResponse({}))
+        .mockResolvedValueOnce(mockResponse({}))
+      const service = new S3Service()
+      await service.createBucket('my-bucket', { encryptionType: 'AES256' })
+      expect(mockFetch).toHaveBeenCalledTimes(2)
+      const encBody = JSON.parse(mockFetch.mock.calls[1][1].body)
+      expect(encBody.ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.SSEAlgorithm).toBe('AES256')
+    })
+
+    it('creates bucket with KMS encryption and key ID', async () => {
+      mockFetch
+        .mockResolvedValueOnce(mockResponse({}))
+        .mockResolvedValueOnce(mockResponse({}))
+      const service = new S3Service()
+      await service.createBucket('my-bucket', { encryptionType: 'aws:kms', kmsKeyId: 'arn:aws:kms:key/123' })
+      expect(mockFetch).toHaveBeenCalledTimes(2)
+      const encBody = JSON.parse(mockFetch.mock.calls[1][1].body)
+      expect(encBody.ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.SSEAlgorithm).toBe('aws:kms')
+      expect(encBody.ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.KMSKeyId).toBe('arn:aws:kms:key/123')
+    })
+
+    it('creates bucket with tags', async () => {
+      mockFetch
+        .mockResolvedValueOnce(mockResponse({}))
+        .mockResolvedValueOnce(mockResponse({}))
+      const service = new S3Service()
+      await service.createBucket('my-bucket', { tags: [{ Key: 'Env', Value: 'dev' }] })
+      expect(mockFetch).toHaveBeenCalledTimes(2)
+      const tagBody = JSON.parse(mockFetch.mock.calls[1][1].body)
+      expect(tagBody.Tagging.TagSet).toEqual([{ Key: 'Env', Value: 'dev' }])
+    })
+
+    it('creates bucket with public access blocked', async () => {
+      mockFetch
+        .mockResolvedValueOnce(mockResponse({}))
+        .mockResolvedValueOnce(mockResponse({}))
+      const service = new S3Service()
+      await service.createBucket('my-bucket', { blockPublicAccess: true })
+      expect(mockFetch).toHaveBeenCalledTimes(2)
+      const blockBody = JSON.parse(mockFetch.mock.calls[1][1].body)
+      expect(blockBody.PublicAccessBlockConfiguration.BlockPublicAcls).toBe(true)
+    })
+
+    it('creates bucket with valid bucket policy', async () => {
+      mockFetch
+        .mockResolvedValueOnce(mockResponse({}))
+        .mockResolvedValueOnce(mockResponse({}))
+      const policy = JSON.stringify({ Version: '2012-10-17', Statement: [] })
+      const service = new S3Service()
+      await service.createBucket('my-bucket', { bucketPolicy: policy })
+      expect(mockFetch).toHaveBeenCalledTimes(2)
+      const policyBody = JSON.parse(mockFetch.mock.calls[1][1].body)
+      expect(policyBody.Policy).toBe(policy)
+    })
+
+    it('throws error for invalid bucket policy JSON', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      const service = new S3Service()
+      await expect(service.createBucket('my-bucket', { bucketPolicy: 'not-json' })).rejects.toThrow('Invalid bucket policy JSON')
+      expect(mockFetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('creates bucket with multiple options', async () => {
+      mockFetch
+        .mockResolvedValueOnce(mockResponse({}))
+        .mockResolvedValueOnce(mockResponse({}))
+        .mockResolvedValueOnce(mockResponse({}))
+        .mockResolvedValueOnce(mockResponse({}))
+        .mockResolvedValueOnce(mockResponse({}))
+        .mockResolvedValueOnce(mockResponse({}))
+      const service = new S3Service()
+      await service.createBucket('my-bucket', {
+        enableCors: true,
+        enableVersioning: true,
+        encryptionType: 'AES256',
+        tags: [{ Key: 'Env', Value: 'test' }],
+        blockPublicAccess: true,
+        bucketPolicy: JSON.stringify({ Version: '2012-10-17' }),
+      })
+      expect(mockFetch).toHaveBeenCalledTimes(6)
     })
   })
 
@@ -160,6 +266,17 @@ describe('S3 Service', () => {
       expect(body.prefix).toBe('folder/')
       expect(body.maxKeys).toBe(10)
     })
+
+    it('handles paginated response with IsTruncated and nextMarker', async () => {
+      mockFetch.mockResolvedValue(mockResponse({
+        Contents: [{ Key: 'f1.txt', Size: 50, ETag: '"etag1"' }],
+        IsTruncated: true,
+        NextContinuationToken: 'token-next',
+      }))
+      const result = await listObjects('my-bucket')
+      expect(result.isTruncated).toBe(true)
+      expect(result.nextMarker).toBe('token-next')
+    })
   })
 
   describe('listObjectsV2', () => {
@@ -193,6 +310,19 @@ describe('S3 Service', () => {
         text: () => Promise.resolve('Not found'),
       })
       await expect(getObject('my-bucket', 'missing.txt')).rejects.toThrow(/S3 GetObject failed/)
+    })
+
+    it('uses default content-type when header missing', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({}),
+        arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+        json: () => Promise.resolve({}),
+        text: () => Promise.resolve(''),
+      })
+      const result = await getObject('my-bucket', 'file.bin')
+      expect(result.contentType).toBe('application/octet-stream')
     })
   })
 
@@ -229,6 +359,15 @@ describe('S3 Service', () => {
       expect(result.contentLength).toBe('100')
       expect(result.contentType).toBe('text/plain')
       expect(result.etag).toBe('abc')
+    })
+
+    it('provides defaults for missing response fields', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      const result = await headObject('my-bucket', 'missing.txt')
+      expect(result.contentLength).toBe('0')
+      expect(result.contentType).toBe('')
+      expect(result.etag).toBe('')
+      expect(result.lastModified).toBe('')
     })
   })
 
@@ -275,6 +414,17 @@ describe('S3 Service', () => {
       mockFetch.mockResolvedValue(mockResponse('NoSuchBucketPolicy', 404))
       const result = await getBucketPolicy('my-bucket')
       expect(result).toEqual({})
+    })
+
+    it('returns empty on message match', async () => {
+      mockFetch.mockResolvedValue(mockResponse('NoSuchBucketPolicy', 400))
+      const result = await getBucketPolicy('my-bucket')
+      expect(result).toEqual({})
+    })
+
+    it('throws non-matching errors', async () => {
+      mockFetch.mockResolvedValue(mockResponse('AccessDenied', 403))
+      await expect(getBucketPolicy('my-bucket')).rejects.toThrow(/S3 GetBucketPolicy failed/)
     })
   })
 

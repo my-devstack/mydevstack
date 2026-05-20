@@ -313,7 +313,8 @@ export class S3Service {
 export const s3Service = new S3Service()
 
 export const listBuckets = () => s3Service.listBuckets()
-export const createBucket = (bucket: string) => s3Service.createBucket(bucket)
+export const createBucket = (bucket: string, options?: Parameters<S3Service['createBucket']>[1]) =>
+  s3Service.createBucket(bucket, options)
 export const deleteBucket = (bucket: string) => s3Service.deleteBucket(bucket)
 export const emptyBucket = (bucket: string) => s3Service.emptyBucket(bucket)
 export const headBucket = (bucket: string) => s3Service.headBucket(bucket)

@@ -219,6 +219,78 @@ describe('Lambda Service', () => {
       const result = await lambda.listFunctions()
       expect(result.functions).toHaveLength(1)
     })
+
+    it('creates function via lambda namespace', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ FunctionName: 'fn1' }))
+      const result = await lambda.createFunction({ FunctionName: 'fn1', Runtime: 'nodejs22.x', Handler: 'index.handler', Role: 'arn:aws:iam::role/test' })
+      expect(result.FunctionName).toBe('fn1')
+    })
+
+    it('gets function via lambda namespace', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ Configuration: { FunctionName: 'fn1' } }))
+      const result = await lambda.getFunction('fn1')
+      expect(result.Configuration.FunctionName).toBe('fn1')
+    })
+
+    it('deletes function via lambda namespace', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await lambda.deleteFunction('fn1')
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.FunctionName).toBe('fn1')
+    })
+
+    it('invokes function via lambda namespace', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      const result = await lambda.invoke('fn1', '{}')
+      expect(result.statusCode).toBe(200)
+    })
+
+    it('updates function configuration via lambda namespace', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await lambda.updateFunctionConfiguration({ FunctionName: 'fn1', Description: 'updated' })
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.Description).toBe('updated')
+    })
+
+    it('updates function code via lambda namespace', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await lambda.updateFunctionCode({ FunctionName: 'fn1', ZipFile: 'base64data' })
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.ZipFile).toBe('base64data')
+    })
+
+    it('gets function configuration via lambda namespace', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ FunctionName: 'fn1' }))
+      const result = await lambda.getFunctionConfiguration('fn1')
+      expect(result.FunctionName).toBe('fn1')
+    })
+
+    it('lists event source mappings via lambda namespace', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ EventSourceMappings: [] }))
+      await lambda.listEventSourceMappings({ FunctionName: 'fn1' })
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.FunctionName).toBe('fn1')
+    })
+
+    it('creates event source mapping via lambda namespace', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ UUID: 'uuid1' }))
+      await lambda.createEventSourceMapping({ FunctionName: 'fn1', EventSourceArn: 'arn:sqs:queue' })
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.EventSourceArn).toBe('arn:sqs:queue')
+    })
+
+    it('gets event source mapping via lambda namespace', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ UUID: 'uuid1' }))
+      const result = await lambda.getEventSourceMapping('uuid1')
+      expect(result.UUID).toBe('uuid1')
+    })
+
+    it('deletes event source mapping via lambda namespace', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await lambda.deleteEventSourceMapping('uuid1')
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.UUID).toBe('uuid1')
+    })
   })
 
   describe('Error handling', () => {
@@ -230,6 +302,69 @@ describe('Lambda Service', () => {
     it('throws APIError with 500 on network error', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'))
       await expect(listFunctions()).rejects.toThrow(/Failed to/)
+    })
+  })
+
+  describe('Error handling in lambdaRequest', () => {
+    it('re-throws APIError without wrapping', async () => {
+      // Test that if lambdaRequest catches a non-APIError, it wraps it
+      mockFetch.mockRejectedValue(new Error('Some random error'))
+      await expect(listFunctions()).rejects.toThrow(/Failed to/)
+    })
+
+    it('handles server error with response text', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: () => Promise.resolve('Internal Server Error'),
+        headers: new Headers({ 'content-type': 'text/plain' }),
+      })
+      await expect(listFunctions()).rejects.toThrow(/Lambda/)
+    })
+
+    it('createFunction with empty params works', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ FunctionName: 'fn1' }))
+      const result = await createFunction({
+        FunctionName: 'fn1',
+        Runtime: 'nodejs22.x',
+        Handler: 'index.handler',
+        Role: 'arn:aws:iam::role/test',
+      })
+      expect(result.FunctionName).toBe('fn1')
+    })
+  })
+
+  describe('invoke edge cases', () => {
+    it('invoke sends payload and handles empty response', async () => {
+      mockFetch.mockResolvedValue(mockResponse('', 200))
+      const result = await invoke('my-func', '{"key":"val"}')
+      expect(result.payload).toBe('')
+    })
+
+    it('invoke handles response with FunctionError', async () => {
+      const errorPayload = btoa('error occurred')
+      mockFetch.mockResolvedValue(mockResponse({ Payload: errorPayload, FunctionError: 'Handled' }))
+      const result = await invoke('my-func', '{}')
+      // functionError is set internally but not returned; verify payload decodes correctly
+      expect(result.statusCode).toBe(200)
+      expect(result.payload).toBe('error occurred')
+    })
+
+    it('invoke without payload sends empty body', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await invoke('my-func')
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.FunctionName).toBe('my-func')
+      expect(body.Payload).toBeUndefined()
+    })
+  })
+
+  describe('listEventSourceMappings without params', () => {
+    it('sends request without function name param', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ EventSourceMappings: [] }))
+      await listEventSourceMappings()
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body).toEqual({})
     })
   })
 

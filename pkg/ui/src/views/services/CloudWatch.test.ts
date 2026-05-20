@@ -138,6 +138,93 @@ describe('CloudWatch.vue', () => {
     expect(wrapper.find('cloud-watch-code-examples-stub').exists()).toBe(true)
   })
 
+  describe('mount interaction tests', () => {
+    const mountStubs = {
+      ChartBarIcon: true,
+      Button: { template: '<button><slot /></button>' },
+      EmptyState: true,
+      LoadingSpinner: true,
+      CloudWatchAlarmsList: true,
+      CloudWatchMetricsList: true,
+      CloudWatchCreateAlarmModal: true,
+      CloudWatchDeleteAlarmModal: true,
+      CloudWatchCodeExamples: true,
+      CloudWatchLogsList: true,
+      CloudWatchCreateLogGroupModal: true,
+      CloudWatchDeleteLogGroupModal: true,
+      CloudWatchCreateLogStreamModal: true,
+    }
+
+    it('mounts with stubs without error', () => {
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs: mountStubs } })
+      expect(wrapper.exists()).toBe(true)
+    })
+
+    it('header button label is Create Log Group for logs tab', () => {
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs: mountStubs } })
+      expect(wrapper.vm.headerButtonLabel).toBe('Create Log Group')
+    })
+
+    it('header button label is Create Alarm for alarms tab', () => {
+      mockSelectedTab.value = 'alarms'
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs: mountStubs } })
+      expect(wrapper.vm.headerButtonLabel).toBe('Create Alarm')
+    })
+
+    it('header resource count shows log group count', () => {
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs: mountStubs } })
+      expect(wrapper.vm.headerResourceCount).toContain('log group')
+    })
+
+    it('alarms tab header shows alarm count', () => {
+      mockSelectedTab.value = 'alarms'
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs: mountStubs } })
+      expect(wrapper.vm.headerResourceCount).toContain('alarm')
+    })
+
+    it('metrics tab header shows metric count', () => {
+      mockSelectedTab.value = 'metrics'
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs: mountStubs } })
+      expect(wrapper.vm.headerResourceCount).toContain('metric')
+    })
+
+    it('getAlarmStatus returns active for ALARM', () => {
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs: mountStubs } })
+      expect(wrapper.vm.getAlarmStatus('ALARM')).toBe('active')
+    })
+
+    it('getAlarmStatus returns pending for INSUFFICIENT_DATA', () => {
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs: mountStubs } })
+      expect(wrapper.vm.getAlarmStatus('INSUFFICIENT_DATA')).toBe('pending')
+    })
+
+    it('getAlarmStatus returns inactive for OK', () => {
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs: mountStubs } })
+      expect(wrapper.vm.getAlarmStatus('OK')).toBe('inactive')
+    })
+
+    it('openDeleteModal sets selectedAlarmName', () => {
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs: mountStubs } })
+      wrapper.vm.openDeleteModal('test-alarm')
+      expect(wrapper.vm.selectedAlarmName).toBe('test-alarm')
+      expect(wrapper.vm.showDeleteAlarmModal).toBe(true)
+    })
+
+    it('openDeleteLogGroupModal sets selectedLogGroupName', () => {
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs: mountStubs } })
+      wrapper.vm.openDeleteLogGroupModal('/aws/lambda/test')
+      expect(wrapper.vm.selectedLogGroupName).toBe('/aws/lambda/test')
+      expect(wrapper.vm.showDeleteLogGroupModal).toBe(true)
+    })
+
+    it('openCreateStreamModal sets createStreamLogGroup', () => {
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs: mountStubs } })
+      wrapper.vm.openCreateStreamModal('/aws/lambda/my-func')
+      expect(wrapper.vm.createStreamLogGroup).toBe('/aws/lambda/my-func')
+      expect(wrapper.vm.showCreateLogStreamModal).toBe(true)
+    })
+  })
+
   it('renders empty state when no log groups', () => {
     mockLogGroups.value = []
     const wrapper = shallowMount(CloudWatchView, { global: { stubs } })
@@ -293,6 +380,100 @@ describe('CloudWatch.vue', () => {
       const wrapper = shallowMount(CloudWatchView, { global: { stubs } })
       emitOn(wrapper, 'CloudWatchMetricsList', 'toggle-metric', 'AWS/Lambda')
       expect(mockToggleMetric).toHaveBeenCalled()
+    })
+  })
+
+  describe('template inline handler coverage', () => {
+    it('switchTab via composable wrapper', () => {
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs } })
+      wrapper.vm.cw.switchTab('alarms')
+      expect(mockSwitchTab).toHaveBeenCalledWith('alarms')
+    })
+
+    it('handleCreateLogGroup with form object calls composable', async () => {
+      mockCreateLogGroup.mockResolvedValue(undefined)
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs } })
+      await wrapper.vm.handleCreateLogGroup({ logGroupName: '/aws/lambda/test', retentionInDays: 7, tags: [] })
+      expect(mockCreateLogGroup).toHaveBeenCalled()
+    })
+
+    it('handleDeleteLogGroup calls composable', async () => {
+      mockDeleteLogGroup.mockResolvedValue(undefined)
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs } })
+      wrapper.vm.selectedLogGroupName = '/aws/lambda/test'
+      await wrapper.vm.handleDeleteLogGroup()
+      expect(mockDeleteLogGroup).toHaveBeenCalledWith('/aws/lambda/test')
+    })
+
+    it('handleCreateAlarm calls composable and resets form', async () => {
+      mockCreateAlarm.mockResolvedValue(undefined)
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs } })
+      await wrapper.vm.handleCreateAlarm({ AlarmName: 'test', MetricName: 'CPU' })
+      expect(mockCreateAlarm).toHaveBeenCalled()
+    })
+
+    it('handleDeleteAlarm calls composable', async () => {
+      mockDeleteAlarm.mockResolvedValue(undefined)
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs } })
+      wrapper.vm.selectedAlarmName = 'test-alarm'
+      await wrapper.vm.handleDeleteAlarm()
+      expect(mockDeleteAlarm).toHaveBeenCalledWith('test-alarm')
+    })
+
+    it('openDeleteModal sets alarm name and shows modal', () => {
+      mockSelectedTab.value = 'alarms'
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs } })
+      wrapper.vm.openDeleteModal('test-alarm')
+      expect(wrapper.vm.selectedAlarmName).toBe('test-alarm')
+      expect(wrapper.vm.showDeleteAlarmModal).toBe(true)
+    })
+
+    it('openDeleteLogGroupModal sets name and shows modal', () => {
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs } })
+      wrapper.vm.openDeleteLogGroupModal('/aws/lambda/test')
+      expect(wrapper.vm.selectedLogGroupName).toBe('/aws/lambda/test')
+      expect(wrapper.vm.showDeleteLogGroupModal).toBe(true)
+    })
+
+    it('modal @update:open handlers', () => {
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs } })
+      const modals = [
+        'cloud-watch-create-alarm-modal-stub',
+        'cloud-watch-create-log-group-modal-stub',
+        'cloud-watch-delete-alarm-modal-stub',
+        'cloud-watch-delete-log-group-modal-stub',
+        'cloud-watch-create-log-stream-modal-stub',
+      ]
+      for (const sel of modals) {
+        const modal = wrapper.findComponent(sel)
+        if (modal.exists() && modal.vm) {
+          modal.vm.$emit('update:open', false)
+        }
+      }
+      expect(wrapper.vm.showCreateAlarmModal).toBe(false)
+      expect(wrapper.vm.showDeleteAlarmModal).toBe(false)
+    })
+
+    it('handleCreateLogStream with form object calls composable', async () => {
+      mockCreateLogStream.mockResolvedValue(undefined)
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs } })
+      await wrapper.vm.handleCreateLogStream({ logGroupName: '/aws/lambda/test', logStreamName: 'new-stream' })
+      expect(mockCreateLogStream).toHaveBeenCalledWith('/aws/lambda/test', 'new-stream')
+    })
+
+    it('handleSetAlarmState calls composable', async () => {
+      mockSetAlarmState.mockResolvedValue(undefined)
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs } })
+      await wrapper.vm.handleSetAlarmState('test-alarm', 'ALARM')
+      expect(mockSetAlarmState).toHaveBeenCalled()
+    })
+
+    it('getAlarmStatus returns correct states', () => {
+      const wrapper = shallowMount(CloudWatchView, { global: { stubs } })
+      expect(wrapper.vm.getAlarmStatus('ALARM')).toBe('active')
+      expect(wrapper.vm.getAlarmStatus('INSUFFICIENT_DATA')).toBe('pending')
+      expect(wrapper.vm.getAlarmStatus('OK')).toBe('inactive')
+      expect(wrapper.vm.getAlarmStatus('UNKNOWN')).toBe('inactive')
     })
   })
 })

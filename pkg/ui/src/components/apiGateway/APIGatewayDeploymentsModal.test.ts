@@ -42,6 +42,80 @@ describe('APIGatewayDeploymentsModal', () => {
     vi.clearAllMocks()
   })
 
+  describe('formatDate', () => {
+    it('returns Unknown for missing date', () => {
+      const wrapper = mount(APIGatewayDeploymentsModal, {
+        props: { ...defaultProps, deployments: [{ id: 'dep-1' }] },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub, LoadingSpinner: true, EmptyState: true } },
+      })
+      expect(wrapper.text()).toContain('Unknown')
+    })
+  })
+
+  describe('create deployment guard', () => {
+    it('disables create deployment button when stage name empty', () => {
+      const wrapper = mount(APIGatewayDeploymentsModal, {
+        props: defaultProps,
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub, LoadingSpinner: true, EmptyState: true } },
+      })
+      const createDeployBtn = wrapper.findAll('button').find(b => b.text().includes('Create Deployment'))
+      expect(createDeployBtn?.attributes('disabled')).toBeDefined()
+    })
+  })
+
+  describe('create stage guard', () => {
+    it('disables create stage button when stage name empty', async () => {
+      const wrapper = mount(APIGatewayDeploymentsModal, {
+        props: defaultProps,
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub, LoadingSpinner: true, EmptyState: true } },
+      })
+      // Switch to stages tab
+      const stagesTab = wrapper.findAll('button').find(b => b.text().includes('Stages'))
+      await stagesTab?.trigger('click')
+      const createStageBtn = wrapper.findAll('button').find(b => b.text().includes('Create Stage'))
+      expect(createStageBtn?.attributes('disabled')).toBeDefined()
+    })
+  })
+
+  describe('stages tab content', () => {
+    it('shows stage list when stages exist', async () => {
+      const wrapper = mount(APIGatewayDeploymentsModal, {
+        props: defaultProps,
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub, LoadingSpinner: true, EmptyState: true } },
+      })
+      const stagesTab = wrapper.findAll('button').find(b => b.text().includes('Stages'))
+      await stagesTab?.trigger('click')
+      expect(wrapper.text()).toContain('prod')
+      expect(wrapper.text()).toContain('ACTIVE')
+    })
+  })
+
+  describe('delete operations', () => {
+    it('emits delete-deployment on delete click', async () => {
+      const wrapper = mount(APIGatewayDeploymentsModal, {
+        props: defaultProps,
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub, LoadingSpinner: true, EmptyState: true } },
+      })
+      const deleteBtns = wrapper.findAll('button[title="Delete"]')
+      await deleteBtns[0].trigger('click')
+      expect(wrapper.emitted('delete-deployment')).toBeTruthy()
+      expect(wrapper.emitted('delete-deployment')![0]).toEqual(['dep-1'])
+    })
+
+    it('emits delete-stage on delete click in stages tab', async () => {
+      const wrapper = mount(APIGatewayDeploymentsModal, {
+        props: defaultProps,
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub, LoadingSpinner: true, EmptyState: true } },
+      })
+      const stagesTab = wrapper.findAll('button').find(b => b.text().includes('Stages'))
+      await stagesTab?.trigger('click')
+      const deleteBtns = wrapper.findAll('button[title="Delete"]')
+      await deleteBtns[0].trigger('click')
+      expect(wrapper.emitted('delete-stage')).toBeTruthy()
+      expect(wrapper.emitted('delete-stage')![0]).toEqual(['prod'])
+    })
+  })
+
   it('renders when open', () => {
     const wrapper = mount(APIGatewayDeploymentsModal, {
       props: defaultProps,

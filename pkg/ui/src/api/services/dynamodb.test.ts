@@ -122,6 +122,11 @@ describe('DynamoDB Utils', () => {
         nested: { name: 'Test' },
       })
     })
+
+    it('should pass through unknown DynamoDB type', () => {
+      const result = unmarshall({ key: { UnknownType: 'val' } })
+      expect(result.key).toEqual({ UnknownType: 'val' })
+    })
   })
 
   describe('marshall', () => {
@@ -183,6 +188,11 @@ describe('DynamoDB Utils', () => {
         count: { N: '42' },
         active: { BOOL: true },
       })
+    })
+
+    it('should marshall unknown type as string', () => {
+      const result = marshall({ key: Symbol('test') })
+      expect(result.key).toEqual({ S: 'Symbol(test)' })
     })
   })
 })
@@ -400,6 +410,14 @@ describe('DynamoDBService', () => {
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(callBody.Key.id.S).toBe('789')
     })
+
+    it('should handle M wrapper format key', async () => {
+      mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
+      const wrapperKey = { id: { M: { Value: { S: '123' } } } }
+      await service.deleteItem('test-table', wrapperKey)
+      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(callBody.Key.id.M.Value.S).toBe('123')
+    })
   })
 
   describe('updateItem', () => {
@@ -506,6 +524,16 @@ describe('DynamoDBService', () => {
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(callBody.Limit).toBe(1)
       expect(callBody.ExclusiveStartKey).toBeDefined()
+    })
+
+    it('should return lastKey when LastEvaluatedKey present', async () => {
+      mockFetch.mockResolvedValueOnce(mockJsonResponse({
+        Items: [{ id: { S: '1' } }],
+        LastEvaluatedKey: { id: { S: 'last' } },
+      }))
+      const result = await service.getItems('test-table')
+      expect(result.lastKey).toBeDefined()
+      expect(result.lastKey!.id).toBe('last')
     })
   })
 
@@ -830,6 +858,27 @@ describe('DynamoDB Standalone Functions', () => {
       await getRecords('shard-iterator')
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(callBody.Limit).toBe(100)
+    })
+
+    it('should handle ApproximateCreationDateTime as number', async () => {
+      mockFetch.mockResolvedValueOnce(mockJsonResponse({
+        Records: [
+          {
+            Dynamodb: {
+              ApproximateCreationDateTime: 1704067200,
+              Keys: { id: { S: '123' } },
+            },
+          },
+        ],
+      }))
+      const result = await getRecords('shard-iterator-num')
+      expect(result.Records).toHaveLength(1)
+      expect(result.Records[0].dynamodb.ApproximateCreationDateTime).toBe(1704067200)
+    })
+
+    it('should throw APIError on DynamoDBStreams network failure', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Streams network error'))
+      await expect(getRecords('bad-iterator')).rejects.toThrow(APIError)
     })
   })
 })
