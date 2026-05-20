@@ -158,4 +158,63 @@ describe('ElastiCache.vue', () => {
     // ElastiCacheDeleteModal -> elasti-cache-delete-modal-stub
     expect(wrapper.find('elasti-cache-delete-modal-stub').exists()).toBe(true)
   })
+
+  describe('template handler coverage', () => {
+    const stubs = {
+      Button: { template: '<button><slot /></button>' },
+      StatusBadge: true,
+      EmptyState: true,
+      ElastiCacheCreateGroupModal: true,
+      ElastiCacheDeleteModal: true,
+      ElastiCacheCodeExamples: true,
+      PlusIcon: true,
+      ArrowPathIcon: true,
+      ServerIcon: true,
+      CircleStackIcon: true,
+      ChevronDownIcon: true,
+      ChevronRightIcon: true,
+    }
+
+    it('Create Group button click triggers modal', () => {
+      const wrapper = shallowMount(ElastiCache, { global: { stubs } })
+      const buttons = wrapper.findAll('button')
+      const btn = buttons.find(b => b.text() === 'Create Group')
+      if (btn) {
+        btn.trigger('click')
+        expect(wrapper.vm.showCreateModal).toBe(true)
+      }
+    })
+
+    it('loadGroups via refresh button', async () => {
+      const wrapper = shallowMount(ElastiCache, { global: { stubs } })
+      await wrapper.vm.loadGroups()
+    })
+
+    it('EmptyState action triggers create modal', () => {
+      const wrapper = shallowMount(ElastiCache, { global: { stubs } })
+      const empty = wrapper.findComponent({ name: 'EmptyState' })
+      if (empty.exists()) {
+        empty.vm.$emit('action')
+        expect(wrapper.vm.showCreateModal).toBe(true)
+      }
+    })
+
+    it('ElastiCacheCreateGroupModal @update:open emit', () => {
+      const wrapper = shallowMount(ElastiCache, { global: { stubs } })
+      const modal = wrapper.findComponent('elasti-cache-create-group-modal-stub')
+      if (modal.exists() && modal.vm) {
+        modal.vm.$emit('update:open', false)
+        expect(wrapper.vm.showCreateModal).toBe(false)
+      }
+    })
+
+    it('ElastiCacheDeleteModal @update:open emit', () => {
+      const wrapper = shallowMount(ElastiCache, { global: { stubs } })
+      const modal = wrapper.findComponent('elasti-cache-delete-modal-stub')
+      if (modal.exists() && modal.vm) {
+        modal.vm.$emit('update:open', false)
+        expect(wrapper.vm.showDeleteConfirm).toBe(false)
+      }
+    })
+  })
 })

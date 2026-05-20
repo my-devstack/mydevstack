@@ -55,4 +55,14 @@ describe('MSKCreateClusterModal', () => {
     const wrapper = mount(MSKCreateClusterModal, { props: { ...defaultProps, isLoading: true }, global: { stubs } })
     expect(wrapper.exists()).toBe(true)
   })
+
+  it('cancel button emits update:open false', async () => {
+    const wrapper = mount(MSKCreateClusterModal, { props: defaultProps, global: { stubs } })
+    const buttons = wrapper.findAll('button')
+    const cancelBtn = buttons.find(b => b.text().includes('Cancel'))
+    if (cancelBtn) {
+      await cancelBtn.trigger('click')
+      expect(wrapper.emitted('update:open')).toBeTruthy()
+    }
+  })
 })

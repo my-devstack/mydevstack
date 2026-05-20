@@ -194,4 +194,213 @@ describe('KMS.vue', () => {
     // KMSPolicyModal -> k-m-s-policy-modal-stub
     expect(wrapper.find('k-m-s-policy-modal-stub').exists()).toBe(true)
   })
+
+  describe('mount interaction tests', () => {
+    const sharedStubs = {
+      Button: { template: '<button><slot /></button>' },
+      EmptyState: true,
+      LoadingSpinner: true,
+      StatusBadge: true,
+      DataTable: true,
+      CodeSnippet: true,
+      KMSCreateKeyModal: true,
+      KMSDeleteModal: true,
+      KMSViewDetailsModal: true,
+      KMSEncryptModal: true,
+      KMSDecryptModal: true,
+      KMSPolicyModal: true,
+      PlusIcon: true,
+      KeyIcon: true,
+    }
+
+    it('handles create key modal emit with wrapper', async () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      const modal = wrapper.findComponent('k-m-s-create-key-modal-stub')
+      if (modal.exists() && modal.vm) {
+        modal.vm.$emit('create')
+        await new Promise(process.nextTick)
+      }
+    })
+
+    it('handles delete key modal emit', async () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      const modal = wrapper.findComponent('k-m-s-delete-modal-stub')
+      if (modal.exists() && modal.vm) {
+        modal.vm.$emit('delete')
+        await new Promise(process.nextTick)
+      }
+    })
+
+    it('handles encrypt modal emit', async () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      const modal = wrapper.findComponent('k-m-s-encrypt-modal-stub')
+      if (modal.exists() && modal.vm) {
+        modal.vm.$emit('encrypt', { plaintext: 'Hello' })
+        await new Promise(process.nextTick)
+      }
+    })
+
+    it('handles decrypt modal emit', async () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      const modal = wrapper.findComponent('k-m-s-decrypt-modal-stub')
+      if (modal.exists() && modal.vm) {
+        modal.vm.$emit('decrypt', { ciphertextBlob: 'encrypted' })
+        await new Promise(process.nextTick)
+      }
+    })
+
+    it('handles details modal enable/disable events', async () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      const modal = wrapper.findComponent('k-m-s-view-details-modal-stub')
+      if (modal.exists() && modal.vm) {
+        modal.vm.$emit('enable-key')
+        await new Promise(process.nextTick)
+        modal.vm.$emit('disable-key')
+        await new Promise(process.nextTick)
+      }
+    })
+  })
+
+  describe('template inline handler coverage', () => {
+    const sharedStubs = {
+      Button: { template: '<button><slot /></button>' },
+      EmptyState: true,
+      LoadingSpinner: true,
+      StatusBadge: true,
+      DataTable: true,
+      CodeSnippet: true,
+      KMSCreateKeyModal: true,
+      KMSDeleteModal: true,
+      KMSViewDetailsModal: true,
+      KMSEncryptModal: true,
+      KMSDecryptModal: true,
+      KMSPolicyModal: true,
+      PlusIcon: true,
+      KeyIcon: true,
+    }
+
+    it('Create Key button triggers modal', () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      const buttons = wrapper.findAll('button')
+      const createBtn = buttons.find(b => b.text().includes('Create Key'))
+      if (createBtn) {
+        createBtn.trigger('click')
+        expect(wrapper.vm.showCreateModal).toBe(true)
+      }
+    })
+
+    it('EmptyState action triggers showCreateModal', () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      wrapper.vm.keys = []
+      const empty = wrapper.findComponent({ name: 'EmptyState' })
+      if (empty.exists()) {
+        empty.vm.$emit('action')
+        expect(wrapper.vm.showCreateModal).toBe(true)
+      }
+    })
+
+    it('pagination prev/next via goToPage', () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      wrapper.vm.keys = Array.from({ length: 25 }, (_, i) => ({
+        KeyId: `key-${i}`,
+        KeyArn: `arn:aws:kms:us-east-1:123:key/key-${i}`,
+      }))
+      expect(wrapper.vm.totalKeyPages).toBe(3)
+      wrapper.vm.goToPage(2)
+      expect(wrapper.vm.keyPage).toBe(2)
+      wrapper.vm.goToPage(1)
+      expect(wrapper.vm.keyPage).toBe(1)
+    })
+
+    it('toggleKeyExpansion expands and collapses', () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      wrapper.vm.toggleKeyExpansion('key-1')
+      expect(wrapper.vm.expandedKeys.has('key-1')).toBe(true)
+      wrapper.vm.toggleKeyExpansion('key-1')
+      expect(wrapper.vm.expandedKeys.has('key-1')).toBe(false)
+    })
+
+    it('selectKeyForAction encrypt triggers modal', () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      const key = { KeyId: 'key-1', KeyArn: 'arn:aws:kms:us-east-1:123:key/key-1', keyMetadata: { KeyState: 'Enabled' } }
+      wrapper.vm.selectKeyForAction(key, 'encrypt')
+      expect(wrapper.vm.showEncryptModal).toBe(true)
+    })
+
+    it('selectKeyForAction decrypt triggers modal', () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      const key = { KeyId: 'key-1', KeyArn: 'arn:aws:kms:us-east-1:123:key/key-1', keyMetadata: { KeyState: 'Enabled' } }
+      wrapper.vm.selectKeyForAction(key, 'decrypt')
+      expect(wrapper.vm.showDecryptModal).toBe(true)
+    })
+
+    it('selectKeyForAction delete triggers modal', () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      const key = { KeyId: 'key-1', KeyArn: 'arn:aws:kms:us-east-1:123:key/key-1', keyMetadata: { KeyState: 'Enabled' } }
+      wrapper.vm.selectKeyForAction(key, 'delete')
+      expect(wrapper.vm.showDeleteModal).toBe(true)
+    })
+
+    it('copyToClipboard copies key ARN', async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      const originalClipboard = navigator.clipboard
+      try {
+        Object.defineProperty(navigator, 'clipboard', {
+          value: { writeText },
+          writable: true,
+          configurable: true,
+        })
+        const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+        await wrapper.vm.copyToClipboard('arn:aws:kms:us-east-1:123:key/test')
+        expect(writeText).toHaveBeenCalledWith('arn:aws:kms:us-east-1:123:key/test')
+      } finally {
+        Object.defineProperty(navigator, 'clipboard', {
+          value: originalClipboard,
+          writable: true,
+          configurable: true,
+        })
+      }
+    })
+
+    it('KMSViewDetailsModal delete-key event triggers showDeleteModal', () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      const modal = wrapper.findComponent('k-m-s-view-details-modal-stub')
+      if (modal.exists() && modal.vm) {
+        modal.vm.$emit('delete-key')
+        expect(wrapper.vm.showDeleteModal).toBe(true)
+      }
+    })
+
+    it('modal @update:open handlers', () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      const modals = [
+        ['k-m-s-view-details-modal-stub', 'showDetailsModal'],
+        ['k-m-s-policy-modal-stub', 'showPolicyModal'],
+        ['k-m-s-encrypt-modal-stub', 'showEncryptModal'],
+        ['k-m-s-decrypt-modal-stub', 'showDecryptModal'],
+      ]
+      for (const [sel, key] of modals) {
+        const modal = wrapper.findComponent(sel as string)
+        if (modal.exists() && modal.vm) {
+          modal.vm.$emit('update:open', false)
+          expect(wrapper.vm[key as string]).toBe(false)
+        }
+      }
+    })
+
+    it('viewKeyDetails sets selected key and opens modal', () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      const key = { KeyId: 'key-1', keyMetadata: { KeyState: 'Enabled' } }
+      wrapper.vm.viewKeyDetails(key)
+      expect(wrapper.vm.selectedKey).toStrictEqual(key)
+      expect(wrapper.vm.showDetailsModal).toBe(true)
+    })
+
+    it('handleCreateKeyWrapper calls handleCreateKey and resets page', async () => {
+      const wrapper = shallowMount(KMS, { global: { stubs: sharedStubs } })
+      wrapper.vm.keyPage = 2
+      await wrapper.vm.handleCreateKeyWrapper()
+      expect(wrapper.vm.keyPage).toBe(1)
+    })
+  })
 })

@@ -41,6 +41,80 @@ describe('APIGatewayInvokeUrlModal', () => {
     vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
   })
 
+  describe('copy operations', () => {
+    it('does nothing when invokeUrl is empty', () => {
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: { ...defaultProps, invokeUrl: '' },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      // copyUrl returns early when invokeUrl is empty
+      expect(wrapper.vm.copyUrl()).toBeUndefined()
+    })
+
+    it('handles copy URL failure gracefully', async () => {
+      vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('Permission denied'))
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: defaultProps,
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      wrapper.vm.copyUrl()
+      await new Promise(resolve => setTimeout(resolve, 50))
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to copy:', expect.any(Error))
+      consoleErrorSpy.mockRestore()
+    })
+
+    it('does nothing when emulatorUrl is empty (no selectedStage)', () => {
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: { ...defaultProps, api: { id: '', name: 'No Id' } },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      expect(wrapper.vm.copyEmulatorUrl()).toBeUndefined()
+    })
+
+    it('handles copy emulator URL failure gracefully', async () => {
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: { ...defaultProps, open: false, stages: [] },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      // Open with stages to trigger the open watch and set selectedStage
+      await wrapper.setProps({ open: true, stages: mockStages })
+      await wrapper.vm.$nextTick()
+      // Now emulatorUrl should be truthy, making copyEmulatorUrl proceed
+      vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('Clipboard error'))
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      wrapper.vm.copyEmulatorUrl()
+      await new Promise(resolve => setTimeout(resolve, 50))
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to copy emulator URL:', expect.any(Error))
+      consoleErrorSpy.mockRestore()
+    })
+  })
+
+  describe('emulator URL', () => {
+    it('returns empty when no emulator URL for unknown emulator', () => {
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: { ...defaultProps, stages: [], invokeUrl: '' },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      // Initially selectedStage is empty, so emulatorUrl is false
+      expect(wrapper.text()).not.toContain('Emulator URL')
+    })
+  })
+
+  describe('open/close', () => {
+    it('shows emulator URL when opening modal with stages', async () => {
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: { ...defaultProps, open: false, stages: [] },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      // Open with stages
+      await wrapper.setProps({ open: true, stages: mockStages })
+      await wrapper.vm.$nextTick()
+      // Watch on open should set selectedStage, making emulatorUrl truthy
+      expect(wrapper.text()).toContain('Emulator URL')
+    })
+  })
+
   it('renders when open', () => {
     const wrapper = mount(APIGatewayInvokeUrlModal, {
       props: defaultProps,

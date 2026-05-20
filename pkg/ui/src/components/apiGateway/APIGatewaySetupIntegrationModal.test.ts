@@ -32,6 +32,95 @@ describe('APIGatewaySetupIntegrationModal', () => {
     vi.clearAllMocks()
   })
 
+  describe('lambda selection', () => {
+    it('renders lambda dropdown when type AWS and functions available', () => {
+      const wrapper = mount(APIGatewaySetupIntegrationModal, {
+        props: { ...defaultProps, initialType: 'AWS', lambdaFunctions: ['fn-1', 'fn-2'] },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: true, FormSelect: false, LoadingSpinner: true } },
+      })
+      expect(wrapper.text()).toContain('Lambda Function')
+    })
+
+    it('shows manual URI hint when type AWS and no functions', () => {
+      const wrapper = mount(APIGatewaySetupIntegrationModal, {
+        props: { ...defaultProps, initialType: 'AWS', lambdaFunctions: [] },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: true, FormSelect: true, LoadingSpinner: true } },
+      })
+      expect(wrapper.text()).toContain('No Lambda functions found')
+    })
+  })
+
+  describe('URI input visibility', () => {
+    it('shows URI input for AWS type', () => {
+      const wrapper = mount(APIGatewaySetupIntegrationModal, {
+        props: { ...defaultProps, initialType: 'AWS' },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: false, FormSelect: true, LoadingSpinner: true } },
+      })
+      expect(wrapper.text()).toContain('Integration URI')
+    })
+
+    it('shows URI input for HTTP type', () => {
+      const wrapper = mount(APIGatewaySetupIntegrationModal, {
+        props: { ...defaultProps, initialType: 'HTTP' },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: false, FormSelect: true, LoadingSpinner: true } },
+      })
+      expect(wrapper.text()).toContain('Integration URI')
+    })
+
+    it('shows URI input for HTTP_PROXY type', () => {
+      const wrapper = mount(APIGatewaySetupIntegrationModal, {
+        props: { ...defaultProps, initialType: 'HTTP_PROXY' },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: false, FormSelect: true, LoadingSpinner: true } },
+      })
+      expect(wrapper.text()).toContain('Integration URI')
+    })
+
+    it('hides URI input for MOCK type', () => {
+      const wrapper = mount(APIGatewaySetupIntegrationModal, {
+        props: { ...defaultProps, initialType: 'MOCK' },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: false, FormSelect: true, LoadingSpinner: true } },
+      })
+      expect(wrapper.text()).not.toContain('Integration URI')
+    })
+  })
+
+  describe('save emits', () => {
+    it('emits all update events on save', async () => {
+      const wrapper = mount(APIGatewaySetupIntegrationModal, {
+        props: defaultProps,
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: true, FormSelect: true, LoadingSpinner: true } },
+      })
+      const saveBtn = wrapper.findAll('button').find(b => b.text().includes('Save'))
+      await saveBtn?.trigger('click')
+      expect(wrapper.emitted('update:type')).toBeTruthy()
+      expect(wrapper.emitted('update:uri')).toBeTruthy()
+      expect(wrapper.emitted('update:httpMethod')).toBeTruthy()
+      expect(wrapper.emitted('save')).toBeTruthy()
+    })
+  })
+
+  describe('open/close', () => {
+    it('resets form when closing', async () => {
+      const wrapper = mount(APIGatewaySetupIntegrationModal, {
+        props: defaultProps,
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: true, FormSelect: true, LoadingSpinner: true } },
+      })
+      // Close modal
+      await wrapper.setProps({ open: false })
+      expect(wrapper.find('[data-testid="modal"]').exists()).toBe(false)
+    })
+
+    it('re-initializes form when reopening', async () => {
+      const wrapper = mount(APIGatewaySetupIntegrationModal, {
+        props: { ...defaultProps, open: false },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: true, FormSelect: true, LoadingSpinner: true } },
+      })
+      // Reopen
+      await wrapper.setProps({ open: true })
+      expect(wrapper.text()).toContain('Integration Type')
+    })
+  })
+
   it('renders when open', () => {
     const wrapper = mount(APIGatewaySetupIntegrationModal, {
       props: defaultProps,

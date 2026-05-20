@@ -67,6 +67,8 @@ import {
   getStages,
   updateStage,
   deleteStage,
+  getRestApiInvokeUrl,
+  getHttpApiInvokeUrl,
 } from './api-gateway'
 
 describe('API Gateway Service', () => {
@@ -98,6 +100,15 @@ describe('API Gateway Service', () => {
       expect(result.items).toEqual([])
     })
 
+    it('getRestApis normalizes lowercase fields', async () => {
+      mockFetch.mockResolvedValue(mockResponse({
+        Items: [{ id: 'api2', name: 'Lower', description: 'desc', createdDate: '2024-02-01' }],
+      }))
+      const result = await getRestApis()
+      expect(result.items[0].id).toBe('api2')
+      expect(result.items[0].name).toBe('Lower')
+    })
+
     it('createRestApi sends correct request', async () => {
       mockFetch.mockResolvedValue(mockResponse({ id: 'new-api' }))
       const result = await createRestApi('MyApi', { Description: 'test' })
@@ -122,6 +133,20 @@ describe('API Gateway Service', () => {
       expect(result.name).toBe('Test')
     })
 
+    it('getRestApi handles falsy result', async () => {
+      mockFetch.mockResolvedValue(mockResponse(null))
+      const result = await getRestApi('nonexistent')
+      expect(result).toBeNull()
+    })
+
+    it('getRestApi normalizes lowercase fields', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ id: 'api2', name: 'Lower', description: 'desc2' }))
+      const result = await getRestApi('api2')
+      expect(result.id).toBe('api2')
+      expect(result.name).toBe('Lower')
+      expect(result.description).toBe('desc2')
+    })
+
     it('getResources normalizes items', async () => {
       mockFetch.mockResolvedValue(mockResponse({
         Items: [{ Id: 'r1', Path: '/', PathPart: '' }],
@@ -133,6 +158,12 @@ describe('API Gateway Service', () => {
 
     it('getResources handles missing Items', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
+      const result = await getResources('api1')
+      expect(result.items).toEqual([])
+    })
+
+    it('getResources handles non-array Items', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ Items: 'not-array' }))
       const result = await getResources('api1')
       expect(result.items).toEqual([])
     })
@@ -219,6 +250,14 @@ describe('API Gateway Service', () => {
       const result = await getDeployments('api1')
       expect(result.items[0].id).toBe('d1')
     })
+
+    it('getDeployments handles capitalized Items', async () => {
+      mockFetch.mockResolvedValue(mockResponse({
+        Items: [{ Id: 'd2', Description: 'deploy2' }],
+      }))
+      const result = await getDeployments('api1')
+      expect(result.items[0].id).toBe('d2')
+    })
   })
 
   describe('REST API Stages', () => {
@@ -245,6 +284,12 @@ describe('API Gateway Service', () => {
       expect(result.items[0].stageName).toBe('prod')
     })
 
+    it('getRestApiStages handles missing item field', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      const result = await getRestApiStages('api1')
+      expect(result.items).toEqual([])
+    })
+
     it('updateRestApiStage works', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await updateRestApiStage('api1', 'prod', { description: 'updated' })
@@ -268,12 +313,27 @@ describe('API Gateway Service', () => {
       expect(result.items[0].name).toBe('HTTP API')
     })
 
+    it('getHttpApis handles no Items', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      const result = await getHttpApis()
+      expect(result.items).toBeUndefined()
+    })
+
     it('createHttpApi sends with defaults', async () => {
       mockFetch.mockResolvedValue(mockResponse({ ApiId: 'new-api' }))
       await createHttpApi({ name: 'MyHTTP' })
       const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(callArgs.Name).toBe('MyHTTP')
       expect(callArgs.ProtocolType).toBe('HTTP')
+    })
+
+    it('createHttpApi uses lowercase options', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ ApiId: 'new-api' }))
+      await createHttpApi({ name: 'MyHTTP', protocolType: 'WEBSOCKET', description: 'ws api' })
+      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(callArgs.Name).toBe('MyHTTP')
+      expect(callArgs.ProtocolType).toBe('WEBSOCKET')
+      expect(callArgs.Description).toBe('ws api')
     })
 
     it('deleteHttpApi works', async () => {
@@ -296,6 +356,12 @@ describe('API Gateway Service', () => {
       expect(result.items[0].routeId).toBe('r1')
     })
 
+    it('getHttpRoutes handles no Items', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      const result = await getHttpRoutes('http1')
+      expect(result.items).toBeUndefined()
+    })
+
     it('createHttpRoute maps options to SDK names', async () => {
       mockFetch.mockResolvedValue(mockResponse({ RouteId: 'r1' }))
       await createHttpRoute('http1', { routeKey: 'GET /users', authorizationType: 'NONE', target: 'integ1' })
@@ -305,11 +371,53 @@ describe('API Gateway Service', () => {
       expect(callArgs.Target).toBe('integ1')
     })
 
+    it('createHttpRoute maps all optional fields', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ RouteId: 'r1' }))
+      await createHttpRoute('http1', {
+        routeKey: 'PUT /items',
+        authorizationType: 'CUSTOM',
+        authorizerId: 'auth1',
+        target: 'integ2',
+        apiKeyRequired: true,
+        modelSelectionExpression: 'modelExpr',
+        operationName: 'myOp',
+      })
+      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(callArgs.RouteKey).toBe('PUT /items')
+      expect(callArgs.AuthorizationType).toBe('CUSTOM')
+      expect(callArgs.AuthorizerId).toBe('auth1')
+      expect(callArgs.Target).toBe('integ2')
+      expect(callArgs.ApiKeyRequired).toBe(true)
+      expect(callArgs.ModelSelectionExpression).toBe('modelExpr')
+      expect(callArgs.OperationName).toBe('myOp')
+    })
+
     it('updateHttpRoute maps options', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await updateHttpRoute('http1', 'r1', { routeKey: 'POST /' })
       const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(callArgs.RouteKey).toBe('POST /')
+    })
+
+    it('updateHttpRoute maps all optional fields', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await updateHttpRoute('http1', 'r1', {
+        routeKey: 'DELETE /',
+        authorizationType: 'AWS_IAM',
+        authorizerId: 'auth2',
+        target: 'integ3',
+        apiKeyRequired: false,
+        modelSelectionExpression: 'expr2',
+        operationName: 'delOp',
+      })
+      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(callArgs.RouteKey).toBe('DELETE /')
+      expect(callArgs.AuthorizationType).toBe('AWS_IAM')
+      expect(callArgs.AuthorizerId).toBe('auth2')
+      expect(callArgs.Target).toBe('integ3')
+      expect(callArgs.ApiKeyRequired).toBe(false)
+      expect(callArgs.ModelSelectionExpression).toBe('expr2')
+      expect(callArgs.OperationName).toBe('delOp')
     })
 
     it('deleteHttpRoute works', async () => {
@@ -326,6 +434,22 @@ describe('API Gateway Service', () => {
       expect(result.items[0].integrationId).toBe('i1')
     })
 
+    it('getHttpIntegrations handles lowercase items', async () => {
+      mockFetch.mockResolvedValue(mockResponse({
+        items: [{ integrationId: 'i2', integrationType: 'HTTP_PROXY' }],
+      }))
+      const result = await getHttpIntegrations('http1')
+      expect(result.items[0].integrationId).toBe('i2')
+    })
+
+    it('getHttpIntegrations handles IntegrationID capitalization', async () => {
+      mockFetch.mockResolvedValue(mockResponse({
+        Items: [{ IntegrationID: 'i3', IntegrationType: 'AWS' }],
+      }))
+      const result = await getHttpIntegrations('http1')
+      expect(result.items[0].integrationId).toBe('i3')
+    })
+
     it('createHttpIntegration maps options', async () => {
       mockFetch.mockResolvedValue(mockResponse({ IntegrationId: 'i1' }))
       await createHttpIntegration('http1', { integrationType: 'HTTP', integrationUri: 'https://example.com' })
@@ -334,10 +458,78 @@ describe('API Gateway Service', () => {
       expect(callArgs.IntegrationUri).toBe('https://example.com')
     })
 
+    it('createHttpIntegration maps all optional fields', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ IntegrationId: 'i1' }))
+      await createHttpIntegration('http1', {
+        integrationType: 'HTTP',
+        integrationUri: 'https://example.com/api',
+        integrationMethod: 'POST',
+        payloadFormatVersion: '2.0',
+        description: 'test integration',
+        timeoutInMillis: 30000,
+        credentialsArn: 'arn:aws:iam::123:role/test',
+        connectionType: 'VPC_LINK',
+        connectionId: 'conn1',
+        integrationSubtype: 'EventBridge',
+        passthroughBehavior: 'WHEN_NO_MATCH',
+        contentHandlingStrategy: 'CONVERT_TO_TEXT',
+        templateSelectionExpression: 'tplExpr',
+        requestTemplates: { 'application/json': '{ "body": $input.body }' },
+      })
+      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(callArgs.IntegrationType).toBe('HTTP')
+      expect(callArgs.IntegrationUri).toBe('https://example.com/api')
+      expect(callArgs.IntegrationMethod).toBe('POST')
+      expect(callArgs.PayloadFormatVersion).toBe('2.0')
+      expect(callArgs.Description).toBe('test integration')
+      expect(callArgs.TimeoutInMillis).toBe(30000)
+      expect(callArgs.CredentialsArn).toBe('arn:aws:iam::123:role/test')
+      expect(callArgs.ConnectionType).toBe('VPC_LINK')
+      expect(callArgs.ConnectionId).toBe('conn1')
+      expect(callArgs.IntegrationSubtype).toBe('EventBridge')
+      expect(callArgs.PassthroughBehavior).toBe('WHEN_NO_MATCH')
+      expect(callArgs.ContentHandlingStrategy).toBe('CONVERT_TO_TEXT')
+      expect(callArgs.TemplateSelectionExpression).toBe('tplExpr')
+      expect(callArgs.RequestTemplates).toEqual({ 'application/json': '{ "body": $input.body }' })
+    })
+
     it('updateHttpIntegration works', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await updateHttpIntegration('http1', 'i1', { description: 'updated' })
       expect(mockFetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('updateHttpIntegration maps all optional fields', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await updateHttpIntegration('http1', 'i1', {
+        integrationType: 'HTTP',
+        integrationUri: 'https://example.com/new',
+        integrationMethod: 'PUT',
+        payloadFormatVersion: '1.0',
+        description: 'updated integration',
+        timeoutInMillis: 60000,
+        credentialsArn: 'arn:aws:iam::123:role/new',
+        connectionType: 'INTERNET',
+        connectionId: 'conn2',
+        integrationSubtype: 'StepFunctions',
+        passthroughBehavior: 'NEVER',
+        contentHandlingStrategy: 'CONVERT_TO_BINARY',
+        templateSelectionExpression: 'tplExpr2',
+      })
+      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(callArgs.IntegrationType).toBe('HTTP')
+      expect(callArgs.IntegrationUri).toBe('https://example.com/new')
+      expect(callArgs.IntegrationMethod).toBe('PUT')
+      expect(callArgs.PayloadFormatVersion).toBe('1.0')
+      expect(callArgs.Description).toBe('updated integration')
+      expect(callArgs.TimeoutInMillis).toBe(60000)
+      expect(callArgs.CredentialsArn).toBe('arn:aws:iam::123:role/new')
+      expect(callArgs.ConnectionType).toBe('INTERNET')
+      expect(callArgs.ConnectionId).toBe('conn2')
+      expect(callArgs.IntegrationSubtype).toBe('StepFunctions')
+      expect(callArgs.PassthroughBehavior).toBe('NEVER')
+      expect(callArgs.ContentHandlingStrategy).toBe('CONVERT_TO_BINARY')
+      expect(callArgs.TemplateSelectionExpression).toBe('tplExpr2')
     })
 
     it('deleteHttpApiIntegration works', async () => {
@@ -354,6 +546,14 @@ describe('API Gateway Service', () => {
       expect(result.items[0].stageName).toBe('prod')
     })
 
+    it('getHttpApiStages handles capitalized Items', async () => {
+      mockFetch.mockResolvedValue(mockResponse({
+        Items: [{ StageName: 'staging' }],
+      }))
+      const result = await getHttpApiStages('http1')
+      expect(result.items[0].stageName).toBe('staging')
+    })
+
     it('getHttpApiStage works', async () => {
       mockFetch.mockResolvedValue(mockResponse({ StageName: 'prod' }))
       const result = await getHttpApiStage('http1', 'prod')
@@ -368,16 +568,66 @@ describe('API Gateway Service', () => {
       expect(callArgs.AutoDeploy).toBe(true)
     })
 
+    it('createHttpApiStage maps all options', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ StageName: 'prod' }))
+      await createHttpApiStage('http1', {
+        stageName: 'prod',
+        description: 'production stage',
+        stageVariables: { VAR: 'val' },
+        autoDeploy: true,
+        defaultRouteSettings: { DataTraceEnabled: true },
+        accessLogSettings: { Format: '$context.requestId' },
+        tags: { Env: 'prod' },
+      })
+      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(callArgs.StageName).toBe('prod')
+      expect(callArgs.Description).toBe('production stage')
+      expect(callArgs.StageVariables).toEqual({ VAR: 'val' })
+      expect(callArgs.AutoDeploy).toBe(true)
+      expect(callArgs.DefaultRouteSettings).toEqual({ DataTraceEnabled: true })
+      expect(callArgs.AccessLogSettings).toEqual({ Format: '$context.requestId' })
+      expect(callArgs.Tags).toEqual({ Env: 'prod' })
+    })
+
     it('updateHttpApiStage works', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await updateHttpApiStage('http1', 'prod', { description: 'updated' })
       expect(mockFetch).toHaveBeenCalledTimes(1)
     })
 
+    it('updateHttpApiStage maps all options', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await updateHttpApiStage('http1', 'prod', {
+        description: 'updated stage',
+        stageVariables: { KEY: 'val' },
+        autoDeploy: false,
+        defaultRouteSettings: { DetailedMetricsEnabled: true },
+        accessLogSettings: { Format: '$context.requestId' },
+      })
+      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(callArgs.Description).toBe('updated stage')
+      expect(callArgs.StageVariables).toEqual({ KEY: 'val' })
+      expect(callArgs.AutoDeploy).toBe(false)
+      expect(callArgs.DefaultRouteSettings).toEqual({ DetailedMetricsEnabled: true })
+      expect(callArgs.AccessLogSettings).toEqual({ Format: '$context.requestId' })
+    })
+
     it('deleteHttpApiStage works', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await deleteHttpApiStage('http1', 'prod')
       expect(mockFetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('getRestApiInvokeUrl calls GetInvokeUrl with APIGateway prefix', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ url: 'https://api.example.com' }))
+      const result = await getRestApiInvokeUrl('api1', 'prod')
+      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('APIGateway.GetInvokeUrl')
+    })
+
+    it('getHttpApiInvokeUrl calls GetInvokeUrl with ApiGatewayV2 prefix', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ url: 'https://http-api.example.com' }))
+      const result = await getHttpApiInvokeUrl('http1', 'prod')
+      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('ApiGatewayV2.GetInvokeUrl')
     })
   })
 
@@ -454,6 +704,11 @@ describe('API Gateway Service', () => {
     it('throws Error on network failure', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'))
       await expect(getRestApis()).rejects.toThrow('Network error')
+    })
+
+    it('throws generic error on network failure with empty message', async () => {
+      mockFetch.mockRejectedValue({})
+      await expect(getRestApis()).rejects.toThrow('Request failed')
     })
 
     it('returns notFound object on 404', async () => {

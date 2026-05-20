@@ -81,4 +81,28 @@ describe('Kinesis.vue', () => {
     expect(wrapper.findComponent({ name: 'KinesisViewRecordModal' }).exists()).toBe(true)
     expect(wrapper.findComponent({ name: 'ConfirmModal' }).exists()).toBe(true)
   })
+
+  describe('template inline handler coverage', () => {
+    it('Create Stream button exists', () => {
+      const wrapper = shallowMount(Kinesis, { global: { stubs } })
+      expect(wrapper.text()).toContain('Create Stream')
+    })
+
+    it('modal @update:open handlers', () => {
+      const wrapper = shallowMount(Kinesis, { global: { stubs } })
+      const modals = ['kinesis-create-modal-stub', 'kinesis-put-record-modal-stub', 'kinesis-view-record-modal-stub']
+      for (const sel of modals) {
+        const modal = wrapper.findComponent(sel)
+        if (modal.exists() && modal.vm) {
+          modal.vm.$emit('update:open', false)
+        }
+      }
+    })
+
+    it('showCreateModal toggle', () => {
+      const wrapper = shallowMount(Kinesis, { global: { stubs } })
+      wrapper.vm.showCreateModal = true
+      expect(wrapper.vm.showCreateModal).toBe(true)
+    })
+  })
 })

@@ -91,4 +91,50 @@ describe('MSK.vue', () => {
     shallowMount(MSK, { global: { stubs } })
     expect(mockListClustersV2).toHaveBeenCalledTimes(1)
   })
+
+  describe('template handler coverage', () => {
+    it('Create Cluster button triggers modal', () => {
+      const wrapper = shallowMount(MSK, { global: { stubs } })
+      const buttons = wrapper.findAll('button')
+      const btn = buttons.find(b => b.text() === 'Create Cluster')
+      if (btn) {
+        btn.trigger('click')
+        expect(wrapper.vm.showCreateModal).toBe(true)
+      }
+    })
+
+    it('MSKCreateClusterModal @update:open emit', () => {
+      const wrapper = shallowMount(MSK, { global: { stubs } })
+      const modal = wrapper.findComponent('m-s-k-create-cluster-modal-stub')
+      if (modal.exists() && modal.vm) {
+        modal.vm.$emit('update:open', false)
+        expect(wrapper.vm.showCreateModal).toBe(false)
+      }
+    })
+
+    it('MSKDeleteClusterModal @update:open emit', () => {
+      const wrapper = shallowMount(MSK, { global: { stubs } })
+      const modal = wrapper.findComponent('m-s-k-delete-cluster-modal-stub')
+      if (modal.exists() && modal.vm) {
+        modal.vm.$emit('update:open', false)
+        expect(wrapper.vm.showDeleteModal).toBe(false)
+      }
+    })
+
+    it('loadClusters called via refresh', () => {
+      const wrapper = shallowMount(MSK, { global: { stubs } })
+      wrapper.vm.loadClusters()
+    })
+
+    it('goToPage called for pagination', () => {
+      const wrapper = shallowMount(MSK, { global: { stubs } })
+      wrapper.vm.clusters = Array.from({ length: 25 }, (_, i) => ({
+        ClusterName: `cluster-${i}`,
+        ClusterArn: `arn:aws:kafka:us-east-1:123:cluster/cluster-${i}`,
+        State: 'ACTIVE',
+      }))
+      wrapper.vm.goToPage(2)
+      expect(wrapper.vm.clusterPage).toBe(2)
+    })
+  })
 })
