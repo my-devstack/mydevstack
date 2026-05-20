@@ -5,7 +5,7 @@ import EmptyState from '@/components/common/EmptyState.vue'
 interface HTTPAPI {
   apiId: string
   name: string
-  protocol?: string
+  protocolType?: string
   description?: string
 }
 
@@ -83,7 +83,7 @@ const settingsStore = useSettingsStore()
             <span class="text-light-muted dark:text-dark-muted text-xs shrink-0">({{ api.apiId }})</span>
           </div>
           <div class="col-span-2 text-light-muted dark:text-dark-muted">
-            {{ api.protocol || 'HTTP' }}
+            {{ api.protocolType || 'HTTP' }}
           </div>
           <div class="col-span-5 text-light-muted dark:text-dark-muted truncate">
             {{ api.description || 'No description' }}

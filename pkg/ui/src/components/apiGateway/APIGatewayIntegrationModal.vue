@@ -28,7 +28,7 @@ const _props = props // workaround
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  'create': [integrationType: string, httpMethod: string, uri: string]
+  'create': [integrationType: string, httpMethod: string, uri: string, mappingTemplate?: string]
   'update': [integrationType: string, httpMethod: string, uri: string, payloadFormat: string]
   'confirm': []
 }>()
@@ -41,6 +41,7 @@ const uri = ref('')
 const payloadFormat = ref('2.0')
 const selectedLambdaFunction = ref('')
 const selectedLambdaArn = ref('')
+const mappingTemplate = ref('')
 
 const isEditMode = computed(() => !!props.integrationId)
 
@@ -58,8 +59,11 @@ const allIntegrationTypes = [
 const integrationTypes = computed(() => {
   if (props.type === 'http') {
     return [
-      { value: 'lambda', label: 'Lambda Function' },
-      { value: 'http', label: 'HTTP' },
+      { value: 'AWS_PROXY', label: 'Lambda (AWS_PROXY)' },
+      { value: 'AWS', label: 'Lambda (AWS with VTL)' },
+      { value: 'HTTP_PROXY', label: 'HTTP Proxy' },
+      { value: 'HTTP', label: 'HTTP (with VTL)' },
+      { value: 'MOCK', label: 'Mock' },
     ]
   }
   return allIntegrationTypes
@@ -130,6 +134,7 @@ watch(() => props.open, (newVal) => {
     integrationType.value = 'MOCK'
     integrationHttpMethod.value = 'POST'
     payloadFormat.value = '2.0'
+    mappingTemplate.value = ''
   } else if (props.integrationId && props.integrationData) {
     const data = props.integrationData
     integrationType.value = data.integrationType || data.integrationType || (props.type === 'http' ? 'lambda' : 'AWS_PROXY')
@@ -155,24 +160,14 @@ function handleCreate() {
   }
   
   const httpMethod = integrationHttpMethod.value || 'POST'
-  let integrationTypeStr = integrationType.value
-  
-  // Transform type for HTTP APIs (v2)
-  if (props.type === 'http') {
-    if (integrationType.value === 'AWS_PROXY') {
-      integrationTypeStr = 'lambda'
-    } else {
-      integrationTypeStr = integrationType.value.toLowerCase()
-    }
-  }
-  
-  // For REST APIs, use AWS_PROXY as-is (don't transform)
+  // Pass integration type directly for both REST and HTTP API v2
+  const integrationTypeStr = integrationType.value
   
   const payloadFmt = payloadFormat.value || '2.0'
   if (isEditMode.value) {
     emit('update', integrationTypeStr, httpMethod, uri.value, payloadFmt)
   } else {
-    emit('create', integrationTypeStr, httpMethod, uri.value)
+    emit('create', integrationTypeStr, httpMethod, uri.value, mappingTemplate.value || undefined)
   }
 }
 
@@ -196,8 +191,8 @@ function handleClose() {
         :options="integrationTypes"
       />
       
-      <!-- Lambda dropdown for lambda type - show when we have functions OR loading -->
-      <div v-if="(integrationType === 'lambda' || integrationType === 'AWS_PROXY') && (props.lambdaLoading || lambdaFunctionOptions.length > 0)">
+      <!-- Lambda dropdown for AWS_PROXY type -->
+      <div v-if="(integrationType === 'AWS_PROXY') && (props.lambdaLoading || lambdaFunctionOptions.length > 0)">
         <FormSelect
           v-model="selectedLambdaFunction"
           label="Lambda Function"
@@ -213,20 +208,45 @@ function handleClose() {
         </p>
       </div>
       
-      <!-- Manual URI input for lambda/AWS_PROXY - always show so users can type manually -->
+      <!-- URI input for AWS_PROXY -->
       <FormInput
-        v-if="integrationType === 'lambda' || integrationType === 'AWS_PROXY'"
+        v-if="integrationType === 'AWS_PROXY'"
         v-model="uri"
         label="URI"
         placeholder="arn:aws:apigateway:region:lambda:path/function_name"
       />
       
-      <!-- URI input for HTTP -->
+      <!-- URI input for AWS (with VTL) -->
+      <FormInput
+        v-if="integrationType === 'AWS'"
+        v-model="uri"
+        label="URI"
+        placeholder="arn:aws:apigateway:region:lambda:path/function_name"
+      />
+
+      <!-- URI input for HTTP_PROXY -->
+      <FormInput
+        v-if="integrationType === 'HTTP_PROXY'"
+        v-model="uri"
+        label="URI"
+        placeholder="https://api.example.com"
+      />
+
+      <!-- URI input for HTTP (with VTL) -->
       <FormInput
         v-if="integrationType === 'HTTP'"
         v-model="uri"
         label="URI"
         placeholder="https://api.example.com"
+      />
+
+      <!-- VTL Mapping Template for AWS and HTTP types -->
+      <FormInput
+        v-if="integrationType === 'AWS' || integrationType === 'HTTP'"
+        v-model="mappingTemplate"
+        label="Mapping Template (VTL)"
+        placeholder='{"statusCode": 200}'
+        type="textarea"
       />
 
       <!-- HTTP Method for non-Mock integrations -->

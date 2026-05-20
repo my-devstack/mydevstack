@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
+import FormSelect from '@/components/common/FormSelect.vue'
 
 const props = defineProps<{
   open: boolean
@@ -15,7 +16,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:open': [value: boolean]
   'create-rest': [name: string, description: string]
-  'create-http': [name: string, description: string]
+  'create-http': [name: string, description: string, protocol: string]
   'create': [name: string, description: string]
   'update': [name: string, description: string]
   'update-rest': [name: string, description: string]
@@ -27,6 +28,16 @@ const restName = ref('')
 const restDescription = ref('')
 const httpName = ref('')
 const httpDescription = ref('')
+const protocolType = ref('HTTP')
+
+const protocolOptions = computed(() => {
+  const options = [{ value: 'HTTP', label: 'HTTP' }]
+  // MiniStack does not support WebSocket protocol
+  if (settingsStore.emulator !== 'MINISTACK') {
+    options.push({ value: 'WEBSOCKET', label: 'WebSocket' })
+  }
+  return options
+})
 
 // Reset form when modal opens or api changes
 watch(() => props.open, (isOpen) => {
@@ -41,6 +52,7 @@ watch(() => props.open, (isOpen) => {
       restDescription.value = ''
       httpName.value = ''
       httpDescription.value = ''
+      protocolType.value = 'HTTP'
     }
   }
 }, { immediate: true })
@@ -58,7 +70,7 @@ function handleCreate() {
     emit('create', restName.value.trim(), restDescription.value.trim())
   } else {
     if (!httpName.value.trim()) return
-    emit('create-http', httpName.value.trim(), httpDescription.value.trim())
+    emit('create-http', httpName.value.trim(), httpDescription.value.trim(), protocolType.value)
     emit('create', httpName.value.trim(), httpDescription.value.trim())
   }
 }
@@ -71,7 +83,7 @@ function handleClose() {
 <template>
   <Modal
     :open="open"
-    :title="api ? (type === 'rest' ? 'Edit REST API' : 'Edit HTTP API') : (type === 'rest' ? 'Create REST API' : 'Create HTTP API')"
+    :title="api ? (type === 'rest' ? 'Edit REST API' : 'Edit API (V2)') : (type === 'rest' ? 'Create REST API' : 'Create API (V2)')"
     size="md"
     @update:open="emit('update:open', $event)"
     @close="handleClose"
@@ -88,7 +100,7 @@ function handleClose() {
         v-else
         v-model="httpName"
         label="API Name"
-        placeholder="my-http-api"
+        placeholder="my-api"
         required
       />
 
@@ -102,16 +114,32 @@ function handleClose() {
         v-else
         v-model="httpDescription"
         label="Description"
-        placeholder="My HTTP API (optional)"
+        placeholder="My API (optional)"
+      />
+
+      <FormSelect
+        v-if="type === 'http'"
+        v-model="protocolType"
+        label="Protocol"
+        :options="protocolOptions"
       />
 
       <div
-        v-if="type === 'http'"
+        v-if="type === 'http' && protocolType === 'HTTP'"
         class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20"
       >
         <p class="text-sm text-blue-800 dark:text-blue-200">
           <strong>HTTP APIs</strong> are optimized for Lambda and HTTP backends. 
           They support route-based routing and are generally simpler to configure than REST APIs.
+        </p>
+      </div>
+
+      <div
+        v-if="type === 'http' && protocolType === 'WEBSOCKET'"
+        class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20"
+      >
+        <p class="text-sm text-blue-800 dark:text-blue-200">
+          <strong>WebSocket APIs</strong> enable real-time two-way communication. They support $connect, $disconnect, and $default routes.
         </p>
       </div>
     </div>

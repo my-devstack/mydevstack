@@ -365,8 +365,22 @@ describe('useApiGateway', () => {
     it('should create HTTP API', async () => {
       vi.mocked(apigw.createHttpApi).mockResolvedValue({} as any)
       const { createHttpApi } = useApiGateway()
-      await createHttpApi('New HTTP API', 'Description')
-      expect(apigw.createHttpApi).toHaveBeenCalledWith({ name: 'New HTTP API', description: 'Description' })
+      await createHttpApi('New HTTP API', 'Description', 'HTTP')
+      expect(apigw.createHttpApi).toHaveBeenCalledWith({ name: 'New HTTP API', description: 'Description', protocolType: 'HTTP' })
+    })
+
+    it('should create WebSocket API', async () => {
+      vi.mocked(apigw.createHttpApi).mockResolvedValue({} as any)
+      const { createHttpApi } = useApiGateway()
+      await createHttpApi('WS API', 'desc', 'WEBSOCKET')
+      expect(apigw.createHttpApi).toHaveBeenCalledWith({ name: 'WS API', description: 'desc', protocolType: 'WEBSOCKET' })
+    })
+
+    it('defaults to HTTP protocol when not specified', async () => {
+      vi.mocked(apigw.createHttpApi).mockResolvedValue({} as any)
+      const { createHttpApi } = useApiGateway()
+      await createHttpApi('Default API')
+      expect(apigw.createHttpApi).toHaveBeenCalledWith({ name: 'Default API', description: undefined, protocolType: 'HTTP' })
     })
 
     it('throws on error', async () => {

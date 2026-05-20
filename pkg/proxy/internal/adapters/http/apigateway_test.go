@@ -578,7 +578,10 @@ func TestAPIGateway_CreateApi_Lowercase(t *testing.T) {
 	s := setupAGTestV2(t)
 
 	s.mpV2.EXPECT().CreateApi(mock.Anything, mock.MatchedBy(func(in *apigatewayv2.CreateApiInput) bool {
-		return in.Name != nil && *in.Name == "my-api" && in.Description != nil && *in.Description == "desc"
+		return in.Name != nil && *in.Name == "my-api" &&
+			in.Description != nil && *in.Description == "desc" &&
+			in.ProtocolType == apigwV2Types.ProtocolTypeHttp &&
+			in.RouteSelectionExpression == nil
 	})).Return(&apigatewayv2.CreateApiOutput{ApiId: aws.String("abc")}, nil)
 
 	w := performAGRequest(s.h, "ApiGatewayV2.CreateApi", []byte(`{"name":"my-api","description":"desc"}`))
@@ -590,10 +593,57 @@ func TestAPIGateway_CreateApi_TitleCase(t *testing.T) {
 	s := setupAGTestV2(t)
 
 	s.mpV2.EXPECT().CreateApi(mock.Anything, mock.MatchedBy(func(in *apigatewayv2.CreateApiInput) bool {
-		return in.Name != nil && *in.Name == "my-api" && in.Description != nil && *in.Description == "desc"
+		return in.Name != nil && *in.Name == "my-api" &&
+			in.Description != nil && *in.Description == "desc" &&
+			in.ProtocolType == apigwV2Types.ProtocolTypeHttp &&
+			in.RouteSelectionExpression == nil
 	})).Return(&apigatewayv2.CreateApiOutput{ApiId: aws.String("abc")}, nil)
 
 	w := performAGRequest(s.h, "ApiGatewayV2.CreateApi", []byte(`{"Name":"my-api","Description":"desc"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestAPIGateway_CreateApi_WebSocketProtocol(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+
+	s.mpV2.EXPECT().CreateApi(mock.Anything, mock.MatchedBy(func(in *apigatewayv2.CreateApiInput) bool {
+		return in.Name != nil && *in.Name == "ws-api" &&
+			in.ProtocolType == apigwV2Types.ProtocolType("WEBSOCKET") &&
+			in.RouteSelectionExpression != nil &&
+			*in.RouteSelectionExpression == "$request.body.action"
+	})).Return(&apigatewayv2.CreateApiOutput{ApiId: aws.String("ws-1")}, nil)
+
+	w := performAGRequest(s.h, "ApiGatewayV2.CreateApi", []byte(`{"protocolType":"WEBSOCKET","name":"ws-api"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestAPIGateway_CreateApi_WebSocketProtocolWithCustomRSE(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+
+	s.mpV2.EXPECT().CreateApi(mock.Anything, mock.MatchedBy(func(in *apigatewayv2.CreateApiInput) bool {
+		return in.Name != nil && *in.Name == "ws-custom-rse" &&
+			in.ProtocolType == apigwV2Types.ProtocolType("WEBSOCKET") &&
+			in.RouteSelectionExpression != nil &&
+			*in.RouteSelectionExpression == "$request.body.customPath"
+	})).Return(&apigatewayv2.CreateApiOutput{ApiId: aws.String("ws-2")}, nil)
+
+	w := performAGRequest(s.h, "ApiGatewayV2.CreateApi", []byte(`{"protocolType":"WEBSOCKET","name":"ws-custom-rse","routeSelectionExpression":"$request.body.customPath"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestAPIGateway_CreateApi_MissingProtocol(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+
+	s.mpV2.EXPECT().CreateApi(mock.Anything, mock.MatchedBy(func(in *apigatewayv2.CreateApiInput) bool {
+		return in.Name != nil && *in.Name == "default-http" &&
+			in.ProtocolType == apigwV2Types.ProtocolTypeHttp &&
+			in.RouteSelectionExpression == nil
+	})).Return(&apigatewayv2.CreateApiOutput{ApiId: aws.String("def-1")}, nil)
+
+	w := performAGRequest(s.h, "ApiGatewayV2.CreateApi", []byte(`{"name":"default-http"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -803,6 +853,38 @@ func TestAPIGateway_UpdateIntegrationV2_TitleCase(t *testing.T) {
 
 	w := performAGRequest(s.h, "ApiGatewayV2.UpdateIntegration",
 		[]byte(`{"ApiId":"abc","IntegrationId":"i1","IntegrationType":"HTTP_PROXY","IntegrationUri":"https://example.com"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestAPIGateway_CreateIntegrationV2_WithRequestTemplates(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+
+	s.mpV2.EXPECT().CreateIntegration(mock.Anything, mock.MatchedBy(func(in *apigatewayv2.CreateIntegrationInput) bool {
+		return in.ApiId != nil && *in.ApiId == "abc" &&
+			in.IntegrationType == apigwV2Types.IntegrationType("AWS") &&
+			in.RequestTemplates != nil &&
+			in.RequestTemplates["application/json"] == `{"statusCode":200}`
+	})).Return(&apigatewayv2.CreateIntegrationOutput{IntegrationId: aws.String("i1")}, nil)
+
+	w := performAGRequest(s.h, "ApiGatewayV2.CreateIntegration",
+		[]byte(`{"ApiId":"abc","IntegrationType":"AWS","IntegrationUri":"arn:aws:lambda:us-east-1:1:function:my-func","RequestTemplates":{"application/json":"{\"statusCode\":200}"}}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestAPIGateway_UpdateIntegrationV2_WithRequestTemplates(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+
+	s.mpV2.EXPECT().UpdateIntegration(mock.Anything, mock.MatchedBy(func(in *apigatewayv2.UpdateIntegrationInput) bool {
+		return in.ApiId != nil && *in.ApiId == "abc" &&
+			in.IntegrationId != nil && *in.IntegrationId == "i1" &&
+			in.RequestTemplates != nil &&
+			in.RequestTemplates["application/json"] == `{"statusCode":200}`
+	})).Return(&apigatewayv2.UpdateIntegrationOutput{IntegrationId: aws.String("i1")}, nil)
+
+	w := performAGRequest(s.h, "ApiGatewayV2.UpdateIntegration",
+		[]byte(`{"ApiId":"abc","IntegrationId":"i1","IntegrationType":"HTTP","RequestTemplates":{"application/json":"{\"statusCode\":200}"}}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 

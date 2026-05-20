@@ -181,9 +181,10 @@ describe('APIGatewayIntegrationModal', () => {
         props: { ...defaultProps, type: 'http' },
         global: { stubs },
       })
-      // For HTTP type, integration types are Lambda Function and HTTP
+      // For HTTP type, integration types include AWS types
       expect(wrapper.text()).toContain('Integration Type')
-      expect(wrapper.text()).toContain('Lambda')
+      expect(wrapper.text()).toContain('Lambda (AWS_PROXY)')
+      expect(wrapper.text()).toContain('HTTP Proxy')
     })
 
     it('shows URI input when integration type is HTTP', async () => {
@@ -208,6 +209,115 @@ describe('APIGatewayIntegrationModal', () => {
       // But by default integrationType is 'MOCK', so lambda function select is not shown
       // This test just verifies the component doesn't crash with Functions format
       expect(wrapper.exists()).toBe(true)
+    })
+  })
+
+  describe('new V2 integration types', () => {
+    it('shows all 5 integration types for HTTP API type', () => {
+      const wrapper = mount(APIGatewayIntegrationModal, {
+        props: { ...defaultProps, type: 'http' },
+        global: { stubs },
+      })
+      const select = wrapper.find('.form-select select')
+      const options = select.findAll('option')
+      const optionTexts = options.map(o => o.text())
+      expect(optionTexts).toContain('Lambda (AWS_PROXY)')
+      expect(optionTexts).toContain('Lambda (AWS with VTL)')
+      expect(optionTexts).toContain('HTTP Proxy')
+      expect(optionTexts).toContain('HTTP (with VTL)')
+      expect(optionTexts).toContain('Mock')
+    })
+
+    it('shows VTL template textarea for AWS integration type', async () => {
+      const wrapper = mount(APIGatewayIntegrationModal, {
+        props: { ...defaultProps, type: 'http' },
+        global: { stubs },
+      })
+      // Select AWS type by emitting update:modelValue
+      const select = wrapper.find('.form-select select')
+      await select.setValue('AWS')
+      expect(wrapper.text()).toContain('Mapping Template (VTL)')
+    })
+
+    it('shows VTL template textarea for HTTP integration type', async () => {
+      const wrapper = mount(APIGatewayIntegrationModal, {
+        props: { ...defaultProps, type: 'http' },
+        global: { stubs },
+      })
+      const select = wrapper.find('.form-select select')
+      await select.setValue('HTTP')
+      expect(wrapper.text()).toContain('Mapping Template (VTL)')
+    })
+
+    it('shows URI input for HTTP_PROXY type', async () => {
+      const wrapper = mount(APIGatewayIntegrationModal, {
+        props: { ...defaultProps, type: 'http' },
+        global: { stubs },
+      })
+      const select = wrapper.find('.form-select select')
+      await select.setValue('HTTP_PROXY')
+      expect(wrapper.text()).toContain('URI')
+    })
+  })
+
+  describe('mappingTemplate emit', () => {
+    it('emits mappingTemplate for AWS integration type', async () => {
+      const wrapper = mount(APIGatewayIntegrationModal, {
+        props: { ...defaultProps, type: 'http' },
+        global: { stubs },
+      })
+      const select = wrapper.find('.form-select select')
+      // Select AWS type
+      await select.setValue('AWS')
+      // Fill in URI (first input)
+      const inputs = wrapper.findAll('.form-input input')
+      await inputs[0].setValue('arn:aws:lambda:us-east-1:1:function:my-func')
+      // Fill in mapping template (second input, stub renders input not textarea)
+      await inputs[1].setValue('{"statusCode":200}')
+      const createBtn = wrapper.findAll('button').find(b => b.text().includes('Create'))
+      await createBtn!.trigger('click')
+      expect(wrapper.emitted('create')).toBeTruthy()
+      const emitted = wrapper.emitted('create')![0]
+      expect(emitted[0]).toBe('AWS')
+      expect(emitted[3]).toBe('{"statusCode":200}')
+    })
+
+    it('emits mappingTemplate for HTTP integration type', async () => {
+      const wrapper = mount(APIGatewayIntegrationModal, {
+        props: { ...defaultProps, type: 'http' },
+        global: { stubs },
+      })
+      const select = wrapper.find('.form-select select')
+      await select.setValue('HTTP')
+      const inputs = wrapper.findAll('.form-input input')
+      await inputs[0].setValue('https://example.com')
+      // mapping template is the second input
+      await inputs[1].setValue('{"statusCode":200}')
+      const createBtn = wrapper.findAll('button').find(b => b.text().includes('Create'))
+      await createBtn!.trigger('click')
+      expect(wrapper.emitted('create')).toBeTruthy()
+      const emitted = wrapper.emitted('create')![0]
+      expect(emitted[0]).toBe('HTTP')
+      expect(emitted[3]).toBe('{"statusCode":200}')
+    })
+
+    it('does not emit mappingTemplate for AWS_PROXY', async () => {
+      const wrapper = mount(APIGatewayIntegrationModal, {
+        props: { ...defaultProps, type: 'http' },
+        global: { stubs },
+      })
+      const select = wrapper.find('.form-select select')
+      await select.setValue('AWS_PROXY')
+      const inputs = wrapper.findAll('.form-input input')
+      const uriInput = inputs[0]
+      await uriInput.setValue('arn:aws:lambda:us-east-1:1:function:my-func')
+      const createBtn = wrapper.findAll('button').find(b => b.text().includes('Create'))
+      await createBtn!.trigger('click')
+      expect(wrapper.emitted('create')).toBeTruthy()
+      const emitted = wrapper.emitted('create')![0]
+      expect(emitted[0]).toBe('AWS_PROXY')
+      // mappingTemplate should be undefined for non-VTL types
+      expect(emitted[3]).toBeUndefined()
     })
   })
 

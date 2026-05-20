@@ -26,7 +26,7 @@ const showInvokeUrlModal = ref(false)
 
 const tabs = [
   { id: 'rest', label: 'REST APIs' },
-  { id: 'http', label: 'HTTP APIs' },
+  { id: 'http', label: 'API Gateway V2' },
 ]
 
 function handleTabChange(tabId: string) {
@@ -73,8 +73,8 @@ async function createRestApi(name: string, desc?: string) {
   restApisKey.value++
 }
 
-async function createHttpApi(name: string, desc?: string) {
-  await callCreateHttpApi(name, desc)
+async function createHttpApi(name: string, desc?: string, protocol?: string) {
+  await callCreateHttpApi(name, desc, protocol)
   showCreateModal.value = false
   httpApisKey.value++
 }
@@ -94,7 +94,7 @@ async function createHttpApi(name: string, desc?: string) {
           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           @click="handleCreateApi"
         >
-          + Create {{ activeTab === 'rest' ? 'REST API' : 'HTTP API' }}
+          + Create {{ activeTab === 'rest' ? 'REST API' : 'API' }}
         </button>
       </div>
     </div>
@@ -144,7 +144,7 @@ async function createHttpApi(name: string, desc?: string) {
       :type="activeTab"
       :api="selectedApi"
       @create-rest="async (name, desc) => { await createRestApi(name, desc) }"
-      @create-http="async (name, desc) => { await createHttpApi(name, desc) }"
+      @create-http="async (name, desc, protocol) => { await createHttpApi(name, desc, protocol) }"
       @close="showCreateModal = false"
       @update:open="showCreateModal = $event"
     />

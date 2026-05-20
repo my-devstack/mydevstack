@@ -305,12 +305,13 @@ describe('API Gateway Components Integration Tests', () => {
         name: 'new-http-api',
       })
 
-      await createHttpApi('new-http-api', 'HTTP API description')
+      await createHttpApi('new-http-api', 'HTTP API description', 'HTTP')
       await flushPromises()
 
       expect(apigatewayApi.createHttpApi).toHaveBeenCalledWith({
         name: 'new-http-api',
         description: 'HTTP API description',
+        protocolType: 'HTTP',
       })
     })
 
@@ -462,13 +463,14 @@ describe('API Gateway Components Integration Tests', () => {
       })
 
       // Create HTTP API
-      await createHttpApi('test-http-api', 'Test HTTP description')
+      await createHttpApi('test-http-api', 'Test HTTP description', 'HTTP')
       await flushPromises()
 
       // Verify create was called with correct params
       expect(apigatewayApi.createHttpApi).toHaveBeenCalledWith({
         name: 'test-http-api',
         description: 'Test HTTP description',
+        protocolType: 'HTTP',
       })
 
       // Load list
