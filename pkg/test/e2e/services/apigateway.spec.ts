@@ -14,8 +14,8 @@ async function createRestApi(page: any, name: string, description?: string) {
   await page.goto('/#/services/api-gateway')
   await page.waitForLoadState('networkidle')
 
-  // Ensure REST API tab is active (default)
-  const restTab = page.getByRole('tab', { name: 'REST APIs' })
+  // Ensure API Gateway tab is active (default)
+  const restTab = page.getByRole('tab', { name: 'API Gateway', exact: true })
   if (await restTab.isVisible()) {
     await restTab.click()
   }
@@ -127,15 +127,15 @@ test.describe('API Gateway', () => {
     await expect(page.locator('h1').first()).toContainText('API Gateway', { timeout: 10000 })
   })
 
-  test('navigate to REST APIs tab', async ({ page }) => {
+  test('navigate to API Gateway tab', async ({ page }) => {
     await page.goto('/#/services/api-gateway')
     await page.waitForLoadState('networkidle')
 
-// Click REST APIs tab
-  await page.getByRole('tab', { name: 'REST APIs' }).click()
+// Click API Gateway tab
+  await page.getByRole('tab', { name: 'API Gateway', exact: true }).click()
 
     // Verify tab is active (contains active styling or check URL)
-    await expect(page.getByRole('tab', { name: 'REST APIs' })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('tab', { name: 'API Gateway', exact: true })).toBeVisible({ timeout: 5000 })
   })
 
   test('navigate to API Gateway V2 tab', async ({ page }) => {
@@ -156,8 +156,8 @@ test.describe('API Gateway', () => {
     await page.goto('/#/services/api-gateway')
     await page.waitForLoadState('networkidle')
 
-    // Ensure REST API tab is active (default)
-    const restTab = page.getByRole('tab', { name: 'REST APIs' })
+    // Ensure API Gateway tab is active (default)
+    const restTab = page.getByRole('tab', { name: 'API Gateway', exact: true })
     if (await restTab.isVisible()) {
       await restTab.click()
     }
@@ -305,7 +305,7 @@ test.describe('API Gateway', () => {
     await page.goto('/#/services/api-gateway')
     await page.waitForLoadState('networkidle')
 
-    // Default is REST APIs - verify create button says "REST API"
+    // Default is API Gateway - verify create button says "REST API"
     await expect(page.getByRole('button', { name: 'Create REST API' }).first()).toBeVisible()
 
     // Switch to API Gateway V2
@@ -314,8 +314,8 @@ test.describe('API Gateway', () => {
     // Verify create button changes to "Create API"
     await expect(page.getByRole('button', { name: 'Create API' }).first()).toBeVisible()
 
-    // Switch back to REST
-    await page.getByRole('tab', { name: 'REST APIs' }).click()
+    // Switch back to API Gateway
+    await page.getByRole('tab', { name: 'API Gateway', exact: true }).click()
 
     // Verify create button changes back
     await expect(page.getByRole('button', { name: 'Create REST API' }).first()).toBeVisible()
@@ -394,7 +394,7 @@ test.describe('API Gateway', () => {
   })
 
   test.describe('API Gateway - Pagination', () => {
-    test('show per-page selector on REST APIs tab', async ({ page }) => {
+    test('show per-page selector on API Gateway tab', async ({ page }) => {
       await page.goto('/#/services/api-gateway')
       await page.waitForLoadState('networkidle')
       await expect(page.getByText('Show:').first()).toBeVisible()

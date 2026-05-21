@@ -11,6 +11,7 @@ coverage.*
 .DS_Store
 dist/
 node_modules/
+.pnpm-store
 pkg/ui/public/VERSION
 pkg/ui/coverage/
 pkg/ui/test-coverage/

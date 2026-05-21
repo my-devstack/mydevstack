@@ -24,7 +24,7 @@ WORKDIR /build/ui
 # Install dependencies and build
 WORKDIR /build/ui/pkg/ui
 COPY ./pkg/ui/. .
-RUN npm ci && npm run build
+RUN pnpm install --frozen-lockfile && pnpm run build
 
 # Stage 3: Final image
 FROM alpine:latest AS final

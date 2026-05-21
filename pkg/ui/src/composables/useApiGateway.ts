@@ -429,18 +429,18 @@ export function useApiGateway() {
     }
   }
 
-  async function getRestInvokeUrl(apiId: string, stageName: string) {
+  async function getRestInvokeUrl(apiId: string, stageName: string, protocolType?: string) {
     try {
-      const response = await apigateway.getRestApiInvokeUrl(apiId, stageName)
+      const response = await apigateway.getRestApiInvokeUrl(apiId, stageName, protocolType)
       return response?.invokeUrl || ''
     } catch {
       return ''
     }
   }
 
-  async function getHttpInvokeUrl(apiId: string, stageName: string) {
+  async function getHttpInvokeUrl(apiId: string, stageName: string, protocolType?: string) {
     try {
-      const response = await apigateway.getHttpApiInvokeUrl(apiId, stageName)
+      const response = await apigateway.getHttpApiInvokeUrl(apiId, stageName, protocolType)
       return response?.invokeUrl || ''
     } catch {
       return ''

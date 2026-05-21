@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -94,12 +95,15 @@ func (a *APIGatewayV2Adapter) DeleteStage(ctx context.Context, input *apigateway
 	return a.client.DeleteStage(ctx, input)
 }
 
-func (a *APIGatewayV2Adapter) GetInvokeUrl(ctx context.Context, apiId, stageName string) (string, error) {
+func (a *APIGatewayV2Adapter) GetInvokeUrl(ctx context.Context, apiId, stageName, protocolType string) (string, error) {
 	if apiId == "" {
 		return "", fmt.Errorf("apiId is required")
 	}
 	if stageName == "" {
 		return "", fmt.Errorf("stageName is required")
+	}
+	if strings.EqualFold(protocolType, "WEBSOCKET") {
+		return fmt.Sprintf("wss://%s.execute-api.%s.amazonaws.com/%s", apiId, a.region, stageName), nil
 	}
 	return fmt.Sprintf("https://%s.execute-api.%s.amazonaws.com/%s", apiId, a.region, stageName), nil
 }

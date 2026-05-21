@@ -22,7 +22,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'cd ../ui && npm run dev',
+    command: 'cd ../ui && pnpm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: true,
     timeout: 120000,

@@ -381,7 +381,7 @@ describe('API Gateway Components Integration Tests', () => {
 
       const url = await getRestInvokeUrl('api-123', 'prod')
 
-      expect(apigatewayApi.getRestApiInvokeUrl).toHaveBeenCalledWith('api-123', 'prod')
+      expect(apigatewayApi.getRestApiInvokeUrl).toHaveBeenCalledWith('api-123', 'prod', undefined)
       expect(url).toContain('execute-api')
     })
 
@@ -404,7 +404,7 @@ describe('API Gateway Components Integration Tests', () => {
 
       const url = await getHttpInvokeUrl('http-api-123', 'default')
 
-      expect(apigatewayApi.getHttpApiInvokeUrl).toHaveBeenCalledWith('http-api-123', 'default')
+      expect(apigatewayApi.getHttpApiInvokeUrl).toHaveBeenCalledWith('http-api-123', 'default', undefined)
       expect(url).toContain('execute-api')
     })
   })

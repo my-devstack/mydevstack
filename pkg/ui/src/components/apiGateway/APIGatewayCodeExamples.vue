@@ -316,7 +316,7 @@ const currentExamples = computed(() => {
           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'"
         @click="selectedTab = 'rest'"
       >
-        REST APIs
+        API Gateway
       </button>
       <button
         type="button"
@@ -326,7 +326,7 @@ const currentExamples = computed(() => {
           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'"
         @click="selectedTab = 'http'"
       >
-        HTTP APIs
+        API Gateway V2
       </button>
     </div>
 

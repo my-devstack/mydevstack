@@ -452,8 +452,10 @@ export class APIGatewayService {
     return apiGatewayV2Request('DeleteStage', { ApiId: apiId, StageName: stageName })
   }
 
-  async getInvokeUrl(apiId: string, stageName: string, targetPrefix: string = 'APIGateway'): Promise<any> {
-    return apiGatewayRequest('GetInvokeUrl', { apiId, stageName }, targetPrefix)
+  async getInvokeUrl(apiId: string, stageName: string, targetPrefix: string = 'APIGateway', protocolType?: string): Promise<any> {
+    const body: any = { apiId, stageName }
+    if (protocolType) { body.protocolType = protocolType }
+    return apiGatewayRequest('GetInvokeUrl', body, targetPrefix)
   }
 }
 
@@ -541,9 +543,9 @@ export const deleteStage = (apiId: string, stageName: string) =>
   apiGatewayService.deleteStage(apiId, stageName)
 
 // Get Invoke URL
-export const getRestApiInvokeUrl = (apiId: string, stageName: string) =>
-  apiGatewayService.getInvokeUrl(apiId, stageName, 'APIGateway')
-export const getHttpApiInvokeUrl = (apiId: string, stageName: string) =>
-  apiGatewayService.getInvokeUrl(apiId, stageName, 'ApiGatewayV2')
+export const getRestApiInvokeUrl = (apiId: string, stageName: string, protocolType?: string) =>
+  apiGatewayService.getInvokeUrl(apiId, stageName, 'APIGateway', protocolType)
+export const getHttpApiInvokeUrl = (apiId: string, stageName: string, protocolType?: string) =>
+  apiGatewayService.getInvokeUrl(apiId, stageName, 'ApiGatewayV2', protocolType)
 
 export default apiGatewayService

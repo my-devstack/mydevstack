@@ -27,16 +27,16 @@ run-proxy:
 	go mod tidy && go run ./pkg/proxy/cmd/server
 
 run-ui:
-	cd pkg/ui && npm run dev
+	cd pkg/ui && pnpm run dev
 
 build:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o mydevstack-proxy-linux-amd64 ./pkg/proxy/cmd/server
 	CGO_ENABLED=0 GOARCH=amd64 go build -o mydevstack-proxy-darwin-amd64 ./pkg/proxy/cmd/server
 	GOOS=windows GOARCH=amd64 go build -o mydevstack-proxy-windows-amd64.exe ./pkg/proxy/cmd/server
-	cd pkg/ui && npm run build
+	cd pkg/ui && pnpm run build
 
 dist:
-	cd pkg/ui && npm run build
+	cd pkg/ui && pnpm run build
 
 lint: lint-proxy lint-ui
 
@@ -44,7 +44,7 @@ lint-proxy:
 	cd pkg/proxy && $$(go env GOPATH)/bin/golangci-lint run
 
 lint-ui:
-	cd pkg/ui && npm run lint
+	cd pkg/ui && pnpm run lint
 
 test:
 	go test ./pkg/proxy/...
@@ -53,7 +53,7 @@ mockery:
 	cd pkg/proxy && mockery && go mod tidy
 
 test-e2e:
-	cd pkg/test && npx playwright test
+	cd pkg/test && pnpm exec playwright test
 
 unit:
 	go mod tidy

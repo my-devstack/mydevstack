@@ -137,7 +137,7 @@ describe('useLambda', () => {
 
 **Run tests:**
 ```bash
-cd pkg/ui && npm run test:run src/composables/use<Service>.test.ts
+cd pkg/ui && pnpm run test:run src/composables/use<Service>.test.ts
 ```
 
 ---
@@ -327,7 +327,7 @@ pkg/ui/src/components/<service>/
 
 **Start Storybook:**
 ```bash
-cd pkg/ui && npm run storybook  # Runs on port 6006
+cd pkg/ui && pnpm run storybook  # Runs on port 6006
 ```
 
 **ServiceList.stories.ts:**
@@ -468,7 +468,7 @@ describe('<Service>List', () => {
 
 **Run tests:**
 ```bash
-cd pkg/ui && npm run test:run src/components/<service>/integration.test.ts
+cd pkg/ui && pnpm run test:run src/components/<service>/integration.test.ts
 ```
 
 ---
@@ -556,7 +556,7 @@ test.describe('<Service>', () => {
 ```bash
 make test-e2e
 # Or with specific service:
-cd pkg/regression-test && npx playwright test e2e/services/<service>.spec.ts
+cd pkg/regression-test && pnpm exec playwright test e2e/services/<service>.spec.ts
 ```
 
 ---
@@ -592,26 +592,26 @@ cd pkg/regression-test && npx playwright test e2e/services/<service>.spec.ts
 go test ./pkg/proxy/...
 
 # UI unit tests (all)
-cd pkg/ui && npm run test:run
+cd pkg/ui && pnpm run test:run
 
 # UI single test
-cd pkg/ui && npm run test:run src/composables/use<Service>.test.ts
+cd pkg/ui && pnpm run test:run src/composables/use<Service>.test.ts
 
 # Storybook (port 6006)
-cd pkg/ui && npm run storybook
+cd pkg/ui && pnpm run storybook
 
 # Build Storybook
-cd pkg/ui && npm run build-storybook
+cd pkg/ui && pnpm run build-storybook
 
 # E2E tests (requires Floci on :4566)
 make test-e2e
 
 # Specific E2E test
-cd pkg/regression-test && npx playwright test e2e/services/<service>.spec.ts
+cd pkg/regression-test && pnpm exec playwright test e2e/services/<service>.spec.ts
 
 # Lint
 make lint
-cd pkg/ui && npm run lint
+cd pkg/ui && pnpm run lint
 ```
 
 ---

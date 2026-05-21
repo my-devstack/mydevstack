@@ -27,8 +27,8 @@
 - [ ] **Components** — `components/<service>/`: modals, code examples, barrel, storybooks, integration tests
 - [ ] **View** — `views/services/<Service>.vue`: working UI
 - [ ] **Routing + Nav** — `router/index.ts` + `layout/Sidebar.vue` + `composables/useServiceRegistry.ts`
-- [ ] **Tests pass** — `cd pkg/ui && npm run test:run`
-- [ ] **Storybook builds** — `cd pkg/ui && npm run build-storybook`
+- [ ] **Tests pass** — `cd pkg/ui && pnpm run test:run`
+- [ ] **Storybook builds** — `cd pkg/ui && pnpm run build-storybook`
 
 ### E2E
 - [ ] **E2E spec** — `pkg/test/e2e/services/<service>.spec.ts`: nav, create, delete, cancel, toast, pagination

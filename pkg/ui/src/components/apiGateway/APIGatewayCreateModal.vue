@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useSettingsStore } from '@/stores/settings'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
@@ -22,8 +21,6 @@ const emit = defineEmits<{
   'update-rest': [name: string, description: string]
 }>()
 
-const settingsStore = useSettingsStore()
-
 const restName = ref('')
 const restDescription = ref('')
 const httpName = ref('')
@@ -31,12 +28,10 @@ const httpDescription = ref('')
 const protocolType = ref('HTTP')
 
 const protocolOptions = computed(() => {
-  const options = [{ value: 'HTTP', label: 'HTTP' }]
-  // MiniStack does not support WebSocket protocol
-  if (settingsStore.emulator !== 'MINISTACK') {
-    options.push({ value: 'WEBSOCKET', label: 'WebSocket' })
-  }
-  return options
+  return [
+    { value: 'HTTP', label: 'HTTP' },
+    { value: 'WEBSOCKET', label: 'WebSocket' },
+  ]
 })
 
 // Reset form when modal opens or api changes

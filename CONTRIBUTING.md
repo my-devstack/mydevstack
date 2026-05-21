@@ -67,7 +67,7 @@ The following AWS services are currently implemented:
 make run-proxy
 
 # Run Vue dev server (port 3000)
-cd pkg/ui && npm run dev
+cd pkg/ui && pnpm run dev
 ```
 
 ### Building
@@ -96,20 +96,20 @@ go test ./pkg/proxy/...
 
 ```bash
 # Run all unit tests
-cd pkg/ui && npm run test:run
+cd pkg/ui && pnpm run test:run
 
 # Run single test file
-cd pkg/ui && npx vitest run <file>
+cd pkg/ui && pnpm exec vitest run <file>
 ```
 
 ### Storybook (Component Development)
 
 ```bash
 # Start Storybook (port 6006)
-cd pkg/ui && npm run storybook
+cd pkg/ui && pnpm run storybook
 
 # Build static Storybook
-cd pkg/ui && npm run build-storybook
+cd pkg/ui && pnpm run build-storybook
 ```
 
 **Why use Storybook?**
@@ -131,7 +131,7 @@ E2E tests require Floci/LocalStack running on port 4566:
 make test-e2e
 
 # Run specific service E2E test
-cd pkg/ui && npx playwright test e2e/services/iam.spec.ts
+cd pkg/ui && pnpm exec playwright test e2e/services/iam.spec.ts
 ```
 
 ## Release Process

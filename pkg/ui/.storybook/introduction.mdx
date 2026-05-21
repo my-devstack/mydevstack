@@ -16,7 +16,7 @@ Each service (S3, IAM, Lambda, etc.) follows the same pattern:
 
 ## Development Workflow
 
-1. Run `npm run storybook` (starts on port 6006)
+1. Run `pnpm run storybook` (starts on port 6006)
 2. Develop component in isolation
 3. Test edge cases (loading, error, empty)
 4. Integrate into main app
@@ -69,13 +69,13 @@ Each component story should include:
 
 ```bash
 # Development
-cd pkg/ui && npm run storybook
+cd pkg/ui && pnpm run storybook
 
 # Build static
-npm run build-storybook
+pnpm run build-storybook
 
 # Test specific component
-npm run build-storybook -- --components src/components/s3/S3BucketsList.stories.ts
+pnpm run build-storybook -- --components src/components/s3/S3BucketsList.stories.ts
 ```
 
 ## Notes
