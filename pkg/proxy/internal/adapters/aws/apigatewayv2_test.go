@@ -298,9 +298,19 @@ func TestAPIGatewayV2Adapter_GetInvokeUrl(t *testing.T) {
 	ctx := context.Background()
 	adapter := &APIGatewayV2Adapter{client: mockClient, region: "us-east-1"}
 
-	url, err := adapter.GetInvokeUrl(ctx, "api123", "prod")
+	url, err := adapter.GetInvokeUrl(ctx, "api123", "prod", "HTTP")
 	assert.NoError(t, err)
 	assert.Equal(t, "https://api123.execute-api.us-east-1.amazonaws.com/prod", url)
+}
+
+func TestAPIGatewayV2Adapter_GetInvokeUrl_WebSocket(t *testing.T) {
+	mockClient := ag2mocks.NewAPIGatewayV2ClientPort(t)
+	ctx := context.Background()
+	adapter := &APIGatewayV2Adapter{client: mockClient, region: "us-east-1"}
+
+	url, err := adapter.GetInvokeUrl(ctx, "api123", "prod", "WEBSOCKET")
+	assert.NoError(t, err)
+	assert.Equal(t, "wss://api123.execute-api.us-east-1.amazonaws.com/prod", url)
 }
 
 func TestAPIGatewayV2Adapter_GetInvokeUrl_Error(t *testing.T) {
@@ -308,7 +318,7 @@ func TestAPIGatewayV2Adapter_GetInvokeUrl_Error(t *testing.T) {
 	ctx := context.Background()
 	adapter := &APIGatewayV2Adapter{client: mockClient, region: "us-east-1"}
 
-	url, err := adapter.GetInvokeUrl(ctx, "", "prod")
+	url, err := adapter.GetInvokeUrl(ctx, "", "prod", "HTTP")
 	assert.Error(t, err)
 	assert.Equal(t, "", url)
 }
@@ -318,7 +328,7 @@ func TestAPIGatewayV2Adapter_GetInvokeUrl_Error_StageName(t *testing.T) {
 	ctx := context.Background()
 	adapter := &APIGatewayV2Adapter{client: mockClient, region: "us-east-1"}
 
-	url, err := adapter.GetInvokeUrl(ctx, "api123", "")
+	url, err := adapter.GetInvokeUrl(ctx, "api123", "", "HTTP")
 	assert.Error(t, err)
 	assert.Equal(t, "", url)
 }

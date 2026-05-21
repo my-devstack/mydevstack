@@ -164,35 +164,6 @@ function isLoadingResources(stackName: string): boolean {
 
       <!-- Stack List with Pagination -->
       <div v-else>
-        <!-- Pagination Controls (Top) -->
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
-            <select
-              v-model="itemsPerPage"
-              class="text-sm border rounded px-2 py-1"
-              :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
-            >
-              <option :value="5">
-                5
-              </option>
-              <option :value="10">
-                10
-              </option>
-              <option :value="20">
-                20
-              </option>
-              <option :value="50">
-                50
-              </option>
-            </select>
-            <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
-          </div>
-          <div class="text-sm text-light-muted dark:text-dark-muted">
-            Page {{ currentPage }} of {{ totalPages }}
-          </div>
-        </div>
-
         <div class="space-y-4">
           <!-- Headers -->
           <div
@@ -548,6 +519,35 @@ function isLoadingResources(stackName: string): boolean {
         </div>
 
         <!-- Pagination Controls (Bottom) -->
+        <!-- Per-page Selector -->
+        <div class="flex items-center justify-between mt-4">
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-light-muted dark:text-dark-muted">Show:</span>
+            <select
+              v-model="itemsPerPage"
+              class="text-sm border rounded px-2 py-1"
+              :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+            >
+              <option :value="5">
+                5
+              </option>
+              <option :value="10">
+                10
+              </option>
+              <option :value="20">
+                20
+              </option>
+              <option :value="50">
+                50
+              </option>
+            </select>
+            <span class="text-sm text-light-muted dark:text-dark-muted">per page</span>
+          </div>
+          <div class="text-sm text-light-muted dark:text-dark-muted">
+            Page {{ currentPage }} of {{ totalPages }}
+          </div>
+        </div>
+
         <div
           v-if="totalPages > 1"
           class="flex items-center justify-center gap-2 mt-4"

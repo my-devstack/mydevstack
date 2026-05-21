@@ -74,3 +74,16 @@ export const Closed: Story = {
     stages: [{ stageName: 'prod' }],
   },
 }
+
+export const WebSocket: Story = {
+  args: {
+    open: true,
+    api: { apiId: 'ws-api', name: 'my-ws-api', protocolType: 'WEBSOCKET' },
+    apiType: 'http',
+    invokeUrl: 'wss://ws-api.execute-api.us-east-1.amazonaws.com/prod',
+    loading: false,
+    stages: [
+      { stageName: 'prod' },
+    ],
+  },
+}

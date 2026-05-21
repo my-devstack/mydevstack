@@ -11,11 +11,12 @@ interface Stage {
 
 const props = defineProps<{
   open: boolean
-  api: { id?: string; apiId?: string; name: string }
+  api: { id?: string; apiId?: string; name: string; protocolType?: string }
   apiType: 'rest' | 'http'
   invokeUrl: string
   loading?: boolean
   stages: Stage[]
+  protocolType?: string
 }>()
 
 const emit = defineEmits<{
@@ -33,6 +34,7 @@ const selectedStage = ref('')
 const apiId = computed(() => props.api?.id || props.api?.apiId || '')
 const title = computed(() => props.api?.name ? `Invoke URL - ${props.api.name}` : 'Invoke URL')
 
+const activeProtocol = computed(() => props.api?.protocolType || props.protocolType || 'HTTP')
 const emulatorType = computed(() => settingsStore.emulator?.toUpperCase() || 'FLOCI')
 
 const emulatorUrl = computed(() => {
@@ -41,6 +43,17 @@ const emulatorUrl = computed(() => {
   }
   
   const emulator = emulatorType.value
+  const isWebSocket = activeProtocol.value === 'WEBSOCKET'
+  
+  if (isWebSocket) {
+    if (emulator === 'FLOCI') {
+      return `ws://localhost:4566/ws/${apiId.value}/${selectedStage.value}`
+    }
+    if (emulator === 'LOCALSTACK' || emulator === 'MINISTACK') {
+      return `ws://localhost:4566/_aws/execute-api/${apiId.value}/${selectedStage.value}`
+    }
+    return ''
+  }
   
   if (emulator === 'FLOCI') {
     return `http://localhost:4566/restapis/${apiId.value}/${selectedStage.value}/_user_request_/`
@@ -167,7 +180,7 @@ function copyEmulatorUrl() {
             class="block text-sm font-medium mb-2"
             :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
           >
-            Emulator URL ({{ emulatorType }})
+            Emulator URL ({{ emulatorType }}) - {{ activeProtocol === 'WEBSOCKET' ? 'WebSocket' : 'HTTP' }}
           </label>
           <div
             class="flex items-center gap-2 p-3 rounded-lg border"

@@ -25,7 +25,7 @@ const showCreateModal = ref(false)
 const showInvokeUrlModal = ref(false)
 
 const tabs = [
-  { id: 'rest', label: 'REST APIs' },
+  { id: 'rest', label: 'API Gateway' },
   { id: 'http', label: 'API Gateway V2' },
 ]
 
@@ -43,27 +43,30 @@ async function handleGetInvokeUrl(api: any) {
   showInvokeUrlModal.value = true
   invokeUrl.value = ''
   const apiId = api.id || api.apiId
+  const protocol = api.protocolType || 'HTTP'
   const stagesPromise = activeTab.value === 'rest'
     ? loadRestStages(apiId)
     : loadHttpStages(apiId)
   stagesPromise.then(result => {
     stagesList.value = result?.items || result?.Items || []
     if (stagesList.value.length > 0) {
-      fetchInvokeUrl(apiId, stagesList.value[0].stageName)
+      fetchInvokeUrl(apiId, stagesList.value[0].stageName, protocol)
     }
   })
 }
 
-async function fetchInvokeUrl(apiId: string, stageName: string) {
+async function fetchInvokeUrl(apiId: string, stageName: string, protocolType = 'HTTP') {
   if (!stageName) return
   const apiIdVal = apiId
   try {
     const result = activeTab.value === 'rest'
       ? await getRestInvokeUrl(apiIdVal, stageName)
-      : await getHttpInvokeUrl(apiIdVal, stageName)
-    invokeUrl.value = result || `https://${apiIdVal}.execute-api.${settingsStore.region || 'us-east-1'}.amazonaws.com/${stageName}`
+      : await getHttpInvokeUrl(apiIdVal, stageName, protocolType)
+    const scheme = protocolType === 'WEBSOCKET' ? 'wss' : 'https'
+    invokeUrl.value = result || `${scheme}://${apiIdVal}.execute-api.${settingsStore.region || 'us-east-1'}.amazonaws.com/${stageName}`
   } catch {
-    invokeUrl.value = `https://${apiIdVal}.execute-api.${settingsStore.region || 'us-east-1'}.amazonaws.com/${stageName}`
+    const scheme = protocolType === 'WEBSOCKET' ? 'wss' : 'https'
+    invokeUrl.value = `${scheme}://${apiIdVal}.execute-api.${settingsStore.region || 'us-east-1'}.amazonaws.com/${stageName}`
   }
 }
 

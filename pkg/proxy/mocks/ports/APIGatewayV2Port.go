@@ -787,8 +787,8 @@ func (_c *APIGatewayV2Port_GetIntegrations_Call) RunAndReturn(run func(ctx conte
 }
 
 // GetInvokeUrl provides a mock function for the type APIGatewayV2Port
-func (_mock *APIGatewayV2Port) GetInvokeUrl(ctx context.Context, apiId string, stageName string) (string, error) {
-	ret := _mock.Called(ctx, apiId, stageName)
+func (_mock *APIGatewayV2Port) GetInvokeUrl(ctx context.Context, apiId string, stageName string, protocolType string) (string, error) {
+	ret := _mock.Called(ctx, apiId, stageName, protocolType)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetInvokeUrl")
@@ -796,16 +796,16 @@ func (_mock *APIGatewayV2Port) GetInvokeUrl(ctx context.Context, apiId string, s
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (string, error)); ok {
-		return returnFunc(ctx, apiId, stageName)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) (string, error)); ok {
+		return returnFunc(ctx, apiId, stageName, protocolType)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) string); ok {
-		r0 = returnFunc(ctx, apiId, stageName)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) string); ok {
+		r0 = returnFunc(ctx, apiId, stageName, protocolType)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = returnFunc(ctx, apiId, stageName)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = returnFunc(ctx, apiId, stageName, protocolType)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -821,11 +821,12 @@ type APIGatewayV2Port_GetInvokeUrl_Call struct {
 //   - ctx context.Context
 //   - apiId string
 //   - stageName string
-func (_e *APIGatewayV2Port_Expecter) GetInvokeUrl(ctx interface{}, apiId interface{}, stageName interface{}) *APIGatewayV2Port_GetInvokeUrl_Call {
-	return &APIGatewayV2Port_GetInvokeUrl_Call{Call: _e.mock.On("GetInvokeUrl", ctx, apiId, stageName)}
+//   - protocolType string
+func (_e *APIGatewayV2Port_Expecter) GetInvokeUrl(ctx interface{}, apiId interface{}, stageName interface{}, protocolType interface{}) *APIGatewayV2Port_GetInvokeUrl_Call {
+	return &APIGatewayV2Port_GetInvokeUrl_Call{Call: _e.mock.On("GetInvokeUrl", ctx, apiId, stageName, protocolType)}
 }
 
-func (_c *APIGatewayV2Port_GetInvokeUrl_Call) Run(run func(ctx context.Context, apiId string, stageName string)) *APIGatewayV2Port_GetInvokeUrl_Call {
+func (_c *APIGatewayV2Port_GetInvokeUrl_Call) Run(run func(ctx context.Context, apiId string, stageName string, protocolType string)) *APIGatewayV2Port_GetInvokeUrl_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -839,10 +840,15 @@ func (_c *APIGatewayV2Port_GetInvokeUrl_Call) Run(run func(ctx context.Context, 
 		if args[2] != nil {
 			arg2 = args[2].(string)
 		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -853,7 +859,7 @@ func (_c *APIGatewayV2Port_GetInvokeUrl_Call) Return(s string, err error) *APIGa
 	return _c
 }
 
-func (_c *APIGatewayV2Port_GetInvokeUrl_Call) RunAndReturn(run func(ctx context.Context, apiId string, stageName string) (string, error)) *APIGatewayV2Port_GetInvokeUrl_Call {
+func (_c *APIGatewayV2Port_GetInvokeUrl_Call) RunAndReturn(run func(ctx context.Context, apiId string, stageName string, protocolType string) (string, error)) *APIGatewayV2Port_GetInvokeUrl_Call {
 	_c.Call.Return(run)
 	return _c
 }

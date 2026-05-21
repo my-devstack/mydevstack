@@ -1054,7 +1054,7 @@ func TestAPIGateway_GetInvokeUrl_V2(t *testing.T) {
 	t.Parallel()
 	s := setupAGTestDual(t)
 
-	s.mpV2.EXPECT().GetInvokeUrl(mock.Anything, "my-api", "prod").
+	s.mpV2.EXPECT().GetInvokeUrl(mock.Anything, "my-api", "prod", "HTTP").
 		Return("https://my-api.execute-api.us-east-1.amazonaws.com/prod", nil)
 
 	w := performAGRequest(s.h, "ApiGatewayV2.GetInvokeUrl", []byte(`{"apiId":"my-api","stageName":"prod"}`))
@@ -1065,12 +1065,26 @@ func TestAPIGateway_GetInvokeUrl_V2(t *testing.T) {
 	assert.Contains(t, resp["invokeUrl"], "execute-api")
 }
 
+func TestAPIGateway_GetInvokeUrl_V2_WebSocket(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestDual(t)
+
+	s.mpV2.EXPECT().GetInvokeUrl(mock.Anything, "ws-api", "prod", "WEBSOCKET").
+		Return("wss://ws-api.execute-api.us-east-1.amazonaws.com/prod", nil)
+
+	w := performAGRequest(s.h, "ApiGatewayV2.GetInvokeUrl", []byte(`{"apiId":"ws-api","stageName":"prod","protocolType":"WEBSOCKET"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]interface{}
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Contains(t, resp["invokeUrl"], "wss://")
+}
+
 func TestAPIGateway_GetInvokeUrl_V2_Default(t *testing.T) {
 	t.Parallel()
-	// No prefix -> defaults to v2
 	s := setupAGTestV2(t)
 
-	s.mpV2.EXPECT().GetInvokeUrl(mock.Anything, "my-api", "prod").
+	s.mpV2.EXPECT().GetInvokeUrl(mock.Anything, "my-api", "prod", "HTTP").
 		Return("https://my-api.execute-api.us-east-1.amazonaws.com/prod", nil)
 
 	w := performAGRequest(s.h, "GetInvokeUrl", []byte(`{"apiId":"my-api","stageName":"prod"}`))
@@ -1796,7 +1810,7 @@ func TestAPIGateway_DeleteStageV2_ParseError(t *testing.T) {
 func TestAPIGateway_GetInvokeUrl_V2_ServiceError(t *testing.T) {
 	t.Parallel()
 	s := setupAGTestDual(t)
-	s.mpV2.EXPECT().GetInvokeUrl(mock.Anything, mock.Anything, mock.Anything).Return("", errors.New("service error"))
+	s.mpV2.EXPECT().GetInvokeUrl(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", errors.New("service error"))
 	w := performAGRequest(s.h, "ApiGatewayV2.GetInvokeUrl", []byte(`{"apiId":"my-api","stageName":"prod"}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }

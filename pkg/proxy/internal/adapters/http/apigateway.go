@@ -713,47 +713,15 @@ func (h *ProxyHandler) getRoutes(ctx context.Context, c *gin.Context, bodyBytes 
 }
 
 func (h *ProxyHandler) createRoute(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	data := make(map[string]interface{})
-	if err := json.Unmarshal(bodyBytes, &data); err != nil {
+	input := &apigatewayv2.CreateRouteInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-
-	// Support both lowercase and TitleCase keys from frontend
-	apiId, apiIdOk := data["apiId"]
-	if !apiIdOk || apiId == nil || apiId == "" {
-		apiId, apiIdOk = data["ApiId"]
-	}
-	if !apiIdOk || apiId == nil || apiId == "" {
+	if input.ApiId == nil || *input.ApiId == "" {
 		sendError(c, http.StatusBadRequest, "ApiId is required", nil)
 		return
 	}
-
-	input := &apigatewayv2.CreateRouteInput{
-		ApiId: aws.String(apiId.(string)),
-	}
-
-	if v, ok := data["routeKey"]; ok && v != nil {
-		input.RouteKey = aws.String(v.(string))
-	} else if v, ok := data["RouteKey"]; ok && v != nil {
-		input.RouteKey = aws.String(v.(string))
-	}
-	if v, ok := data["target"]; ok && v != nil {
-		input.Target = aws.String(v.(string))
-	} else if v, ok := data["Target"]; ok && v != nil {
-		input.Target = aws.String(v.(string))
-	}
-	if v, ok := data["authorizationType"]; ok && v != nil {
-		input.AuthorizationType = apigwV2Types.AuthorizationType(v.(string))
-	} else if v, ok := data["AuthorizationType"]; ok && v != nil {
-		input.AuthorizationType = apigwV2Types.AuthorizationType(v.(string))
-	}
-	if v, ok := data["authorizerId"]; ok && v != nil {
-		input.AuthorizerId = aws.String(v.(string))
-	} else if v, ok := data["AuthorizerId"]; ok && v != nil {
-		input.AuthorizerId = aws.String(v.(string))
-	}
-
 	result, err := h.Svc.APIGatewayV2().CreateRoute(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create route", err)
@@ -777,51 +745,19 @@ func (h *ProxyHandler) deleteRoute(ctx context.Context, c *gin.Context, bodyByte
 }
 
 func (h *ProxyHandler) updateRoute(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	data := make(map[string]interface{})
-	if err := json.Unmarshal(bodyBytes, &data); err != nil {
+	input := &apigatewayv2.UpdateRouteInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-
-	// Support both lowercase and TitleCase keys from frontend
-	apiId, apiIdOk := data["apiId"]
-	if !apiIdOk || apiId == nil || apiId == "" {
-		apiId, apiIdOk = data["ApiId"]
-	}
-	routeId, routeIdOk := data["routeId"]
-	if !routeIdOk || routeId == nil || routeId == "" {
-		routeId, routeIdOk = data["RouteId"]
-	}
-	if !apiIdOk || apiId == nil || apiId == "" {
+	if input.ApiId == nil || *input.ApiId == "" {
 		sendError(c, http.StatusBadRequest, "ApiId is required", nil)
 		return
 	}
-	if !routeIdOk || routeId == nil || routeId == "" {
+	if input.RouteId == nil || *input.RouteId == "" {
 		sendError(c, http.StatusBadRequest, "RouteId is required", nil)
 		return
 	}
-
-	input := &apigatewayv2.UpdateRouteInput{
-		ApiId:   aws.String(apiId.(string)),
-		RouteId: aws.String(routeId.(string)),
-	}
-
-	if v, ok := data["routeKey"]; ok && v != nil {
-		input.RouteKey = aws.String(v.(string))
-	} else if v, ok := data["RouteKey"]; ok && v != nil {
-		input.RouteKey = aws.String(v.(string))
-	}
-	if v, ok := data["authorizationType"]; ok && v != nil {
-		input.AuthorizationType = apigwV2Types.AuthorizationType(v.(string))
-	} else if v, ok := data["AuthorizationType"]; ok && v != nil {
-		input.AuthorizationType = apigwV2Types.AuthorizationType(v.(string))
-	}
-	if v, ok := data["authorizerId"]; ok && v != nil {
-		input.AuthorizerId = aws.String(v.(string))
-	} else if v, ok := data["AuthorizerId"]; ok && v != nil {
-		input.AuthorizerId = aws.String(v.(string))
-	}
-
 	result, err := h.Svc.APIGatewayV2().UpdateRoute(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update route", err)
@@ -845,94 +781,15 @@ func (h *ProxyHandler) getIntegrationsV2(ctx context.Context, c *gin.Context, bo
 }
 
 func (h *ProxyHandler) createIntegrationV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	data := make(map[string]interface{})
-	if err := json.Unmarshal(bodyBytes, &data); err != nil {
+	input := &apigatewayv2.CreateIntegrationInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-
-	// Support both lowercase and TitleCase keys from frontend
-	apiId, apiIdOk := data["apiId"]
-	if !apiIdOk || apiId == nil || apiId == "" {
-		apiId, apiIdOk = data["ApiId"]
-	}
-	if !apiIdOk || apiId == nil || apiId == "" {
+	if input.ApiId == nil || *input.ApiId == "" {
 		sendError(c, http.StatusBadRequest, "ApiId is required", nil)
 		return
 	}
-
-	input := &apigatewayv2.CreateIntegrationInput{
-		ApiId: aws.String(apiId.(string)),
-	}
-
-	// Map both lowercase and TitleCase keys
-	if v, ok := data["integrationType"]; ok && v != nil {
-		input.IntegrationType = apigwV2Types.IntegrationType(v.(string))
-	} else if v, ok := data["IntegrationType"]; ok && v != nil {
-		input.IntegrationType = apigwV2Types.IntegrationType(v.(string))
-	}
-	if v, ok := data["integrationUri"]; ok && v != nil {
-		input.IntegrationUri = aws.String(v.(string))
-	} else if v, ok := data["IntegrationUri"]; ok && v != nil {
-		input.IntegrationUri = aws.String(v.(string))
-	}
-	if v, ok := data["connectionType"]; ok && v != nil {
-		input.ConnectionType = apigwV2Types.ConnectionType(v.(string))
-	} else if v, ok := data["ConnectionType"]; ok && v != nil {
-		input.ConnectionType = apigwV2Types.ConnectionType(v.(string))
-	}
-	if v, ok := data["credentialsArn"]; ok && v != nil {
-		input.CredentialsArn = aws.String(v.(string))
-	} else if v, ok := data["CredentialsArn"]; ok && v != nil {
-		input.CredentialsArn = aws.String(v.(string))
-	}
-	if v, ok := data["description"]; ok && v != nil {
-		input.Description = aws.String(v.(string))
-	} else if v, ok := data["Description"]; ok && v != nil {
-		input.Description = aws.String(v.(string))
-	}
-	if v, ok := data["timeoutInMillis"]; ok && v != nil {
-		if fv, ok := v.(float64); ok {
-			input.TimeoutInMillis = aws.Int32(int32(fv))
-		}
-	} else if v, ok := data["TimeoutInMillis"]; ok && v != nil {
-		if fv, ok := v.(float64); ok {
-			input.TimeoutInMillis = aws.Int32(int32(fv))
-		}
-	}
-	if v, ok := data["integrationMethod"]; ok && v != nil {
-		input.IntegrationMethod = aws.String(v.(string))
-	} else if v, ok := data["IntegrationMethod"]; ok && v != nil {
-		input.IntegrationMethod = aws.String(v.(string))
-	}
-	if v, ok := data["payloadFormatVersion"]; ok && v != nil {
-		input.PayloadFormatVersion = aws.String(v.(string))
-	} else if v, ok := data["PayloadFormatVersion"]; ok && v != nil {
-		input.PayloadFormatVersion = aws.String(v.(string))
-	}
-	// Parse request templates for VTL support (AWS and HTTP types)
-	if v, ok := data["requestTemplates"]; ok && v != nil {
-		if rtMap, ok := v.(map[string]interface{}); ok {
-			rt := make(map[string]string, len(rtMap))
-			for k, val := range rtMap {
-				if s, ok := val.(string); ok {
-					rt[k] = s
-				}
-			}
-			input.RequestTemplates = rt
-		}
-	} else if v, ok := data["RequestTemplates"]; ok && v != nil {
-		if rtMap, ok := v.(map[string]interface{}); ok {
-			rt := make(map[string]string, len(rtMap))
-			for k, val := range rtMap {
-				if s, ok := val.(string); ok {
-					rt[k] = s
-				}
-			}
-			input.RequestTemplates = rt
-		}
-	}
-
 	result, err := h.Svc.APIGatewayV2().CreateIntegration(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create integration", err)
@@ -942,73 +799,19 @@ func (h *ProxyHandler) createIntegrationV2(ctx context.Context, c *gin.Context, 
 }
 
 func (h *ProxyHandler) updateIntegrationV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	data := make(map[string]interface{})
-	if err := json.Unmarshal(bodyBytes, &data); err != nil {
+	input := &apigatewayv2.UpdateIntegrationInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-
-	// Support both lowercase and TitleCase keys from frontend
-	apiId, apiIdOk := data["apiId"]
-	if !apiIdOk || apiId == nil || apiId == "" {
-		apiId, apiIdOk = data["ApiId"]
-	}
-	integrationId, integrationIdOk := data["integrationId"]
-	if !integrationIdOk || integrationId == nil || integrationId == "" {
-		integrationId, integrationIdOk = data["IntegrationId"]
-	}
-	if !apiIdOk || apiId == nil || apiId == "" {
+	if input.ApiId == nil || *input.ApiId == "" {
 		sendError(c, http.StatusBadRequest, "ApiId is required", nil)
 		return
 	}
-	if !integrationIdOk || integrationId == nil || integrationId == "" {
+	if input.IntegrationId == nil || *input.IntegrationId == "" {
 		sendError(c, http.StatusBadRequest, "IntegrationId is required", nil)
 		return
 	}
-
-	input := &apigatewayv2.UpdateIntegrationInput{
-		ApiId:         aws.String(apiId.(string)),
-		IntegrationId: aws.String(integrationId.(string)),
-	}
-
-	if v, ok := data["integrationType"]; ok && v != nil {
-		input.IntegrationType = apigwV2Types.IntegrationType(v.(string))
-	} else if v, ok := data["IntegrationType"]; ok && v != nil {
-		input.IntegrationType = apigwV2Types.IntegrationType(v.(string))
-	}
-	if v, ok := data["integrationUri"]; ok && v != nil {
-		input.IntegrationUri = aws.String(v.(string))
-	} else if v, ok := data["IntegrationUri"]; ok && v != nil {
-		input.IntegrationUri = aws.String(v.(string))
-	}
-	if v, ok := data["description"]; ok && v != nil {
-		input.Description = aws.String(v.(string))
-	} else if v, ok := data["Description"]; ok && v != nil {
-		input.Description = aws.String(v.(string))
-	}
-	// Parse request templates for VTL support (AWS and HTTP types)
-	if v, ok := data["requestTemplates"]; ok && v != nil {
-		if rtMap, ok := v.(map[string]interface{}); ok {
-			rt := make(map[string]string, len(rtMap))
-			for k, val := range rtMap {
-				if s, ok := val.(string); ok {
-					rt[k] = s
-				}
-			}
-			input.RequestTemplates = rt
-		}
-	} else if v, ok := data["RequestTemplates"]; ok && v != nil {
-		if rtMap, ok := v.(map[string]interface{}); ok {
-			rt := make(map[string]string, len(rtMap))
-			for k, val := range rtMap {
-				if s, ok := val.(string); ok {
-					rt[k] = s
-				}
-			}
-			input.RequestTemplates = rt
-		}
-	}
-
 	result, err := h.Svc.APIGatewayV2().UpdateIntegration(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update integration", err)
@@ -1075,46 +878,15 @@ func (h *ProxyHandler) getStageV2(ctx context.Context, c *gin.Context, bodyBytes
 }
 
 func (h *ProxyHandler) createStageV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	data := make(map[string]interface{})
-	if err := json.Unmarshal(bodyBytes, &data); err != nil {
+	input := &apigatewayv2.CreateStageInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-
-	// Support both lowercase and TitleCase keys from frontend
-	apiId, apiIdOk := data["apiId"]
-	if !apiIdOk || apiId == nil || apiId == "" {
-		apiId, apiIdOk = data["ApiId"]
-	}
-	if !apiIdOk || apiId == nil || apiId == "" {
+	if input.ApiId == nil || *input.ApiId == "" {
 		sendError(c, http.StatusBadRequest, "ApiId is required", nil)
 		return
 	}
-
-	input := &apigatewayv2.CreateStageInput{
-		ApiId: aws.String(apiId.(string)),
-	}
-
-	if v, ok := data["stageName"]; ok && v != nil {
-		input.StageName = aws.String(v.(string))
-	} else if v, ok := data["StageName"]; ok && v != nil {
-		input.StageName = aws.String(v.(string))
-	}
-	if v, ok := data["description"]; ok && v != nil {
-		input.Description = aws.String(v.(string))
-	} else if v, ok := data["Description"]; ok && v != nil {
-		input.Description = aws.String(v.(string))
-	}
-	if v, ok := data["autoDeploy"]; ok && v != nil {
-		if bv, ok := v.(bool); ok {
-			input.AutoDeploy = aws.Bool(bv)
-		}
-	} else if v, ok := data["AutoDeploy"]; ok && v != nil {
-		if bv, ok := v.(bool); ok {
-			input.AutoDeploy = aws.Bool(bv)
-		}
-	}
-
 	result, err := h.Svc.APIGatewayV2().CreateStage(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to create stage", err)
@@ -1124,50 +896,19 @@ func (h *ProxyHandler) createStageV2(ctx context.Context, c *gin.Context, bodyBy
 }
 
 func (h *ProxyHandler) updateStageV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	data := make(map[string]interface{})
-	if err := json.Unmarshal(bodyBytes, &data); err != nil {
+	input := &apigatewayv2.UpdateStageInput{}
+	if err := parseBody(c, bodyBytes, input); err != nil {
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-
-	// Support both lowercase and TitleCase keys from frontend
-	apiId, apiIdOk := data["apiId"]
-	if !apiIdOk || apiId == nil || apiId == "" {
-		apiId, apiIdOk = data["ApiId"]
-	}
-	stageName, stageNameOk := data["stageName"]
-	if !stageNameOk || stageName == nil || stageName == "" {
-		stageName, stageNameOk = data["StageName"]
-	}
-	if !apiIdOk || apiId == nil || apiId == "" {
+	if input.ApiId == nil || *input.ApiId == "" {
 		sendError(c, http.StatusBadRequest, "ApiId is required", nil)
 		return
 	}
-	if !stageNameOk || stageName == nil || stageName == "" {
+	if input.StageName == nil || *input.StageName == "" {
 		sendError(c, http.StatusBadRequest, "StageName is required", nil)
 		return
 	}
-
-	input := &apigatewayv2.UpdateStageInput{
-		ApiId:     aws.String(apiId.(string)),
-		StageName: aws.String(stageName.(string)),
-	}
-
-	if v, ok := data["description"]; ok && v != nil {
-		input.Description = aws.String(v.(string))
-	} else if v, ok := data["Description"]; ok && v != nil {
-		input.Description = aws.String(v.(string))
-	}
-	if v, ok := data["autoDeploy"]; ok && v != nil {
-		if bv, ok := v.(bool); ok {
-			input.AutoDeploy = aws.Bool(bv)
-		}
-	} else if v, ok := data["AutoDeploy"]; ok && v != nil {
-		if bv, ok := v.(bool); ok {
-			input.AutoDeploy = aws.Bool(bv)
-		}
-	}
-
 	result, err := h.Svc.APIGatewayV2().UpdateStage(ctx, input)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to update stage", err)
@@ -1209,14 +950,19 @@ func (h *ProxyHandler) getInvokeUrl(ctx context.Context, c *gin.Context, bodyByt
 
 func (h *ProxyHandler) getInvokeUrlV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
 	var bodyData struct {
-		ApiID     string `json:"apiId"`
-		StageName string `json:"stageName"`
+		ApiID        string `json:"apiId"`
+		StageName    string `json:"stageName"`
+		ProtocolType string `json:"protocolType"`
 	}
 	if err := json.Unmarshal(bodyBytes, &bodyData); err != nil {
 		sendError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	url, err := h.Svc.APIGatewayV2().GetInvokeUrl(ctx, bodyData.ApiID, bodyData.StageName)
+	protocolType := bodyData.ProtocolType
+	if protocolType == "" {
+		protocolType = "HTTP"
+	}
+	url, err := h.Svc.APIGatewayV2().GetInvokeUrl(ctx, bodyData.ApiID, bodyData.StageName, protocolType)
 	if err != nil {
 		sendError(c, http.StatusInternalServerError, "Failed to get invoke URL", err)
 		return

@@ -148,8 +148,9 @@ select {
   text-overflow: ellipsis;
 }
 
-/* Style disabled options */
+/* Style disabled options - inherit parent color with dimming */
 option:disabled {
-  color: #94a3b8;
+  color: inherit;
+  opacity: 0.5;
 }
 </style>

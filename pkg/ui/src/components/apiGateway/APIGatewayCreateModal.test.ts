@@ -118,14 +118,14 @@ describe('APIGatewayCreateModal', () => {
       expect(optionTexts).toContain('WebSocket')
     })
 
-    it('hides WebSocket option when emulator is MINISTACK', () => {
+    it('shows WebSocket option when emulator is MINISTACK (now supported)', () => {
       mockEmulator.value = 'MINISTACK'
       const wrapper = mount(APIGatewayCreateModal, { props: { ...defaultProps, type: 'http' }, global: { stubs } })
       const select = wrapper.find('.form-select select')
       const options = select.findAll('option')
       const optionTexts = options.map(o => o.text())
       expect(optionTexts).toContain('HTTP')
-      expect(optionTexts).not.toContain('WebSocket')
+      expect(optionTexts).toContain('WebSocket')
     })
   })
 })

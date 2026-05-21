@@ -3,8 +3,9 @@ import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import APIGatewayInvokeUrlModal from './APIGatewayInvokeUrlModal.vue'
 
+const mockSettings = vi.fn()
 vi.mock('@/stores/settings', () => ({
-  useSettingsStore: () => ({ darkMode: false, emulator: 'floci' }),
+  useSettingsStore: () => mockSettings(),
 }))
 
 const modalStub = {
@@ -37,6 +38,7 @@ const defaultProps = {
 describe('APIGatewayInvokeUrlModal', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    mockSettings.mockReturnValue({ darkMode: false, emulator: 'floci' })
     vi.clearAllMocks()
     vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
   })
@@ -190,5 +192,46 @@ describe('APIGatewayInvokeUrlModal', () => {
       global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
     })
     expect(wrapper.text()).toContain('Close')
+  })
+
+  describe('WebSocket emulator URL', () => {
+    it('shows WebSocket emulator URL for FLOCI', async () => {
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: {
+          ...defaultProps,
+          stages: [],
+          api: { id: 'ws-api', name: 'WS API', protocolType: 'WEBSOCKET' },
+        },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      await wrapper.setProps({ stages: mockStages })
+      await wrapper.vm.$nextTick()
+      expect(wrapper.text()).toContain('ws://localhost:4566/ws/ws-api/prod')
+    })
+
+    it('shows WebSocket emulator URL for MINISTACK', async () => {
+      mockSettings.mockReturnValue({ darkMode: false, emulator: 'ministack' })
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: {
+          ...defaultProps,
+          stages: [],
+          api: { id: 'ws-api', name: 'WS API', protocolType: 'WEBSOCKET' },
+        },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      await wrapper.setProps({ stages: mockStages })
+      await wrapper.vm.$nextTick()
+      expect(wrapper.text()).toContain('ws://localhost:4566/_aws/execute-api/ws-api/prod')
+    })
+
+    it('shows HTTP emulator URL by default', async () => {
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: { ...defaultProps, stages: [] },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      await wrapper.setProps({ stages: mockStages })
+      await wrapper.vm.$nextTick()
+      expect(wrapper.text()).toContain('http://localhost:4566/restapis/')
+    })
   })
 })
