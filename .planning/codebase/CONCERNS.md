@@ -4,212 +4,402 @@
 
 ## Tech Debt
 
-### Mock Bloat — 61% of Go code is generated mocks
+### Massive Boilerplate Duplication in HTTP Handlers
 
-- **Issue:** Generated mocks in `pkg/proxy/mocks/` total 43,687 lines vs 27,998 lines of actual source code. Mocks live as committed Go files and inflate the repo.
-- **Files:** `pkg/proxy/mocks/ports/*.go` (50 files, ~43.7K lines)
-- **Impact:** Higher maintenance surface (mocks need regeneration on any interface change), slower CI (`go build` processes all mocks), more noise in IDE.
-- **Fix approach:** Move generated mocks to a separate `mocks` module with their own `go.mod`, or generate them on-the-fly during tests using `mockery --testonly --outdir /tmp`. Add `mocks/` to `.gitignore` and regenerate in CI.
+**Issue:** Every HTTP handler action follows the exact same 6-line pattern (parse body → check error → call service → check error → return result), copy-pasted across ~200 handler functions in 20+ handler files. The IAM handler alone (`pkg/proxy/internal/adapters/http/iam.go`) is 505 lines of near-identical functions.
 
-### Triple Interface Definitions — Duplicated port interfaces
+**Files:**
+- `pkg/proxy/internal/adapters/http/iam.go` (505 lines)
+- `pkg/proxy/internal/adapters/http/lambda.go` (227 lines)
+- `pkg/proxy/internal/adapters/http/apigateway.go` (971 lines)
+- All files in `pkg/proxy/internal/adapters/http/`
 
-- **Issue:** Three separate files define near-identical service interfaces for the HTTP adapter layer:
-  - `pkg/proxy/internal/ports/service.go` (ProxyService + all Port interfaces, 401 lines)
-  - `pkg/proxy/internal/ports/aws_client.go` (ClientPort interfaces for AWS SDK, 399 lines)
-  - `pkg/proxy/internal/adapters/http/interfaces.go` (Service interfaces for HTTP handlers, 333 lines)
-- **Impact:** Adding a new method to any service requires changes in up to 3 interface files + 1 adapter + 1 handler. Easy to forget one, causing compile errors or runtime panics.
-- **Fix approach:** Consolidate. Either use `ports/service.go` as the single source of truth and have adapters assert satisfaction, or generate HTTP handler interfaces from port definitions.
+**Impact:** High maintenance cost when adding new services or changing error handling patterns. ~30x increase in lines vs a handler-generic approach.
 
-### Giant Router Switch Statement
+**Fix approach:** Generate handler functions with generics or a handler factory. Define action → handler mapping with middleware to eliminate body parsing and error handling boilerplate.
 
-- **Issue:** `pkg/proxy/internal/adapters/http/handlers.go:82-131` has a 23-case switch statement routing service names to handlers.
-- **Impact:** Every new service adds a case here. Violates Open/Closed principle. Test coverage is manual.
-- **Fix approach:** Use a `map[string]gin.HandlerFunc` registry pattern. Services register themselves. Same pattern could apply to sidebar nav in UI.
+### Widespread `context.Background()` in Production Code Paths
 
-### Large Files — Maintenance hotspots
+**Issue:** `context.Background()` is used instead of propagating the request context in production paths:
+- `pkg/proxy/internal/proxy/service.go:76` — AWS config loading uses `context.Background()` instead of a cancellable context
+- `pkg/proxy/internal/application/app.go:68` — Server shutdown timeout uses `context.Background()` instead of being configurable
+- `pkg/proxy/cmd/server/main.go:91` — `loadConfig` uses `context.Background()`
 
-- **Issue:** Several files exceed 700 lines, making them hard to navigate and test comprehensively:
-  - `pkg/proxy/internal/adapters/http/apigateway.go` (971 lines) — Largest handler
-  - `pkg/proxy/internal/adapters/http/dynamodb.go` (546 lines)
-  - `pkg/ui/src/views/services/IAM.vue` (1658 lines) — Largest UI component
-  - `pkg/ui/src/views/services/IAM.test.ts` (1291 lines)
-  - `pkg/ui/src/views/services/DynamoDB.vue` (862 lines)
-  - `pkg/ui/src/api/types/aws.ts` (1038 lines) — Type definitions
-  - `pkg/ui/src/components/layout/Sidebar.vue` (732 lines) — All 22+ services inline
-- **Impact:** Difficult to review, refactor, or debug. Likely violates Single Responsibility.
-- **Fix approach:** Split IAM.vue into sub-components. Break apigateway.go into separate files per resource type (restapis, resources, methods, integrations, stages). Extract sidebar service list into a composable or store.
+**Files:** `pkg/proxy/internal/proxy/service.go`, `pkg/proxy/internal/application/app.go`, `pkg/proxy/cmd/server/main.go`
 
-### Duplicated Health Check URL Logic
+**Impact:** Cancellation signals are not propagated to AWS SDK clients during service initialization. The 5-second shutdown timeout is hardcoded with no config override.
 
-- **Issue:** `pkg/proxy/internal/adapters/http/handlers.go:33-34` hard-codes `/_localstack/health` as the emulator health check path, but the emulator could be Floci (which uses the same path but behavior may differ).
-- **Files:** `pkg/proxy/internal/adapters/http/handlers.go:34`, `pkg/proxy/internal/proxy/service.go:76`
-- **Impact:** If a different emulator is used, health check silently succeeds or fails with misleading logs.
-- **Fix approach:** Make the health check endpoint configurable in `config.yaml` (e.g., `emulator_health_path`).
+**Fix approach:** Thread the application context through `NewProxyService` and all adapter constructors. Make shutdown timeout configurable.
+
+### Widespread `any` Type Usage in Vue Frontend
+
+**Issue:** The Vue 3 TypeScript frontend uses `any` type extensively — 900+ matches across composables, views, API clients, and components. This undermines TypeScript's benefits and causes the type system to provide almost no safety for the majority of application code.
+
+**Files:** `pkg/ui/src/views/services/APIGatewayHttpApis.vue`, `pkg/ui/src/views/services/APIGatewayRestApis.vue`, `pkg/ui/src/composables/useDynamoDB.ts`, `pkg/ui/src/api/services/dynamodb.ts`, `pkg/ui/src/api/client.ts`, and most files under `pkg/ui/src/`
+
+**Impact:** Runtime errors that could be caught at compile time. Poor IDE support. Makes refactoring error-prone. New developers get no guidance on data shape from types.
+
+**Fix approach:** Define proper TypeScript interfaces for all API response types, composable return types, and component props/emits. Start with the `api/services/` layer since it defines the contract with the backend.
+
+### Deprecated `defaultConfig()` Still Actively Used
+
+**Issue:** `defaultConfig()` in `pkg/proxy/cmd/server/main.go:95` is marked as deprecated ("will be removed in favor of loading from config files") but is still actively used as a fallback whenever config loading fails. It reads env vars directly and ignores the config file entirely.
+
+**Files:** `pkg/proxy/cmd/server/main.go` (lines 94-115)
+
+**Impact:** Any config file loading error silently falls back to reading env vars only, which may cause difficult-to-debug production behavior where config files are ignored.
+
+**Fix approach:** Remove the deprecated `defaultConfig()`. Make config file mandatory in production (check `CONFIG_FILE` env). Only use env vars for CONFIG_FILE path.
+
+### Pure Pass-Through AWS Adapters With No Error Handling
+
+**Issue:** All AWS adapter implementations (`pkg/proxy/internal/adapters/aws/`) are pure pass-through wrappers that add no error wrapping, logging, retries, or transformation. Every method just calls the SDK method directly and returns raw errors.
+
+**Files:** All files in `pkg/proxy/internal/adapters/aws/` (s3.go, lambda.go, dynamodb.go, iam.go, etc.)
+
+**Impact:** Error messages from AWS SDK or LocalStack/Floci are passed directly to the HTTP response with no context about which operation failed. Makes debugging difficult.
+
+**Fix approach:** Wrap errors at the adapter level with operation context. Add consistent logging middleware. Consider a retry wrapper.
+
+### `Cache.Get()` Doesn't Prune Expired Entries (Memory Leak)
+
+**Issue:** The `Cache` implementation (`pkg/proxy/internal/cache/cache.go`) never removes expired entries from the map. `Get()` returns `false` for expired keys but the entry remains in the underlying map indefinitely. With the version checker setting entries every 25h, this is a slow leak.
+
+**Files:** `pkg/proxy/internal/cache/cache.go` (lines 33-47)
+
+**Impact:** Slow memory leak over time, especially if the cache is used for more keys in the future.
+
+**Fix approach:** Add periodic cleanup goroutine or prune entries on `Set()`. Add `Len()` and `Cleanup()` methods.
+
+### `context.TODO()` in Production Config Test
+
+**Issue:** `context.TODO()` is used in config test (`pkg/proxy/internal/config/config_test.go` lines 233 and 271) for production test code paths instead of `context.Background()`.
+
+**Files:** `pkg/proxy/internal/config/config_test.go`
+
+**Impact:** Minor — `context.TODO()` is intended for code where the right context is unclear, not for tests. Creates lint noise.
+
+**Fix approach:** Replace with `context.Background()`.
 
 ## Security Considerations
 
-### Hard-Coded AWS Credentials in Dockerfile
+### CORS Wildcard `*` in Production
 
-- **Risk:** `build/Dockerfile` lines 69-70 set `AWS_ACCESS_KEY=test` and `AWS_SECRET_KEY=test` as ENV defaults. Also hard-coded in all 3 `docker-compose*.yml` files.
-- **Files:** `build/Dockerfile:69-70`, `docker-compose.yml:12-13`, `docker-compose-floci.yml:12-13`, `docker-compose-ministack.yml` (if exists with same pattern)
-- **Current mitigation:** The credentials are dummy test values for local development only. Dockerfile line 1 has `# check=skip=SecretsUsedInArgOrEnv` to suppress scanner warnings.
-- **Recommendations:** Remove the hard-coded values. Force users to set via `.env` file or environment variables at runtime. Remove the `check=skip` comment so scanners can flag future credential leaks.
+**Risk:** The gin CORS middleware in `pkg/proxy/internal/application/app.go:106` sets `Access-Control-Allow-Origin: *`, allowing any website to make cross-origin requests to the proxy.
 
-### Wide-Open CORS Policy
+**Files:** `pkg/proxy/internal/application/app.go` (line 106)
 
-- **Risk:** `pkg/proxy/internal/application/app.go:106` sets `Access-Control-Allow-Origin: *` on all routes.
-- **Files:** `pkg/proxy/internal/application/app.go:106`
-- **Current mitigation:** This is a local development tool running on localhost. Not exposed to the internet (no auth layer either).
-- **Recommendations:** Restrict CORS origin to the UI origin in production builds. Add a config option `allowed_origins` in `config.yaml`.
+**Current mitigation:** None. The wildcard allows arbitrary origins.
 
-### No Authentication on Proxy API
+**Recommendations:** Restrict to known origins, or at minimum document why wildcard is needed (development proxy). For production behind nginx, ensure nginx handles CORS enforcement.
 
-- **Risk:** The entire proxy API at `/:service/*path` is unauthenticated. Any process on localhost can make requests.
-- **Files:** `pkg/proxy/internal/application/app.go:128`
-- **Current mitigation:** Only accessible on localhost (port 8081). Designed for local development tooling.
-- **Recommendations:** Add an optional API key or token-based auth for the proxy when deployed in shared environments. This is medium priority since the tool is explicitly for local development.
+### No Request Size Limits or Input Validation
 
-### Makefile Exports .env File Contents
+**Risk:** The HTTP handlers accept arbitrary-sized request bodies with no size limit, and parse them directly into AWS SDK input structs with no sanitization. A malicious client could send oversized payloads causing OOM or triggering AWS SDK parsing vulnerabilities.
 
-- **Risk:** `Makefile:5` runs `export $(shell sed 's/=.*//' $(FILE))` which loads all `KEY=value` pairs from `.env` into the shell environment. If `.env` contains real AWS credentials or tokens, they leak to any child process.
-- **Files:** `Makefile:3-5`
-- **Current mitigation:** `.env` is in `.gitignore` and only contains test credentials by default.
-- **Recommendations:** Use explicit env var mappings instead of a blind export. Only export the vars the Makefile needs.
+**Files:** All files in `pkg/proxy/internal/adapters/http/` — `readBody()` in `handlers.go:183-190`
 
-### No Secrets Scanning in CI
+**Current mitigation:** None at the application level. Relies on gin's default body size limiter (32MB).
 
-- **Risk:** CI pipeline has no Gitleaks or similar secrets scanning step.
-- **Files:** `.github/workflows/test.yml`, `.github/workflows/release.yml`
-- **Recommendations:** Add a `gitleaks` or `trufflehog` scan step to the test workflow, running on every PR and push.
+**Recommendations:** Add configurable max request body size. Add input validation middleware that rejects unexpected fields.
+
+### Default Hardcoded Credentials
+
+**Risk:** Default AWS credentials (`test`/`test`) are hardcoded in:
+- `pkg/proxy/internal/config/config.go` (lines 31-32)
+- `pkg/proxy/cmd/server/main.go` (lines 108-109)
+- `build/Dockerfile` (lines 68-69)
+- `docker-compose.yml` (lines 12-13)
+
+**Files:** `pkg/proxy/internal/config/config.go`, `pkg/proxy/cmd/server/main.go`, `build/Dockerfile`, `docker-compose.yml`
+
+**Current mitigation:** These are defaults for local development with LocalStack/Floci. Production deploys are expected to override via environment variables.
+
+**Recommendations:** Add a startup warning if default credentials are detected. Remove defaults from Dockerfile and make them required env vars.
+
+### No Secrets Redaction in Logs
+
+**Risk:** The Secrets Manager adapter logs may expose secret values in debug output. Adapter implementations use `fmt.Errorf` which includes the full error including potentially sensitive data.
+
+**Files:** All adapters in `pkg/proxy/internal/adapters/aws/` use `fmt.Errorf()` with operation name but the raw SDK error may contain secret values in "AccessDenied" or similar error responses.
+
+**Current mitigation:** None specific. Errors are logged via `sendError()` which calls `log.Printf`.
+
+**Recommendations:** Implement a logging middleware that redacts sensitive values (secret values, credentials, keys) from error messages before logging.
+
+### No CSRF Protection
+
+**Risk:** The proxy has no CSRF tokens or SameSite cookie enforcement. Any authenticated session could be targeted by cross-site request forgery.
+
+**Files:** `pkg/proxy/internal/application/app.go` (route setup), `build/nginx.conf`
+
+**Current mitigation:** None. The application relies on the emulator's existing security model.
+
+**Recommendations:** Add CSRF middleware if user sessions are introduced. For now, document that the proxy is designed for local development only.
+
+### Secrets Manager Debug Logging
+
+**Risk:** The Secrets Manager adapter (`pkg/proxy/internal/adapters/aws/secretsmanager.go`) uses `fmt.Println` for debug output when creating secrets. This will print secret values to stdout in production.
+
+**Files:** `pkg/proxy/internal/adapters/aws/secretsmanager.go`
+
+**Current mitigation:** None. `fmt.Println` outputs to stdout which appears in container logs.
+
+**Recommendations:** Remove `fmt.Println` calls. Use structured logging with redaction.
 
 ## Performance Bottlenecks
 
-### Region Change Recreates All AWS Clients
+### `SetRegion()` Recreates All 20+ Service Adapters Unnecessarily
 
-- **Problem:** `pkg/proxy/internal/proxy/service.go:62-73` — `SetRegion()` calls `SetServices()` which recreates ALL 22 AWS service adapters from scratch, including new AWS config loading.
-- **Files:** `pkg/proxy/internal/proxy/service.go:62-73`
-- **Cause:** Each adapter has its own AWS SDK client. There's no per-service lazy initialization or client pooling.
-- **Improvement path:** Use a single AWS config and create adapters lazily on first access. When region changes, invalidate the adapter cache instead of rebuilding everything.
+**Problem:** Every call to `SetRegion()` (`pkg/proxy/internal/proxy/service.go:62-73`) recreates ALL 21 AWS service adapters from scratch — re-initializing every AWS SDK client, even if the region hasn't changed. This blocks on the RWMutex and has no caching of the previous configuration.
 
-### S3 Presign Client Created Unconditionally
+**Files:** `pkg/proxy/internal/proxy/service.go` (lines 62-73, 75-109)
 
-- **Problem:** `pkg/proxy/internal/adapters/aws/s3.go:26` creates a `PresignClient` on every `NewS3Adapter` call, even if presign operations are never used.
-- **Files:** `pkg/proxy/internal/adapters/aws/s3.go:26`
-- **Improvement path:** Create PresignClient lazily or make it a separate optional adapter.
+**Cause:** Naive implementation — the entire service graph is rebuilt on every region change because adapters store a reference to their region at creation time.
 
-### GitHub API Call Without Rate Limiting
+**Improvement path:** Add region-change detection (skip recreation if same region). Create adapters lazily. Use a version counter to invalidate cached adapters only when region changes.
 
-- **Problem:** `pkg/proxy/internal/adapters/github/release.go:40` calls the unauthenticated GitHub API (`api.github.com/repos/.../releases/latest`) every `VERSION_CHECK_HOURS` (default 24h) with no rate limit awareness. Unauthenticated GitHub API has 60 requests/hour limit.
-- **Files:** `pkg/proxy/internal/adapters/github/release.go`, `pkg/proxy/internal/version/version.go`
-- **Improvement path:** Add a GitHub token via env var `GITHUB_TOKEN` for authenticated requests (5000 req/hr). Implement exponential backoff. Cache the result aggressively (already has 25h TTL).
+### No Expired Entry Cleanup in Cache
 
-### Proxy DNS Resolution on Every Health Check
+**Problem:** The `Cache` (`pkg/proxy/internal/cache/cache.go`) accumulates expired entries indefinitely. Each `Get()` call skips expired entries but doesn't remove them. Only called with version check keys (~1 entry/day), but the pattern is wrong.
 
-- **Problem:** `pkg/proxy/internal/adapters/http/handlers.go:66-69` creates a new `http.Client` with timeout on every health check call that misses cache, causing new DNS resolution each time.
-- **Files:** `pkg/proxy/internal/adapters/http/handlers.go:66`
-- **Improvement path:** Move the `http.Client` to a struct field and reuse it.
+**Files:** `pkg/proxy/internal/cache/cache.go`
 
-## Fragile Areas
+**Cause:** No eviction policy or cleanup mechanism.
 
-### E2E Test Flakiness — Floci Dependency
+**Improvement path:** Add periodic cleanup goroutine. Use `map` delete on `Get()` when entry is expired. Add capacity limits with LRU eviction.
 
-- **Files:** `pkg/test/e2e/services/*.spec.ts` (18 spec files, ~4.8K total lines), `.github/workflows/test.yml:152-162`
-- **Why fragile:** E2E tests depend on Floci Docker container running on `:4566`. CI starts Floci with a 30-retry loop (60s max), then builds and starts the Go proxy + Vite preview server with 5 retries of 20s each. If Floci is slow or the response format changes, tests fail.
-- **Current issues:** TODO at `pkg/test/e2e/services/kinesis.spec.ts:140` — debug proxy/UI communication for delete. Indicates known test issues.
-- **Safe modification:** Always run E2E tests locally before changes. Check Floci version compatibility. Consider adding retry logic in Playwright fixtures.
-- **Test coverage:** All 18 services have E2E tests but some are minimal (ElastiCache 69 lines, Lambda 71 lines, RDS 72 lines).
+### Sidebar Uses `setTimeout` + MutationObserver Instead of `ResizeObserver`
 
-### Version Service Scheduler — No Graceful Error Recovery
+**Problem:** The sidebar scroll detection in `Sidebar.vue:141` uses `setTimeout(checkScroll, 100)` instead of `ResizeObserver`. The MutationObserver adds unnecessary DOM observation overhead.
 
-- **Files:** `pkg/proxy/internal/version/version.go`
-- **Why fragile:** The `checkAndUpdateVersion` method uses a hard-coded `retryDelay = 5 * time.Minute` _within_ the scheduler ticker loop. If GitHub is unreachable for the first check after startup, the scheduler thread blocks for 5 minutes before trying the cache. The `StartScheduler` is called from `app.go:86` inside an errgroup goroutine.
-- **Safe modification:** The retry delay should be configurable or use exponential backoff instead of a fixed 5-minute sleep.
+**Files:** `pkg/ui/src/components/layout/Sidebar.vue` (lines 139-151)
 
-### Docker CMD — No Process Supervision
+**Cause:** Workaround for DOM measurement timing.
 
-- **Files:** `build/Dockerfile:78`
-- **Why fragile:** `CMD ["/bin/sh", "-c", "/usr/local/bin/mydevstack-proxy & sleep 2 && nginx -g 'daemon off;'"]` — The proxy runs as a background process. If the proxy crashes, nginx keeps running and the container appears healthy (nginx serves 502s for API routes). The health check only tests nginx (`curl -f http://localhost:3000`), not the proxy.
-- **Safe modification:** Use a process supervisor like `s6-overlay` or `supervisord`, or restructure as two containers. Fix the health check to actually test the proxy endpoint at `/health`.
+**Improvement path:** Replace with `ResizeObserver` on the scroll container. Remove MutationObserver entirely — content changes inside the scroll container will be captured by `ResizeObserver`.
 
-### UI API Client Singleton — Stale After Region/Settings Change
+### AWS SDK Clients Have No Explicit Retry Configuration
 
-- **Files:** `pkg/ui/src/api/client.ts:213-219`
-- **Why fragile:** `getApiClient()` creates the axios instance once with a fixed `baseURL` from `PROXY_BACKEND`. If the user changes settings (endpoint, region, credentials) the API client still uses the old config until page reload. The `AWSSigV4Signer` reads `settingsStore.accessKey/secretKey/region` on each request interceptor call, but the base URL is fixed.
-- **Safe modification:** Invalidate the `apiClient` singleton when settings change. Or move `baseURL` into the request interceptor so it reads from settings store each time.
+**Problem:** All AWS service adapters use the default AWS SDK retry behavior without explicit configuration. The HTTP client timeout is set to 30s but no retry strategy is defined, meaning transient failures (throttling, network issues) propagate immediately as errors.
 
-## Scaling Limits
+**Files:** All files in `pkg/proxy/internal/adapters/aws/`
 
-### 22 AWS Services — Linear Code Growth
+**Cause:** SDK defaults are used without explicit override.
 
-- **Current capacity:** 22 AWS services implemented with ~15-17 files each per `ADDING_SERVICES.md` (Go: port interface + AWS adapter + HTTP handler; Vue: API client + composable + component + view + route + story + test + E2E).
-- **Limit:** Each new service adds ~5 Go files (port, client port, adapter, handler, tests) + ~10 UI files (API service, composable, component(s), view, story, tests). At 22 services, this is already ~330-374 files.
-- **Scaling path:** Adopt code generation for the repetitive adapter/handler/service layer. Use a plugin architecture or service registry pattern to avoid modifying existing files when adding services.
-
-## Dependencies at Risk
-
-### golangci-lint v2 — Rapid Evolution
-
-- **Risk:** CI pins `golangci-lint@v2.3.0` (`test.yml:24`). The v2 config format changed significantly from v1. The `.golangci.yml` at `pkg/proxy/.golangci.yml` is v2 format.
-- **Impact:** If CI image or golangci-lint versions diverge from local dev, lint results may differ. Team members may have different versions installed.
-- **Migration plan:** Pin the version in a `.tool-versions` file or use `go install` with a specific version in the Makefile.
-
-### `@headlessui/vue` v1.x
-
-- **Risk:** UI uses `@headlessui/vue: ^1.7.0`. Headless UI v2 has significant breaking changes and is the active development track.
-- **Impact:** Staying on v1.x misses accessibility improvements and new component patterns. Migration would be a breaking change.
-- **Migration plan:** Evaluate v2 migration when upgrading other dependencies.
-
-## Missing Critical Features
-
-### No Error Tracking or Monitoring
-
-- **Problem:** No error tracking (Sentry, etc.), no structured logging (uses `log.Printf`), no metrics. Errors in production Docker containers go to stdout/stderr only.
-- **Files:** All `log.Printf` calls across `pkg/proxy/internal/`
-- **Blocks:** Troubleshooting issues in deployed containers requires access to container logs. No way to track error frequency or patterns.
-
-### No Input Validation Middleware
-
-- **Problem:** Request body parsing happens ad-hoc in each handler via `parseBody()` / `transformJSONKeys()` in `handlers.go:192-227`. No centralized validation or schema enforcement.
-- **Files:** `pkg/proxy/internal/adapters/http/handlers.go`
-- **Blocks:** Malformed requests can cause cryptic errors. Adding validation for each handler individually is tedious and inconsistent.
-
-### No API Documentation
-
-- **Problem:** The proxy API has no OpenAPI/Swagger spec. API routes are defined in code (`app.go:125-128`) and the router switch (`handlers.go:82-131`).
-- **Blocks:** Onboarding new contributors requires reading handler code. No auto-generated client or API reference.
-
-## Test Coverage Gaps
-
-### UI Test Coverage Not Enforced
-
-- **What's not tested:** CI runs `vitest run --coverage` for UI but has no coverage threshold (`test.yml` only enforces Go coverage at 90%).
-- **Files:** `.github/workflows/test.yml:77` (UI test step), `.github/workflows/test.yml:105-113` (Go coverage threshold)
-- **Risk:** UI coverage can degrade without detection. Storybook stories (122 files) exist but don't verify behavior.
-- **Priority:** Medium — UI has 155 test files for 388 source files (~40% test density) but actual coverage percentage is unknown.
-
-### Storybook Coverage — Visual Only
-
-- **What's not tested:** 122 Storybook stories exist but none have interaction tests or accessibility assertions. Stories render components but don't verify behavior, error states, or async flows.
-- **Files:** `pkg/ui/src/**/*.stories.ts` (122 files)
-- **Risk:** Stories become stale — they can pass CI even if the component behavior is broken.
-- **Priority:** Low — better than no stories. But stories should include interaction tests via `@storybook/addon-interactions`.
-
-### Several Services Have Minimal E2E Coverage
-
-- **What's not tested:** ElastiCache (69 lines), Lambda (71 lines), RDS (72 lines) E2E tests cover only basic CRUD.
-- **Files:** `pkg/test/e2e/services/elasticache.spec.ts`, `lambda.spec.ts`, `rds.spec.ts`
-- **Risk:** UI regressions for these services may not be caught by E2E.
-- **Priority:** Low — these are simpler services. But any new feature for these services needs E2E expansion.
+**Improvement path:** Configure retry strategy (max attempts, backoff) at the config level in `proxy/service.go`.
 
 ## Known Bugs
 
-### Kinesis Delete — Proxy/UI Communication Issue
+### Health Check Returns `false` When Body Close Fails
 
-- **Symptoms:** Kinesis delete operations have a known communication issue between proxy and UI.
-- **Files:** `pkg/test/e2e/services/kinesis.spec.ts:140`
-- **Trigger:** Kinesis resource deletion via UI.
-- **Workaround:** None documented. The TODO has been present since the service was added.
-- **Priority:** Medium — affects core functionality for Kinesis.
+**Symptoms:** If the health check HTTP request succeeds (200 OK) but `resp.Body.Close()` returns an error, `checkBackendHealth()` returns `false` (unhealthy). The body close error is unrelated to backend health.
+
+**Files:** `pkg/proxy/internal/adapters/http/handlers.go` (lines 74-76)
+
+**Trigger:** Any transient I/O error during TCP connection teardown after a successful health probe.
+
+**Workaround:** None, besides the error being rare.
+
+**Fix:** Log but don't return `false` on body close errors. The health status should be determined by the HTTP status code only.
+
+### `VersionService.Stop()` Panics on Double Close
+
+**Symptoms:** Calling `versionService.Stop()` more than once causes a panic because `close(s.stopCh)` on an already-closed channel panics in Go.
+
+**Files:** `pkg/proxy/internal/version/version.go` (lines 60-62)
+
+**Trigger:** Multiple goroutines calling `Stop()` or `Stop()` being called after the scheduler has already returned from context cancellation.
+
+**Workaround:** Only call `Stop()` once. Currently called from `app.go:94` which is the only caller.
+
+**Fix:** Use `sync.Once` for stop channel close or use a boolean flag to guard the close.
+
+### Lambda Invoke Response Missing Fields
+
+**Symptoms:** The Lambda invoke handler (`pkg/proxy/internal/adapters/http/lambda.go:104-129`) doesn't forward `LogResult` or `ExecutedVersion` fields from the invoke response. The `Payload` is base64-encoded but upstream AWS SDK returns it raw.
+
+**Files:** `pkg/proxy/internal/adapters/http/lambda.go` (lines 116-126)
+
+**Trigger:** Invoking a Lambda function with `LogType=Tail` or needing `ExecutedVersion`.
+
+**Workaround:** Use the Go proxy directly instead of the HTTP handler for full response.
+
+**Fix:** Forward all response fields from the Lambda invoke output, including `LogResult` and `ExecutedVersion`. Respect the response format expected by the AWS SDK.
+
+### IAM `ListUsersForGroup` Type Alias Shadowing
+
+**Symptoms:** `pkg/proxy/internal/adapters/aws/iam.go` re-exports port types as local type aliases (`ListUsersForGroupInput = ports.ListUsersForGroupInput`). This creates confusion about which type is canonical and makes the adapter responsible for defining its own input types rather than using them from ports.
+
+**Files:** `pkg/proxy/internal/adapters/aws/iam.go` (lines 14-15)
+
+**Trigger:** Any change to the port interface types in `internal/ports/`.
+
+**Fix:** Remove local aliases and reference `ports.ListUsersForGroupInput` directly in method signatures. Or move the type definitions to the port package where they belong.
+
+## Fragile Areas
+
+### AWS Adapter Interface vs Client Double-Wrapping
+
+**Why fragile:** Each AWS adapter has a dual pattern — it wraps an AWS SDK client but the port interface defines methods that return AWS SDK types directly. The IAM adapter (`iam.go`) also stores a `directClient *iam.Client` alongside the wrapped `client ports.IAMClientPort`, creating two paths to the same client. This is inconsistent across adapters.
+
+**Files:** `pkg/proxy/internal/adapters/aws/iam.go` (lines 18-20), `pkg/proxy/internal/adapters/aws/lambda.go` (lines 13-15), similar in all adapter files.
+
+**Safe modification:** When adding new methods, add to both the port interface and the adapter. Ensure only one client reference is used.
+
+**Test coverage:** Adapter tests exist (50 test files) but test only the AWS adapter methods, not the port-interface contract. Mock coverage is generated from port interfaces.
+
+### E2E Test Fixtures Suppress All Errors
+
+**Why fragile:** The E2E test `fixtures.js` uses bare `catch { //ignore }` blocks for all cleanup operations. If a cleanup request fails (e.g., proxy is down, resource doesn't exist), the error is silently swallowed and subsequent tests may interact with stale state.
+
+**Files:** `pkg/test/e2e/fixtures.js` (lines 16-19, 32-35)
+
+**Safe modification:** Log errors at minimum. Add retry with backoff for cleanup operations.
+
+**Test coverage:** These are the test fixtures themselves — they lack unit tests.
+
+### DynamoDB `isDynamoDBFormat` First-Key Check
+
+**Why fragile:** `isDynamoDBFormat` in `pkg/ui/src/api/services/dynamodb.ts` only checks the first key's value to determine if an object is in DynamoDB attribute format. If the first key happens to have `S`, `N`, or `B` properties but isn't actually DynamoDB format, the marshalling is skipped.
+
+**Files:** `pkg/ui/src/api/services/dynamodb.ts` (lines 167-174, 243-256)
+
+**Safe modification:** Check ALL keys, not just the first one. Or require explicit `isDynamoDBFormat` flag.
+
+**Test coverage:** Covered by composable tests but edge cases for partial matches are not tested.
+
+### Docker `CMD` Startup Order Race Condition
+
+**Why fragile:** The Docker CMD (`build/Dockerfile:78`) uses `sleep 2` to ensure the proxy starts before nginx. This is a classic race condition — on slow systems, 2 seconds might not be enough.
+
+**Files:** `build/Dockerfile` (line 78)
+
+**Safe modification:** Use a startup script that waits for the proxy health endpoint before starting nginx. Example: `while ! curl -sf http://localhost:8081/health; do sleep 1; done && nginx -g 'daemon off;'`.
+
+**Test coverage:** Not covered by any test.
+
+### Docker nginx PID Path Mismatch
+
+**Why fragile:** The nginx config (`build/nginx.conf:3`) sets `pid /tmp/nginx.pid` but the Dockerfile (`build/Dockerfile:53`) only `chown`s `/var/cache/nginx`, `/var/log/nginx`, `/var/lib/nginx`, `/var/run`, and `/etc/nginx` to `appuser`. The `/tmp/nginx.pid` path is owned by root and doesn't need special ownership, but this mismatch could cause issues if `/tmp` permissions are restricted.
+
+**Files:** `build/Dockerfile` (line 53), `build/nginx.conf` (line 3)
+
+**Safe modification:** Either move pid to a dir that's explicitly chowned, or ensure `/tmp` is writable.
+
+**Test coverage:** Not covered by tests.
+
+### `ProxyService.SetServices()` Not Safe for Concurrent Calls
+
+**Why fragile:** `SetServices()` is called from `SetRegion()` which acquires a write lock, but `SetServices()` itself writes to unguarded fields on the service struct. If called from outside the lock guard, it would race with reader methods.
+
+**Files:** `pkg/proxy/internal/proxy/service.go` (lines 62-73, 75-109)
+
+**Safe modification:** Only call `SetServices()` from within `SetRegion()` which holds the write lock. Document this requirement.
+
+**Test coverage:** `pkg/proxy/internal/proxy/service_test.go` tests `SetRegion` but does not test concurrent access.
+
+## Test Coverage Gaps
+
+**Untested area:** HTTP handler error paths — the `sendError` function logs and returns JSON, but no tests verify the error response format or status codes for every handler action. Most tests use mocked adapters but only test the happy path.
+
+**Files:** All `*_test.go` files in `pkg/proxy/internal/adapters/http/`
+
+**Risk:** Error handling logic changes without test coverage.
+
+**Priority:** Medium
+
+---
+
+**Untested area:** Vue composable error states — while composable unit tests exist, many only test the loading/success path and skip testing what happens when API calls fail (e.g., `useDynamoDB.ts` has `catch` blocks for toast errors but tests don't verify the toast is called).
+
+**Files:** `pkg/ui/src/composables/useDynamoDB.test.ts`, and test files for other composables
+
+**Risk:** Error handling in the UI may silently fail or show incorrect states.
+
+**Priority:** Medium
+
+---
+
+**Untested area:** E2E test cleanup — `fixtures.js` uses `catch { //ignore }` making cleanup failures invisible in CI.
+
+**Files:** `pkg/test/e2e/fixtures.js`
+
+**Risk:** Stale resources from failed tests accumulate and cause subsequent test failures.
+
+**Priority:** Low
+
+---
+
+**Untested area:** GitHub release adapter — `pkg/proxy/internal/adapters/github/release.go` has no unit tests. It makes real HTTP calls and has complex error handling for non-200 responses.
+
+**Files:** `pkg/proxy/internal/adapters/github/release.go`
+
+**Risk:** GitHub API changes or rate limiting could break version checking without detection.
+
+**Priority:** Medium
+
+---
+
+**Untested area:** Cache expiry — `pkg/proxy/internal/cache/cache.go` tests exist but don't test edge cases like concurrent `Get`/`Set` races or cleanup of expired entries.
+
+**Files:** `pkg/proxy/internal/cache/cache_test.go`
+
+**Risk:** Race conditions in cache access patterns.
+
+**Priority:** Low
+
+## Dependencies at Risk
+
+### `github.com/beabys/ayotl` (Config Library)
+
+**Risk:** This is a custom config library (`github.com/beabys/ayotl`) owned by the same author as `mydevstack`. It has version `v0.0.0-20250508165002-...` (pre-1.0, dated recently) and is imported at `pkg/proxy/internal/config/config.go:7`.
+
+**Impact:** If the library API changes or becomes unmaintained, the config loading layer breaks. Being pre-1.0, breaking changes are expected.
+
+**Migration plan:** Consider switching to a well-established config library like `spf13/viper` or Go's standard `encoding/json`/`gopkg.in/yaml.v3`.
+
+---
+
+**Risk:** All AWS SDK v2 dependencies are pinned to specific minor versions (e.g., `github.com/aws/aws-sdk-go-v2 v1.41.7`). AWS regularly releases updates and the project depends on ~25 AWS SDK packages. Keeping these in sync manually is error-prone.
+
+**Impact:** Missing security patches or bug fixes in AWS SDK. Version drift between tightly coupled SDK packages.
+
+**Migration plan:** Use `go get -u` on the entire AWS SDK package family regularly. Consider Dependabot/Renovate for automated updates.
+
+---
+
+**Risk:** Vue UI `package.json` pins AWS SDK packages to `^3.1023.0` (very recent) but `elasticache` and `rds` are pinned to `^3.598.0` — significantly older. All SDK packages should be on the same major version for consistency.
+
+**Files:** `pkg/ui/package.json` (lines 23-40)
+
+**Impact:** Feature disparity between AWS SDK packages. Potential behavioral inconsistencies.
+
+**Migration plan:** Update `elasticache` and `rds` SDK packages to match the rest (`^3.1023.0`).
+
+## Missing Critical Features
+
+**Feature gap:** No request/response logging middleware — the proxy has no structured logging layer. All logging is ad-hoc `log.Printf()`. No correlation IDs, no request tracing.
+
+**Blocks:** Debugging production issues, understanding traffic patterns, auditing access.
+
+**Priority:** Medium
+
+---
+
+**Feature gap:** No rate limiting or throttling — the proxy has no protection against request flooding.
+
+**Blocks:** Production deployment without nginx rate limiting.
+
+**Priority:** Low (mitigated by nginx in production)
+
+---
+
+**Feature gap:** No metrics or monitoring integration — the proxy exposes `/health` only. No Prometheus metrics, no request duration tracking, no error rate counters.
+
+**Blocks:** Monitoring production health, setting up alerts, capacity planning.
+
+**Priority:** Medium
 
 ---
 
