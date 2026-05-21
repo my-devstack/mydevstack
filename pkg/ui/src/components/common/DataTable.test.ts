@@ -133,7 +133,7 @@ describe('DataTable', () => {
       await idHeader!.trigger('click')
 
       // After first click: asc (1,2,3,...)
-      let vm = wrapper.vm as any
+      const vm = wrapper.vm as any
       expect(vm.sortDirection).toBe('asc')
       expect(vm.sortKey).toBe('id')
 
@@ -150,7 +150,7 @@ describe('DataTable', () => {
       const nameHeader = wrapper.findAll('th').find(t => t.text().includes('Name'))
       await nameHeader!.trigger('click')
 
-      let vm = wrapper.vm as any
+      const vm = wrapper.vm as any
       expect(vm.sortKey).toBe('name')
       expect(vm.sortDirection).toBe('asc')
 
@@ -248,7 +248,7 @@ describe('DataTable', () => {
       const page2Btn = wrapper.findAll('button').find(b => b.text() === '2')
       await page2Btn!.trigger('click')
 
-      let vm = wrapper.vm as any
+      const vm = wrapper.vm as any
       expect(vm.currentPage).toBe(2)
 
       // Go back

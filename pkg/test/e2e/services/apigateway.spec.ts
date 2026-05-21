@@ -15,7 +15,7 @@ async function createRestApi(page: any, name: string, description?: string) {
   await page.waitForLoadState('networkidle')
 
   // Ensure API Gateway tab is active (default)
-  const restTab = page.getByRole('tab', { name: 'API Gateway' })
+  const restTab = page.getByRole('tab', { name: 'API Gateway', exact: true })
   if (await restTab.isVisible()) {
     await restTab.click()
   }
@@ -132,10 +132,10 @@ test.describe('API Gateway', () => {
     await page.waitForLoadState('networkidle')
 
 // Click API Gateway tab
-  await page.getByRole('tab', { name: 'API Gateway' }).click()
+  await page.getByRole('tab', { name: 'API Gateway', exact: true }).click()
 
     // Verify tab is active (contains active styling or check URL)
-    await expect(page.getByRole('tab', { name: 'API Gateway' })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('tab', { name: 'API Gateway', exact: true })).toBeVisible({ timeout: 5000 })
   })
 
   test('navigate to API Gateway V2 tab', async ({ page }) => {
@@ -156,8 +156,8 @@ test.describe('API Gateway', () => {
     await page.goto('/#/services/api-gateway')
     await page.waitForLoadState('networkidle')
 
-    // Ensure REST API tab is active (default)
-    const restTab = page.getByRole('tab', { name: 'API Gateway' })
+    // Ensure API Gateway tab is active (default)
+    const restTab = page.getByRole('tab', { name: 'API Gateway', exact: true })
     if (await restTab.isVisible()) {
       await restTab.click()
     }
@@ -314,8 +314,8 @@ test.describe('API Gateway', () => {
     // Verify create button changes to "Create API"
     await expect(page.getByRole('button', { name: 'Create API' }).first()).toBeVisible()
 
-    // Switch back to REST
-    await page.getByRole('tab', { name: 'API Gateway' }).click()
+    // Switch back to API Gateway
+    await page.getByRole('tab', { name: 'API Gateway', exact: true }).click()
 
     // Verify create button changes back
     await expect(page.getByRole('button', { name: 'Create REST API' }).first()).toBeVisible()

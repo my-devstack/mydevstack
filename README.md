@@ -79,13 +79,13 @@ git clone https://github.com/beabys/mydevstack.git
 cd mydevstack
 
 # Install UI dependencies
-cd pkg/ui && npm install
+cd pkg/ui && pnpm install
 
 # Start Go proxy (port 8081)
 go run ./pkg/proxy/cmd/server
 
 # Start Vue dev server (port 3000) - in another terminal
-cd pkg/ui && npm run dev
+cd pkg/ui && pnpm run dev
 ```
 
 ### Running Tests
@@ -95,7 +95,7 @@ cd pkg/ui && npm run dev
 make test
 
 # Vue frontend
-cd pkg/ui && npm run test:run
+cd pkg/ui && pnpm run test:run
 
 # E2E tests
 make test-e2e

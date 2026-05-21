@@ -343,7 +343,6 @@ defineExpose({
 
   <!-- Pagination -->
   <div
-    v-if="apis.length > 0"
     class="flex flex-wrap items-center justify-between gap-4 py-4"
   >
     <div class="flex items-center gap-2">

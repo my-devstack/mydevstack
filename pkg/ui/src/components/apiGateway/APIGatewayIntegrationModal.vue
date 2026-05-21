@@ -245,7 +245,7 @@ function handleClose() {
         v-if="integrationType === 'AWS' || integrationType === 'HTTP'"
         v-model="mappingTemplate"
         label="Mapping Template (VTL)"
-        placeholder='{"statusCode": 200}'
+        placeholder="{&quot;statusCode&quot;: 200}"
         type="textarea"
       />
 
