@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/adapters/github"
 	httphandlers "github.com/my-devstack/mydevstack/pkg/proxy/internal/adapters/http"
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/cache"
@@ -48,7 +49,7 @@ func (c *Container) RunServer(address string) {
 	r := c.setupRoutes()
 	server := &http.Server{
 		Addr:    address,
-		Handler: r.Handler(),
+		Handler: r,
 	}
 	c.Wg.Go(func() error {
 		log.Printf("http server started")
@@ -96,35 +97,37 @@ func (c *Container) RunScheduler(checkHours int) {
 	})
 }
 
-func (c *Container) setupRoutes() *gin.Engine {
+func (c *Container) setupRoutes() http.Handler {
 	handler := c.Handler
-	r := gin.New()
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
+	r := chi.NewRouter()
+	r.Use(chiMiddleware.Logger)
+	r.Use(chiMiddleware.Recoverer)
 
-	r.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD")
-		c.Header("Access-Control-Allow-Headers",
-			"Content-Type, Authorization, X-Requested-With, "+
-				"X-Amz-Date, X-Amz-Security-Token, X-Api-Key, "+
-				"x-amz-content-sha256, x-amz-target, x-amz-user-agent, "+
-				"x-amz-id-2, x-amz-request-id, Accept, Accept-Encoding, "+
-				"Content-Length, Host, User-Agent, "+
-				"x-amz-invocation-type, x-amz-log-type, x-amz-client-context, "+
-				"amz-sdk-request, amz-sdk-invocation-id, amz-content-sha256, "+
-				"X-Mock-Signature")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusOK)
-			return
-		}
-		c.Next()
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD")
+			w.Header().Set("Access-Control-Allow-Headers",
+				"Content-Type, Authorization, X-Requested-With, "+
+					"X-Amz-Date, X-Amz-Security-Token, X-Api-Key, "+
+					"x-amz-content-sha256, x-amz-target, x-amz-user-agent, "+
+					"x-amz-id-2, x-amz-request-id, Accept, Accept-Encoding, "+
+					"Content-Length, Host, User-Agent, "+
+					"x-amz-invocation-type, x-amz-log-type, x-amz-client-context, "+
+					"amz-sdk-request, amz-sdk-invocation-id, amz-content-sha256, "+
+					"X-Mock-Signature")
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
 	})
 
-	r.GET("/health", handler.HealthCheck)
-	r.POST("/proxy/region", handler.SetRegion)
+	r.Get("/health", handler.HealthCheck)
+	r.Post("/proxy/region", handler.SetRegion)
 
-	r.Any("/:service/*path", handler.ServiceRouter)
+	r.HandleFunc("/{service}", handler.ServiceRouter)
+	r.HandleFunc("/{service}/{path:.*}", handler.ServiceRouter)
 	return r
 }

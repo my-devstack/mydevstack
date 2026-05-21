@@ -29,7 +29,7 @@ func TestHandleDynamoDBStreams_ListStreams(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodbstreams/", "ListStreams", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodbstreams", "ListStreams", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -42,7 +42,7 @@ func TestHandleDynamoDBStreams_ListStreams(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodbstreams/", "ListStreams", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodbstreams", "ListStreams", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
@@ -59,7 +59,7 @@ func TestHandleDynamoDBStreams_DescribeStream(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodbstreams/", "DescribeStream", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodbstreams", "DescribeStream", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -72,7 +72,7 @@ func TestHandleDynamoDBStreams_DescribeStream(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodbstreams/", "DescribeStream", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodbstreams", "DescribeStream", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
@@ -89,7 +89,7 @@ func TestHandleDynamoDBStreams_GetShardIterator(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodbstreams/", "GetShardIterator", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodbstreams", "GetShardIterator", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -102,7 +102,7 @@ func TestHandleDynamoDBStreams_GetShardIterator(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodbstreams/", "GetShardIterator", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodbstreams", "GetShardIterator", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
@@ -119,7 +119,7 @@ func TestHandleDynamoDBStreams_GetRecords(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodbstreams/", "GetRecords", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodbstreams", "GetRecords", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -132,7 +132,7 @@ func TestHandleDynamoDBStreams_GetRecords(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodbstreams/", "GetRecords", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodbstreams", "GetRecords", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
@@ -165,7 +165,7 @@ func TestHandleDynamoDBStreams_ParseErrors(t *testing.T) {
 			versionSvc := createTestVersionService(t)
 			handler := NewProxyHandler(context.Background(), svc, versionSvc)
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/dynamodbstreams/", tc.target, []byte("{bad json}"))
+			w := performRequest(r, "POST", "/dynamodbstreams", tc.target, []byte("{bad json}"))
 			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s", tc.target)
 		})
 	}
@@ -181,7 +181,7 @@ func TestHandleDynamoDBStreams_UnknownAction(t *testing.T) {
 	versionSvc := createTestVersionService(t)
 	handler := NewProxyHandler(context.Background(), svc, versionSvc)
 	r := setupTestRouter(handler)
-	w := performRequest(r, "POST", "/dynamodbstreams/", "UnknownStreamAction", []byte("{}"))
+	w := performRequest(r, "POST", "/dynamodbstreams", "UnknownStreamAction", []byte("{}"))
 	assert.Equal(t, http.StatusNotFound, w.Code)
 
 	var resp map[string]interface{}

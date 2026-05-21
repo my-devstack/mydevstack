@@ -191,7 +191,7 @@ func TestSecretsManagerHandler(t *testing.T) {
 			handler := createHandler(svc, versionSvc)
 			r := setupTestRouter(handler)
 
-			w := performRequest(r, "POST", "/secretsmanager/", tc.target, []byte(tc.body))
+			w := performRequest(r, "POST", "/secretsmanager", tc.target, []byte(tc.body))
 			assert.Equal(t, tc.wantStatus, w.Code, "target=%q body=%q response=%s", tc.target, tc.body, w.Body.String())
 		})
 	}

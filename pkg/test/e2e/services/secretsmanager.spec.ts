@@ -160,10 +160,11 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
     await page.getByRole('button', { name: 'Edit Value' }).click()
     await page.waitForLoadState('networkidle')
 
-    // Verify edit modal appears — use heading role
-    const editHeading = page.getByRole('heading', { name: `Edit: ${secretName}` })
-    await expect(editHeading).toBeVisible({ timeout: 5000 })
-    const editDialog = editHeading.locator('..')
+    // Verify edit modal appears — use dialog role for robust parent
+    const editDialog = page.getByRole('dialog')
+    await expect(editDialog).toBeVisible({ timeout: 10000 })
+    // Confirm it's the right dialog by checking heading inside
+    await expect(editDialog.getByRole('heading', { name: `Edit: ${secretName}` })).toBeVisible({ timeout: 5000 })
 
     // Modify the value in the textarea
     const textarea = editDialog.locator('textarea')
@@ -171,7 +172,7 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
     await textarea.fill(newValue)
 
     // Click Save Changes
-    await editDialog.getByRole('button', { name: 'Save Changes' }).first().click()
+    await editDialog.getByRole('button', { name: 'Save Changes' }).click()
     await page.waitForLoadState('networkidle')
 
     // Wait for modal to close

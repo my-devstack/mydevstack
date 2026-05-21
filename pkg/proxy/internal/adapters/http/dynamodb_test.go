@@ -10,7 +10,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -35,7 +34,7 @@ func TestHandleDynamoDB_ListTables(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "ListTables", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "ListTables", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -48,7 +47,7 @@ func TestHandleDynamoDB_ListTables(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "ListTables", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "ListTables", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
@@ -65,7 +64,7 @@ func TestHandleDynamoDB_CreateTable(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "CreateTable", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "CreateTable", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -78,7 +77,7 @@ func TestHandleDynamoDB_CreateTable(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "CreateTable", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "CreateTable", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
@@ -95,7 +94,7 @@ func TestHandleDynamoDB_DescribeTable(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "DescribeTable", []byte(`{"TableName":"test"}`))
+		w := performRequest(r, "POST", "/dynamodb", "DescribeTable", []byte(`{"TableName":"test"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -108,7 +107,7 @@ func TestHandleDynamoDB_DescribeTable(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "DescribeTable", []byte(`{"TableName":"test"}`))
+		w := performRequest(r, "POST", "/dynamodb", "DescribeTable", []byte(`{"TableName":"test"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -122,7 +121,7 @@ func TestHandleDynamoDB_DescribeTable(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "DescribeTable", []byte(`{"TableName":"bad"}`))
+		w := performRequest(r, "POST", "/dynamodb", "DescribeTable", []byte(`{"TableName":"bad"}`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -139,7 +138,7 @@ func TestHandleDynamoDB_DeleteTable(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "DeleteTable", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "DeleteTable", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -152,7 +151,7 @@ func TestHandleDynamoDB_DeleteTable(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "DeleteTable", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "DeleteTable", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
@@ -169,7 +168,7 @@ func TestHandleDynamoDB_UpdateTable(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "UpdateTable", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "UpdateTable", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -182,7 +181,7 @@ func TestHandleDynamoDB_UpdateTable(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "UpdateTable", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "UpdateTable", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
@@ -203,7 +202,7 @@ func TestHandleDynamoDB_PutItem(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "PutItem", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "PutItem", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -216,7 +215,7 @@ func TestHandleDynamoDB_PutItem(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "PutItem", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "PutItem", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -235,7 +234,7 @@ func TestHandleDynamoDB_PutItem(t *testing.T) {
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
 		body := `{"TableName":"my-table","Item":{"pk":{"S":"val1"},"sk":{"S":"val2"}},"ConditionExpression":"attribute_not_exists(pk)","ReturnValues":"ALL_OLD"}`
-		w := performRequest(r, "POST", "/dynamodb/", "PutItem", []byte(body))
+		w := performRequest(r, "POST", "/dynamodb", "PutItem", []byte(body))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }
@@ -252,7 +251,7 @@ func TestHandleDynamoDB_GetItem(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "GetItem", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "GetItem", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -265,7 +264,7 @@ func TestHandleDynamoDB_GetItem(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "GetItem", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "GetItem", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -284,7 +283,7 @@ func TestHandleDynamoDB_GetItem(t *testing.T) {
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
 		body := `{"TableName":"my-table","Key":{"pk":{"S":"val1"}},"ConsistentRead":true,"ProjectionExpression":"pk, sk"}`
-		w := performRequest(r, "POST", "/dynamodb/", "GetItem", []byte(body))
+		w := performRequest(r, "POST", "/dynamodb", "GetItem", []byte(body))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }
@@ -301,7 +300,7 @@ func TestHandleDynamoDB_DeleteItem(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "DeleteItem", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "DeleteItem", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -314,7 +313,7 @@ func TestHandleDynamoDB_DeleteItem(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "DeleteItem", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "DeleteItem", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -333,7 +332,7 @@ func TestHandleDynamoDB_DeleteItem(t *testing.T) {
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
 		body := `{"TableName":"my-table","Key":{"pk":{"S":"val1"}},"ConditionExpression":"attribute_exists(pk)","ReturnValues":"ALL_OLD"}`
-		w := performRequest(r, "POST", "/dynamodb/", "DeleteItem", []byte(body))
+		w := performRequest(r, "POST", "/dynamodb", "DeleteItem", []byte(body))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }
@@ -350,7 +349,7 @@ func TestHandleDynamoDB_UpdateItem(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "UpdateItem", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "UpdateItem", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -363,7 +362,7 @@ func TestHandleDynamoDB_UpdateItem(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "UpdateItem", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "UpdateItem", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -383,7 +382,7 @@ func TestHandleDynamoDB_UpdateItem(t *testing.T) {
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
 		body := `{"TableName":"my-table","Key":{"pk":{"S":"val1"}},"UpdateExpression":"SET #a = :b","ConditionExpression":"attribute_exists(pk)","ReturnValues":"UPDATED_NEW"}`
-		w := performRequest(r, "POST", "/dynamodb/", "UpdateItem", []byte(body))
+		w := performRequest(r, "POST", "/dynamodb", "UpdateItem", []byte(body))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }
@@ -400,7 +399,7 @@ func TestHandleDynamoDB_Query(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "Query", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "Query", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -413,7 +412,7 @@ func TestHandleDynamoDB_Query(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "Query", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "Query", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -434,7 +433,7 @@ func TestHandleDynamoDB_Query(t *testing.T) {
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
 		body := `{"TableName":"my-table","KeyConditionExpression":"pk = :pk","FilterExpression":"sk > :sk","Limit":10,"ScanIndexForward":false,"ExclusiveStartKey":{"pk":{"S":"lastkey"}}}`
-		w := performRequest(r, "POST", "/dynamodb/", "Query", []byte(body))
+		w := performRequest(r, "POST", "/dynamodb", "Query", []byte(body))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }
@@ -451,7 +450,7 @@ func TestHandleDynamoDB_Scan(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "Scan", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "Scan", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -464,7 +463,7 @@ func TestHandleDynamoDB_Scan(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "Scan", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "Scan", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -484,7 +483,7 @@ func TestHandleDynamoDB_Scan(t *testing.T) {
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
 		body := `{"TableName":"my-table","Limit":100,"FilterExpression":"pk > :pk","ProjectionExpression":"pk, sk","ExclusiveStartKey":{"pk":{"S":"lastkey"}}}`
-		w := performRequest(r, "POST", "/dynamodb/", "Scan", []byte(body))
+		w := performRequest(r, "POST", "/dynamodb", "Scan", []byte(body))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }
@@ -505,7 +504,7 @@ func TestHandleDynamoDB_BatchWriteItem(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "BatchWriteItem", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "BatchWriteItem", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -518,7 +517,7 @@ func TestHandleDynamoDB_BatchWriteItem(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "BatchWriteItem", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "BatchWriteItem", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
@@ -541,7 +540,7 @@ func TestHandleDynamoDB_BatchGetItem(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "BatchGetItem", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "BatchGetItem", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -554,7 +553,7 @@ func TestHandleDynamoDB_BatchGetItem(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "BatchGetItem", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "BatchGetItem", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
@@ -577,12 +576,10 @@ func TestDynamoDB_BatchGetItem_Direct(t *testing.T) {
 		svc.EXPECT().DynamoDB().Return(mp)
 		handler := createHandler(svc, createTestVersionService(t))
 
-		gin.SetMode(gin.TestMode)
 		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("POST", "/dynamodb/", bytes.NewReader([]byte("{}")))
+		req := httptest.NewRequest("POST", "/dynamodb", bytes.NewReader([]byte("{}")))
 
-		handler.batchGetItem(context.Background(), c, []byte("{}"))
+		handler.batchGetItem(context.Background(), w, req, []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -594,12 +591,10 @@ func TestDynamoDB_BatchGetItem_Direct(t *testing.T) {
 		svc.EXPECT().DynamoDB().Return(mp)
 		handler := createHandler(svc, createTestVersionService(t))
 
-		gin.SetMode(gin.TestMode)
 		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("POST", "/dynamodb/", bytes.NewReader([]byte("{}")))
+		req := httptest.NewRequest("POST", "/dynamodb", bytes.NewReader([]byte("{}")))
 
-		handler.batchGetItem(context.Background(), c, []byte("{}"))
+		handler.batchGetItem(context.Background(), w, req, []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -609,12 +604,10 @@ func TestDynamoDB_BatchGetItem_Direct(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := createHandler(svc, versionSvc)
 
-		gin.SetMode(gin.TestMode)
 		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("POST", "/dynamodb/", bytes.NewReader([]byte("{bad")))
+		req := httptest.NewRequest("POST", "/dynamodb", bytes.NewReader([]byte("{bad")))
 
-		handler.batchGetItem(context.Background(), c, []byte("{bad"))
+		handler.batchGetItem(context.Background(), w, req, []byte("{bad"))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -635,7 +628,7 @@ func TestHandleDynamoDB_DescribeTimeToLive(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "DescribeTimeToLive", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "DescribeTimeToLive", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -648,7 +641,7 @@ func TestHandleDynamoDB_DescribeTimeToLive(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "DescribeTimeToLive", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "DescribeTimeToLive", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
@@ -665,7 +658,7 @@ func TestHandleDynamoDB_UpdateTimeToLive(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "UpdateTimeToLive", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "UpdateTimeToLive", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -678,7 +671,7 @@ func TestHandleDynamoDB_UpdateTimeToLive(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/dynamodb/", "UpdateTimeToLive", []byte("{}"))
+		w := performRequest(r, "POST", "/dynamodb", "UpdateTimeToLive", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
@@ -721,7 +714,7 @@ func TestHandleDynamoDB_CustomParse_InvalidBodyType(t *testing.T) {
 			versionSvc := createTestVersionService(t)
 			handler := NewProxyHandler(context.Background(), svc, versionSvc)
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/dynamodb/", tc.target, []byte(tc.body))
+			w := performRequest(r, "POST", "/dynamodb", tc.target, []byte(tc.body))
 			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s body=%s", tc.target, tc.body)
 		})
 	}
@@ -766,7 +759,7 @@ func TestHandleDynamoDB_ParseErrors(t *testing.T) {
 			versionSvc := createTestVersionService(t)
 			handler := NewProxyHandler(context.Background(), svc, versionSvc)
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/dynamodb/", tc.target, []byte("{bad json}"))
+			w := performRequest(r, "POST", "/dynamodb", tc.target, []byte("{bad json}"))
 			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s", tc.target)
 		})
 	}
@@ -782,7 +775,7 @@ func TestHandleDynamoDB_UnknownAction(t *testing.T) {
 	versionSvc := createTestVersionService(t)
 	handler := NewProxyHandler(context.Background(), svc, versionSvc)
 	r := setupTestRouter(handler)
-	w := performRequest(r, "POST", "/dynamodb/", "UnknownAction", []byte("{}"))
+	w := performRequest(r, "POST", "/dynamodb", "UnknownAction", []byte("{}"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var resp map[string]interface{}

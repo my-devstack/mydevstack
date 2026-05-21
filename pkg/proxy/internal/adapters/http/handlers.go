@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
 )
 
@@ -79,58 +79,74 @@ func (h *ProxyHandler) checkBackendHealth() bool {
 	return h.backendHealthy
 }
 
-func (h *ProxyHandler) ServiceRouter(c *gin.Context) {
-	service := c.Param("service")
-
-	switch service {
-	case "secretsmanager":
-		h.handleSecretsManager(c)
-	case "s3":
-		h.handleS3(c)
-	case "lambda":
-		h.handleLambda(c)
-	case "sqs":
-		h.handleSQS(c)
-	case "sns":
-		h.handleSNS(c)
-	case "kms":
-		h.handleKMS(c)
-	case "dynamodb":
-		h.handleDynamoDB(c)
-	case "dynamodbstreams":
-		h.handleDynamoDBStreams(c)
-	case "apigateway":
-		h.handleAPIGateway(c)
-	case "ssm":
-		h.handleSSM(c)
-	case "iam":
-		h.handleIAM(c)
-	case "kinesis":
-		h.handleKinesis(c)
-	case "rds":
-		h.handleRDS(c)
-	case "elasticache":
-		h.handleElastiCache(c)
-	case "opensearch":
-		h.handleOpenSearch(c)
-	case "kafka":
-		h.handleMSK(c)
-	case "stepfunctions":
-		h.handleStepFunctions(c)
-	case "cloudformation":
-		h.handleCloudFormation(c)
-	case "cloudwatch":
-		h.handleCloudWatch(c)
-	case "cloudwatchlogs":
-		h.handleCloudWatchLogs(c)
-	case "sesv2":
-		h.handleSES(c)
-	default:
-		c.JSON(http.StatusNotFound, gin.H{"error": "Service not supported: " + service})
+func writeJSON(w http.ResponseWriter, status int, data any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.Printf("writeJSON encode error: %v", err)
 	}
 }
 
-func (h *ProxyHandler) HealthCheck(c *gin.Context) {
+func writeData(w http.ResponseWriter, status int, contentType string, data []byte) {
+	w.Header().Set("Content-Type", contentType)
+	w.WriteHeader(status)
+	if _, err := w.Write(data); err != nil {
+		log.Printf("writeData write error: %v", err)
+	}
+}
+
+func (h *ProxyHandler) ServiceRouter(w http.ResponseWriter, r *http.Request) {
+	service := chi.URLParam(r, "service")
+
+	switch service {
+	case "secretsmanager":
+		h.handleSecretsManager(w, r)
+	case "s3":
+		h.handleS3(w, r)
+	case "lambda":
+		h.handleLambda(w, r)
+	case "sqs":
+		h.handleSQS(w, r)
+	case "sns":
+		h.handleSNS(w, r)
+	case "kms":
+		h.handleKMS(w, r)
+	case "dynamodb":
+		h.handleDynamoDB(w, r)
+	case "dynamodbstreams":
+		h.handleDynamoDBStreams(w, r)
+	case "apigateway":
+		h.handleAPIGateway(w, r)
+	case "ssm":
+		h.handleSSM(w, r)
+	case "iam":
+		h.handleIAM(w, r)
+	case "kinesis":
+		h.handleKinesis(w, r)
+	case "rds":
+		h.handleRDS(w, r)
+	case "elasticache":
+		h.handleElastiCache(w, r)
+	case "opensearch":
+		h.handleOpenSearch(w, r)
+	case "kafka":
+		h.handleMSK(w, r)
+	case "stepfunctions":
+		h.handleStepFunctions(w, r)
+	case "cloudformation":
+		h.handleCloudFormation(w, r)
+	case "cloudwatch":
+		h.handleCloudWatch(w, r)
+	case "cloudwatchlogs":
+		h.handleCloudWatchLogs(w, r)
+	case "sesv2":
+		h.handleSES(w, r)
+	default:
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "Service not supported: " + service})
+	}
+}
+
+func (h *ProxyHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	status := "unhealthy"
 	statusCode := http.StatusServiceUnavailable
 	if h.checkBackendHealth() {
@@ -138,7 +154,7 @@ func (h *ProxyHandler) HealthCheck(c *gin.Context) {
 		statusCode = http.StatusOK
 	}
 
-	response := gin.H{
+	response := map[string]interface{}{
 		"status":        status,
 		"proxy":         "aws-proxy",
 		"target":        h.Svc.Config().AWS.Endpoint,
@@ -154,42 +170,43 @@ func (h *ProxyHandler) HealthCheck(c *gin.Context) {
 		response["latestVersion"] = latest
 	}
 
-	c.JSON(statusCode, response)
+	writeJSON(w, statusCode, response)
 }
 
-func (h *ProxyHandler) SetRegion(c *gin.Context) {
+func (h *ProxyHandler) SetRegion(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Region string `json:"region"`
 	}
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: region is required"})
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request: region is required"})
 		return
 	}
 
 	if req.Region == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Region cannot be empty"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Region cannot be empty"})
 		return
 	}
 
 	if err := h.Svc.SetRegion(req.Region); err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update region", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update region", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"region": req.Region, "message": "Region updated successfully"})
+	writeJSON(w, http.StatusOK, map[string]string{"region": req.Region, "message": "Region updated successfully"})
 }
 
-func readBody(c *gin.Context) []byte {
-	if c.Request.Body != nil {
-		if bodyBytes, err := io.ReadAll(c.Request.Body); err == nil {
+func readBody(r *http.Request) []byte {
+	if r.Body != nil {
+		bodyBytes, err := io.ReadAll(r.Body)
+		if err == nil && len(bodyBytes) > 0 {
 			return bodyBytes
 		}
 	}
 	return nil
 }
 
-func parseBody(c *gin.Context, bodyBytes []byte, target interface{}) error {
+func parseBody(bodyBytes []byte, target interface{}) error {
 	if len(bodyBytes) == 0 {
 		return nil
 	}
@@ -226,9 +243,9 @@ func transformJSONKeys(s string) string {
 	return result.String()
 }
 
-func sendError(c *gin.Context, status int, message string, err error) {
+func sendError(w http.ResponseWriter, status int, message string, err error) {
 	if err != nil {
 		log.Printf("%s: %v", message, err)
 	}
-	c.JSON(status, gin.H{"error": message})
+	writeJSON(w, status, map[string]string{"error": message})
 }

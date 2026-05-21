@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
@@ -37,7 +36,7 @@ func setupIAMTest(t *testing.T) (*mockports.ProxyService, *mockports.IAMPort, *P
 // performIAMRequest executes a POST against the /iam/ service router.
 func performIAMRequest(handler *ProxyHandler, target string, body []byte) *httptest.ResponseRecorder {
 	r := setupTestRouter(handler)
-	return performRequest(r, "POST", "/iam/", target, body)
+	return performRequest(r, "POST", "/iam", target, body)
 }
 
 // ---------------------------------------------------------------------------
@@ -698,11 +697,9 @@ func TestIAM_ListGroupsForUser_Success(t *testing.T) {
 	)
 
 	// Direct call to avoid router dispatch ordering issue.
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.listGroupsForUser(context.Background(), c, []byte(`{"UserName":"testuser"}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.listGroupsForUser(context.Background(), w, req, []byte(`{"UserName":"testuser"}`))
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	var resp iam.ListGroupsForUserOutput
@@ -715,11 +712,9 @@ func TestIAM_ListGroupsForUser_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListGroupsForUser(mock.Anything, mock.Anything).Return(nil, errors.New("list groups for user error"))
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.listGroupsForUser(context.Background(), c, []byte(`{}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.listGroupsForUser(context.Background(), w, req, []byte(`{}`))
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
@@ -744,11 +739,9 @@ func TestIAM_ListUsersForGroup_Success(t *testing.T) {
 		Marker:      aws.String("mkr1"),
 	}, nil)
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.listUsersForGroup(context.Background(), c, []byte(`{"GroupName":"testgroup"}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.listUsersForGroup(context.Background(), w, req, []byte(`{"GroupName":"testgroup"}`))
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	var resp map[string]interface{}
@@ -767,11 +760,9 @@ func TestIAM_ListUsersForGroup_Empty(t *testing.T) {
 		Marker:      nil,
 	}, nil)
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.listUsersForGroup(context.Background(), c, []byte(`{"GroupName":"testgroup"}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.listUsersForGroup(context.Background(), w, req, []byte(`{"GroupName":"testgroup"}`))
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	var resp map[string]interface{}
@@ -786,11 +777,9 @@ func TestIAM_ListUsersForGroup_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().GetGroup(mock.Anything, mock.Anything).Return(nil, errors.New("get group error"))
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.listUsersForGroup(context.Background(), c, []byte(`{}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.listUsersForGroup(context.Background(), w, req, []byte(`{}`))
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
@@ -858,11 +847,9 @@ func TestIAM_GetRolePolicy_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().GetRolePolicy(mock.Anything, mock.Anything).Return(&iam.GetRolePolicyOutput{}, nil)
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.getRolePolicy(context.Background(), c, []byte(`{"RoleName":"testrole","PolicyName":"my-policy"}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.getRolePolicy(context.Background(), w, req, []byte(`{"RoleName":"testrole","PolicyName":"my-policy"}`))
 
 	assert.Equal(t, http.StatusOK, w.Code)
 }
@@ -872,11 +859,9 @@ func TestIAM_GetRolePolicy_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().GetRolePolicy(mock.Anything, mock.Anything).Return(nil, errors.New("get role policy error"))
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.getRolePolicy(context.Background(), c, []byte(`{}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.getRolePolicy(context.Background(), w, req, []byte(`{}`))
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
@@ -925,26 +910,26 @@ func TestIAM_ParseError_Direct(t *testing.T) {
 
 	type directCase struct {
 		name    string
-		handler func(*ProxyHandler, *gin.Context, []byte)
+		handler func(*ProxyHandler, http.ResponseWriter, *http.Request, []byte)
 	}
 
 	cases := []directCase{
 		{
 			name: "ListGroupsForUser",
-			handler: func(h *ProxyHandler, c *gin.Context, body []byte) {
-				h.listGroupsForUser(context.Background(), c, body)
+			handler: func(h *ProxyHandler, w http.ResponseWriter, r *http.Request, body []byte) {
+				h.listGroupsForUser(context.Background(), w, r, body)
 			},
 		},
 		{
 			name: "ListUsersForGroup",
-			handler: func(h *ProxyHandler, c *gin.Context, body []byte) {
-				h.listUsersForGroup(context.Background(), c, body)
+			handler: func(h *ProxyHandler, w http.ResponseWriter, r *http.Request, body []byte) {
+				h.listUsersForGroup(context.Background(), w, r, body)
 			},
 		},
 		{
 			name: "GetRolePolicy",
-			handler: func(h *ProxyHandler, c *gin.Context, body []byte) {
-				h.getRolePolicy(context.Background(), c, body)
+			handler: func(h *ProxyHandler, w http.ResponseWriter, r *http.Request, body []byte) {
+				h.getRolePolicy(context.Background(), w, r, body)
 			},
 		},
 	}
@@ -955,12 +940,10 @@ func TestIAM_ParseError_Direct(t *testing.T) {
 			t.Parallel()
 			_, _, handler := setupIAMTest(t)
 
-			gin.SetMode(gin.TestMode)
 			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
-			c.Request = httptest.NewRequest("POST", "/", nil)
+			req := httptest.NewRequest("POST", "/", nil)
 
-			tc.handler(handler, c, []byte(`{bad json`))
+			tc.handler(handler, w, req, []byte(`{bad json`))
 
 			assert.Equal(t, http.StatusBadRequest, w.Code, "body=%s", w.Body.String())
 			var resp map[string]interface{}

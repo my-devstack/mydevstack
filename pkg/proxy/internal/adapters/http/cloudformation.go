@@ -6,113 +6,112 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
-	"github.com/gin-gonic/gin"
 )
 
-func (h *ProxyHandler) handleCloudFormation(c *gin.Context) {
-	xAmzTarget := c.GetHeader("X-Amz-Target")
+func (h *ProxyHandler) handleCloudFormation(w http.ResponseWriter, r *http.Request) {
+	xAmzTarget := r.Header.Get("X-Amz-Target")
 
-	bodyBytes := readBody(c)
-	ctx := c.Request.Context()
+	bodyBytes := readBody(r)
+	ctx := r.Context()
 
 	switch {
 	case strings.HasSuffix(xAmzTarget, "ListStacks"):
-		h.listStacks(ctx, c, bodyBytes)
+		h.listStacks(ctx, w, r, bodyBytes)
 	case strings.HasSuffix(xAmzTarget, "CreateStack"):
-		h.createStack(ctx, c, bodyBytes)
+		h.createStack(ctx, w, r, bodyBytes)
 	case strings.HasSuffix(xAmzTarget, "DeleteStack"):
-		h.deleteStack(ctx, c, bodyBytes)
+		h.deleteStack(ctx, w, r, bodyBytes)
 	case strings.HasSuffix(xAmzTarget, "DescribeStacks"):
-		h.describeStacks(ctx, c, bodyBytes)
+		h.describeStacks(ctx, w, r, bodyBytes)
 	case strings.HasSuffix(xAmzTarget, "GetTemplate"):
-		h.getTemplate(ctx, c, bodyBytes)
+		h.getTemplate(ctx, w, r, bodyBytes)
 	case strings.HasSuffix(xAmzTarget, "ListStackResources"):
-		h.listStackResources(ctx, c, bodyBytes)
+		h.listStackResources(ctx, w, r, bodyBytes)
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown CloudFormation action: " + xAmzTarget})
+		writeJSON(w, http.StatusBadRequest, map[string]interface{}{"error": "Unknown CloudFormation action: " + xAmzTarget})
 	}
 }
 
-func (h *ProxyHandler) listStacks(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) listStacks(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &cloudformation.ListStacksInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.CloudFormation().ListStacks(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to list stacks", err)
+		sendError(w, http.StatusInternalServerError, "Failed to list stacks", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createStack(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createStack(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &cloudformation.CreateStackInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.CloudFormation().CreateStack(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create stack", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create stack", err)
 		return
 	}
-	c.JSON(http.StatusCreated, result)
+	writeJSON(w, http.StatusCreated, result)
 }
 
-func (h *ProxyHandler) deleteStack(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) deleteStack(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &cloudformation.DeleteStackInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.CloudFormation().DeleteStack(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete stack", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete stack", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) describeStacks(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) describeStacks(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &cloudformation.DescribeStacksInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.CloudFormation().DescribeStacks(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to describe stacks", err)
+		sendError(w, http.StatusInternalServerError, "Failed to describe stacks", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getTemplate(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) getTemplate(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &cloudformation.GetTemplateInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.CloudFormation().GetTemplate(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get template", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get template", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) listStackResources(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) listStackResources(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &cloudformation.ListStackResourcesInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.CloudFormation().ListStackResources(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to list stack resources", err)
+		sendError(w, http.StatusInternalServerError, "Failed to list stack resources", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }

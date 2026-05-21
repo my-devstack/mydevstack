@@ -61,7 +61,7 @@ func TestStepFunctionsActions(t *testing.T) {
 			svc.EXPECT().StepFunctions().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/stepfunctions/", tt.target, []byte("{}"))
+			w := performRequest(r, "POST", "/stepfunctions", tt.target, []byte("{}"))
 			assert.Equal(t, http.StatusOK, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -74,7 +74,7 @@ func TestStepFunctions_InvalidBody(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/stepfunctions/", "ListStateMachines", []byte(`{bad`))
+	w := performRequest(r, "POST", "/stepfunctions", "ListStateMachines", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -88,7 +88,7 @@ func TestStepFunctions_ServiceError(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/stepfunctions/", "ListStateMachines", []byte("{}"))
+	w := performRequest(r, "POST", "/stepfunctions", "ListStateMachines", []byte("{}"))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -100,7 +100,7 @@ func TestStepFunctions_UnknownAction(t *testing.T) {
 	r := setupTestRouter(handler)
 
 	// SFN uses sendError for unknown actions (different from c.JSON).
-	w := performRequest(r, "POST", "/stepfunctions/", "UnknownSFNAction", []byte("{}"))
+	w := performRequest(r, "POST", "/stepfunctions", "UnknownSFNAction", []byte("{}"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -182,7 +182,7 @@ func TestStepFunctions_ServiceErrors(t *testing.T) {
 			svc.EXPECT().StepFunctions().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/stepfunctions/", tt.target, []byte("{}"))
+			w := performRequest(r, "POST", "/stepfunctions", tt.target, []byte("{}"))
 			assert.Equal(t, http.StatusInternalServerError, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -208,7 +208,7 @@ func TestStepFunctions_ParseErrors(t *testing.T) {
 			svc := createMockSvc(t, nil)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/stepfunctions/", target, []byte(`{bad`))
+			w := performRequest(r, "POST", "/stepfunctions", target, []byte(`{bad`))
 			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s body=%s", target, w.Body.String())
 		})
 	}

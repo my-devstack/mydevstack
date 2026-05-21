@@ -33,7 +33,7 @@ func TestS3_ListBuckets(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "ListBuckets", []byte("{}"))
+		w := performRequest(r, "POST", "/s3", "ListBuckets", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -46,7 +46,7 @@ func TestS3_ListBuckets(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "ListBuckets", []byte("{}"))
+		w := performRequest(r, "POST", "/s3", "ListBuckets", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
@@ -76,7 +76,7 @@ func TestS3_ListObjectsV2(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "ListObjectsV2", []byte(`{"Bucket":"my-bucket"}`))
+		w := performRequest(r, "POST", "/s3", "ListObjectsV2", []byte(`{"Bucket":"my-bucket"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -109,7 +109,7 @@ func TestS3_ListObjectsV2(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "ListObjectsV2", []byte(`{"Bucket":"my-bucket"}`))
+		w := performRequest(r, "POST", "/s3", "ListObjectsV2", []byte(`{"Bucket":"my-bucket"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -127,7 +127,7 @@ func TestS3_ListObjectsV2(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "ListObjectsV2", []byte(`{"Bucket":"my-bucket"}`))
+		w := performRequest(r, "POST", "/s3", "ListObjectsV2", []byte(`{"Bucket":"my-bucket"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -137,7 +137,7 @@ func TestS3_ListObjectsV2(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "ListObjectsV2", []byte(`{invalid json`))
+		w := performRequest(r, "POST", "/s3", "ListObjectsV2", []byte(`{invalid json`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -159,7 +159,7 @@ func TestS3_PresignGetObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PresignGetObject", []byte(`{"Bucket":"my-bucket","Key":"my-key"}`))
+		w := performRequest(r, "POST", "/s3", "PresignGetObject", []byte(`{"Bucket":"my-bucket","Key":"my-key"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -178,7 +178,7 @@ func TestS3_PresignGetObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PresignGetObject", []byte(`{"Bucket":"my-bucket","Key":"my-key"}`))
+		w := performRequest(r, "POST", "/s3", "PresignGetObject", []byte(`{"Bucket":"my-bucket","Key":"my-key"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -188,7 +188,7 @@ func TestS3_PresignGetObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PresignGetObject", []byte(`{"Key":"my-key"}`))
+		w := performRequest(r, "POST", "/s3", "PresignGetObject", []byte(`{"Key":"my-key"}`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
@@ -198,7 +198,7 @@ func TestS3_PresignGetObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PresignGetObject", []byte(`{"Bucket":"my-bucket"}`))
+		w := performRequest(r, "POST", "/s3", "PresignGetObject", []byte(`{"Bucket":"my-bucket"}`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
@@ -212,7 +212,7 @@ func TestS3_PresignGetObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PresignGetObject", []byte(`{"Bucket":"my-bucket","Key":"my-key","Expires":100}`))
+		w := performRequest(r, "POST", "/s3", "PresignGetObject", []byte(`{"Bucket":"my-bucket","Key":"my-key","Expires":100}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -222,7 +222,7 @@ func TestS3_PresignGetObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PresignGetObject", []byte(`{bad json`))
+		w := performRequest(r, "POST", "/s3", "PresignGetObject", []byte(`{bad json`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -244,7 +244,7 @@ func TestS3_PresignPutObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PresignPutObject", []byte(`{"Bucket":"my-bucket","Key":"my-key"}`))
+		w := performRequest(r, "POST", "/s3", "PresignPutObject", []byte(`{"Bucket":"my-bucket","Key":"my-key"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -263,7 +263,7 @@ func TestS3_PresignPutObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PresignPutObject", []byte(`{"Bucket":"my-bucket","Key":"my-key"}`))
+		w := performRequest(r, "POST", "/s3", "PresignPutObject", []byte(`{"Bucket":"my-bucket","Key":"my-key"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -273,7 +273,7 @@ func TestS3_PresignPutObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PresignPutObject", []byte(`{"Key":"my-key"}`))
+		w := performRequest(r, "POST", "/s3", "PresignPutObject", []byte(`{"Key":"my-key"}`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
@@ -287,7 +287,7 @@ func TestS3_PresignPutObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PresignPutObject", []byte(`{"Bucket":"my-bucket","Key":"my-key","Expires":200}`))
+		w := performRequest(r, "POST", "/s3", "PresignPutObject", []byte(`{"Bucket":"my-bucket","Key":"my-key","Expires":200}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -297,7 +297,7 @@ func TestS3_PresignPutObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PresignPutObject", []byte(`{bad json`))
+		w := performRequest(r, "POST", "/s3", "PresignPutObject", []byte(`{bad json`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -322,7 +322,7 @@ func TestS3_GetObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetObject", []byte(`{"Bucket":"b","Key":"k"}`))
+		w := performRequest(r, "POST", "/s3", "GetObject", []byte(`{"Bucket":"b","Key":"k"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Equal(t, "text/plain", w.Header().Get("Content-Type"))
 		assert.Equal(t, "data", w.Body.String())
@@ -340,7 +340,7 @@ func TestS3_GetObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetObject", []byte(`{"Bucket":"b","Key":"k"}`))
+		w := performRequest(r, "POST", "/s3", "GetObject", []byte(`{"Bucket":"b","Key":"k"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -353,7 +353,7 @@ func TestS3_GetObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetObject", []byte(`{"Bucket":"b","Key":"k"}`))
+		w := performRequest(r, "POST", "/s3", "GetObject", []byte(`{"Bucket":"b","Key":"k"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -363,7 +363,7 @@ func TestS3_GetObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetObject", []byte(`{bad json`))
+		w := performRequest(r, "POST", "/s3", "GetObject", []byte(`{bad json`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -389,7 +389,7 @@ func TestS3_PutObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutObject",
+		w := performRequest(r, "POST", "/s3", "PutObject",
 			[]byte(`{"Bucket":"b","Key":"k","Body":"hello world","ContentType":"text/plain"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
@@ -403,7 +403,7 @@ func TestS3_PutObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutObject",
+		w := performRequest(r, "POST", "/s3", "PutObject",
 			[]byte(`{"Bucket":"b","Key":"k","Body":[72,101,108,108,111]}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
@@ -417,7 +417,7 @@ func TestS3_PutObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutObject",
+		w := performRequest(r, "POST", "/s3", "PutObject",
 			[]byte(`{"Bucket":"b","Key":"k","Body":"data"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
@@ -428,7 +428,7 @@ func TestS3_PutObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutObject",
+		w := performRequest(r, "POST", "/s3", "PutObject",
 			[]byte(`{"Bucket":"b","Key":"k","Body":[72,"not-a-byte",108]}`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -439,7 +439,7 @@ func TestS3_PutObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutObject", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "PutObject", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -460,7 +460,7 @@ func TestS3_DeleteObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "DeleteObject", []byte(`{"Bucket":"b","Key":"k"}`))
+		w := performRequest(r, "POST", "/s3", "DeleteObject", []byte(`{"Bucket":"b","Key":"k"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -473,7 +473,7 @@ func TestS3_DeleteObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "DeleteObject", []byte(`{"Bucket":"b","Key":"k"}`))
+		w := performRequest(r, "POST", "/s3", "DeleteObject", []byte(`{"Bucket":"b","Key":"k"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -483,7 +483,7 @@ func TestS3_DeleteObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "DeleteObject", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "DeleteObject", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -504,7 +504,7 @@ func TestS3_DeleteBucket(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "DeleteBucket", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "DeleteBucket", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -517,7 +517,7 @@ func TestS3_DeleteBucket(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "DeleteBucket", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "DeleteBucket", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -527,7 +527,7 @@ func TestS3_DeleteBucket(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "DeleteBucket", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "DeleteBucket", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -548,7 +548,7 @@ func TestS3_HeadBucket(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "HeadBucket", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "HeadBucket", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -566,7 +566,7 @@ func TestS3_HeadBucket(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "HeadBucket", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "HeadBucket", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -576,7 +576,7 @@ func TestS3_HeadBucket(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "HeadBucket", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "HeadBucket", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -597,7 +597,7 @@ func TestS3_HeadObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "HeadObject", []byte(`{"Bucket":"b","Key":"k"}`))
+		w := performRequest(r, "POST", "/s3", "HeadObject", []byte(`{"Bucket":"b","Key":"k"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -610,7 +610,7 @@ func TestS3_HeadObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "HeadObject", []byte(`{"Bucket":"b","Key":"k"}`))
+		w := performRequest(r, "POST", "/s3", "HeadObject", []byte(`{"Bucket":"b","Key":"k"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -620,7 +620,7 @@ func TestS3_HeadObject(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "HeadObject", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "HeadObject", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -641,7 +641,7 @@ func TestS3_CreateBucket(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "CreateBucket", []byte(`{"Bucket":"new-bucket"}`))
+		w := performRequest(r, "POST", "/s3", "CreateBucket", []byte(`{"Bucket":"new-bucket"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -654,7 +654,7 @@ func TestS3_CreateBucket(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "CreateBucket", []byte(`{"Bucket":"new-bucket"}`))
+		w := performRequest(r, "POST", "/s3", "CreateBucket", []byte(`{"Bucket":"new-bucket"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -664,7 +664,7 @@ func TestS3_CreateBucket(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "CreateBucket", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "CreateBucket", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -686,7 +686,7 @@ func TestS3_GetBucketVersioning(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketVersioning", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "GetBucketVersioning", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -704,7 +704,7 @@ func TestS3_GetBucketVersioning(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketVersioning", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "GetBucketVersioning", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -719,7 +719,7 @@ func TestS3_GetBucketVersioning(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketVersioning", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "GetBucketVersioning", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -747,7 +747,7 @@ func TestS3_GetBucketEncryption(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketEncryption", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "GetBucketEncryption", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -760,7 +760,7 @@ func TestS3_GetBucketEncryption(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketEncryption", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "GetBucketEncryption", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -775,7 +775,7 @@ func TestS3_GetBucketEncryption(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketEncryption", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "GetBucketEncryption", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -797,7 +797,7 @@ func TestS3_GetBucketTagging(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketTagging", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "GetBucketTagging", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -815,7 +815,7 @@ func TestS3_GetBucketTagging(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketTagging", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "GetBucketTagging", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -830,7 +830,7 @@ func TestS3_GetBucketTagging(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketTagging", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "GetBucketTagging", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -851,7 +851,7 @@ func TestS3_PutBucketPolicy(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketPolicy", []byte(`{"Bucket":"b","Policy":"{}"}`))
+		w := performRequest(r, "POST", "/s3", "PutBucketPolicy", []byte(`{"Bucket":"b","Policy":"{}"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -864,7 +864,7 @@ func TestS3_PutBucketPolicy(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketPolicy", []byte(`{"Bucket":"b","Policy":"{}"}`))
+		w := performRequest(r, "POST", "/s3", "PutBucketPolicy", []byte(`{"Bucket":"b","Policy":"{}"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -874,7 +874,7 @@ func TestS3_PutBucketPolicy(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketPolicy", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "PutBucketPolicy", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -895,7 +895,7 @@ func TestS3_PutBucketVersioning(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketVersioning", []byte(`{"Bucket":"b","VersioningConfiguration":{"Status":"Enabled"}}`))
+		w := performRequest(r, "POST", "/s3", "PutBucketVersioning", []byte(`{"Bucket":"b","VersioningConfiguration":{"Status":"Enabled"}}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -908,7 +908,7 @@ func TestS3_PutBucketVersioning(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketVersioning", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "PutBucketVersioning", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -918,7 +918,7 @@ func TestS3_PutBucketVersioning(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketVersioning", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "PutBucketVersioning", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -939,7 +939,7 @@ func TestS3_PutBucketEncryption(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketEncryption", []byte(`{"Bucket":"b","ServerSideEncryptionConfiguration":{"Rules":[]}}`))
+		w := performRequest(r, "POST", "/s3", "PutBucketEncryption", []byte(`{"Bucket":"b","ServerSideEncryptionConfiguration":{"Rules":[]}}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -952,7 +952,7 @@ func TestS3_PutBucketEncryption(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketEncryption", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "PutBucketEncryption", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -962,7 +962,7 @@ func TestS3_PutBucketEncryption(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketEncryption", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "PutBucketEncryption", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -983,7 +983,7 @@ func TestS3_PutBucketTagging(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketTagging", []byte(`{"Bucket":"b","Tagging":{"TagSet":[]}}`))
+		w := performRequest(r, "POST", "/s3", "PutBucketTagging", []byte(`{"Bucket":"b","Tagging":{"TagSet":[]}}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -996,7 +996,7 @@ func TestS3_PutBucketTagging(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketTagging", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "PutBucketTagging", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -1006,7 +1006,7 @@ func TestS3_PutBucketTagging(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketTagging", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "PutBucketTagging", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -1027,7 +1027,7 @@ func TestS3_PutPublicAccessBlock(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutPublicAccessBlock", []byte(`{"Bucket":"b","PublicAccessBlockConfiguration":{}}`))
+		w := performRequest(r, "POST", "/s3", "PutPublicAccessBlock", []byte(`{"Bucket":"b","PublicAccessBlockConfiguration":{}}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -1040,7 +1040,7 @@ func TestS3_PutPublicAccessBlock(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutPublicAccessBlock", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "PutPublicAccessBlock", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -1050,7 +1050,7 @@ func TestS3_PutPublicAccessBlock(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutPublicAccessBlock", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "PutPublicAccessBlock", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -1071,7 +1071,7 @@ func TestS3_GetPublicAccessBlock(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetPublicAccessBlock", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "GetPublicAccessBlock", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -1084,7 +1084,7 @@ func TestS3_GetPublicAccessBlock(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetPublicAccessBlock", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "GetPublicAccessBlock", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -1094,7 +1094,7 @@ func TestS3_GetPublicAccessBlock(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetPublicAccessBlock", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "GetPublicAccessBlock", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -1115,7 +1115,7 @@ func TestS3_PutBucketNotificationConfiguration(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketNotificationConfiguration", []byte(`{"Bucket":"b","NotificationConfiguration":{}}`))
+		w := performRequest(r, "POST", "/s3", "PutBucketNotificationConfiguration", []byte(`{"Bucket":"b","NotificationConfiguration":{}}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -1128,7 +1128,7 @@ func TestS3_PutBucketNotificationConfiguration(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketNotificationConfiguration", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "PutBucketNotificationConfiguration", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -1138,7 +1138,7 @@ func TestS3_PutBucketNotificationConfiguration(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "PutBucketNotificationConfiguration", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "PutBucketNotificationConfiguration", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -1159,7 +1159,7 @@ func TestS3_GetBucketNotificationConfiguration(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketNotificationConfiguration", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "GetBucketNotificationConfiguration", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -1172,7 +1172,7 @@ func TestS3_GetBucketNotificationConfiguration(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketNotificationConfiguration", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "GetBucketNotificationConfiguration", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -1182,7 +1182,7 @@ func TestS3_GetBucketNotificationConfiguration(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketNotificationConfiguration", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "GetBucketNotificationConfiguration", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -1204,7 +1204,7 @@ func TestS3_GetBucketPolicy(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketPolicy", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "GetBucketPolicy", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -1222,7 +1222,7 @@ func TestS3_GetBucketPolicy(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketPolicy", []byte(`{"Bucket":"b"}`))
+		w := performRequest(r, "POST", "/s3", "GetBucketPolicy", []byte(`{"Bucket":"b"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -1232,7 +1232,7 @@ func TestS3_GetBucketPolicy(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/s3/", "GetBucketPolicy", []byte(`{bad`))
+		w := performRequest(r, "POST", "/s3", "GetBucketPolicy", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -1248,7 +1248,7 @@ func TestS3_UnknownAction(t *testing.T) {
 	versionSvc := createTestVersionService(t)
 	handler := NewProxyHandler(context.Background(), svc, versionSvc)
 	r := setupTestRouter(handler)
-	w := performRequest(r, "POST", "/s3/", "UnknownAction", []byte("{}"))
+	w := performRequest(r, "POST", "/s3", "UnknownAction", []byte("{}"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 

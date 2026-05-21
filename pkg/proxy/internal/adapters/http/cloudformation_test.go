@@ -26,7 +26,7 @@ func setupCloudFormationTest(t *testing.T) (*mockports.ProxyService, *mockports.
 
 func performCFRequest(handler *ProxyHandler, target string, body []byte) *httptest.ResponseRecorder {
 	r := setupTestRouter(handler)
-	return performRequest(r, "POST", "/cloudformation/", target, body)
+	return performRequest(r, "POST", "/cloudformation", target, body)
 }
 
 func TestCloudFormation_ListStacks(t *testing.T) {

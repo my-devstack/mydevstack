@@ -67,7 +67,7 @@ func TestOpenSearchActions(t *testing.T) {
 			svc.EXPECT().OpenSearch().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/opensearch/", tt.target, []byte("{}"))
+			w := performRequest(r, "POST", "/opensearch", tt.target, []byte("{}"))
 			assert.Equal(t, http.StatusOK, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -81,7 +81,7 @@ func TestOpenSearch_InvalidBody(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/opensearch/", "ListDomainNames", []byte(`{bad`))
+	w := performRequest(r, "POST", "/opensearch", "ListDomainNames", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -95,7 +95,7 @@ func TestOpenSearch_ServiceError(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/opensearch/", "ListDomainNames", []byte("{}"))
+	w := performRequest(r, "POST", "/opensearch", "ListDomainNames", []byte("{}"))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -107,7 +107,7 @@ func TestOpenSearch_UnknownAction(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/opensearch/", "UnknownAction", []byte("{}"))
+	w := performRequest(r, "POST", "/opensearch", "UnknownAction", []byte("{}"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -201,7 +201,7 @@ func TestOpenSearch_ServiceErrors(t *testing.T) {
 			svc.EXPECT().OpenSearch().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/opensearch/", tt.target, []byte("{}"))
+			w := performRequest(r, "POST", "/opensearch", tt.target, []byte("{}"))
 			assert.Equal(t, http.StatusInternalServerError, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -228,7 +228,7 @@ func TestOpenSearch_ParseErrors(t *testing.T) {
 			svc := createMockSvc(t, nil)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/opensearch/", target, []byte(`{bad`))
+			w := performRequest(r, "POST", "/opensearch", target, []byte(`{bad`))
 			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s body=%s", target, w.Body.String())
 		})
 	}

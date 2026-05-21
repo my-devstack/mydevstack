@@ -24,15 +24,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/opensearch"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
-	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sesv2"
+	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	"github.com/gin-gonic/gin"
-	mockports "github.com/my-devstack/mydevstack/pkg/proxy/mocks/ports"
+	"github.com/go-chi/chi/v5"
 	configloader "github.com/my-devstack/mydevstack/pkg/proxy/internal/config"
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
+	mockports "github.com/my-devstack/mydevstack/pkg/proxy/mocks/ports"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -56,19 +56,19 @@ func createTestVersionService(t TWithCleanup) *mockports.VersionServicePort {
 	return m
 }
 
-// setupTestRouter creates a Gin engine in test mode with the health-check and
+// setupTestRouter creates a chi router with the health-check and
 // service-router routes registered.
-func setupTestRouter(handler *ProxyHandler) *gin.Engine {
-	gin.SetMode(gin.TestMode)
-	r := gin.New()
-	r.GET("/health", handler.HealthCheck)
-	r.Any("/:service/*path", handler.ServiceRouter)
+func setupTestRouter(handler *ProxyHandler) http.Handler {
+	r := chi.NewRouter()
+	r.Get("/health", handler.HealthCheck)
+	r.HandleFunc("/{service}", handler.ServiceRouter)
+	r.HandleFunc("/{service}/{path:.*}", handler.ServiceRouter)
 	return r
 }
 
 // performRequest executes an HTTP request against the provided router and
 // returns the response recorder.
-func performRequest(r *gin.Engine, method, path, target string, body []byte) *httptest.ResponseRecorder {
+func performRequest(r http.Handler, method, path, target string, body []byte) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(method, path, bytes.NewReader(body))
 	if target != "" {
@@ -254,7 +254,7 @@ func TestServiceRouter(t *testing.T) {
 		handler := createHandler(svc, versionSvc)
 		r := setupTestRouter(handler)
 
-		w := performRequest(r, "POST", "/"+sc.service+"/", sc.target, []byte("{}"))
+		w := performRequest(r, "POST", "/"+sc.service, sc.target, []byte("{}"))
 		assert.Equal(t, sc.wantStatus, w.Code,
 			"service=%q target=%q body=%s", sc.service, sc.target, w.Body.String())
 	}
@@ -408,9 +408,8 @@ func TestSetRegion(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := createHandler(svc, versionSvc)
 
-		gin.SetMode(gin.TestMode)
-		r := gin.New()
-		r.POST("/region", handler.SetRegion)
+		r := chi.NewRouter()
+		r.Post("/region", handler.SetRegion)
 
 		body := `{"region":"us-west-2"}`
 		w := performRequest(r, "POST", "/region", "", []byte(body))
@@ -427,9 +426,8 @@ func TestSetRegion(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := createHandler(svc, versionSvc)
 
-		gin.SetMode(gin.TestMode)
-		r := gin.New()
-		r.POST("/region", handler.SetRegion)
+		r := chi.NewRouter()
+		r.Post("/region", handler.SetRegion)
 
 		body := `{"region":""}`
 		w := performRequest(r, "POST", "/region", "", []byte(body))
@@ -442,9 +440,8 @@ func TestSetRegion(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := createHandler(svc, versionSvc)
 
-		gin.SetMode(gin.TestMode)
-		r := gin.New()
-		r.POST("/region", handler.SetRegion)
+		r := chi.NewRouter()
+		r.Post("/region", handler.SetRegion)
 
 		body := `{bad json`
 		w := performRequest(r, "POST", "/region", "", []byte(body))
@@ -467,9 +464,8 @@ func TestSetRegion(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := createHandler(svc, versionSvc)
 
-		gin.SetMode(gin.TestMode)
-		r := gin.New()
-		r.POST("/region", handler.SetRegion)
+		r := chi.NewRouter()
+		r.Post("/region", handler.SetRegion)
 
 		body := `{"region":"fail-region"}`
 		w := performRequest(r, "POST", "/region", "", []byte(body))
@@ -550,25 +546,15 @@ func TestReadBody(t *testing.T) {
 
 	t.Run("with body", func(t *testing.T) {
 		t.Parallel()
-		gin.SetMode(gin.TestMode)
-		req, _ := http.NewRequest("POST", "/", bytes.NewReader([]byte(`{"key":"val"}`)))
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-		c.Request = req
-
-		body := readBody(c)
+		req := httptest.NewRequest("POST", "/", bytes.NewReader([]byte(`{"key":"val"}`)))
+		body := readBody(req)
 		assert.Equal(t, `{"key":"val"}`, string(body))
 	})
 
 	t.Run("nil body", func(t *testing.T) {
 		t.Parallel()
-		gin.SetMode(gin.TestMode)
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-		req, _ := http.NewRequest("POST", "/", nil)
-		c.Request = req
-
-		body := readBody(c)
+		req := httptest.NewRequest("POST", "/", nil)
+		body := readBody(req)
 		assert.Nil(t, body)
 	})
 }
@@ -582,39 +568,30 @@ func TestParseBody(t *testing.T) {
 
 	t.Run("valid JSON", func(t *testing.T) {
 		t.Parallel()
-		gin.SetMode(gin.TestMode)
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		type testStruct struct {
 			Foo string `json:"Foo"`
 		}
 		var out testStruct
-		err := parseBody(c, []byte(`{"foo":"bar"}`), &out)
+		err := parseBody([]byte(`{"foo":"bar"}`), &out)
 		assert.NoError(t, err)
 		assert.Equal(t, "bar", out.Foo)
 	})
 
 	t.Run("empty body", func(t *testing.T) {
 		t.Parallel()
-		gin.SetMode(gin.TestMode)
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		var out map[string]interface{}
-		err := parseBody(c, []byte{}, &out)
+		err := parseBody([]byte{}, &out)
 		assert.NoError(t, err)
 		assert.Nil(t, out)
 	})
 
 	t.Run("invalid JSON", func(t *testing.T) {
 		t.Parallel()
-		gin.SetMode(gin.TestMode)
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		var out map[string]interface{}
-		err := parseBody(c, []byte(`{invalid}`), &out)
+		err := parseBody([]byte(`{invalid}`), &out)
 		assert.Error(t, err)
 	})
 }
@@ -628,11 +605,9 @@ func TestSendError(t *testing.T) {
 
 	t.Run("with err", func(t *testing.T) {
 		t.Parallel()
-		gin.SetMode(gin.TestMode)
 		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
-		sendError(c, http.StatusInternalServerError, "something failed", errors.New("detail"))
+		sendError(w, http.StatusInternalServerError, "something failed", errors.New("detail"))
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		var resp map[string]interface{}
@@ -642,11 +617,9 @@ func TestSendError(t *testing.T) {
 
 	t.Run("without err", func(t *testing.T) {
 		t.Parallel()
-		gin.SetMode(gin.TestMode)
 		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
-		sendError(c, http.StatusBadRequest, "bad request", nil)
+		sendError(w, http.StatusBadRequest, "bad request", nil)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var resp map[string]interface{}

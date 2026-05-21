@@ -7,15 +7,13 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
 // handleElastiCache uses raw HTTP calls to work with MiniStack/Floci which expects query protocol (form-encoded)
 
-func (h *ProxyHandler) handleElastiCache(c *gin.Context) {
-	xAmzTarget := c.GetHeader("X-Amz-Target")
-	bodyBytes := readBody(c)
+func (h *ProxyHandler) handleElastiCache(w http.ResponseWriter, r *http.Request) {
+	xAmzTarget := r.Header.Get("X-Amz-Target")
+	bodyBytes := readBody(r)
 	baseEndpoint := h.Svc.Config().AWS.Endpoint
 
 	// Extract operation name from X-Amz-Target (e.g., "elasticache.DescribeCacheClusters" -> "DescribeCacheClusters")
@@ -41,7 +39,7 @@ func (h *ProxyHandler) handleElastiCache(c *gin.Context) {
 	// Make form-encoded request
 	resp, err := makeFormEncodedRequest(baseEndpoint, formData.Encode())
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to call ElastiCache", err)
+		sendError(w, http.StatusInternalServerError, "Failed to call ElastiCache", err)
 		return
 	}
 	defer func() {
@@ -53,11 +51,11 @@ func (h *ProxyHandler) handleElastiCache(c *gin.Context) {
 	// Read response
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to read response", err)
+		sendError(w, http.StatusInternalServerError, "Failed to read response", err)
 		return
 	}
 
 	// For ElastiCache, the response is typically XML - pass it through as-is
 	// The frontend will handle the parsing
-	c.Data(resp.StatusCode, "application/json", respBody)
+	writeData(w, resp.StatusCode, "application/json", respBody)
 }

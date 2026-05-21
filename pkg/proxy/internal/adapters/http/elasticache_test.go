@@ -26,12 +26,12 @@ func TestHandleElastiCache(t *testing.T) {
 	r := setupTestRouter(handler)
 
 	t.Run("valid body endpoint unreachable returns 500", func(t *testing.T) {
-		w := performRequest(r, "POST", "/elasticache/", "elasticache.DescribeCacheClusters", []byte(`{"CacheClusterId":"test"}`))
+		w := performRequest(r, "POST", "/elasticache", "elasticache.DescribeCacheClusters", []byte(`{"CacheClusterId":"test"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
 	t.Run("invalid body endpoint unreachable returns 500", func(t *testing.T) {
-		w := performRequest(r, "POST", "/elasticache/", "elasticache.DescribeCacheClusters", []byte(`{invalid`))
+		w := performRequest(r, "POST", "/elasticache", "elasticache.DescribeCacheClusters", []byte(`{invalid`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }

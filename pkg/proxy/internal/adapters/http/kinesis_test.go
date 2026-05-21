@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
-	"github.com/gin-gonic/gin"
 	mockports "github.com/my-devstack/mydevstack/pkg/proxy/mocks/ports"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -30,7 +29,7 @@ func setupKinesisTest(t *testing.T) (*mockports.ProxyService, *mockports.Kinesis
 
 func performKinesisRequest(handler *ProxyHandler, target string, body []byte) *httptest.ResponseRecorder {
 	r := setupTestRouter(handler)
-	return performRequest(r, "POST", "/kinesis/", target, body)
+	return performRequest(r, "POST", "/kinesis", target, body)
 }
 
 // ---------------------------------------------------------------------------
@@ -162,11 +161,9 @@ func TestKinesis_DescribeStreamSummary_Success(t *testing.T) {
 		&kinesis.DescribeStreamSummaryOutput{}, nil,
 	)
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.describeStreamSummary(context.Background(), c, []byte(`{"StreamName":"test-stream"}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.describeStreamSummary(context.Background(), w, req, []byte(`{"StreamName":"test-stream"}`))
 
 	assert.Equal(t, http.StatusOK, w.Code)
 }
@@ -176,11 +173,9 @@ func TestKinesis_DescribeStreamSummary_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().DescribeStreamSummary(mock.Anything, mock.Anything).Return(nil, errors.New("describe stream summary error"))
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.describeStreamSummary(context.Background(), c, []byte(`{}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.describeStreamSummary(context.Background(), w, req, []byte(`{}`))
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
@@ -298,11 +293,9 @@ func TestKinesis_PutRecords_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().PutRecords(mock.Anything, mock.Anything).Return(&kinesis.PutRecordsOutput{}, nil)
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.putRecords(context.Background(), c, []byte(`{"StreamName":"test-stream","Records":[{"Data":"dGVzdA==","PartitionKey":"pk-1"}]}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.putRecords(context.Background(), w, req, []byte(`{"StreamName":"test-stream","Records":[{"Data":"dGVzdA==","PartitionKey":"pk-1"}]}`))
 
 	assert.Equal(t, http.StatusOK, w.Code)
 }
@@ -312,11 +305,9 @@ func TestKinesis_PutRecords_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().PutRecords(mock.Anything, mock.Anything).Return(nil, errors.New("put records error"))
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.putRecords(context.Background(), c, []byte(`{}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.putRecords(context.Background(), w, req, []byte(`{}`))
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
@@ -489,20 +480,20 @@ func TestKinesis_ParseError_Direct(t *testing.T) {
 
 	type directCase struct {
 		name    string
-		handler func(*ProxyHandler, *gin.Context, []byte)
+		handler func(*ProxyHandler, http.ResponseWriter, *http.Request, []byte)
 	}
 
 	cases := []directCase{
 		{
 			name: "DescribeStreamSummary",
-			handler: func(h *ProxyHandler, c *gin.Context, body []byte) {
-				h.describeStreamSummary(context.Background(), c, body)
+			handler: func(h *ProxyHandler, w http.ResponseWriter, r *http.Request, body []byte) {
+				h.describeStreamSummary(context.Background(), w, r, body)
 			},
 		},
 		{
 			name: "PutRecords",
-			handler: func(h *ProxyHandler, c *gin.Context, body []byte) {
-				h.putRecords(context.Background(), c, body)
+			handler: func(h *ProxyHandler, w http.ResponseWriter, r *http.Request, body []byte) {
+				h.putRecords(context.Background(), w, r, body)
 			},
 		},
 	}
@@ -513,12 +504,10 @@ func TestKinesis_ParseError_Direct(t *testing.T) {
 			t.Parallel()
 			_, _, handler := setupKinesisTest(t)
 
-			gin.SetMode(gin.TestMode)
-			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
-			c.Request = httptest.NewRequest("POST", "/", nil)
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest("POST", "/", nil)
 
-			tc.handler(handler, c, []byte(`{bad json`))
+			tc.handler(handler, w, req, []byte(`{bad json`))
 
 			assert.Equal(t, http.StatusBadRequest, w.Code, "body=%s", w.Body.String())
 			var resp map[string]interface{}

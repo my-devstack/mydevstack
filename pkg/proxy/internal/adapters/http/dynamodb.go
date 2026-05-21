@@ -13,130 +13,129 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/gin-gonic/gin"
 )
 
-func (h *ProxyHandler) handleDynamoDB(c *gin.Context) {
-	xAmzTarget := c.GetHeader("X-Amz-Target")
-	bodyBytes := readBody(c)
+func (h *ProxyHandler) handleDynamoDB(w http.ResponseWriter, r *http.Request) {
+	xAmzTarget := r.Header.Get("X-Amz-Target")
+	bodyBytes := readBody(r)
 	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "ListTables"):
-		h.listTables(ctx, c, bodyBytes)
+		h.listTables(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "CreateTable"):
-		h.createTable(ctx, c, bodyBytes)
+		h.createTable(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "DescribeTable"):
-		h.describeTable(ctx, c, bodyBytes)
+		h.describeTable(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "DeleteTable"):
-		h.deleteTable(ctx, c, bodyBytes)
+		h.deleteTable(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "UpdateTable"):
-		h.updateTable(ctx, c, bodyBytes)
+		h.updateTable(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "PutItem"):
-		h.putItem(ctx, c, bodyBytes)
+		h.putItem(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "GetItem"):
-		h.getItem(ctx, c, bodyBytes)
+		h.getItem(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "DeleteItem"):
-		h.deleteItem(ctx, c, bodyBytes)
+		h.deleteItem(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "UpdateItem"):
-		h.updateItem(ctx, c, bodyBytes)
+		h.updateItem(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "Query"):
-		h.query(ctx, c, bodyBytes)
+		h.query(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "Scan"):
-		h.scan(ctx, c, bodyBytes)
+		h.scan(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "BatchWriteItem"):
-		h.batchWriteItem(ctx, c, bodyBytes)
+		h.batchWriteItem(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "BatchGetItem"):
-		h.batchGetItem(ctx, c, bodyBytes)
+		h.batchGetItem(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "DescribeTimeToLive"):
-		h.describeTimeToLive(ctx, c, bodyBytes)
+		h.describeTimeToLive(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "UpdateTimeToLive"):
-		h.updateTimeToLive(ctx, c, bodyBytes)
+		h.updateTimeToLive(ctx, w, r, bodyBytes)
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown DynamoDB action: " + xAmzTarget})
+		writeJSON(w, http.StatusBadRequest, map[string]interface{}{"error": "Unknown DynamoDB action: " + xAmzTarget})
 	}
 }
 
-func (h *ProxyHandler) listTables(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) listTables(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &dynamodb.ListTablesInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.DynamoDB().ListTables(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to list tables", err)
+		sendError(w, http.StatusInternalServerError, "Failed to list tables", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createTable(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createTable(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &dynamodb.CreateTableInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.DynamoDB().CreateTable(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create table", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create table", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) describeTable(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) describeTable(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &dynamodb.DescribeTableInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.DynamoDB().DescribeTable(ctx, input)
 	if err != nil {
 		errMsg := err.Error()
 		if strings.Contains(errMsg, "InvalidParameterValue") && strings.Contains(errMsg, "TableName") {
-			sendError(c, http.StatusBadRequest, "Invalid table name format", err)
+			sendError(w, http.StatusBadRequest, "Invalid table name format", err)
 		} else {
-			sendError(c, http.StatusInternalServerError, "Failed to describe table", err)
+			sendError(w, http.StatusInternalServerError, "Failed to describe table", err)
 		}
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteTable(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) deleteTable(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &dynamodb.DeleteTableInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.DynamoDB().DeleteTable(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete table", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete table", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateTable(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateTable(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &dynamodb.UpdateTableInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.DynamoDB().UpdateTable(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update table", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update table", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putItem(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) putItem(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	// Parse the body into a generic map first
 	var rawBody map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &rawBody); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -169,10 +168,10 @@ func (h *ProxyHandler) putItem(ctx context.Context, c *gin.Context, bodyBytes []
 
 	result, err := h.Svc.DynamoDB().PutItem(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to put item", err)
+		sendError(w, http.StatusInternalServerError, "Failed to put item", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
 // convertToAttributeValue converts a JSON value to a DynamoDB AttributeValue
@@ -263,11 +262,11 @@ func convertToAttributeValue(value interface{}) types.AttributeValue {
 	}
 }
 
-func (h *ProxyHandler) getItem(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) getItem(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	// Parse the body into a generic map first
 	var rawBody map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &rawBody); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -300,17 +299,17 @@ func (h *ProxyHandler) getItem(ctx context.Context, c *gin.Context, bodyBytes []
 
 	result, err := h.Svc.DynamoDB().GetItem(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get item", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get item", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteItem(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) deleteItem(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	// Parse the body into a generic map first
 	var rawBody map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &rawBody); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -343,19 +342,19 @@ func (h *ProxyHandler) deleteItem(ctx context.Context, c *gin.Context, bodyBytes
 
 	result, err := h.Svc.DynamoDB().DeleteItem(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete item", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete item", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateItem(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateItem(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	log.Printf("UpdateItem request body: %s", string(bodyBytes))
 
 	// Parse the body into a generic map first
 	var rawBody map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &rawBody); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -391,17 +390,17 @@ func (h *ProxyHandler) updateItem(ctx context.Context, c *gin.Context, bodyBytes
 
 	result, err := h.Svc.DynamoDB().UpdateItem(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update item", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update item", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) query(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) query(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	// Parse the body into a generic map first
 	var rawBody map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &rawBody); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -434,17 +433,17 @@ func (h *ProxyHandler) query(ctx context.Context, c *gin.Context, bodyBytes []by
 
 	result, err := h.Svc.DynamoDB().Query(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to query", err)
+		sendError(w, http.StatusInternalServerError, "Failed to query", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) scan(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) scan(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	// Parse the body into a generic map first
 	var rawBody map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &rawBody); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -471,10 +470,10 @@ func (h *ProxyHandler) scan(ctx context.Context, c *gin.Context, bodyBytes []byt
 
 	result, err := h.Svc.DynamoDB().Scan(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to scan", err)
+		sendError(w, http.StatusInternalServerError, "Failed to scan", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
 // convertMapToAttributeValue converts a map to DynamoDB AttributeValue map
@@ -489,58 +488,58 @@ func convertMapToAttributeValue(data map[string]interface{}) map[string]types.At
 	return result
 }
 
-func (h *ProxyHandler) batchWriteItem(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) batchWriteItem(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &dynamodb.BatchWriteItemInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.DynamoDB().BatchWriteItem(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to batch write", err)
+		sendError(w, http.StatusInternalServerError, "Failed to batch write", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) batchGetItem(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) batchGetItem(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &dynamodb.BatchGetItemInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.DynamoDB().BatchGetItem(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to batch get", err)
+		sendError(w, http.StatusInternalServerError, "Failed to batch get", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) describeTimeToLive(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) describeTimeToLive(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &dynamodb.DescribeTimeToLiveInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.DynamoDB().DescribeTimeToLive(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to describe TTL", err)
+		sendError(w, http.StatusInternalServerError, "Failed to describe TTL", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateTimeToLive(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateTimeToLive(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &dynamodb.UpdateTimeToLiveInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.DynamoDB().UpdateTimeToLive(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update TTL", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update TTL", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }

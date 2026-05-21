@@ -7,127 +7,126 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/sns"
-	"github.com/gin-gonic/gin"
 )
 
-func (h *ProxyHandler) handleSNS(c *gin.Context) {
-	xAmzTarget := c.GetHeader("X-Amz-Target")
-	bodyBytes := readBody(c)
+func (h *ProxyHandler) handleSNS(w http.ResponseWriter, r *http.Request) {
+	xAmzTarget := r.Header.Get("X-Amz-Target")
+	bodyBytes := readBody(r)
 	ctx := h.ctx
 
 	switch {
 	case strings.Contains(xAmzTarget, "ListTopics"):
-		h.listTopics(ctx, c, bodyBytes)
+		h.listTopics(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "CreateTopic"):
-		h.createTopic(ctx, c, bodyBytes)
+		h.createTopic(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "DeleteTopic"):
-		h.deleteTopic(ctx, c, bodyBytes)
+		h.deleteTopic(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "Subscribe"):
-		h.subscribe(ctx, c, bodyBytes)
+		h.subscribe(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "Unsubscribe"):
-		h.unsubscribe(ctx, c, bodyBytes)
+		h.unsubscribe(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "ListSubscriptionsByTopic"):
-		h.listSubscriptionsByTopic(ctx, c, bodyBytes)
+		h.listSubscriptionsByTopic(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "ListSubscriptions"):
-		h.listSubscriptions(ctx, c, bodyBytes)
+		h.listSubscriptions(ctx, w, r, bodyBytes)
 	case strings.Contains(xAmzTarget, "Publish"):
-		h.publish(ctx, c, bodyBytes)
+		h.publish(ctx, w, r, bodyBytes)
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown SNS action: " + xAmzTarget})
+		writeJSON(w, http.StatusBadRequest, map[string]interface{}{"error": "Unknown SNS action: " + xAmzTarget})
 	}
 }
 
-func (h *ProxyHandler) listTopics(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) listTopics(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &sns.ListTopicsInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.SNS().ListTopics(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to list topics", err)
+		sendError(w, http.StatusInternalServerError, "Failed to list topics", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createTopic(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createTopic(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &sns.CreateTopicInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.SNS().CreateTopic(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create topic", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create topic", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteTopic(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) deleteTopic(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &sns.DeleteTopicInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.SNS().DeleteTopic(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete topic", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete topic", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) subscribe(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) subscribe(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &sns.SubscribeInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.SNS().Subscribe(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to subscribe", err)
+		sendError(w, http.StatusInternalServerError, "Failed to subscribe", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) unsubscribe(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) unsubscribe(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &sns.UnsubscribeInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.SNS().Unsubscribe(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to unsubscribe", err)
+		sendError(w, http.StatusInternalServerError, "Failed to unsubscribe", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) listSubscriptions(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) listSubscriptions(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &sns.ListSubscriptionsInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.SNS().ListSubscriptions(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to list subscriptions", err)
+		sendError(w, http.StatusInternalServerError, "Failed to list subscriptions", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) listSubscriptionsByTopic(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) listSubscriptionsByTopic(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	type requestBody struct {
 		TopicArn string `json:"TopicArn"`
 	}
 	var body requestBody
 	if err := json.Unmarshal(bodyBytes, &body); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	input := &sns.ListSubscriptionsByTopicInput{}
@@ -136,22 +135,22 @@ func (h *ProxyHandler) listSubscriptionsByTopic(ctx context.Context, c *gin.Cont
 	}
 	result, err := h.Svc.SNS().ListSubscriptionsByTopic(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to list subscriptions by topic", err)
+		sendError(w, http.StatusInternalServerError, "Failed to list subscriptions by topic", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) publish(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) publish(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
 	input := &sns.PublishInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	result, err := h.Svc.SNS().Publish(ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to publish", err)
+		sendError(w, http.StatusInternalServerError, "Failed to publish", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }

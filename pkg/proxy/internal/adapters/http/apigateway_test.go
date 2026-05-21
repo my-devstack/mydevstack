@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
@@ -27,7 +26,7 @@ import (
 
 func performAGRequest(handler *ProxyHandler, target string, body []byte) *httptest.ResponseRecorder {
 	r := setupTestRouter(handler)
-	return performRequest(r, "POST", "/apigateway/", target, body)
+	return performRequest(r, "POST", "/apigateway", target, body)
 }
 
 type agTestSetup struct {
@@ -284,7 +283,7 @@ func TestAPIGateway_GetResources_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.GetResources", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.GetResources", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -370,7 +369,7 @@ func TestAPIGateway_GetMethod_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.GetMethod", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.GetMethod", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -445,7 +444,7 @@ func TestAPIGateway_GetIntegration_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.GetIntegration", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.GetIntegration", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1151,7 +1150,7 @@ func TestAPIGateway_CreateRestApi_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.CreateRestApi", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.CreateRestApi", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1192,7 +1191,7 @@ func TestAPIGateway_DeleteRestApi_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.DeleteRestApi", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.DeleteRestApi", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1209,7 +1208,7 @@ func TestAPIGateway_GetRestApi_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.GetRestApi", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.GetRestApi", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1226,7 +1225,7 @@ func TestAPIGateway_UpdateRestApi_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.UpdateRestApi", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.UpdateRestApi", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1243,7 +1242,7 @@ func TestAPIGateway_GetResource_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.GetResource", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.GetResource", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1260,7 +1259,7 @@ func TestAPIGateway_CreateResource_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.CreateResource", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.CreateResource", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1277,7 +1276,7 @@ func TestAPIGateway_DeleteResource_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.DeleteResource", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.DeleteResource", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1294,7 +1293,7 @@ func TestAPIGateway_PutMethod_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.PutMethod", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.PutMethod", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1311,7 +1310,7 @@ func TestAPIGateway_DeleteMethod_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.DeleteMethod", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.DeleteMethod", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1328,7 +1327,7 @@ func TestAPIGateway_PutIntegration_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.PutIntegration", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.PutIntegration", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1340,12 +1339,10 @@ func TestAPIGateway_DeleteIntegration_RestApiV1(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	svc.EXPECT().APIGateway().Return(mp)
 	handler := createHandler(svc, createTestVersionService(t))
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/apigateway/", bytes.NewReader([]byte("{}")))
-	c.Request.Header.Set("X-Amz-Target", "APIGateway.DeleteIntegration")
-	handler.deleteIntegration(context.Background(), c, []byte("{}"))
+	req := httptest.NewRequest("POST", "/apigateway", bytes.NewReader([]byte("{}")))
+	req.Header.Set("X-Amz-Target", "APIGateway.DeleteIntegration")
+	handler.deleteIntegration(context.Background(), w, req, []byte("{}"))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -1356,12 +1353,10 @@ func TestAPIGateway_DeleteIntegration_RestApiV1_ServiceError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	svc.EXPECT().APIGateway().Return(mp)
 	handler := createHandler(svc, createTestVersionService(t))
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/apigateway/", bytes.NewReader([]byte("{}")))
-	c.Request.Header.Set("X-Amz-Target", "APIGateway.DeleteIntegration")
-	handler.deleteIntegration(context.Background(), c, []byte("{}"))
+	req := httptest.NewRequest("POST", "/apigateway", bytes.NewReader([]byte("{}")))
+	req.Header.Set("X-Amz-Target", "APIGateway.DeleteIntegration")
+	handler.deleteIntegration(context.Background(), w, req, []byte("{}"))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -1369,12 +1364,10 @@ func TestAPIGateway_DeleteIntegration_RestApiV1_ParseError(t *testing.T) {
 	t.Parallel()
 	svc := createMockSvc(t, nil)
 	handler := createHandler(svc, createTestVersionService(t))
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/apigateway/", bytes.NewReader([]byte("{bad")))
-	c.Request.Header.Set("X-Amz-Target", "APIGateway.DeleteIntegration")
-	handler.deleteIntegration(context.Background(), c, []byte("{bad"))
+	req := httptest.NewRequest("POST", "/apigateway", bytes.NewReader([]byte("{bad")))
+	req.Header.Set("X-Amz-Target", "APIGateway.DeleteIntegration")
+	handler.deleteIntegration(context.Background(), w, req, []byte("{bad"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1391,7 +1384,7 @@ func TestAPIGateway_CreateDeployment_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.CreateDeployment", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.CreateDeployment", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1408,7 +1401,7 @@ func TestAPIGateway_DeleteDeployment_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.DeleteDeployment", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.DeleteDeployment", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1425,7 +1418,7 @@ func TestAPIGateway_GetDeployments_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.GetDeployments", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.GetDeployments", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1442,7 +1435,7 @@ func TestAPIGateway_CreateStage_V1_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.CreateStage", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.CreateStage", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1459,7 +1452,7 @@ func TestAPIGateway_GetStages_V1_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.GetStages", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.GetStages", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1476,7 +1469,7 @@ func TestAPIGateway_UpdateStage_V1_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.UpdateStage", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.UpdateStage", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1493,7 +1486,7 @@ func TestAPIGateway_DeleteStage_V1_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.DeleteStage", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.DeleteStage", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1510,7 +1503,7 @@ func TestAPIGateway_GetInvokeUrl_V1_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "APIGateway.GetInvokeUrl", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "APIGateway.GetInvokeUrl", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1531,7 +1524,7 @@ func TestAPIGateway_GetApis_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.GetApis", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.GetApis", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1548,7 +1541,7 @@ func TestAPIGateway_CreateApi_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.CreateApi", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.CreateApi", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1565,7 +1558,7 @@ func TestAPIGateway_DeleteApi_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.DeleteApi", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.DeleteApi", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1582,7 +1575,7 @@ func TestAPIGateway_GetApi_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.GetApi", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.GetApi", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1599,7 +1592,7 @@ func TestAPIGateway_GetRoutes_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.GetRoutes", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.GetRoutes", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1616,7 +1609,7 @@ func TestAPIGateway_CreateRoute_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.CreateRoute", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.CreateRoute", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1633,7 +1626,7 @@ func TestAPIGateway_UpdateRoute_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.UpdateRoute", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.UpdateRoute", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1650,7 +1643,7 @@ func TestAPIGateway_DeleteRoute_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.DeleteRoute", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.DeleteRoute", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1667,7 +1660,7 @@ func TestAPIGateway_GetIntegrationsV2_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.GetIntegrations", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.GetIntegrations", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1684,7 +1677,7 @@ func TestAPIGateway_CreateIntegrationV2_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.CreateIntegration", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.CreateIntegration", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1701,7 +1694,7 @@ func TestAPIGateway_UpdateIntegrationV2_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.UpdateIntegration", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.UpdateIntegration", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1718,7 +1711,7 @@ func TestAPIGateway_DeleteIntegrationV2_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.DeleteIntegration", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.DeleteIntegration", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1735,7 +1728,7 @@ func TestAPIGateway_GetStagesV2_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.GetStages", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.GetStages", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1752,7 +1745,7 @@ func TestAPIGateway_GetStageV2_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.GetStage", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.GetStage", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1769,7 +1762,7 @@ func TestAPIGateway_CreateStageV2_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.CreateStage", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.CreateStage", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1786,7 +1779,7 @@ func TestAPIGateway_UpdateStageV2_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.UpdateStage", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.UpdateStage", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1803,7 +1796,7 @@ func TestAPIGateway_DeleteStageV2_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.DeleteStage", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.DeleteStage", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1820,6 +1813,6 @@ func TestAPIGateway_GetInvokeUrl_V2_ParseError(t *testing.T) {
 	svc := createMockSvc(t, nil)
 	h := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(h)
-	w := performRequest(r, "POST", "/apigateway/", "ApiGatewayV2.GetInvokeUrl", []byte(`{bad`))
+	w := performRequest(r, "POST", "/apigateway", "ApiGatewayV2.GetInvokeUrl", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }

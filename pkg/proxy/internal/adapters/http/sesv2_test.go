@@ -67,7 +67,7 @@ func TestSESv2Actions(t *testing.T) {
 			svc.EXPECT().SESv2().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/sesv2/", tt.target, []byte("{}"))
+			w := performRequest(r, "POST", "/sesv2", tt.target, []byte("{}"))
 			assert.Equal(t, http.StatusOK, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -80,7 +80,7 @@ func TestSESv2_InvalidBody(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/sesv2/", "SendEmail", []byte(`{bad`))
+	w := performRequest(r, "POST", "/sesv2", "SendEmail", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -94,7 +94,7 @@ func TestSESv2_ServiceError(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/sesv2/", "ListEmailIdentities", []byte("{}"))
+	w := performRequest(r, "POST", "/sesv2", "ListEmailIdentities", []byte("{}"))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -105,7 +105,7 @@ func TestSESv2_UnknownAction(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/sesv2/", "UnknownSESAction", []byte("{}"))
+	w := performRequest(r, "POST", "/sesv2", "UnknownSESAction", []byte("{}"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -199,7 +199,7 @@ func TestSESv2_ServiceErrors(t *testing.T) {
 			svc.EXPECT().SESv2().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/sesv2/", tt.target, []byte("{}"))
+			w := performRequest(r, "POST", "/sesv2", tt.target, []byte("{}"))
 			assert.Equal(t, http.StatusInternalServerError, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -226,7 +226,7 @@ func TestSESv2_ParseErrors(t *testing.T) {
 			svc := createMockSvc(t, nil)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/sesv2/", target, []byte(`{bad`))
+			w := performRequest(r, "POST", "/sesv2", target, []byte(`{bad`))
 			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s body=%s", target, w.Body.String())
 		})
 	}

@@ -26,12 +26,12 @@ func TestHandleRDS(t *testing.T) {
 	r := setupTestRouter(handler)
 
 	t.Run("valid body endpoint unreachable returns 500", func(t *testing.T) {
-		w := performRequest(r, "POST", "/rds/", "rds.DescribeDBInstances", []byte(`{"DBInstanceIdentifier":"test"}`))
+		w := performRequest(r, "POST", "/rds", "rds.DescribeDBInstances", []byte(`{"DBInstanceIdentifier":"test"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
 	t.Run("invalid body endpoint unreachable returns 500", func(t *testing.T) {
-		w := performRequest(r, "POST", "/rds/", "rds.DescribeDBInstances", []byte(`{invalid`))
+		w := performRequest(r, "POST", "/rds", "rds.DescribeDBInstances", []byte(`{invalid`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }

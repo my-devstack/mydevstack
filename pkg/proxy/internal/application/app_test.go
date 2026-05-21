@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	configloader "github.com/my-devstack/mydevstack/pkg/proxy/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,10 +32,6 @@ func testConfig() *configloader.Config {
 // ---------------------------------------------------------------------------
 // TestNewContainer – success path
 // ---------------------------------------------------------------------------
-
-func init() {
-	gin.SetMode(gin.TestMode)
-}
 
 func TestNewContainer(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -103,7 +98,7 @@ func TestContainer_SetupRoutes(t *testing.T) {
 	assert.Equal(t, "*", w3.Header().Get("Access-Control-Allow-Origin"))
 
 	// S3 route dispatches (may get 500 if emulator unreachable, but not 404).
-	w4 := performPost(r, "/s3/", "ListBuckets", `{}`)
+	w4 := performPost(r, "/s3/test", "ListBuckets", `{}`)
 	assert.NotEqual(t, http.StatusNotFound, w4.Code,
 		"S3 route should be registered and not return 404")
 
@@ -116,14 +111,14 @@ func TestContainer_SetupRoutes(t *testing.T) {
 // helpers – minimal Gin test helpers
 // ---------------------------------------------------------------------------
 
-func performGet(r *gin.Engine, path string) *httptest.ResponseRecorder {
+func performGet(r http.Handler, path string) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", path, nil)
 	r.ServeHTTP(w, req)
 	return w
 }
 
-func performPost(r *gin.Engine, path, target, body string) *httptest.ResponseRecorder {
+func performPost(r http.Handler, path, target, body string) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", path, strings.NewReader(body))
 	req.Header.Set("X-Amz-Target", target)
@@ -131,7 +126,7 @@ func performPost(r *gin.Engine, path, target, body string) *httptest.ResponseRec
 	return w
 }
 
-func performOptions(r *gin.Engine, path string) *httptest.ResponseRecorder {
+func performOptions(r http.Handler, path string) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("OPTIONS", path, nil)
 	r.ServeHTTP(w, req)

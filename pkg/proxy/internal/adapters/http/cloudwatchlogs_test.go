@@ -61,7 +61,7 @@ func TestCloudWatchLogsActions(t *testing.T) {
 			svc.EXPECT().CloudWatchLogs().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/cloudwatchlogs/", tt.target, []byte("{}"))
+			w := performRequest(r, "POST", "/cloudwatchlogs", tt.target, []byte("{}"))
 			assert.Equal(t, http.StatusOK, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -74,7 +74,7 @@ func TestCloudWatchLogs_InvalidBody(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/cloudwatchlogs/", "DescribeLogGroups", []byte(`{bad`))
+	w := performRequest(r, "POST", "/cloudwatchlogs", "DescribeLogGroups", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -88,7 +88,7 @@ func TestCloudWatchLogs_ServiceError(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/cloudwatchlogs/", "DescribeLogGroups", []byte("{}"))
+	w := performRequest(r, "POST", "/cloudwatchlogs", "DescribeLogGroups", []byte("{}"))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -99,7 +99,7 @@ func TestCloudWatchLogs_UnknownAction(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/cloudwatchlogs/", "UnknownCWLogsAction", []byte("{}"))
+	w := performRequest(r, "POST", "/cloudwatchlogs", "UnknownCWLogsAction", []byte("{}"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -181,7 +181,7 @@ func TestCloudWatchLogs_ServiceErrors(t *testing.T) {
 			svc.EXPECT().CloudWatchLogs().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/cloudwatchlogs/", tt.target, []byte("{}"))
+			w := performRequest(r, "POST", "/cloudwatchlogs", tt.target, []byte("{}"))
 			assert.Equal(t, http.StatusInternalServerError, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -207,7 +207,7 @@ func TestCloudWatchLogs_ParseErrors(t *testing.T) {
 			svc := createMockSvc(t, nil)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/cloudwatchlogs/", target, []byte(`{bad`))
+			w := performRequest(r, "POST", "/cloudwatchlogs", target, []byte(`{bad`))
 			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s body=%s", target, w.Body.String())
 		})
 	}

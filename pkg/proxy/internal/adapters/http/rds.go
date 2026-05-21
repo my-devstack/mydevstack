@@ -9,16 +9,14 @@ import (
 	"net/url"
 	"strings"
 	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 // handleRDS uses raw HTTP calls to work with Floci and ministack which expects query protocol (form-encoded)
 // while SDK v2 sends JSON.
 
-func (h *ProxyHandler) handleRDS(c *gin.Context) {
-	xAmzTarget := c.GetHeader("X-Amz-Target")
-	bodyBytes := readBody(c)
+func (h *ProxyHandler) handleRDS(w http.ResponseWriter, r *http.Request) {
+	xAmzTarget := r.Header.Get("X-Amz-Target")
+	bodyBytes := readBody(r)
 	baseEndpoint := h.Svc.Config().AWS.Endpoint
 
 	// Extract operation name from X-Amz-Target (e.g., "rds.DescribeDBInstances" -> "DescribeDBInstances")
@@ -44,7 +42,7 @@ func (h *ProxyHandler) handleRDS(c *gin.Context) {
 	// Make form-encoded request
 	resp, err := makeFormEncodedRequest(baseEndpoint, formData.Encode())
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to call RDS", err)
+		sendError(w, http.StatusInternalServerError, "Failed to call RDS", err)
 		return
 	}
 	defer func() {
@@ -56,7 +54,7 @@ func (h *ProxyHandler) handleRDS(c *gin.Context) {
 	// Read response
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to read response", err)
+		sendError(w, http.StatusInternalServerError, "Failed to read response", err)
 		return
 	}
 
@@ -64,11 +62,11 @@ func (h *ProxyHandler) handleRDS(c *gin.Context) {
 	result, err := parseRDSXMLResponse(string(respBody), operation)
 	if err != nil {
 		log.Printf("[RDS] Failed to parse XML response: %v", err)
-		c.Data(resp.StatusCode, "application/json", respBody)
+		writeData(w, resp.StatusCode, "application/json", respBody)
 		return
 	}
 
-	c.JSON(resp.StatusCode, result)
+	writeJSON(w, resp.StatusCode, result)
 }
 
 func makeFormEncodedRequest(endpoint, formData string) (*http.Response, error) {

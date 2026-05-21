@@ -30,7 +30,7 @@ func setupMSKTest(t *testing.T) (*mockports.ProxyService, *mockports.MSKPort, *P
 
 func performMSKRequest(handler *ProxyHandler, target string, body []byte) *httptest.ResponseRecorder {
 	r := setupTestRouter(handler)
-	return performRequest(r, "POST", "/kafka/", target, body)
+	return performRequest(r, "POST", "/kafka", target, body)
 }
 
 // ---------------------------------------------------------------------------

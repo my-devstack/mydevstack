@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	"github.com/gin-gonic/gin"
 	mockports "github.com/my-devstack/mydevstack/pkg/proxy/mocks/ports"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -65,7 +64,7 @@ func TestSSMActions(t *testing.T) {
 			svc.EXPECT().SSM().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/ssm/", tt.target, []byte("{}"))
+			w := performRequest(r, "POST", "/ssm", tt.target, []byte("{}"))
 			assert.Equal(t, http.StatusOK, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -83,12 +82,10 @@ func TestSSM_GetParameters_Direct(t *testing.T) {
 	svc.EXPECT().SSM().Return(mp)
 	handler := createHandler(svc, createTestVersionService(t))
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/ssm/", bytes.NewReader([]byte("{}")))
+	req := httptest.NewRequest("POST", "/ssm", bytes.NewReader([]byte("{}")))
 
-	handler.getParameters(context.Background(), c, []byte("{}"))
+	handler.getParameters(context.Background(), w, req, []byte("{}"))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -103,12 +100,10 @@ func TestSSM_GetParametersByPath_Direct(t *testing.T) {
 	svc.EXPECT().SSM().Return(mp)
 	handler := createHandler(svc, createTestVersionService(t))
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/ssm/", bytes.NewReader([]byte("{}")))
+	req := httptest.NewRequest("POST", "/ssm", bytes.NewReader([]byte("{}")))
 
-	handler.getParametersByPath(context.Background(), c, []byte("{}"))
+	handler.getParametersByPath(context.Background(), w, req, []byte("{}"))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -123,12 +118,10 @@ func TestSSM_GetParameterHistory_Direct(t *testing.T) {
 	svc.EXPECT().SSM().Return(mp)
 	handler := createHandler(svc, createTestVersionService(t))
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/ssm/", bytes.NewReader([]byte("{}")))
+	req := httptest.NewRequest("POST", "/ssm", bytes.NewReader([]byte("{}")))
 
-	handler.getParameterHistory(context.Background(), c, []byte("{}"))
+	handler.getParameterHistory(context.Background(), w, req, []byte("{}"))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -139,7 +132,7 @@ func TestSSM_InvalidBody(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/ssm/", "PutParameter", []byte(`{bad`))
+	w := performRequest(r, "POST", "/ssm", "PutParameter", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -153,7 +146,7 @@ func TestSSM_ServiceError(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/ssm/", "DescribeParameters", []byte("{}"))
+	w := performRequest(r, "POST", "/ssm", "DescribeParameters", []byte("{}"))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -164,7 +157,7 @@ func TestSSM_UnknownAction(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/ssm/", "UnknownSSMAction", []byte("{}"))
+	w := performRequest(r, "POST", "/ssm", "UnknownSSMAction", []byte("{}"))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -234,7 +227,7 @@ func TestSSM_ServiceErrors(t *testing.T) {
 			svc.EXPECT().SSM().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/ssm/", tt.target, []byte("{}"))
+			w := performRequest(r, "POST", "/ssm", tt.target, []byte("{}"))
 			assert.Equal(t, http.StatusInternalServerError, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -253,12 +246,10 @@ func TestSSM_GetParameters_ServiceError(t *testing.T) {
 	svc.EXPECT().SSM().Return(mp)
 	handler := createHandler(svc, createTestVersionService(t))
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/ssm/", bytes.NewReader([]byte("{}")))
+	req := httptest.NewRequest("POST", "/ssm", bytes.NewReader([]byte("{}")))
 
-	handler.getParameters(context.Background(), c, []byte("{}"))
+	handler.getParameters(context.Background(), w, req, []byte("{}"))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -271,12 +262,10 @@ func TestSSM_GetParametersByPath_ServiceError(t *testing.T) {
 	svc.EXPECT().SSM().Return(mp)
 	handler := createHandler(svc, createTestVersionService(t))
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/ssm/", bytes.NewReader([]byte("{}")))
+	req := httptest.NewRequest("POST", "/ssm", bytes.NewReader([]byte("{}")))
 
-	handler.getParametersByPath(context.Background(), c, []byte("{}"))
+	handler.getParametersByPath(context.Background(), w, req, []byte("{}"))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -289,12 +278,10 @@ func TestSSM_GetParameterHistory_ServiceError(t *testing.T) {
 	svc.EXPECT().SSM().Return(mp)
 	handler := createHandler(svc, createTestVersionService(t))
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/ssm/", bytes.NewReader([]byte("{}")))
+	req := httptest.NewRequest("POST", "/ssm", bytes.NewReader([]byte("{}")))
 
-	handler.getParameterHistory(context.Background(), c, []byte("{}"))
+	handler.getParameterHistory(context.Background(), w, req, []byte("{}"))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -321,7 +308,7 @@ func TestSSM_ParseErrors(t *testing.T) {
 			svc := createMockSvc(t, nil)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/ssm/", target, []byte(`{bad`))
+			w := performRequest(r, "POST", "/ssm", target, []byte(`{bad`))
 			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s body=%s", target, w.Body.String())
 		})
 	}
