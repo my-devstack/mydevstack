@@ -21,7 +21,8 @@ ARG VERSION
 
 WORKDIR /build/ui
 
-# Install dependencies and build
+# Install pnpm and build frontend
+RUN npm install -g pnpm
 WORKDIR /build/ui/pkg/ui
 COPY ./pkg/ui/. .
 RUN pnpm install --frozen-lockfile && pnpm run build
