@@ -1,40 +1,12 @@
 /**
  * CloudFormation Service API Client
- * Simple HTTP client for CloudFormation via Go proxy
+ * RESTful HTTP client for CloudFormation via Go proxy
  * @module api/services/cloudformation
  */
 
 import { PROXY_BACKEND } from '@/config'
 import { APIError } from '../client'
-import type { CloudFormationStack, CloudFormationOutput, CloudFormationStackResource } from '../types/aws'
-
-async function cfRequest(action: string, body: object = {}): Promise<any> {
-  const endpoint = PROXY_BACKEND.replace(/\/$/, '')
-
-  const url = `${endpoint}/cloudformation/`
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Amz-Target': `cloudformation.${action}`,
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new APIError(`CloudFormation ${action} failed: ${errorText}`, response.status, 'cloudformation')
-    }
-
-    return response.json()
-  } catch (error) {
-    if (error instanceof APIError) throw error
-    console.error(`CloudFormation ${action} error:`, error)
-    throw new APIError(`Failed to ${action}`, 500, 'cloudformation')
-  }
-}
+import type { CloudFormationStack, CloudFormationStackResource } from '../types/aws'
 
 export interface ListStacksRequest {
   StackStatusFilter?: string[]
@@ -78,10 +50,43 @@ export interface ListStacksResponse {
 }
 
 export class CloudFormationService {
+  private baseUrl: string
+
+  constructor() {
+    this.baseUrl = PROXY_BACKEND.replace(/\/$/, '')
+  }
+
+  private async request(method: string, path: string, options?: { body?: unknown; label?: string }): Promise<any> {
+    const url = `${this.baseUrl}${path}`
+    const label = options?.label || `${method} ${path}`
+    const fetchOptions: RequestInit = { method }
+
+    if (options?.body !== undefined) {
+      fetchOptions.headers = { 'Content-Type': 'application/json' }
+      fetchOptions.body = JSON.stringify(options.body)
+    }
+
+    try {
+      const response = await fetch(url, fetchOptions)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new APIError(`CloudFormation ${label} failed: ${errorText}`, response.status, 'cloudformation')
+      }
+
+      const text = await response.text()
+      if (!text) return {}
+      return JSON.parse(text)
+    } catch (error) {
+      if (error instanceof APIError) throw error
+      console.error(`CloudFormation ${label} error:`, error)
+      throw new APIError(`Failed to ${label}`, 500, 'cloudformation')
+    }
+  }
+
   async listStacks(request?: ListStacksRequest): Promise<CloudFormationStack[]> {
-    const params = request || {}
-    const response = await cfRequest('ListStacks', params)
-    return (response.StackSummaries || []).map((stack: any) => ({
+    const data = await this.request('GET', '/cloudformation/stacks', { body: request, label: 'ListStacks' })
+    return (data.StackSummaries || []).map((stack: any) => ({
       StackName: stack.StackName || '',
       StackId: stack.StackId || '',
       StackStatus: stack.StackStatus || '',
@@ -104,16 +109,16 @@ export class CloudFormationService {
   }
 
   async createStack(request: CreateStackRequest): Promise<{ StackId: string }> {
-    return cfRequest('CreateStack', request)
+    return this.request('POST', '/cloudformation/stacks', { body: request, label: 'CreateStack' })
   }
 
   async deleteStack(request: DeleteStackRequest): Promise<void> {
-    return cfRequest('DeleteStack', request)
+    return this.request('DELETE', `/cloudformation/stacks/${encodeURIComponent(request.StackName)}`, { label: 'DeleteStack' })
   }
 
   async getStackDetails(request: GetStackDetailsRequest): Promise<CloudFormationStack> {
-    const response = await cfRequest('DescribeStacks', { StackName: request.StackName })
-    const stacks = response.Stacks || []
+    const data = await this.request('GET', `/cloudformation/stacks/${encodeURIComponent(request.StackName)}`, { label: 'DescribeStacks' })
+    const stacks = data.Stacks || []
     if (stacks.length === 0) {
       throw new APIError(`Stack ${request.StackName} not found`, 404, 'cloudformation', 'StackNotFound')
     }
@@ -141,8 +146,8 @@ export class CloudFormationService {
   }
 
   async listStackResources(request: ListStackResourcesRequest): Promise<CloudFormationStackResource[]> {
-    const response = await cfRequest('ListStackResources', { StackName: request.StackName })
-    return (response.StackResourceSummaries || []).map((resource: any) => ({
+    const data = await this.request('GET', `/cloudformation/stacks/${encodeURIComponent(request.StackName)}/resources`, { body: request, label: 'ListStackResources' })
+    return (data.StackResourceSummaries || []).map((resource: any) => ({
       LogicalResourceId: resource.LogicalResourceId || '',
       PhysicalResourceId: resource.PhysicalResourceId || '',
       ResourceType: resource.ResourceType || '',
@@ -153,8 +158,8 @@ export class CloudFormationService {
   }
 
   async getStackTemplate(stackName: string): Promise<string> {
-    const response = await cfRequest('GetTemplate', { StackName: stackName })
-    return response.TemplateBody || ''
+    const data = await this.request('GET', `/cloudformation/stacks/${encodeURIComponent(stackName)}/template`, { label: 'GetTemplate' })
+    return data.TemplateBody || ''
   }
 }
 

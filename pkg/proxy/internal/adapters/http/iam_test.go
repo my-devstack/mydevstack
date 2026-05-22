@@ -1,13 +1,12 @@
 package httphandlers
 
 import (
-	"context"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
@@ -33,27 +32,10 @@ func setupIAMTest(t *testing.T) (*mockports.ProxyService, *mockports.IAMPort, *P
 	return svc, mp, handler
 }
 
-// performIAMRequest executes a POST against the /iam/ service router.
-func performIAMRequest(handler *ProxyHandler, target string, body []byte) *httptest.ResponseRecorder {
+// performIAMRequest executes an HTTP request against the /iam/ service router.
+func performIAMRequest(handler *ProxyHandler, method, path string, body []byte) *httptest.ResponseRecorder {
 	r := setupTestRouter(handler)
-	return performRequest(r, "POST", "/iam", target, body)
-}
-
-// ---------------------------------------------------------------------------
-// Unknown action
-// ---------------------------------------------------------------------------
-
-func TestIAM_UnknownAction(t *testing.T) {
-	t.Parallel()
-	_, _, handler := setupIAMTest(t)
-
-	w := performIAMRequest(handler, "UnknownIAMAction", []byte(`{}`))
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-
-	var resp map[string]interface{}
-	err := json.Unmarshal(w.Body.Bytes(), &resp)
-	assert.NoError(t, err)
-	assert.Contains(t, resp["error"], "Unknown IAM action")
+	return performRequest(r, method, path, body)
 }
 
 // ---------------------------------------------------------------------------
@@ -65,7 +47,7 @@ func TestIAM_CreateUser_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().CreateUser(mock.Anything, mock.Anything).Return(&iam.CreateUserOutput{}, nil)
 
-	w := performIAMRequest(handler, "CreateUser", []byte(`{"UserName":"testuser"}`))
+	w := performIAMRequest(handler, "POST", "/iam/users", []byte(`{"UserName":"testuser"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -74,7 +56,7 @@ func TestIAM_CreateUser_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().CreateUser(mock.Anything, mock.Anything).Return(nil, errors.New("create user error"))
 
-	w := performIAMRequest(handler, "CreateUser", []byte(`{}`))
+	w := performIAMRequest(handler, "POST", "/iam/users", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -90,7 +72,7 @@ func TestIAM_GetUser_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().GetUser(mock.Anything, mock.Anything).Return(&iam.GetUserOutput{}, nil)
 
-	w := performIAMRequest(handler, "GetUser", []byte(`{"UserName":"testuser"}`))
+	w := performIAMRequest(handler, "GET", "/iam/users/testuser", []byte(`{"UserName":"testuser"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -99,7 +81,7 @@ func TestIAM_GetUser_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().GetUser(mock.Anything, mock.Anything).Return(nil, errors.New("get user error"))
 
-	w := performIAMRequest(handler, "GetUser", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/users/testuser", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -115,7 +97,7 @@ func TestIAM_ListUsers_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListUsers(mock.Anything, mock.Anything).Return(&iam.ListUsersOutput{}, nil)
 
-	w := performIAMRequest(handler, "ListUsers", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/users", []byte(`{}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -124,7 +106,7 @@ func TestIAM_ListUsers_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListUsers(mock.Anything, mock.Anything).Return(nil, errors.New("list users error"))
 
-	w := performIAMRequest(handler, "ListUsers", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/users", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -140,7 +122,7 @@ func TestIAM_DeleteUser_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().DeleteUser(mock.Anything, mock.Anything).Return(&iam.DeleteUserOutput{}, nil)
 
-	w := performIAMRequest(handler, "DeleteUser", []byte(`{"UserName":"testuser"}`))
+	w := performIAMRequest(handler, "DELETE", "/iam/users/testuser", []byte(`{"UserName":"testuser"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -149,7 +131,7 @@ func TestIAM_DeleteUser_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().DeleteUser(mock.Anything, mock.Anything).Return(nil, errors.New("delete user error"))
 
-	w := performIAMRequest(handler, "DeleteUser", []byte(`{}`))
+	w := performIAMRequest(handler, "DELETE", "/iam/users/testuser", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -165,7 +147,7 @@ func TestIAM_CreateRole_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().CreateRole(mock.Anything, mock.Anything).Return(&iam.CreateRoleOutput{}, nil)
 
-	w := performIAMRequest(handler, "CreateRole", []byte(`{"RoleName":"testrole"}`))
+	w := performIAMRequest(handler, "POST", "/iam/roles", []byte(`{"RoleName":"testrole"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -174,7 +156,7 @@ func TestIAM_CreateRole_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().CreateRole(mock.Anything, mock.Anything).Return(nil, errors.New("create role error"))
 
-	w := performIAMRequest(handler, "CreateRole", []byte(`{}`))
+	w := performIAMRequest(handler, "POST", "/iam/roles", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -190,7 +172,7 @@ func TestIAM_GetRole_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().GetRole(mock.Anything, mock.Anything).Return(&iam.GetRoleOutput{}, nil)
 
-	w := performIAMRequest(handler, "GetRole", []byte(`{"RoleName":"testrole"}`))
+	w := performIAMRequest(handler, "GET", "/iam/roles/testrole", []byte(`{"RoleName":"testrole"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -199,7 +181,7 @@ func TestIAM_GetRole_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().GetRole(mock.Anything, mock.Anything).Return(nil, errors.New("get role error"))
 
-	w := performIAMRequest(handler, "GetRole", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/roles/testrole", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -215,7 +197,7 @@ func TestIAM_ListRoles_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListRoles(mock.Anything, mock.Anything).Return(&iam.ListRolesOutput{}, nil)
 
-	w := performIAMRequest(handler, "ListRoles", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/roles", []byte(`{}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -224,7 +206,7 @@ func TestIAM_ListRoles_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListRoles(mock.Anything, mock.Anything).Return(nil, errors.New("list roles error"))
 
-	w := performIAMRequest(handler, "ListRoles", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/roles", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -240,7 +222,7 @@ func TestIAM_DeleteRole_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().DeleteRole(mock.Anything, mock.Anything).Return(&iam.DeleteRoleOutput{}, nil)
 
-	w := performIAMRequest(handler, "DeleteRole", []byte(`{"RoleName":"testrole"}`))
+	w := performIAMRequest(handler, "DELETE", "/iam/roles/testrole", []byte(`{"RoleName":"testrole"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -249,7 +231,7 @@ func TestIAM_DeleteRole_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().DeleteRole(mock.Anything, mock.Anything).Return(nil, errors.New("delete role error"))
 
-	w := performIAMRequest(handler, "DeleteRole", []byte(`{}`))
+	w := performIAMRequest(handler, "DELETE", "/iam/roles/testrole", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -265,7 +247,7 @@ func TestIAM_ListPolicies_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListPolicies(mock.Anything, mock.Anything).Return(&iam.ListPoliciesOutput{}, nil)
 
-	w := performIAMRequest(handler, "ListPolicies", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/policies", []byte(`{}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -274,7 +256,7 @@ func TestIAM_ListPolicies_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListPolicies(mock.Anything, mock.Anything).Return(nil, errors.New("list policies error"))
 
-	w := performIAMRequest(handler, "ListPolicies", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/policies", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -290,7 +272,7 @@ func TestIAM_GetPolicy_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().GetPolicy(mock.Anything, mock.Anything).Return(&iam.GetPolicyOutput{}, nil)
 
-	w := performIAMRequest(handler, "GetPolicy", []byte(`{"PolicyArn":"arn:aws:iam::123:policy/my-policy"}`))
+	w := performIAMRequest(handler, "POST", "/iam/policies/get", []byte(`{"PolicyArn":"arn:aws:iam::123:policy/my-policy"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -299,7 +281,7 @@ func TestIAM_GetPolicy_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().GetPolicy(mock.Anything, mock.Anything).Return(nil, errors.New("get policy error"))
 
-	w := performIAMRequest(handler, "GetPolicy", []byte(`{}`))
+	w := performIAMRequest(handler, "POST", "/iam/policies/get", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -315,7 +297,7 @@ func TestIAM_CreatePolicy_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().CreatePolicy(mock.Anything, mock.Anything).Return(&iam.CreatePolicyOutput{}, nil)
 
-	w := performIAMRequest(handler, "CreatePolicy", []byte(`{"PolicyName":"my-policy"}`))
+	w := performIAMRequest(handler, "POST", "/iam/policies", []byte(`{"PolicyName":"my-policy"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -324,7 +306,7 @@ func TestIAM_CreatePolicy_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().CreatePolicy(mock.Anything, mock.Anything).Return(nil, errors.New("create policy error"))
 
-	w := performIAMRequest(handler, "CreatePolicy", []byte(`{}`))
+	w := performIAMRequest(handler, "POST", "/iam/policies", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -340,7 +322,7 @@ func TestIAM_DeletePolicy_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().DeletePolicy(mock.Anything, mock.Anything).Return(&iam.DeletePolicyOutput{}, nil)
 
-	w := performIAMRequest(handler, "DeletePolicy", []byte(`{"PolicyArn":"arn:aws:iam::123:policy/my-policy"}`))
+	w := performIAMRequest(handler, "POST", "/iam/policies/delete", []byte(`{"PolicyArn":"arn:aws:iam::123:policy/my-policy"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -349,7 +331,7 @@ func TestIAM_DeletePolicy_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().DeletePolicy(mock.Anything, mock.Anything).Return(nil, errors.New("delete policy error"))
 
-	w := performIAMRequest(handler, "DeletePolicy", []byte(`{}`))
+	w := performIAMRequest(handler, "POST", "/iam/policies/delete", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -365,7 +347,7 @@ func TestIAM_CreateAccessKey_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().CreateAccessKey(mock.Anything, mock.Anything).Return(&iam.CreateAccessKeyOutput{}, nil)
 
-	w := performIAMRequest(handler, "CreateAccessKey", []byte(`{"UserName":"testuser"}`))
+	w := performIAMRequest(handler, "POST", "/iam/access-keys", []byte(`{"UserName":"testuser"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -374,7 +356,7 @@ func TestIAM_CreateAccessKey_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().CreateAccessKey(mock.Anything, mock.Anything).Return(nil, errors.New("create access key error"))
 
-	w := performIAMRequest(handler, "CreateAccessKey", []byte(`{}`))
+	w := performIAMRequest(handler, "POST", "/iam/access-keys", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -390,7 +372,7 @@ func TestIAM_ListAccessKeys_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListAccessKeys(mock.Anything, mock.Anything).Return(&iam.ListAccessKeysOutput{}, nil)
 
-	w := performIAMRequest(handler, "ListAccessKeys", []byte(`{"UserName":"testuser"}`))
+	w := performIAMRequest(handler, "GET", "/iam/access-keys", []byte(`{"UserName":"testuser"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -399,7 +381,7 @@ func TestIAM_ListAccessKeys_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListAccessKeys(mock.Anything, mock.Anything).Return(nil, errors.New("list access keys error"))
 
-	w := performIAMRequest(handler, "ListAccessKeys", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/access-keys", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -415,7 +397,7 @@ func TestIAM_DeleteAccessKey_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().DeleteAccessKey(mock.Anything, mock.Anything).Return(&iam.DeleteAccessKeyOutput{}, nil)
 
-	w := performIAMRequest(handler, "DeleteAccessKey", []byte(`{"UserName":"testuser","AccessKeyId":"AKIA123"}`))
+	w := performIAMRequest(handler, "DELETE", "/iam/access-keys/AKIA123", []byte(`{"UserName":"testuser","AccessKeyId":"AKIA123"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -424,7 +406,7 @@ func TestIAM_DeleteAccessKey_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().DeleteAccessKey(mock.Anything, mock.Anything).Return(nil, errors.New("delete access key error"))
 
-	w := performIAMRequest(handler, "DeleteAccessKey", []byte(`{}`))
+	w := performIAMRequest(handler, "DELETE", "/iam/access-keys/AKIA123", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -440,7 +422,7 @@ func TestIAM_UpdateAccessKeyStatus_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().UpdateAccessKeyStatus(mock.Anything, mock.Anything).Return(&iam.UpdateAccessKeyOutput{}, nil)
 
-	w := performIAMRequest(handler, "UpdateAccessKeyStatus", []byte(`{"UserName":"testuser","AccessKeyId":"AKIA123","Status":"Active"}`))
+	w := performIAMRequest(handler, "PUT", "/iam/access-keys/AKIA123", []byte(`{"UserName":"testuser","AccessKeyId":"AKIA123","Status":"Active"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -449,7 +431,7 @@ func TestIAM_UpdateAccessKeyStatus_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().UpdateAccessKeyStatus(mock.Anything, mock.Anything).Return(nil, errors.New("update access key status error"))
 
-	w := performIAMRequest(handler, "UpdateAccessKeyStatus", []byte(`{}`))
+	w := performIAMRequest(handler, "PUT", "/iam/access-keys/AKIA123", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -465,7 +447,7 @@ func TestIAM_AttachRolePolicy_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().AttachRolePolicy(mock.Anything, mock.Anything).Return(&iam.AttachRolePolicyOutput{}, nil)
 
-	w := performIAMRequest(handler, "AttachRolePolicy", []byte(`{"RoleName":"testrole","PolicyArn":"arn:aws:iam::123:policy/my-policy"}`))
+	w := performIAMRequest(handler, "POST", "/iam/roles/testrole/policies", []byte(`{"RoleName":"testrole","PolicyArn":"arn:aws:iam::123:policy/my-policy"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -474,7 +456,7 @@ func TestIAM_AttachRolePolicy_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().AttachRolePolicy(mock.Anything, mock.Anything).Return(nil, errors.New("attach role policy error"))
 
-	w := performIAMRequest(handler, "AttachRolePolicy", []byte(`{}`))
+	w := performIAMRequest(handler, "POST", "/iam/roles/testrole/policies", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -490,7 +472,7 @@ func TestIAM_DetachRolePolicy_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().DetachRolePolicy(mock.Anything, mock.Anything).Return(&iam.DetachRolePolicyOutput{}, nil)
 
-	w := performIAMRequest(handler, "DetachRolePolicy", []byte(`{"RoleName":"testrole","PolicyArn":"arn:aws:iam::123:policy/my-policy"}`))
+	w := performIAMRequest(handler, "POST", "/iam/roles/testrole/detach-policy", []byte(`{"RoleName":"testrole","PolicyArn":"arn:aws:iam::123:policy/my-policy"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -499,7 +481,7 @@ func TestIAM_DetachRolePolicy_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().DetachRolePolicy(mock.Anything, mock.Anything).Return(nil, errors.New("detach role policy error"))
 
-	w := performIAMRequest(handler, "DetachRolePolicy", []byte(`{}`))
+	w := performIAMRequest(handler, "POST", "/iam/roles/testrole/detach-policy", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -515,7 +497,7 @@ func TestIAM_ListAttachedRolePolicies_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListAttachedRolePolicies(mock.Anything, mock.Anything).Return(&iam.ListAttachedRolePoliciesOutput{}, nil)
 
-	w := performIAMRequest(handler, "ListAttachedRolePolicies", []byte(`{"RoleName":"testrole"}`))
+	w := performIAMRequest(handler, "GET", "/iam/roles/testrole/policies", []byte(`{"RoleName":"testrole"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -524,7 +506,7 @@ func TestIAM_ListAttachedRolePolicies_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListAttachedRolePolicies(mock.Anything, mock.Anything).Return(nil, errors.New("list attached role policies error"))
 
-	w := performIAMRequest(handler, "ListAttachedRolePolicies", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/roles/testrole/policies", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -540,7 +522,7 @@ func TestIAM_CreateGroup_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().CreateGroup(mock.Anything, mock.Anything).Return(&iam.CreateGroupOutput{}, nil)
 
-	w := performIAMRequest(handler, "CreateGroup", []byte(`{"GroupName":"testgroup"}`))
+	w := performIAMRequest(handler, "POST", "/iam/groups", []byte(`{"GroupName":"testgroup"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -549,7 +531,7 @@ func TestIAM_CreateGroup_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().CreateGroup(mock.Anything, mock.Anything).Return(nil, errors.New("create group error"))
 
-	w := performIAMRequest(handler, "CreateGroup", []byte(`{}`))
+	w := performIAMRequest(handler, "POST", "/iam/groups", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -565,7 +547,7 @@ func TestIAM_GetGroup_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().GetGroup(mock.Anything, mock.Anything).Return(&iam.GetGroupOutput{}, nil)
 
-	w := performIAMRequest(handler, "GetGroup", []byte(`{"GroupName":"testgroup"}`))
+	w := performIAMRequest(handler, "GET", "/iam/groups/testgroup", []byte(`{"GroupName":"testgroup"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -574,7 +556,7 @@ func TestIAM_GetGroup_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().GetGroup(mock.Anything, mock.Anything).Return(nil, errors.New("get group error"))
 
-	w := performIAMRequest(handler, "GetGroup", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/groups/testgroup", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -593,7 +575,7 @@ func TestIAM_ListGroups_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListGroups(mock.Anything, mock.Anything).Return(&iam.ListGroupsOutput{}, nil)
 
-	w := performIAMRequest(handler, "ListGroups", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/groups", []byte(`{}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -602,7 +584,7 @@ func TestIAM_ListGroups_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListGroups(mock.Anything, mock.Anything).Return(nil, errors.New("list groups error"))
 
-	w := performIAMRequest(handler, "ListGroups", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/groups", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -618,7 +600,7 @@ func TestIAM_DeleteGroup_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().DeleteGroup(mock.Anything, mock.Anything).Return(&iam.DeleteGroupOutput{}, nil)
 
-	w := performIAMRequest(handler, "DeleteGroup", []byte(`{"GroupName":"testgroup"}`))
+	w := performIAMRequest(handler, "DELETE", "/iam/groups/testgroup", []byte(`{"GroupName":"testgroup"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -627,7 +609,7 @@ func TestIAM_DeleteGroup_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().DeleteGroup(mock.Anything, mock.Anything).Return(nil, errors.New("delete group error"))
 
-	w := performIAMRequest(handler, "DeleteGroup", []byte(`{}`))
+	w := performIAMRequest(handler, "DELETE", "/iam/groups/testgroup", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -643,7 +625,7 @@ func TestIAM_AddUserToGroup_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().AddUserToGroup(mock.Anything, mock.Anything).Return(&iam.AddUserToGroupOutput{}, nil)
 
-	w := performIAMRequest(handler, "AddUserToGroup", []byte(`{"GroupName":"testgroup","UserName":"testuser"}`))
+	w := performIAMRequest(handler, "POST", "/iam/groups/testgroup/users", []byte(`{"GroupName":"testgroup","UserName":"testuser"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -652,7 +634,7 @@ func TestIAM_AddUserToGroup_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().AddUserToGroup(mock.Anything, mock.Anything).Return(nil, errors.New("add user to group error"))
 
-	w := performIAMRequest(handler, "AddUserToGroup", []byte(`{}`))
+	w := performIAMRequest(handler, "POST", "/iam/groups/testgroup/users", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -668,7 +650,7 @@ func TestIAM_RemoveUserFromGroup_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().RemoveUserFromGroup(mock.Anything, mock.Anything).Return(&iam.RemoveUserFromGroupOutput{}, nil)
 
-	w := performIAMRequest(handler, "RemoveUserFromGroup", []byte(`{"GroupName":"testgroup","UserName":"testuser"}`))
+	w := performIAMRequest(handler, "DELETE", "/iam/groups/testgroup/users/testuser", []byte(`{"GroupName":"testgroup","UserName":"testuser"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -677,7 +659,7 @@ func TestIAM_RemoveUserFromGroup_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().RemoveUserFromGroup(mock.Anything, mock.Anything).Return(nil, errors.New("remove user from group error"))
 
-	w := performIAMRequest(handler, "RemoveUserFromGroup", []byte(`{}`))
+	w := performIAMRequest(handler, "DELETE", "/iam/groups/testgroup/users/testuser", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -699,7 +681,7 @@ func TestIAM_ListGroupsForUser_Success(t *testing.T) {
 	// Direct call to avoid router dispatch ordering issue.
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/", nil)
-	handler.listGroupsForUser(context.Background(), w, req, []byte(`{"UserName":"testuser"}`))
+	handler.listGroupsForUser(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	var resp iam.ListGroupsForUserOutput
@@ -714,7 +696,7 @@ func TestIAM_ListGroupsForUser_Error(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/", nil)
-	handler.listGroupsForUser(context.Background(), w, req, []byte(`{}`))
+	handler.listGroupsForUser(w, req)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
@@ -741,7 +723,7 @@ func TestIAM_ListUsersForGroup_Success(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/", nil)
-	handler.listUsersForGroup(context.Background(), w, req, []byte(`{"GroupName":"testgroup"}`))
+	handler.listUsersForGroup(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	var resp map[string]interface{}
@@ -762,7 +744,7 @@ func TestIAM_ListUsersForGroup_Empty(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/", nil)
-	handler.listUsersForGroup(context.Background(), w, req, []byte(`{"GroupName":"testgroup"}`))
+	handler.listUsersForGroup(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	var resp map[string]interface{}
@@ -779,7 +761,7 @@ func TestIAM_ListUsersForGroup_Error(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/", nil)
-	handler.listUsersForGroup(context.Background(), w, req, []byte(`{}`))
+	handler.listUsersForGroup(w, req)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
@@ -796,7 +778,7 @@ func TestIAM_ListUserPolicies_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListUserPolicies(mock.Anything, mock.Anything).Return(&iam.ListUserPoliciesOutput{}, nil)
 
-	w := performIAMRequest(handler, "ListUserPolicies", []byte(`{"UserName":"testuser"}`))
+	w := performIAMRequest(handler, "GET", "/iam/users/testuser/policies", []byte(`{"UserName":"testuser"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -805,7 +787,7 @@ func TestIAM_ListUserPolicies_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListUserPolicies(mock.Anything, mock.Anything).Return(nil, errors.New("list user policies error"))
 
-	w := performIAMRequest(handler, "ListUserPolicies", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/users/testuser/policies", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -821,7 +803,7 @@ func TestIAM_ListRolePolicies_Success(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListRolePolicies(mock.Anything, mock.Anything).Return(&iam.ListRolePoliciesOutput{}, nil)
 
-	w := performIAMRequest(handler, "ListRolePolicies", []byte(`{"RoleName":"testrole"}`))
+	w := performIAMRequest(handler, "GET", "/iam/roles/testrole/inline-policies", []byte(`{"RoleName":"testrole"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -830,7 +812,7 @@ func TestIAM_ListRolePolicies_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().ListRolePolicies(mock.Anything, mock.Anything).Return(nil, errors.New("list role policies error"))
 
-	w := performIAMRequest(handler, "ListRolePolicies", []byte(`{}`))
+	w := performIAMRequest(handler, "GET", "/iam/roles/testrole/inline-policies", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -849,7 +831,7 @@ func TestIAM_GetRolePolicy_Success(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/", nil)
-	handler.getRolePolicy(context.Background(), w, req, []byte(`{"RoleName":"testrole","PolicyName":"my-policy"}`))
+	handler.getRolePolicy(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 }
@@ -861,7 +843,7 @@ func TestIAM_GetRolePolicy_Error(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/", nil)
-	handler.getRolePolicy(context.Background(), w, req, []byte(`{}`))
+	handler.getRolePolicy(w, req)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
@@ -877,24 +859,43 @@ func TestIAM_GetRolePolicy_Error(t *testing.T) {
 func TestIAM_ParseError(t *testing.T) {
 	t.Parallel()
 
-	routerActions := []string{
-		"CreateUser", "GetUser", "ListUsers", "DeleteUser",
-		"CreateRole", "GetRole", "ListRoles", "DeleteRole",
-		"ListPolicies", "GetPolicy", "CreatePolicy", "DeletePolicy",
-		"CreateAccessKey", "ListAccessKeys", "DeleteAccessKey", "UpdateAccessKeyStatus",
-		"AttachRolePolicy", "DetachRolePolicy", "ListAttachedRolePolicies",
-		"CreateGroup", "GetGroup", "ListGroups", "DeleteGroup",
-		"AddUserToGroup", "RemoveUserFromGroup",
-		"ListUserPolicies", "ListRolePolicies",
+	// Only include actions whose handlers call parseBody.
+	// Actions that get params from URL (GetUser, DeleteUser, GetRole, DeleteRole,
+	// DeleteAccessKey, GetGroup, DeleteGroup, RemoveUserFromGroup) are excluded
+	// because they don't parse the request body and bad JSON won't trigger 400.
+	routerActions := []struct {
+		name   string
+		method string
+		path   string
+	}{
+		{name: "CreateUser", method: "POST", path: "/iam/users"},
+		{name: "ListUsers", method: "GET", path: "/iam/users"},
+		{name: "CreateRole", method: "POST", path: "/iam/roles"},
+		{name: "ListRoles", method: "GET", path: "/iam/roles"},
+		{name: "ListPolicies", method: "GET", path: "/iam/policies"},
+		{name: "GetPolicy", method: "POST", path: "/iam/policies/get"},
+		{name: "CreatePolicy", method: "POST", path: "/iam/policies"},
+		{name: "DeletePolicy", method: "POST", path: "/iam/policies/delete"},
+		{name: "CreateAccessKey", method: "POST", path: "/iam/access-keys"},
+		{name: "ListAccessKeys", method: "GET", path: "/iam/access-keys"},
+		{name: "UpdateAccessKeyStatus", method: "PUT", path: "/iam/access-keys/AKIA123"},
+		{name: "AttachRolePolicy", method: "POST", path: "/iam/roles/testrole/policies"},
+		{name: "DetachRolePolicy", method: "POST", path: "/iam/roles/testrole/detach-policy"},
+		{name: "ListAttachedRolePolicies", method: "GET", path: "/iam/roles/testrole/policies"},
+		{name: "CreateGroup", method: "POST", path: "/iam/groups"},
+		{name: "ListGroups", method: "GET", path: "/iam/groups"},
+		{name: "AddUserToGroup", method: "POST", path: "/iam/groups/testgroup/users"},
+		{name: "ListUserPolicies", method: "GET", path: "/iam/users/testuser/policies"},
+		{name: "ListRolePolicies", method: "GET", path: "/iam/roles/testrole/inline-policies"},
 	}
 
-	for _, action := range routerActions {
-		action := action
-		t.Run(action, func(t *testing.T) {
+	for _, ra := range routerActions {
+		ra := ra
+		t.Run(ra.name, func(t *testing.T) {
 			t.Parallel()
 			_, _, handler := setupIAMTest(t)
-			w := performIAMRequest(handler, action, []byte(`{bad json`))
-			assert.Equal(t, http.StatusBadRequest, w.Code, "action=%s body=%s", action, w.Body.String())
+			w := performIAMRequest(handler, ra.method, ra.path, []byte(`{bad json`))
+			assert.Equal(t, http.StatusBadRequest, w.Code, "method=%s path=%s body=%s", ra.method, ra.path, w.Body.String())
 			var resp map[string]interface{}
 			err := json.Unmarshal(w.Body.Bytes(), &resp)
 			assert.NoError(t, err)
@@ -910,26 +911,22 @@ func TestIAM_ParseError_Direct(t *testing.T) {
 
 	type directCase struct {
 		name    string
-		handler func(*ProxyHandler, http.ResponseWriter, *http.Request, []byte)
+		handler func(*ProxyHandler, http.ResponseWriter, *http.Request)
 	}
 
+	// Only include handlers that parse the request body.
+	// GetRolePolicy uses URL params only and is excluded.
 	cases := []directCase{
 		{
 			name: "ListGroupsForUser",
-			handler: func(h *ProxyHandler, w http.ResponseWriter, r *http.Request, body []byte) {
-				h.listGroupsForUser(context.Background(), w, r, body)
+			handler: func(h *ProxyHandler, w http.ResponseWriter, r *http.Request) {
+				h.listGroupsForUser(w, r)
 			},
 		},
 		{
 			name: "ListUsersForGroup",
-			handler: func(h *ProxyHandler, w http.ResponseWriter, r *http.Request, body []byte) {
-				h.listUsersForGroup(context.Background(), w, r, body)
-			},
-		},
-		{
-			name: "GetRolePolicy",
-			handler: func(h *ProxyHandler, w http.ResponseWriter, r *http.Request, body []byte) {
-				h.getRolePolicy(context.Background(), w, r, body)
+			handler: func(h *ProxyHandler, w http.ResponseWriter, r *http.Request) {
+				h.listUsersForGroup(w, r)
 			},
 		},
 	}
@@ -941,9 +938,9 @@ func TestIAM_ParseError_Direct(t *testing.T) {
 			_, _, handler := setupIAMTest(t)
 
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("POST", "/", nil)
+			req := httptest.NewRequest("POST", "/", bytes.NewReader([]byte(`{bad json`)))
 
-			tc.handler(handler, w, req, []byte(`{bad json`))
+			tc.handler(handler, w, req)
 
 			assert.Equal(t, http.StatusBadRequest, w.Code, "body=%s", w.Body.String())
 			var resp map[string]interface{}

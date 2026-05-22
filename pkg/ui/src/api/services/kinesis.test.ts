@@ -28,6 +28,8 @@ import {
   mergeShards,
   splitShard,
   updateShardCount,
+  increaseStreamRetentionPeriod,
+  decreaseStreamRetentionPeriod,
   enableEnhancedMonitoring,
   disableEnhancedMonitoring,
 } from './kinesis'
@@ -38,82 +40,76 @@ describe('Kinesis Service', () => {
   })
 
   describe('createStream', () => {
-    it('sends StreamName and options', async () => {
+    it('POST /kinesis/streams with StreamName and options', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await createStream('my-stream', { ShardCount: 2 })
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.StreamName).toBe('my-stream')
       expect(body.ShardCount).toBe(2)
     })
   })
 
+  describe('listStreams', () => {
+    it('GET /kinesis/streams returns stream list', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ StreamNames: ['stream1', 'stream2'] }))
+      const result = await listStreams()
+      expect(result.StreamNames).toHaveLength(2)
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
+
+    it('passes ExclusiveStartStreamName and Limit as query params', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ StreamNames: ['stream1'] }))
+      await listStreams({ ExclusiveStartStreamName: 'stream0', Limit: 10 })
+      const url = mockFetch.mock.calls[0][0] as string
+      expect(url).toContain('ExclusiveStartStreamName=stream0')
+      expect(url).toContain('Limit=10')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
+  })
+
   describe('describeStream', () => {
-    it('returns stream description', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ StreamDescription: { StreamName: 'my-stream', StreamStatus: 'ACTIVE' } }))
+    it('GET /kinesis/streams/{streamName} returns description', async () => {
+      mockFetch.mockResolvedValue(
+        mockResponse({ StreamDescription: { StreamName: 'my-stream', StreamStatus: 'ACTIVE' } }),
+      )
       const result = await describeStream('my-stream')
       expect(result.StreamDescription.StreamStatus).toBe('ACTIVE')
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/my-stream$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
   })
 
   describe('describeStreamSummary', () => {
-    it('returns stream summary', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ StreamDescriptionSummary: { StreamName: 'my-stream' } }))
+    it('GET /kinesis/streams/{streamName}/summary', async () => {
+      mockFetch.mockResolvedValue(
+        mockResponse({ StreamDescriptionSummary: { StreamName: 'my-stream' } }),
+      )
       const result = await describeStreamSummary('my-stream')
       expect(result.StreamDescriptionSummary.StreamName).toBe('my-stream')
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/my-stream\/summary$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
   })
 
   describe('deleteStream', () => {
-    it('sends StreamName', async () => {
+    it('DELETE /kinesis/streams/{streamName}', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await deleteStream('my-stream')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.StreamName).toBe('my-stream')
-    })
-  })
-
-  describe('listStreams', () => {
-    it('returns stream list', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ StreamNames: ['stream1', 'stream2'] }))
-      const result = await listStreams()
-      expect(result.StreamNames).toHaveLength(2)
-    })
-  })
-
-  describe('listShards', () => {
-    it('sends StreamName', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Shards: [] }))
-      await listShards('my-stream')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.StreamName).toBe('my-stream')
-    })
-  })
-
-  describe('getShardIterator', () => {
-    it('sends required params with default type', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ ShardIterator: 'iter1' }))
-      const result = await getShardIterator('my-stream', 'shard-1')
-      expect(result.ShardIterator).toBe('iter1')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.ShardIteratorType).toBe('LATEST')
-    })
-  })
-
-  describe('getRecords', () => {
-    it('sends ShardIterator', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Records: [] }))
-      const result = await getRecords('iter1')
-      expect(result.Records).toEqual([])
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.ShardIterator).toBe('iter1')
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/my-stream$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
     })
   })
 
   describe('putRecord', () => {
-    it('sends base64-encoded Data', async () => {
+    it('POST /kinesis/streams/{streamName}/records with base64 Data', async () => {
       mockFetch.mockResolvedValue(mockResponse({ SequenceNumber: 'seq1' }))
       const result = await putRecord('my-stream', 'hello', 'pk1')
       expect(result.SequenceNumber).toBe('seq1')
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/my-stream\/records$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Data).toBe(btoa('hello'))
       expect(body.PartitionKey).toBe('pk1')
@@ -121,57 +117,138 @@ describe('Kinesis Service', () => {
   })
 
   describe('putRecords', () => {
-    it('sends base64-encoded records', async () => {
+    it('POST /kinesis/streams/{streamName}/records/batch with base64 records', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Records: [{ SequenceNumber: 's1' }] }))
       const result = await putRecords('my-stream', [{ Data: 'msg1', PartitionKey: 'pk1' }])
       expect(result.Records[0].SequenceNumber).toBe('s1')
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/my-stream\/records\/batch$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Records[0].Data).toBe(btoa('msg1'))
     })
   })
 
+  describe('getRecords', () => {
+    it('POST /kinesis/records with ShardIterator', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ Records: [] }))
+      const result = await getRecords('iter1')
+      expect(result.Records).toEqual([])
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/records$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.ShardIterator).toBe('iter1')
+    })
+  })
+
+  describe('getShardIterator', () => {
+    it('POST /kinesis/streams/{streamName}/shard-iterator with default type', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ ShardIterator: 'iter1' }))
+      const result = await getShardIterator('my-stream', 'shard-1')
+      expect(result.ShardIterator).toBe('iter1')
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/my-stream\/shard-iterator$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.ShardIteratorType).toBe('LATEST')
+      expect(body.ShardId).toBe('shard-1')
+    })
+  })
+
+  describe('listShards', () => {
+    it('GET /kinesis/streams/{streamName}/shards', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ Shards: [] }))
+      await listShards('my-stream')
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/my-stream\/shards$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
+
+    it('passes ExclusiveStartShardId and MaxResults as query params', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ Shards: [] }))
+      await listShards('my-stream', { ExclusiveStartShardId: 'shard-0', MaxResults: 5 })
+      const url = mockFetch.mock.calls[0][0] as string
+      expect(url).toContain('ExclusiveStartShardId=shard-0')
+      expect(url).toContain('MaxResults=5')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
+  })
+
+  describe('splitShard', () => {
+    it('POST /kinesis/streams/{streamName}/shards/split', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await splitShard('my-stream', 'shard-1', '100')
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/my-stream\/shards\/split$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.NewStartingHashKey).toBe('100')
+    })
+  })
+
   describe('mergeShards', () => {
-    it('sends merge params', async () => {
+    it('POST /kinesis/streams/{streamName}/shards/merge', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await mergeShards('my-stream', 'shard-1', 'shard-2')
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/my-stream\/shards\/merge$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.ShardToMerge).toBe('shard-1')
       expect(body.AdjacentShardToMerge).toBe('shard-2')
     })
   })
 
-  describe('splitShard', () => {
-    it('sends split params', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
-      await splitShard('my-stream', 'shard-1', '100')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.NewStartingHashKey).toBe('100')
-    })
-  })
-
   describe('updateShardCount', () => {
-    it('sends scaling params', async () => {
+    it('POST /kinesis/streams/{streamName}/shards/count', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await updateShardCount('my-stream', 3)
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/my-stream\/shards\/count$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.TargetShardCount).toBe(3)
       expect(body.ScalingType).toBe('UNIFORM_SCALING')
     })
   })
 
+  describe('increaseStreamRetentionPeriod', () => {
+    it('POST /kinesis/streams/{streamName}/retention/increase', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await increaseStreamRetentionPeriod('my-stream', 48)
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/my-stream\/retention\/increase$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.RetentionPeriodHours).toBe(48)
+    })
+  })
+
+  describe('decreaseStreamRetentionPeriod', () => {
+    it('POST /kinesis/streams/{streamName}/retention/decrease', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await decreaseStreamRetentionPeriod('my-stream', 24)
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/my-stream\/retention\/decrease$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.RetentionPeriodHours).toBe(24)
+    })
+  })
+
   describe('enableEnhancedMonitoring', () => {
-    it('sends ShardLevelMetrics', async () => {
+    it('POST /kinesis/streams/{streamName}/enhanced-monitoring', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await enableEnhancedMonitoring('my-stream', ['IncomingBytes'])
+      expect(mockFetch.mock.calls[0][0]).toMatch(
+        /\/kinesis\/streams\/my-stream\/enhanced-monitoring$/,
+      )
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.ShardLevelMetrics).toEqual(['IncomingBytes'])
     })
   })
 
   describe('disableEnhancedMonitoring', () => {
-    it('sends ShardLevelMetrics', async () => {
+    it('DELETE /kinesis/streams/{streamName}/enhanced-monitoring', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await disableEnhancedMonitoring('my-stream', ['IncomingBytes'])
+      expect(mockFetch.mock.calls[0][0]).toMatch(
+        /\/kinesis\/streams\/my-stream\/enhanced-monitoring$/,
+      )
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.ShardLevelMetrics).toEqual(['IncomingBytes'])
     })
@@ -180,20 +257,12 @@ describe('Kinesis Service', () => {
   describe('Error handling', () => {
     it('throws APIError on server error', async () => {
       mockFetch.mockResolvedValue(mockResponse('Error', 500))
-      await expect(listStreams()).rejects.toThrow(/Kinesis ListStreams failed/)
+      await expect(listStreams()).rejects.toThrow(/Kinesis GET \/kinesis\/streams failed/)
     })
 
     it('throws APIError with 500 on network error', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'))
-      await expect(listStreams()).rejects.toThrow(/Failed to ListStreams/)
-    })
-  })
-
-  describe('X-Amz-Target header', () => {
-    it('uses action as target (no prefix)', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
-      await listStreams()
-      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('ListStreams')
+      await expect(listStreams()).rejects.toThrow(/Failed to GET \/kinesis\/streams/)
     })
   })
 })

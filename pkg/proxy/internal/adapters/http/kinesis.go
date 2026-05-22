@@ -1,61 +1,46 @@
 package httphandlers
 
 import (
-	"context"
 	"net/http"
-	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
+	kinesistypes "github.com/aws/aws-sdk-go-v2/service/kinesis/types"
+	"github.com/go-chi/chi/v5"
 )
 
-func (h *ProxyHandler) handleKinesis(w http.ResponseWriter, r *http.Request) {
-	xAmzTarget := r.Header.Get("X-Amz-Target")
-	bodyBytes := readBody(r)
-	ctx := h.ctx
+func (h *ProxyHandler) registerKinesisRoutes(r chi.Router) {
+	r.Route("/kinesis", func(r chi.Router) {
+		r.Get("/streams", h.listStreams)
+		r.Post("/streams", h.createStream)
+		r.Get("/streams/{streamName}", h.describeStream)
+		r.Get("/streams/{streamName}/summary", h.describeStreamSummary)
+		r.Delete("/streams/{streamName}", h.deleteStream)
+		r.Put("/streams/{streamName}", h.updateShardCount)
 
-	switch {
-	case strings.Contains(xAmzTarget, "ListStreams"):
-		h.listStreams(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateStream"):
-		h.createStream(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteStream"):
-		h.deleteStream(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "DescribeStream"):
-		h.describeStream(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "DescribeStreamSummary"):
-		h.describeStreamSummary(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "ListShards"):
-		h.listShards(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetShardIterator"):
-		h.getShardIterator(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetRecords"):
-		h.getRecords(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutRecord"):
-		h.putRecord(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutRecords"):
-		h.putRecords(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "MergeShards"):
-		h.mergeShards(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "SplitShard"):
-		h.splitShard(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "UpdateShardCount"):
-		h.updateShardCount(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "EnableEnhancedMonitoring"):
-		h.enableEnhancedMonitoring(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "DisableEnhancedMonitoring"):
-		h.disableEnhancedMonitoring(ctx, w, r, bodyBytes)
-	default:
-		sendError(w, http.StatusNotFound, "Kinesis operation not supported: "+xAmzTarget, nil)
-	}
+		r.Get("/streams/{streamName}/shards", h.listShards)
+		r.Post("/streams/{streamName}/shards/{shardId}/iterator", h.getShardIterator)
+		r.Get("/streams/{streamName}/shards/{shardId}/records", h.getRecords)
+
+		r.Post("/streams/{streamName}/records", h.putRecord)
+		r.Post("/streams/{streamName}/records/batch", h.putRecords)
+
+		r.Post("/streams/{streamName}/shards/{shardId}/merge", h.mergeShards)
+		r.Post("/streams/{streamName}/shards/{shardId}/split", h.splitShard)
+
+		r.Post("/streams/{streamName}/enhanced-monitoring", h.enableEnhancedMonitoring)
+		r.Delete("/streams/{streamName}/enhanced-monitoring", h.disableEnhancedMonitoring)
+	})
 }
 
-func (h *ProxyHandler) listStreams(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) listStreams(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &kinesis.ListStreamsInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Kinesis().ListStreams(ctx, input)
+	result, err := h.Svc.Kinesis().ListStreams(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to list streams", err)
 		return
@@ -63,13 +48,14 @@ func (h *ProxyHandler) listStreams(ctx context.Context, w http.ResponseWriter, r
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createStream(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) createStream(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &kinesis.CreateStreamInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Kinesis().CreateStream(ctx, input)
+	result, err := h.Svc.Kinesis().CreateStream(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to create stream", err)
 		return
@@ -77,13 +63,11 @@ func (h *ProxyHandler) createStream(ctx context.Context, w http.ResponseWriter, 
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteStream(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &kinesis.DeleteStreamInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteStream(w http.ResponseWriter, r *http.Request) {
+	input := &kinesis.DeleteStreamInput{
+		StreamName: aws.String(chi.URLParam(r, "streamName")),
 	}
-	result, err := h.Svc.Kinesis().DeleteStream(ctx, input)
+	result, err := h.Svc.Kinesis().DeleteStream(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to delete stream", err)
 		return
@@ -91,13 +75,11 @@ func (h *ProxyHandler) deleteStream(ctx context.Context, w http.ResponseWriter, 
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) describeStream(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &kinesis.DescribeStreamInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) describeStream(w http.ResponseWriter, r *http.Request) {
+	input := &kinesis.DescribeStreamInput{
+		StreamName: aws.String(chi.URLParam(r, "streamName")),
 	}
-	result, err := h.Svc.Kinesis().DescribeStream(ctx, input)
+	result, err := h.Svc.Kinesis().DescribeStream(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to describe stream", err)
 		return
@@ -105,13 +87,11 @@ func (h *ProxyHandler) describeStream(ctx context.Context, w http.ResponseWriter
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) describeStreamSummary(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &kinesis.DescribeStreamSummaryInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) describeStreamSummary(w http.ResponseWriter, r *http.Request) {
+	input := &kinesis.DescribeStreamSummaryInput{
+		StreamName: aws.String(chi.URLParam(r, "streamName")),
 	}
-	result, err := h.Svc.Kinesis().DescribeStreamSummary(ctx, input)
+	result, err := h.Svc.Kinesis().DescribeStreamSummary(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to describe stream summary", err)
 		return
@@ -119,13 +99,14 @@ func (h *ProxyHandler) describeStreamSummary(ctx context.Context, w http.Respons
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) listShards(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) listShards(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &kinesis.ListShardsInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Kinesis().ListShards(ctx, input)
+	result, err := h.Svc.Kinesis().ListShards(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to list shards", err)
 		return
@@ -133,13 +114,28 @@ func (h *ProxyHandler) listShards(ctx context.Context, w http.ResponseWriter, r 
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getShardIterator(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &kinesis.GetShardIteratorInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
+func (h *ProxyHandler) getShardIterator(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	var body struct {
+		ShardIteratorType string `json:"ShardIteratorType"`
+		StartingSequenceNumber string `json:"StartingSequenceNumber"`
+		Timestamp          int64  `json:"Timestamp"`
+	}
+	if err := parseBody(bodyBytes, &body); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Kinesis().GetShardIterator(ctx, input)
+	input := &kinesis.GetShardIteratorInput{
+		StreamName: aws.String(chi.URLParam(r, "streamName")),
+		ShardId:    aws.String(chi.URLParam(r, "shardId")),
+	}
+	if body.ShardIteratorType != "" {
+		input.ShardIteratorType = kinesistypes.ShardIteratorType(body.ShardIteratorType)
+	}
+	if body.StartingSequenceNumber != "" {
+		input.StartingSequenceNumber = aws.String(body.StartingSequenceNumber)
+	}
+	result, err := h.Svc.Kinesis().GetShardIterator(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to get shard iterator", err)
 		return
@@ -147,13 +143,24 @@ func (h *ProxyHandler) getShardIterator(ctx context.Context, w http.ResponseWrit
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getRecords(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &kinesis.GetRecordsInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
+func (h *ProxyHandler) getRecords(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	var body struct {
+		ShardIterator string `json:"ShardIterator"`
+		Limit         int32  `json:"Limit"`
+	}
+	if err := parseBody(bodyBytes, &body); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Kinesis().GetRecords(ctx, input)
+	input := &kinesis.GetRecordsInput{}
+	if body.ShardIterator != "" {
+		input.ShardIterator = aws.String(body.ShardIterator)
+	}
+	if body.Limit > 0 {
+		input.Limit = aws.Int32(body.Limit)
+	}
+	result, err := h.Svc.Kinesis().GetRecords(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to get records", err)
 		return
@@ -161,13 +168,15 @@ func (h *ProxyHandler) getRecords(ctx context.Context, w http.ResponseWriter, r 
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putRecord(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) putRecord(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &kinesis.PutRecordInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Kinesis().PutRecord(ctx, input)
+	input.StreamName = aws.String(chi.URLParam(r, "streamName"))
+	result, err := h.Svc.Kinesis().PutRecord(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to put record", err)
 		return
@@ -175,13 +184,15 @@ func (h *ProxyHandler) putRecord(ctx context.Context, w http.ResponseWriter, r *
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putRecords(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) putRecords(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &kinesis.PutRecordsInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Kinesis().PutRecords(ctx, input)
+	input.StreamARN = aws.String(chi.URLParam(r, "streamName"))
+	result, err := h.Svc.Kinesis().PutRecords(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to put records", err)
 		return
@@ -189,13 +200,26 @@ func (h *ProxyHandler) putRecords(ctx context.Context, w http.ResponseWriter, r 
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) mergeShards(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &kinesis.MergeShardsInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
+func (h *ProxyHandler) mergeShards(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	var body struct {
+		ShardToMerge    string `json:"ShardToMerge"`
+		AdjacentShardToMerge string `json:"AdjacentShardToMerge"`
+	}
+	if err := parseBody(bodyBytes, &body); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Kinesis().MergeShards(ctx, input)
+	input := &kinesis.MergeShardsInput{
+		StreamName: aws.String(chi.URLParam(r, "streamName")),
+	}
+	if body.ShardToMerge != "" {
+		input.ShardToMerge = aws.String(body.ShardToMerge)
+	}
+	if body.AdjacentShardToMerge != "" {
+		input.AdjacentShardToMerge = aws.String(body.AdjacentShardToMerge)
+	}
+	result, err := h.Svc.Kinesis().MergeShards(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to merge shards", err)
 		return
@@ -203,13 +227,22 @@ func (h *ProxyHandler) mergeShards(ctx context.Context, w http.ResponseWriter, r
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) splitShard(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &kinesis.SplitShardInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
+func (h *ProxyHandler) splitShard(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	var body struct {
+		NewStartingHashKey string `json:"NewStartingHashKey"`
+	}
+	if err := parseBody(bodyBytes, &body); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Kinesis().SplitShard(ctx, input)
+	input := &kinesis.SplitShardInput{
+		StreamName: aws.String(chi.URLParam(r, "streamName")),
+	}
+	if body.NewStartingHashKey != "" {
+		input.NewStartingHashKey = aws.String(body.NewStartingHashKey)
+	}
+	result, err := h.Svc.Kinesis().SplitShard(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to split shard", err)
 		return
@@ -217,13 +250,26 @@ func (h *ProxyHandler) splitShard(ctx context.Context, w http.ResponseWriter, r 
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateShardCount(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &kinesis.UpdateShardCountInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
+func (h *ProxyHandler) updateShardCount(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	var body struct {
+		TargetShardCount int32  `json:"TargetShardCount"`
+		ScalingType      string `json:"ScalingType"`
+	}
+	if err := parseBody(bodyBytes, &body); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Kinesis().UpdateShardCount(ctx, input)
+	input := &kinesis.UpdateShardCountInput{
+		StreamName: aws.String(chi.URLParam(r, "streamName")),
+	}
+	if body.TargetShardCount > 0 {
+		input.TargetShardCount = aws.Int32(body.TargetShardCount)
+	}
+	if body.ScalingType != "" {
+		input.ScalingType = kinesistypes.ScalingType(body.ScalingType)
+	}
+	result, err := h.Svc.Kinesis().UpdateShardCount(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to update shard count", err)
 		return
@@ -231,13 +277,15 @@ func (h *ProxyHandler) updateShardCount(ctx context.Context, w http.ResponseWrit
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) enableEnhancedMonitoring(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) enableEnhancedMonitoring(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &kinesis.EnableEnhancedMonitoringInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Kinesis().EnableEnhancedMonitoring(ctx, input)
+	input.StreamName = aws.String(chi.URLParam(r, "streamName"))
+	result, err := h.Svc.Kinesis().EnableEnhancedMonitoring(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to enable enhanced monitoring", err)
 		return
@@ -245,13 +293,15 @@ func (h *ProxyHandler) enableEnhancedMonitoring(ctx context.Context, w http.Resp
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) disableEnhancedMonitoring(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) disableEnhancedMonitoring(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &kinesis.DisableEnhancedMonitoringInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Kinesis().DisableEnhancedMonitoring(ctx, input)
+	input.StreamName = aws.String(chi.URLParam(r, "streamName"))
+	result, err := h.Svc.Kinesis().DisableEnhancedMonitoring(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to disable enhanced monitoring", err)
 		return

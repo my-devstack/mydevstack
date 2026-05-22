@@ -1,94 +1,6 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import { PROXY_BACKEND } from '@/config'
-import { useSettingsStore } from '@/stores/settings'
 import { useToast } from '@/composables/useToast'
-
-// AWS Signature Version 4 Signer (mock implementation for local development)
-class AWSSigV4Signer {
-  constructor(
-    _accessKey: string,
-    _secretKey: string,
-    _region: string,
-    _service: string
-  ) {
-    // Parameters kept for future real SigV4 signing implementation
-  }
-
-  sign(): Record<string, string> {
-    // For local development with MiniStack/LocalStack, we typically don't need real SigV4 signing
-    // This is a placeholder for production AWS environments
-    return {
-      'X-Mock-Signature': 'local-dev-signature',
-    }
-  }
-}
-
-// Parse XML response
-export function parseXML<T>(xml: string): T | null {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(xml, 'text/xml')
-  
-  const parseError = doc.querySelector('parsererror')
-  if (parseError) {
-    console.error('XML Parse Error:', parseError.textContent)
-    return null
-  }
-
-  return xmlToJson(doc.documentElement) as T
-}
-
-// Convert XML DOM to JSON
-function xmlToJson(node: Element): unknown {
-  const result: Record<string, unknown> = {}
-
-  // Handle attributes
-  if (node.attributes && node.attributes.length > 0) {
-    for (let i = 0; i < node.attributes.length; i++) {
-      const attr = node.attributes[i]
-      result[`@${attr.name}`] = attr.value
-    }
-  }
-
-  // Handle child nodes
-  if (node.childNodes && node.childNodes.length > 0) {
-    const textContent: string[] = []
-    
-    for (let i = 0; i < node.childNodes.length; i++) {
-      const child = node.childNodes[i]
-      
-      if (child.nodeType === Node.TEXT_NODE) {
-        const text = child.textContent?.trim()
-        if (text) {
-          textContent.push(text)
-        }
-      } else if (child.nodeType === Node.ELEMENT_NODE) {
-        const childElement = child as Element
-        const childName = childElement.tagName
-        const childValue = xmlToJson(childElement)
-        
-        if (result[childName]) {
-          if (Array.isArray(result[childName])) {
-            (result[childName] as unknown[]).push(childValue)
-          } else {
-            result[childName] = [result[childName], childValue]
-          }
-        } else {
-          result[childName] = childValue
-        }
-      }
-    }
-
-    if (textContent.length > 0 && Object.keys(result).length === 0) {
-      return textContent.join('')
-    }
-
-    if (textContent.length === 1 && Object.keys(result).filter(k => !k.startsWith('@')).length === 0) {
-      result['#text'] = textContent[0]
-    }
-  }
-
-  return result
-}
 
 // API Error class
 export class APIError extends Error {
@@ -106,7 +18,6 @@ export class APIError extends Error {
 
 // Create axios instance
 function createApiClient(): AxiosInstance {
-  const settingsStore = useSettingsStore()
   const toast = useToast()
 
   // Always use the fixed endpoint from config
@@ -124,19 +35,6 @@ function createApiClient(): AxiosInstance {
   // Request interceptor
   client.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-      const signer = new AWSSigV4Signer(
-        settingsStore.accessKey,
-        settingsStore.secretKey,
-        settingsStore.region,
-        extractService(config.url || '')
-      )
-
-      const signedHeaders = signer.sign()
-
-      Object.entries(signedHeaders).forEach(([key, value]) => {
-        config.headers[key] = value
-      })
-
       return config
     },
     (error) => {
@@ -168,7 +66,7 @@ function createApiClient(): AxiosInstance {
       }
       
       if (response) {
-        const service = extractService(error.config?.url || '')
+        const service = 'unknown'
         
         // Try to extract error info from various AWS error formats
         const errorData = response.data?.Error || 
@@ -200,13 +98,6 @@ function createApiClient(): AxiosInstance {
   )
 
   return client
-}
-
-// Extract service name from URL
-function extractService(url: string): string {
-  // Match pattern like /iam?, /iam/, /iam?Action= or just /iam
-  const match = url.match(/\/(s3|lambda|dynamodb|sqs|sns|iam|kms|secretsmanager|events|cognito|apigateway|kinesis|cloudformation|ssm|elasticache|rds)(?:\?|\/|$)/)
-  return match ? match[1] : 'unknown'
 }
 
 // Singleton API client

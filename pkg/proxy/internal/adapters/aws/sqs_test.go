@@ -12,7 +12,7 @@ import (
 )
 
 func TestNewSQSAdapter(t *testing.T) {
-	adapter := NewSQSAdapter(aws.Config{Region: "us-east-1"}, "http://localhost:4566")
+	adapter := NewSQSAdapter(aws.Config{Region: "us-east-1"}, "http://localhost:4566", "floci")
 	assert.NotNil(t, adapter)
 	assert.IsType(t, &SQSAdapter{}, adapter)
 }

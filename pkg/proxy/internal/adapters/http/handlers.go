@@ -3,14 +3,17 @@ package httphandlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/aws/smithy-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
 )
@@ -79,6 +82,7 @@ func (h *ProxyHandler) checkBackendHealth() bool {
 	return h.backendHealthy
 }
 
+// writeJSON writes a JSON response with the given status code and data.
 func writeJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -87,6 +91,7 @@ func writeJSON(w http.ResponseWriter, status int, data any) {
 	}
 }
 
+// writeData writes raw data response with the given status code and content type.
 func writeData(w http.ResponseWriter, status int, contentType string, data []byte) {
 	w.Header().Set("Content-Type", contentType)
 	w.WriteHeader(status)
@@ -95,57 +100,32 @@ func writeData(w http.ResponseWriter, status int, contentType string, data []byt
 	}
 }
 
-func (h *ProxyHandler) ServiceRouter(w http.ResponseWriter, r *http.Request) {
-	service := chi.URLParam(r, "service")
-
-	switch service {
-	case "secretsmanager":
-		h.handleSecretsManager(w, r)
-	case "s3":
-		h.handleS3(w, r)
-	case "lambda":
-		h.handleLambda(w, r)
-	case "sqs":
-		h.handleSQS(w, r)
-	case "sns":
-		h.handleSNS(w, r)
-	case "kms":
-		h.handleKMS(w, r)
-	case "dynamodb":
-		h.handleDynamoDB(w, r)
-	case "dynamodbstreams":
-		h.handleDynamoDBStreams(w, r)
-	case "apigateway":
-		h.handleAPIGateway(w, r)
-	case "ssm":
-		h.handleSSM(w, r)
-	case "iam":
-		h.handleIAM(w, r)
-	case "kinesis":
-		h.handleKinesis(w, r)
-	case "rds":
-		h.handleRDS(w, r)
-	case "elasticache":
-		h.handleElastiCache(w, r)
-	case "opensearch":
-		h.handleOpenSearch(w, r)
-	case "kafka":
-		h.handleMSK(w, r)
-	case "stepfunctions":
-		h.handleStepFunctions(w, r)
-	case "cloudformation":
-		h.handleCloudFormation(w, r)
-	case "cloudwatch":
-		h.handleCloudWatch(w, r)
-	case "cloudwatchlogs":
-		h.handleCloudWatchLogs(w, r)
-	case "sesv2":
-		h.handleSES(w, r)
-	default:
-		writeJSON(w, http.StatusNotFound, map[string]string{"error": "Service not supported: " + service})
-	}
+// RegisterServiceRoutes registers all service routes to the provided router.
+func (h *ProxyHandler) RegisterServiceRoutes(r chi.Router) {
+	h.registerAPIGatewayRoutes(r)
+	h.registerCloudFormationRoutes(r)
+	h.registerCloudWatchRoutes(r)
+	h.registerCloudWatchLogsRoutes(r)
+	h.registerDynamoDBRoutes(r)
+	h.registerDynamoDBStreamsRoutes(r)
+	h.registerIAMRoutes(r)
+	h.registerKinesisRoutes(r)
+	h.registerKMSRoutes(r)
+	h.registerLambdaRoutes(r)
+	h.registerMSKRoutes(r)
+	h.registerOpenSearchRoutes(r)
+	h.registerS3Routes(r)
+	h.registerSecretsManagerRoutes(r)
+	h.registerSESRoutes(r)
+	h.registerStepFunctionsRoutes(r)
+	h.registerSNSRoutes(r)
+	h.registerSQSRoutes(r)
+	h.registerSSMRoutes(r)
+	h.registerElastiCacheRoutes(r)
+	h.registerRDSRoutes(r)
 }
 
+// HealthCheck is a simple endpoint to check if the proxy and backend are healthy.
 func (h *ProxyHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	status := "unhealthy"
 	statusCode := http.StatusServiceUnavailable
@@ -173,6 +153,7 @@ func (h *ProxyHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, statusCode, response)
 }
 
+// SetRegion allows updating the AWS region at runtime via a POST request with JSON body {"region": "new-region"}.
 func (h *ProxyHandler) SetRegion(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Region string `json:"region"`
@@ -196,6 +177,7 @@ func (h *ProxyHandler) SetRegion(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"region": req.Region, "message": "Region updated successfully"})
 }
 
+// readBody reads the request body and returns it as a byte slice.
 func readBody(r *http.Request) []byte {
 	if r.Body != nil {
 		bodyBytes, err := io.ReadAll(r.Body)
@@ -206,7 +188,9 @@ func readBody(r *http.Request) []byte {
 	return nil
 }
 
-func parseBody(bodyBytes []byte, target interface{}) error {
+// parseBody parses the JSON body of the request into the provided target struct.
+// It also transforms JSON keys to TitleCase to ensure compatibility with AWS SDK expectations.
+func parseBody(bodyBytes []byte, target any) error {
 	if len(bodyBytes) == 0 {
 		return nil
 	}
@@ -248,4 +232,45 @@ func sendError(w http.ResponseWriter, status int, message string, err error) {
 		log.Printf("%s: %v", message, err)
 	}
 	writeJSON(w, status, map[string]string{"error": message})
+}
+
+// urlParam returns the URL parameter value, URL-decoded.
+// Chi v5 does not automatically URL-decode path parameters.
+func urlParam(r *http.Request, key string) string {
+	v := chi.URLParam(r, key)
+	decoded, err := url.QueryUnescape(v)
+	if err != nil {
+		return v
+	}
+	return decoded
+}
+
+// isNotFoundError checks if the error is an AWS "not found" type error
+// that should map to HTTP 404 instead of 500.
+func isNotFoundError(err error) bool {
+	var apiErr smithy.APIError
+	if !errors.As(err, &apiErr) {
+		return false
+	}
+	code := apiErr.ErrorCode()
+	switch code {
+	case "ParameterNotFound",
+		"StateMachineDoesNotExist",
+		"NoSuchEntity",
+		"ResourceNotFoundException",
+		"NotFoundException",
+		"NotFound":
+		return true
+	}
+	return false
+}
+
+// sendErrorWithStatus sends an error response with a status derived from the error type.
+// Returns 404 for "not found" errors, 500 otherwise.
+func sendErrorWithStatus(w http.ResponseWriter, message string, err error) {
+	status := http.StatusInternalServerError
+	if isNotFoundError(err) {
+		status = http.StatusNotFound
+	}
+	sendError(w, status, message, err)
 }

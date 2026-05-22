@@ -88,7 +88,7 @@ func (s *ProxyService) SetServices() error {
 	s.stepfunctions = awsadapter.NewStepFunctionsAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.s3 = awsadapter.NewS3Adapter(awsCfg, s.cfg.AWS.Endpoint, s.region)
 	s.lambda = awsadapter.NewLambdaAdapter(awsCfg, s.cfg.AWS.Endpoint)
-	s.sqs = awsadapter.NewSQSAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.sqs = awsadapter.NewSQSAdapter(awsCfg, s.cfg.AWS.Endpoint, s.cfg.Emulator)
 	s.sns = awsadapter.NewSNSAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.kms = awsadapter.NewKMSAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.dynamodb = awsadapter.NewDynamoDBAdapter(awsCfg, s.cfg.AWS.Endpoint)

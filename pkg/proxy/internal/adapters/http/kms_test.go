@@ -1,7 +1,6 @@
 package httphandlers
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"testing"
@@ -17,7 +16,8 @@ func TestKMSHandler(t *testing.T) {
 
 	type kmsCase struct {
 		name       string
-		target     string
+		method     string
+		path       string
 		body       string
 		setupMock  func(mp *mockports.KMSPort, svc *mockports.ProxyService)
 		wantStatus int
@@ -25,133 +25,119 @@ func TestKMSHandler(t *testing.T) {
 
 	cases := []kmsCase{
 		// ListKeys
-		{name: "ListKeys/success", target: "ListKeys", body: "{}",
+		{name: "ListKeys/success", method: "GET", path: "/kms/keys", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().ListKeys(mock.Anything, mock.Anything).Return(&kms.ListKeysOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "ListKeys/error", target: "ListKeys", body: "{}",
+		{name: "ListKeys/error", method: "GET", path: "/kms/keys", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().ListKeys(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "ListKeys/parse-error", target: "ListKeys", body: "{invalid}",
+		{name: "ListKeys/parse-error", method: "GET", path: "/kms/keys", body: "{invalid}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// CreateKey
-		{name: "CreateKey/success", target: "CreateKey", body: "{}",
+		{name: "CreateKey/success", method: "POST", path: "/kms/keys", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().CreateKey(mock.Anything, mock.Anything).Return(&kms.CreateKeyOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "CreateKey/error", target: "CreateKey", body: "{}",
+		{name: "CreateKey/error", method: "POST", path: "/kms/keys", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().CreateKey(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "CreateKey/parse-error", target: "CreateKey", body: "{invalid}",
+		{name: "CreateKey/parse-error", method: "POST", path: "/kms/keys", body: "{invalid}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// DeleteAlias
-		{name: "DeleteAlias/success", target: "DeleteAlias", body: "{}",
+		{name: "DeleteAlias/success", method: "DELETE", path: "/kms/aliases/testalias", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().DeleteAlias(mock.Anything, mock.Anything).Return(&kms.DeleteAliasOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "DeleteAlias/error", target: "DeleteAlias", body: "{}",
+		{name: "DeleteAlias/error", method: "DELETE", path: "/kms/aliases/testalias", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().DeleteAlias(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "DeleteAlias/parse-error", target: "DeleteAlias", body: "{invalid}",
-			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
 
 		// DescribeKey
-		{name: "DescribeKey/success", target: "DescribeKey", body: "{}",
+		{name: "DescribeKey/success", method: "GET", path: "/kms/keys/testkey", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().DescribeKey(mock.Anything, mock.Anything).Return(&kms.DescribeKeyOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "DescribeKey/error", target: "DescribeKey", body: "{}",
+		{name: "DescribeKey/error", method: "GET", path: "/kms/keys/testkey", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().DescribeKey(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "DescribeKey/parse-error", target: "DescribeKey", body: "{invalid}",
-			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
 
 		// Encrypt
-		{name: "Encrypt/success", target: "Encrypt", body: "{}",
+		{name: "Encrypt/success", method: "POST", path: "/kms/encrypt", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().Encrypt(mock.Anything, mock.Anything).Return(&kms.EncryptOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "Encrypt/error", target: "Encrypt", body: "{}",
+		{name: "Encrypt/error", method: "POST", path: "/kms/encrypt", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().Encrypt(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "Encrypt/parse-error", target: "Encrypt", body: "{invalid}",
+		{name: "Encrypt/parse-error", method: "POST", path: "/kms/encrypt", body: "{invalid}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// Decrypt
-		{name: "Decrypt/success", target: "Decrypt", body: "{}",
+		{name: "Decrypt/success", method: "POST", path: "/kms/decrypt", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().Decrypt(mock.Anything, mock.Anything).Return(&kms.DecryptOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "Decrypt/error", target: "Decrypt", body: "{}",
+		{name: "Decrypt/error", method: "POST", path: "/kms/decrypt", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().Decrypt(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "Decrypt/parse-error", target: "Decrypt", body: "{invalid}",
+		{name: "Decrypt/parse-error", method: "POST", path: "/kms/decrypt", body: "{invalid}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// GenerateDataKey
-		{name: "GenerateDataKey/success", target: "GenerateDataKey", body: "{}",
+		{name: "GenerateDataKey/success", method: "POST", path: "/kms/generate-data-key", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().GenerateDataKey(mock.Anything, mock.Anything).Return(&kms.GenerateDataKeyOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "GenerateDataKey/error", target: "GenerateDataKey", body: "{}",
+		{name: "GenerateDataKey/error", method: "POST", path: "/kms/generate-data-key", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().GenerateDataKey(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "GenerateDataKey/parse-error", target: "GenerateDataKey", body: "{invalid}",
+		{name: "GenerateDataKey/parse-error", method: "POST", path: "/kms/generate-data-key", body: "{invalid}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// GenerateRandom
-		{name: "GenerateRandom/success", target: "GenerateRandom", body: "{}",
+		{name: "GenerateRandom/success", method: "POST", path: "/kms/generate-random", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().GenerateRandom(mock.Anything, mock.Anything).Return(&kms.GenerateRandomOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "GenerateRandom/error", target: "GenerateRandom", body: "{}",
+		{name: "GenerateRandom/error", method: "POST", path: "/kms/generate-random", body: "{}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().KMS().Return(mp)
 				mp.EXPECT().GenerateRandom(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "GenerateRandom/parse-error", target: "GenerateRandom", body: "{invalid}",
+		{name: "GenerateRandom/parse-error", method: "POST", path: "/kms/generate-random", body: "{invalid}",
 			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
-		// Unknown KMS action: genericKMS handles with valid body → 200
-		{name: "genericKMS/success", target: "SomeUnknownKMSAction", body: "{}",
-			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusOK},
-		// Unknown KMS action: genericKMS with invalid body → 400
-		{name: "genericKMS/parse-error", target: "SomeUnknownKMSAction", body: "{invalid}",
-			setupMock: func(mp *mockports.KMSPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
 	}
 
 	for _, tc := range cases {
@@ -166,16 +152,8 @@ func TestKMSHandler(t *testing.T) {
 			handler := createHandler(svc, versionSvc)
 			r := setupTestRouter(handler)
 
-			w := performRequest(r, "POST", "/kms", tc.target, []byte(tc.body))
-			assert.Equal(t, tc.wantStatus, w.Code, "target=%q body=%q response=%s", tc.target, tc.body, w.Body.String())
-
-			// For genericKMS success, verify the response message
-			if tc.name == "genericKMS/success" {
-				var resp map[string]interface{}
-				err := json.Unmarshal(w.Body.Bytes(), &resp)
-				assert.NoError(t, err)
-				assert.Equal(t, "Action SomeUnknownKMSAction handled", resp["message"])
-			}
+			w := performRequest(r, tc.method, tc.path, []byte(tc.body))
+			assert.Equal(t, tc.wantStatus, w.Code, "method=%q path=%q body=%q response=%s", tc.method, tc.path, tc.body, w.Body.String())
 		})
 	}
 }

@@ -1,47 +1,26 @@
 /**
  * SES Service API Client
- * Simple HTTP client for SESv2 via Go proxy
+ * REST HTTP client for SESv2 via Go proxy
  * @module api/services/ses
  */
 
 import { PROXY_BACKEND } from '@/config'
 import { APIError } from '../client'
 
-async function sesRequest(action: string, body: object = {}): Promise<any> {
-  const endpoint = PROXY_BACKEND.replace(/\/$/, '')
-  const url = `${endpoint}/sesv2/`
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Amz-Target': `sesv2.${action}`,
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new APIError(`SES ${action} failed: ${errorText}`, response.status, 'ses')
-    }
-
-    return response.json()
-  } catch (error) {
-    if (error instanceof APIError) throw error
-    console.error(`SES ${action} error:`, error)
-    throw new APIError(`Failed to ${action}`, 500, 'ses')
-  }
-}
+const api = PROXY_BACKEND.replace(/\/$/, '')
 
 export class SESService {
   async listEmailIdentities(): Promise<any[]> {
-    const response = await sesRequest('ListEmailIdentities', {})
-    return response.EmailIdentities || []
+    const res = await fetch(`${api}/sesv2/email-identities`)
+    if (!res.ok) throw new APIError(`List email identities failed`, res.status, 'ses')
+    const data = await res.json()
+    return data.EmailIdentities || []
   }
 
   async getEmailIdentity(name: string): Promise<any> {
-    return sesRequest('GetEmailIdentity', { EmailIdentity: name })
+    const res = await fetch(`${api}/sesv2/email-identities/${encodeURIComponent(name)}`)
+    if (!res.ok) throw new APIError(`Get email identity failed`, res.status, 'ses')
+    return res.json()
   }
 
   async createEmailIdentity(name: string, type: string = 'EMAIL_ADDRESS', tags?: { Key: string; Value: string }[]): Promise<any> {
@@ -49,11 +28,18 @@ export class SESService {
     if (tags?.length) {
       body.Tags = tags
     }
-    return sesRequest('CreateEmailIdentity', body)
+    const res = await fetch(`${api}/sesv2/email-identities`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) throw new APIError(`Create email identity failed`, res.status, 'ses')
+    return res.json()
   }
 
   async deleteEmailIdentity(name: string): Promise<void> {
-    return sesRequest('DeleteEmailIdentity', { EmailIdentity: name })
+    const res = await fetch(`${api}/sesv2/email-identities/${encodeURIComponent(name)}`, { method: 'DELETE' })
+    if (!res.ok) throw new APIError(`Delete email identity failed`, res.status, 'ses')
   }
 
   async sendEmail(
@@ -75,46 +61,68 @@ export class SESService {
     const destination: any = { ToAddresses: to }
     if (options?.Cc?.length) destination.CcAddresses = options.Cc
     if (options?.Bcc?.length) destination.BccAddresses = options.Bcc
-    return sesRequest('SendEmail', {
-      FromEmailAddress: from,
-      Destination: destination,
-      Content: content,
+    const res = await fetch(`${api}/sesv2/email/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        FromEmailAddress: from,
+        Destination: destination,
+        Content: content,
+      }),
     })
+    if (!res.ok) throw new APIError(`Send email failed`, res.status, 'ses')
+    return res.json()
   }
 
   async listTemplates(): Promise<any[]> {
-    const response = await sesRequest('ListEmailTemplates', {})
-    return response.TemplatesMetadata || []
+    const res = await fetch(`${api}/sesv2/email-templates`)
+    if (!res.ok) throw new APIError(`List email templates failed`, res.status, 'ses')
+    const data = await res.json()
+    return data.TemplatesMetadata || []
   }
 
   async getTemplate(name: string): Promise<any> {
-    return sesRequest('GetEmailTemplate', { TemplateName: name })
+    const res = await fetch(`${api}/sesv2/email-templates/${encodeURIComponent(name)}`)
+    if (!res.ok) throw new APIError(`Get email template failed`, res.status, 'ses')
+    return res.json()
   }
 
   async createTemplate(name: string, subject: string, htmlBody?: string, textBody?: string): Promise<any> {
-    return sesRequest('CreateEmailTemplate', {
-      TemplateName: name,
-      TemplateContent: {
-        Subject: subject,
-        Html: htmlBody || '',
-        Text: textBody || '',
-      },
+    const res = await fetch(`${api}/sesv2/email-templates`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        TemplateName: name,
+        TemplateContent: {
+          Subject: subject,
+          Html: htmlBody || '',
+          Text: textBody || '',
+        },
+      }),
     })
+    if (!res.ok) throw new APIError(`Create email template failed`, res.status, 'ses')
+    return res.json()
   }
 
   async updateTemplate(name: string, subject: string, htmlBody?: string, textBody?: string): Promise<any> {
-    return sesRequest('UpdateEmailTemplate', {
-      TemplateName: name,
-      TemplateContent: {
-        Subject: subject,
-        Html: htmlBody || '',
-        Text: textBody || '',
-      },
+    const res = await fetch(`${api}/sesv2/email-templates/${encodeURIComponent(name)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        TemplateContent: {
+          Subject: subject,
+          Html: htmlBody || '',
+          Text: textBody || '',
+        },
+      }),
     })
+    if (!res.ok) throw new APIError(`Update email template failed`, res.status, 'ses')
+    return res.json()
   }
 
   async deleteTemplate(name: string): Promise<void> {
-    return sesRequest('DeleteEmailTemplate', { TemplateName: name })
+    const res = await fetch(`${api}/sesv2/email-templates/${encodeURIComponent(name)}`, { method: 'DELETE' })
+    if (!res.ok) throw new APIError(`Delete email template failed`, res.status, 'ses')
   }
 
   async sendEmailWithTemplate(
@@ -123,16 +131,22 @@ export class SESService {
     templateName: string,
     templateData: Record<string, string>
   ): Promise<any> {
-    return sesRequest('SendEmail', {
-      FromEmailAddress: from,
-      Destination: { ToAddresses: to },
-      Content: {
-        Template: {
-          TemplateName: templateName,
-          TemplateData: JSON.stringify(templateData),
+    const res = await fetch(`${api}/sesv2/email/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        FromEmailAddress: from,
+        Destination: { ToAddresses: to },
+        Content: {
+          Template: {
+            TemplateName: templateName,
+            TemplateData: JSON.stringify(templateData),
+          },
         },
-      },
+      }),
     })
+    if (!res.ok) throw new APIError(`Send email failed`, res.status, 'ses')
+    return res.json()
   }
 }
 

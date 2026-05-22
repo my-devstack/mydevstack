@@ -40,6 +40,8 @@ describe('SNS Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ Topics: [{ TopicArn: 'arn:sns:t1' }] }))
       const result = await listTopics()
       expect(result).toHaveLength(1)
+      expect(mockFetch.mock.calls[0][0]).toContain('/sns/topics')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
 
     it('handles empty response', async () => {
@@ -54,15 +56,19 @@ describe('SNS Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ Subscriptions: [{ SubscriptionArn: 'arn:sns:sub1' }] }))
       const result = await listSubscriptions()
       expect(result).toHaveLength(1)
+      expect(mockFetch.mock.calls[0][0]).toContain('/sns/subscriptions')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
   })
 
   describe('listSubscriptionsByTopic', () => {
-    it('sends TopicArn', async () => {
+    it('sends TopicArn in URL path', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Subscriptions: [] }))
       await listSubscriptionsByTopic('arn:sns:t1')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.TopicArn).toBe('arn:sns:t1')
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/sns/subscriptions/by-topic/')
+      expect(url).toContain(encodeURIComponent('arn:sns:t1'))
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
   })
 
@@ -72,6 +78,10 @@ describe('SNS Service', () => {
       const result = await getTopicAttributes('arn:sns:t1')
       expect(result.TopicArn).toBe('arn:sns:t1')
       expect(result.DisplayName).toBe('test')
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/sns/topics/')
+      expect(url).toContain('/attributes')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
 
     it('handles empty attributes', async () => {
@@ -86,6 +96,8 @@ describe('SNS Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ TopicArn: 'arn:sns:new' }))
       const result = await createTopic('my-topic')
       expect(result.TopicArn).toBe('arn:sns:new')
+      expect(mockFetch.mock.calls[0][0]).toContain('/sns/topics')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
     })
 
     it('handles empty TopicArn', async () => {
@@ -99,15 +111,18 @@ describe('SNS Service', () => {
       await createTopic('my-topic', { DisplayName: 'My Topic' })
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Name).toBe('my-topic')
+      expect(mockFetch.mock.calls[0][0]).toContain('/sns/topics')
     })
   })
 
   describe('deleteTopic', () => {
-    it('sends TopicArn', async () => {
+    it('sends TopicArn in URL path', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await deleteTopic('arn:sns:t1')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.TopicArn).toBe('arn:sns:t1')
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/sns/topics/')
+      expect(url).toContain(encodeURIComponent('arn:sns:t1'))
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
     })
   })
 
@@ -116,17 +131,21 @@ describe('SNS Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ SubscriptionArn: 'arn:sns:sub1' }))
       const result = await subscribe('arn:sns:t1', 'email', 'test@example.com')
       expect(result.SubscriptionArn).toBe('arn:sns:sub1')
+      expect(mockFetch.mock.calls[0][0]).toContain('/sns/subscriptions')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Protocol).toBe('email')
     })
   })
 
   describe('unsubscribe', () => {
-    it('sends SubscriptionArn', async () => {
+    it('sends SubscriptionArn in URL path', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await unsubscribe('arn:sns:sub1')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.SubscriptionArn).toBe('arn:sns:sub1')
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/sns/subscriptions/')
+      expect(url).toContain(encodeURIComponent('arn:sns:sub1'))
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
     })
   })
 
@@ -135,6 +154,8 @@ describe('SNS Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ MessageId: 'msg1' }))
       const result = await publish('arn:sns:t1', 'Hello')
       expect(result.MessageId).toBe('msg1')
+      expect(mockFetch.mock.calls[0][0]).toContain('/sns/publish')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Message).toBe('Hello')
     })
@@ -144,6 +165,7 @@ describe('SNS Service', () => {
       await publish('arn:sns:t1', 'Hello', { Subject: 'Greeting' })
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Subject).toBe('Greeting')
+      expect(mockFetch.mock.calls[0][0]).toContain('/sns/publish')
     })
   })
 
@@ -152,6 +174,8 @@ describe('SNS Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ SubscriptionArn: 'arn:sns:sub1' }))
       const result = await confirmSubscription('arn:sns:t1', 'token123')
       expect(result.SubscriptionArn).toBe('arn:sns:sub1')
+      expect(mockFetch.mock.calls[0][0]).toContain('/sns/subscriptions/confirm')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
     })
   })
 
@@ -160,13 +184,22 @@ describe('SNS Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ Attributes: { SubscriptionArn: 'arn:sns:s1' } }))
       const result = await getSubscriptionAttributes('arn:sns:s1')
       expect(result.SubscriptionArn).toBe('arn:sns:s1')
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/sns/subscriptions/')
+      expect(url).toContain('/attributes')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
   })
 
   describe('setSubscriptionAttributes', () => {
-    it('sends attributes', async () => {
+    it('sends attributes and uses URL path', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await setSubscriptionAttributes('arn:sns:s1', 'RawMessageDelivery', 'true')
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/sns/subscriptions/')
+      expect(url).toContain(encodeURIComponent('arn:sns:s1'))
+      expect(url).toContain('/attributes')
+      expect(mockFetch.mock.calls[0][1].method).toBe('PUT')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.AttributeName).toBe('RawMessageDelivery')
       expect(body.AttributeValue).toBe('true')
@@ -178,26 +211,39 @@ describe('SNS Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ Tags: [{ Key: 'Env', Value: 'dev' }] }))
       const result = await listTagsForResource('arn:sns:t1')
       expect(result.Tags).toHaveLength(1)
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/sns/topics/')
+      expect(url).toContain('/tags')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
   })
 
   describe('Error handling', () => {
-    it('throws APIError on server error', async () => {
-      mockFetch.mockResolvedValue(mockResponse('Error', 500))
-      await expect(listTopics()).rejects.toThrow(/SNS ListTopics failed/)
-    })
+    const errorMethods = [
+      ['listTopics', () => listTopics()],
+      ['listSubscriptions', () => listSubscriptions()],
+      ['listSubscriptionsByTopic', () => listSubscriptionsByTopic('arn:aws:sns:t1')],
+      ['getTopicAttributes', () => getTopicAttributes('arn:aws:sns:t1')],
+      ['createTopic', () => createTopic('test')],
+      ['deleteTopic', () => deleteTopic('arn:aws:sns:t1')],
+      ['subscribe', () => subscribe('arn:aws:sns:t1', 'email', 'a@b.com')],
+      ['unsubscribe', () => unsubscribe('arn:aws:sns:sub1')],
+      ['publish', () => publish('arn:aws:sns:t1', 'hello')],
+      ['confirmSubscription', () => confirmSubscription('arn:aws:sns:t1', 'token')],
+      ['getSubscriptionAttributes', () => getSubscriptionAttributes('arn:aws:sns:sub1')],
+      ['setSubscriptionAttributes', () => setSubscriptionAttributes('arn:aws:sns:sub1', 'attr', 'val')],
+      ['listTagsForResource', () => listTagsForResource('arn:aws:sns:t1')],
+    ]
+    for (const [name, fn] of errorMethods) {
+      it(`throws APIError on server error - ${name}`, async () => {
+        mockFetch.mockResolvedValue(mockResponse('Error', 500))
+        await expect(fn()).rejects.toThrow(/SNS .* failed/)
+      })
+    }
 
     it('throws APIError with 500 on network error', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'))
-      await expect(listTopics()).rejects.toThrow(/Failed to/)
-    })
-  })
-
-  describe('X-Amz-Target header', () => {
-    it('uses sns prefix', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Topics: [] }))
-      await listTopics()
-      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('sns.ListTopics')
+      await expect(listTopics()).rejects.toThrow(/Failed to listTopics/)
     })
   })
 })

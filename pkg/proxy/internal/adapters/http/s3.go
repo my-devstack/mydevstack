@@ -2,77 +2,53 @@ package httphandlers
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/go-chi/chi/v5"
 )
 
-func (h *ProxyHandler) handleS3(w http.ResponseWriter, r *http.Request) {
-	xAmzTarget := r.Header.Get("X-Amz-Target")
+func (h *ProxyHandler) registerS3Routes(r chi.Router) {
+	r.Route("/s3", func(r chi.Router) {
+		r.Get("/buckets", h.listBuckets)
+		r.Post("/buckets", h.createBucket)
+		r.Delete("/buckets/{bucket}", h.deleteBucket)
+		r.Head("/buckets/{bucket}", h.headBucket)
 
-	bodyBytes := readBody(r)
-	ctx := h.ctx
+		r.Get("/buckets/{bucket}/objects", h.listObjectsV2)
+		r.Get("/buckets/{bucket}/objects/{key}", h.getObject)
+		r.Post("/buckets/{bucket}/objects", h.putObject)
+		r.Delete("/buckets/{bucket}/objects/{key}", h.deleteObject)
+		r.Head("/buckets/{bucket}/objects/{key}", h.headObject)
 
-	switch {
-	case strings.Contains(xAmzTarget, "ListBuckets"):
-		h.listBuckets(ctx, w, r)
-	case strings.Contains(xAmzTarget, "ListObjectsV2"):
-		h.listObjectsV2(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "PresignGetObject"):
-		h.presignGetObject(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "PresignPutObject"):
-		h.presignPutObject(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetObject"):
-		h.getObject(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutObject"):
-		h.putObject(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteObject"):
-		h.deleteObject(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteBucket"):
-		h.deleteBucket(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "HeadBucket"):
-		h.headBucket(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "HeadObject"):
-		h.headObject(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateBucket"):
-		h.createBucket(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetBucketVersioning"):
-		h.getBucketVersioning(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetBucketEncryption"):
-		h.getBucketEncryption(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetBucketTagging"):
-		h.getBucketTagging(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutBucketPolicy"):
-		h.putBucketPolicy(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutBucketVersioning"):
-		h.putBucketVersioning(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutBucketEncryption"):
-		h.putBucketEncryption(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutBucketTagging"):
-		h.putBucketTagging(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutPublicAccessBlock"):
-		h.putPublicAccessBlock(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetPublicAccessBlock"):
-		h.getPublicAccessBlock(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutBucketNotificationConfiguration"):
-		h.putBucketNotificationConfiguration(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetBucketNotificationConfiguration"):
-		h.getBucketNotificationConfiguration(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetBucketPolicy"):
-		h.getBucketPolicy(ctx, w, r, bodyBytes)
-	default:
-		writeJSON(w, http.StatusBadRequest, map[string]interface{}{"error": "Unknown S3 action: " + xAmzTarget})
-	}
+		r.Post("/buckets/{bucket}/presign-get", h.presignGetObject)
+		r.Post("/buckets/{bucket}/presign-put", h.presignPutObject)
+
+		r.Get("/buckets/{bucket}/versioning", h.getBucketVersioning)
+		r.Put("/buckets/{bucket}/versioning", h.putBucketVersioning)
+		r.Get("/buckets/{bucket}/encryption", h.getBucketEncryption)
+		r.Put("/buckets/{bucket}/encryption", h.putBucketEncryption)
+		r.Get("/buckets/{bucket}/tagging", h.getBucketTagging)
+		r.Put("/buckets/{bucket}/tagging", h.putBucketTagging)
+		r.Get("/buckets/{bucket}/policy", h.getBucketPolicy)
+		r.Put("/buckets/{bucket}/policy", h.putBucketPolicy)
+		r.Get("/buckets/{bucket}/public-access-block", h.getPublicAccessBlock)
+		r.Put("/buckets/{bucket}/public-access-block", h.putPublicAccessBlock)
+		r.Get("/buckets/{bucket}/notification", h.getBucketNotificationConfiguration)
+		r.Put("/buckets/{bucket}/notification", h.putBucketNotificationConfiguration)
+	})
 }
 
-func (h *ProxyHandler) listBuckets(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	result, err := h.Svc.S3().ListBuckets(ctx)
+func (h *ProxyHandler) listBuckets(w http.ResponseWriter, r *http.Request) {
+	result, err := h.Svc.S3().ListBuckets(h.ctx)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to list buckets", err)
 		return
@@ -80,13 +56,76 @@ func (h *ProxyHandler) listBuckets(ctx context.Context, w http.ResponseWriter, r
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) listObjectsV2(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &s3.ListObjectsV2Input{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) listObjectsV2(w http.ResponseWriter, r *http.Request) {
+	// Read params from body (POST) or query string (GET)
+	prefix := r.URL.Query().Get("prefix")
+	delimiter := r.URL.Query().Get("delimiter")
+	maxKeysStr := r.URL.Query().Get("maxKeys")
+	continuationToken := r.URL.Query().Get("continuationToken")
+	startAfter := r.URL.Query().Get("startAfter")
+	encodingType := r.URL.Query().Get("encodingType")
+
+	// Also try parsing JSON body for backward compatibility (POST calls)
+	if bodyBytes := readBody(r); len(bodyBytes) > 0 {
+		var body struct {
+			Prefix            string `json:"Prefix"`
+			Delimiter         string `json:"Delimiter"`
+			MaxKeys           int32  `json:"MaxKeys"`
+			ContinuationToken string `json:"ContinuationToken"`
+			StartAfter        string `json:"StartAfter"`
+			FetchOwner        bool   `json:"FetchOwner"`
+			EncodingType      string `json:"EncodingType"`
+		}
+		if err := json.Unmarshal(bodyBytes, &body); err != nil {
+			sendError(w, http.StatusBadRequest, "Invalid request body", err)
+			return
+		}
+		if body.Prefix != "" {
+			prefix = body.Prefix
+		}
+		if body.Delimiter != "" {
+			delimiter = body.Delimiter
+		}
+		if body.MaxKeys > 0 {
+			maxKeysStr = fmt.Sprint(body.MaxKeys)
+		}
+		if body.ContinuationToken != "" {
+			continuationToken = body.ContinuationToken
+		}
+		if body.StartAfter != "" {
+			startAfter = body.StartAfter
+		}
+		if body.EncodingType != "" {
+			encodingType = body.EncodingType
+		}
 	}
-	result, err := h.Svc.S3().ListObjectsV2(ctx, input)
+
+	input := &s3.ListObjectsV2Input{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
+	}
+	if prefix != "" {
+		input.Prefix = aws.String(prefix)
+	}
+	if delimiter != "" {
+		input.Delimiter = aws.String(delimiter)
+	}
+	if maxKeysStr != "" {
+		var mk int
+		if _, err := fmt.Sscanf(maxKeysStr, "%d", &mk); err == nil && mk > 0 {
+			input.MaxKeys = aws.Int32(int32(mk))
+		}
+	}
+	if continuationToken != "" {
+		input.ContinuationToken = aws.String(continuationToken)
+	}
+	if startAfter != "" {
+		input.StartAfter = aws.String(startAfter)
+	}
+	if encodingType != "" {
+		input.EncodingType = s3types.EncodingType(encodingType)
+	}
+
+	result, err := h.Svc.S3().ListObjectsV2(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to list objects", err)
 		return
@@ -129,13 +168,12 @@ func (h *ProxyHandler) listObjectsV2(ctx context.Context, w http.ResponseWriter,
 	writeJSON(w, http.StatusOK, output)
 }
 
-func (h *ProxyHandler) getObject(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &s3.GetObjectInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getObject(w http.ResponseWriter, r *http.Request) {
+	input := &s3.GetObjectInput{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
+		Key:    aws.String(urlParam(r, "key")),
 	}
-	result, err := h.Svc.S3().GetObject(ctx, input)
+	result, err := h.Svc.S3().GetObject(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to get object", err)
 		return
@@ -164,7 +202,8 @@ type PutObjectInputJSON struct {
 	ContentType *string `json:"ContentType"`
 }
 
-func (h *ProxyHandler) putObject(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) putObject(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	var inputJSON PutObjectInputJSON
 	if err := json.Unmarshal(bodyBytes, &inputJSON); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
@@ -172,8 +211,8 @@ func (h *ProxyHandler) putObject(ctx context.Context, w http.ResponseWriter, r *
 	}
 
 	input := &s3.PutObjectInput{
-		Bucket:      inputJSON.Bucket,
-		Key:         inputJSON.Key,
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
+		Key:    inputJSON.Key,
 		ContentType: inputJSON.ContentType,
 	}
 
@@ -195,7 +234,7 @@ func (h *ProxyHandler) putObject(ctx context.Context, w http.ResponseWriter, r *
 		}
 	}
 
-	result, err := h.Svc.S3().PutObject(ctx, input)
+	result, err := h.Svc.S3().PutObject(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to put object", err)
 		return
@@ -203,13 +242,12 @@ func (h *ProxyHandler) putObject(ctx context.Context, w http.ResponseWriter, r *
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteObject(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &s3.DeleteObjectInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteObject(w http.ResponseWriter, r *http.Request) {
+	input := &s3.DeleteObjectInput{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
+		Key:    aws.String(urlParam(r, "key")),
 	}
-	result, err := h.Svc.S3().DeleteObject(ctx, input)
+	result, err := h.Svc.S3().DeleteObject(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to delete object", err)
 		return
@@ -217,13 +255,11 @@ func (h *ProxyHandler) deleteObject(ctx context.Context, w http.ResponseWriter, 
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteBucket(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &s3.DeleteBucketInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteBucket(w http.ResponseWriter, r *http.Request) {
+	input := &s3.DeleteBucketInput{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
 	}
-	result, err := h.Svc.S3().DeleteBucket(ctx, input)
+	result, err := h.Svc.S3().DeleteBucket(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to delete bucket", err)
 		return
@@ -231,13 +267,11 @@ func (h *ProxyHandler) deleteBucket(ctx context.Context, w http.ResponseWriter, 
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) headBucket(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &s3.HeadBucketInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) headBucket(w http.ResponseWriter, r *http.Request) {
+	input := &s3.HeadBucketInput{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
 	}
-	_, err := h.Svc.S3().HeadBucket(ctx, input)
+	_, err := h.Svc.S3().HeadBucket(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to head bucket", err)
 		return
@@ -245,13 +279,12 @@ func (h *ProxyHandler) headBucket(ctx context.Context, w http.ResponseWriter, r 
 	writeJSON(w, http.StatusOK, map[string]interface{}{"status": "OK"})
 }
 
-func (h *ProxyHandler) headObject(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &s3.HeadObjectInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) headObject(w http.ResponseWriter, r *http.Request) {
+	input := &s3.HeadObjectInput{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
+		Key:    aws.String(urlParam(r, "key")),
 	}
-	result, err := h.Svc.S3().HeadObject(ctx, input)
+	result, err := h.Svc.S3().HeadObject(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to head object", err)
 		return
@@ -259,13 +292,14 @@ func (h *ProxyHandler) headObject(ctx context.Context, w http.ResponseWriter, r 
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createBucket(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) createBucket(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &s3.CreateBucketInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.S3().CreateBucket(ctx, input)
+	result, err := h.Svc.S3().CreateBucket(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to create bucket", err)
 		return
@@ -273,13 +307,11 @@ func (h *ProxyHandler) createBucket(ctx context.Context, w http.ResponseWriter, 
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getBucketVersioning(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &s3.GetBucketVersioningInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getBucketVersioning(w http.ResponseWriter, r *http.Request) {
+	input := &s3.GetBucketVersioningInput{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
 	}
-	result, err := h.Svc.S3().GetBucketVersioning(ctx, input)
+	result, err := h.Svc.S3().GetBucketVersioning(h.ctx, input)
 	if err != nil {
 		// Return empty versioning status instead of error (bucket may not have versioning)
 		writeJSON(w, http.StatusOK, map[string]interface{}{"Status": ""})
@@ -288,13 +320,11 @@ func (h *ProxyHandler) getBucketVersioning(ctx context.Context, w http.ResponseW
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getBucketEncryption(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &s3.GetBucketEncryptionInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getBucketEncryption(w http.ResponseWriter, r *http.Request) {
+	input := &s3.GetBucketEncryptionInput{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
 	}
-	result, err := h.Svc.S3().GetBucketEncryption(ctx, input)
+	result, err := h.Svc.S3().GetBucketEncryption(h.ctx, input)
 	if err != nil {
 		// Return empty encryption config instead of error (bucket may not have encryption)
 		writeJSON(w, http.StatusOK, &s3.GetBucketEncryptionOutput{
@@ -305,13 +335,11 @@ func (h *ProxyHandler) getBucketEncryption(ctx context.Context, w http.ResponseW
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getBucketTagging(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &s3.GetBucketTaggingInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getBucketTagging(w http.ResponseWriter, r *http.Request) {
+	input := &s3.GetBucketTaggingInput{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
 	}
-	result, err := h.Svc.S3().GetBucketTagging(ctx, input)
+	result, err := h.Svc.S3().GetBucketTagging(h.ctx, input)
 	if err != nil {
 		// Return empty tags instead of error (bucket may not have tags)
 		writeJSON(w, http.StatusOK, &s3.GetBucketTaggingOutput{
@@ -328,21 +356,28 @@ type PresignInput struct {
 	Expires *int64  `json:"Expires"`
 }
 
-func (h *ProxyHandler) presignGetObject(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) presignGetObject(w http.ResponseWriter, r *http.Request) {
 	input := &PresignInput{}
-	if err := json.Unmarshal(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+	input.Bucket = aws.String(chi.URLParam(r, "bucket"))
+
+	bodyBytes := readBody(r)
+	if len(bodyBytes) > 0 {
+		var body PresignInput
+		if err := json.Unmarshal(bodyBytes, &body); err == nil {
+			input.Key = body.Key
+			input.Expires = body.Expires
+		}
 	}
-	if input.Bucket == nil || input.Key == nil {
-		sendError(w, http.StatusBadRequest, "Bucket and Key are required", nil)
+
+	if input.Key == nil || *input.Key == "" {
+		sendError(w, http.StatusBadRequest, "Key is required", nil)
 		return
 	}
 	expires := time.Duration(3600) * time.Second
 	if input.Expires != nil && *input.Expires > 0 {
 		expires = time.Duration(*input.Expires) * time.Second
 	}
-	url, err := h.Svc.S3().PresignGetObject(ctx, *input.Bucket, *input.Key, expires)
+	url, err := h.Svc.S3().PresignGetObject(h.ctx, *input.Bucket, *input.Key, expires)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to generate presigned URL", err)
 		return
@@ -350,21 +385,28 @@ func (h *ProxyHandler) presignGetObject(ctx context.Context, w http.ResponseWrit
 	writeJSON(w, http.StatusOK, map[string]interface{}{"url": url})
 }
 
-func (h *ProxyHandler) presignPutObject(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) presignPutObject(w http.ResponseWriter, r *http.Request) {
 	input := &PresignInput{}
-	if err := json.Unmarshal(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+	input.Bucket = aws.String(chi.URLParam(r, "bucket"))
+
+	bodyBytes := readBody(r)
+	if len(bodyBytes) > 0 {
+		var body PresignInput
+		if err := json.Unmarshal(bodyBytes, &body); err == nil {
+			input.Key = body.Key
+			input.Expires = body.Expires
+		}
 	}
-	if input.Bucket == nil || input.Key == nil {
-		sendError(w, http.StatusBadRequest, "Bucket and Key are required", nil)
+
+	if input.Key == nil || *input.Key == "" {
+		sendError(w, http.StatusBadRequest, "Key is required", nil)
 		return
 	}
 	expires := time.Duration(3600) * time.Second
 	if input.Expires != nil && *input.Expires > 0 {
 		expires = time.Duration(*input.Expires) * time.Second
 	}
-	url, err := h.Svc.S3().PresignPutObject(ctx, *input.Bucket, *input.Key, expires)
+	url, err := h.Svc.S3().PresignPutObject(h.ctx, *input.Bucket, *input.Key, expires)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to generate presigned URL", err)
 		return
@@ -372,13 +414,15 @@ func (h *ProxyHandler) presignPutObject(ctx context.Context, w http.ResponseWrit
 	writeJSON(w, http.StatusOK, map[string]interface{}{"url": url})
 }
 
-func (h *ProxyHandler) putBucketPolicy(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) putBucketPolicy(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &s3.PutBucketPolicyInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.S3().PutBucketPolicy(ctx, input)
+	input.Bucket = aws.String(chi.URLParam(r, "bucket"))
+	result, err := h.Svc.S3().PutBucketPolicy(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to put bucket policy", err)
 		return
@@ -386,13 +430,15 @@ func (h *ProxyHandler) putBucketPolicy(ctx context.Context, w http.ResponseWrite
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putBucketVersioning(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) putBucketVersioning(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &s3.PutBucketVersioningInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.S3().PutBucketVersioning(ctx, input)
+	input.Bucket = aws.String(chi.URLParam(r, "bucket"))
+	result, err := h.Svc.S3().PutBucketVersioning(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to put bucket versioning", err)
 		return
@@ -400,13 +446,15 @@ func (h *ProxyHandler) putBucketVersioning(ctx context.Context, w http.ResponseW
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putBucketEncryption(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) putBucketEncryption(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &s3.PutBucketEncryptionInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.S3().PutBucketEncryption(ctx, input)
+	input.Bucket = aws.String(chi.URLParam(r, "bucket"))
+	result, err := h.Svc.S3().PutBucketEncryption(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to put bucket encryption", err)
 		return
@@ -414,13 +462,15 @@ func (h *ProxyHandler) putBucketEncryption(ctx context.Context, w http.ResponseW
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putBucketTagging(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) putBucketTagging(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &s3.PutBucketTaggingInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.S3().PutBucketTagging(ctx, input)
+	input.Bucket = aws.String(chi.URLParam(r, "bucket"))
+	result, err := h.Svc.S3().PutBucketTagging(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to put bucket tagging", err)
 		return
@@ -428,13 +478,15 @@ func (h *ProxyHandler) putBucketTagging(ctx context.Context, w http.ResponseWrit
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putPublicAccessBlock(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) putPublicAccessBlock(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &s3.PutPublicAccessBlockInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.S3().PutPublicAccessBlock(ctx, input)
+	input.Bucket = aws.String(chi.URLParam(r, "bucket"))
+	result, err := h.Svc.S3().PutPublicAccessBlock(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to put public access block", err)
 		return
@@ -442,13 +494,11 @@ func (h *ProxyHandler) putPublicAccessBlock(ctx context.Context, w http.Response
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getPublicAccessBlock(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &s3.GetPublicAccessBlockInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getPublicAccessBlock(w http.ResponseWriter, r *http.Request) {
+	input := &s3.GetPublicAccessBlockInput{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
 	}
-	result, err := h.Svc.S3().GetPublicAccessBlock(ctx, input)
+	result, err := h.Svc.S3().GetPublicAccessBlock(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to get public access block", err)
 		return
@@ -456,13 +506,15 @@ func (h *ProxyHandler) getPublicAccessBlock(ctx context.Context, w http.Response
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putBucketNotificationConfiguration(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) putBucketNotificationConfiguration(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &s3.PutBucketNotificationConfigurationInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.S3().PutBucketNotificationConfiguration(ctx, input)
+	input.Bucket = aws.String(chi.URLParam(r, "bucket"))
+	result, err := h.Svc.S3().PutBucketNotificationConfiguration(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to put bucket notification configuration", err)
 		return
@@ -470,13 +522,11 @@ func (h *ProxyHandler) putBucketNotificationConfiguration(ctx context.Context, w
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getBucketNotificationConfiguration(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &s3.GetBucketNotificationConfigurationInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getBucketNotificationConfiguration(w http.ResponseWriter, r *http.Request) {
+	input := &s3.GetBucketNotificationConfigurationInput{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
 	}
-	result, err := h.Svc.S3().GetBucketNotificationConfiguration(ctx, input)
+	result, err := h.Svc.S3().GetBucketNotificationConfiguration(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to get bucket notification configuration", err)
 		return
@@ -484,13 +534,11 @@ func (h *ProxyHandler) getBucketNotificationConfiguration(ctx context.Context, w
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getBucketPolicy(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &s3.GetBucketPolicyInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getBucketPolicy(w http.ResponseWriter, r *http.Request) {
+	input := &s3.GetBucketPolicyInput{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
 	}
-	result, err := h.Svc.S3().GetBucketPolicy(ctx, input)
+	result, err := h.Svc.S3().GetBucketPolicy(h.ctx, input)
 	if err != nil {
 		// Return empty if no policy exists
 		writeJSON(w, http.StatusOK, &s3.GetBucketPolicyOutput{})

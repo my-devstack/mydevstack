@@ -127,7 +127,6 @@ func (c *Container) setupRoutes() http.Handler {
 	r.Get("/health", handler.HealthCheck)
 	r.Post("/proxy/region", handler.SetRegion)
 
-	r.HandleFunc("/{service}", handler.ServiceRouter)
-	r.HandleFunc("/{service}/{path:.*}", handler.ServiceRouter)
+	handler.RegisterServiceRoutes(r)
 	return r
 }

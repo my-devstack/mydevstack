@@ -1,6 +1,6 @@
 /**
  * ElastiCache Service API Client
- * HTTP client for ElastiCache via Go proxy
+ * REST client for ElastiCache via Go proxy
  * Uses Replication Groups (Valkey/Redis) - compatible with Floci and MiniStack
  * @module api/services/elasticache
  */
@@ -33,45 +33,15 @@ export interface CreateReplicationGroupInput {
   Port?: number
 }
 
-async function elasticacheRequest(action: string, body: object = {}): Promise<any> {
-  const endpoint = PROXY_BACKEND.replace(/\/$/, '')
-  const url = `${endpoint}/elasticache/`
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Amz-Target': `elasticache.${action}`,
-      },
-      body: JSON.stringify(body),
-    })
-
-    const responseText = await response.text()
-    
-    // Check for error responses
-    if (!response.ok || responseText.includes('ErrorResponse') || responseText.includes('<Error>')) {
-      throw new APIError(`ElastiCache ${action} failed: ${responseText}`, response.status, 'elasticache')
-    }
-
-    // Parse response
-    return parseElastiCacheXML(responseText, action)
-  } catch (error) {
-    if (error instanceof APIError) throw error
-    console.error(`ElastiCache ${action} error:`, error)
-    throw new APIError(`Failed to ${action}`, 500, 'elasticache')
-  }
-}
-
 // Parse XML response - works with Floci and MiniStack
 function parseElastiCacheXML(xml: string, operation: string): any {
   if (operation === 'DescribeReplicationGroups') {
     const groups: ReplicationGroup[] = []
-    
+
     // Match all ReplicationGroupId values - works with both <member> and direct tags
     const regex = /<ReplicationGroupId>([^<]+)<\/ReplicationGroupId>/g
     const matches = xml.matchAll(regex)
-    
+
     for (const match of matches) {
       const groupId = match[1]
       if (groupId) {
@@ -96,11 +66,11 @@ function parseElastiCacheXML(xml: string, operation: string): any {
     }
     return { ReplicationGroups: groups }
   }
-  
+
   if (operation === 'CreateReplicationGroup') {
     return { ReplicationGroup: { ReplicationGroupId: extractTag(xml, 'ReplicationGroupId') } }
   }
-  
+
   return {}
 }
 
@@ -110,13 +80,46 @@ function extractTag(xml: string, tag: string): string {
 }
 
 export class ElastiCacheService {
+  private baseUrl: string
+
+  constructor() {
+    this.baseUrl = PROXY_BACKEND.replace(/\/$/, '')
+  }
+
+  private async request(method: string, path: string, operation: string, body?: object): Promise<any> {
+    const url = `${this.baseUrl}${path}`
+    const fetchOptions: RequestInit = { method }
+
+    if (body !== undefined) {
+      fetchOptions.headers = { 'Content-Type': 'application/json' }
+      fetchOptions.body = JSON.stringify(body)
+    }
+
+    try {
+      const response = await fetch(url, fetchOptions)
+      const responseText = await response.text()
+
+      // Check for error responses
+      if (!response.ok || responseText.includes('ErrorResponse') || responseText.includes('<Error>')) {
+        throw new APIError(`ElastiCache ${operation} failed: ${responseText}`, response.status, 'elasticache')
+      }
+
+      // Parse response
+      return parseElastiCacheXML(responseText, operation)
+    } catch (error) {
+      if (error instanceof APIError) throw error
+      console.error(`ElastiCache ${operation} error:`, error)
+      throw new APIError(`Failed to ${operation}`, 500, 'elasticache')
+    }
+  }
+
   async describeReplicationGroups(): Promise<ReplicationGroup[]> {
-    const response = await elasticacheRequest('DescribeReplicationGroups', {})
+    const response = await this.request('GET', '/elasticache/replication-groups', 'DescribeReplicationGroups')
     return response.ReplicationGroups || []
   }
 
   async createReplicationGroup(input: CreateReplicationGroupInput): Promise<ReplicationGroup> {
-    const response = await elasticacheRequest('CreateReplicationGroup', {
+    const response = await this.request('POST', '/elasticache/replication-groups', 'CreateReplicationGroup', {
       ReplicationGroupId: input.ReplicationGroupId,
       ReplicationGroupDescription: input.ReplicationGroupDescription,
       Engine: input.Engine || 'valkey',
@@ -128,7 +131,12 @@ export class ElastiCacheService {
   }
 
   async deleteReplicationGroup(replicationGroupId: string): Promise<void> {
-    return elasticacheRequest('DeleteReplicationGroup', { ReplicationGroupId: replicationGroupId })
+    await this.request(
+      'DELETE',
+      `/elasticache/replication-groups/${encodeURIComponent(replicationGroupId)}`,
+      'DeleteReplicationGroup',
+      { ReplicationGroupId: replicationGroupId },
+    )
   }
 }
 

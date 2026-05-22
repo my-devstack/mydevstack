@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -24,11 +23,6 @@ func setupCloudFormationTest(t *testing.T) (*mockports.ProxyService, *mockports.
 	return svc, cf, handler
 }
 
-func performCFRequest(handler *ProxyHandler, target string, body []byte) *httptest.ResponseRecorder {
-	r := setupTestRouter(handler)
-	return performRequest(r, "POST", "/cloudformation", target, body)
-}
-
 func TestCloudFormation_ListStacks(t *testing.T) {
 	t.Parallel()
 	_, cf, handler := setupCloudFormationTest(t)
@@ -40,7 +34,8 @@ func TestCloudFormation_ListStacks(t *testing.T) {
 	}
 	cf.EXPECT().ListStacks(mock.Anything, mock.Anything).Return(expected, nil)
 
-	w := performCFRequest(handler, "cloudformation.ListStacks", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/cloudformation/stacks", []byte(`{}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp cloudformation.ListStacksOutput
@@ -59,7 +54,8 @@ func TestCloudFormation_CreateStack(t *testing.T) {
 	}
 	cf.EXPECT().CreateStack(mock.Anything, mock.Anything).Return(expected, nil)
 
-	w := performCFRequest(handler, "cloudformation.CreateStack", []byte(`{"StackName":"test-stack"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/cloudformation/stacks", []byte(`{"StackName":"test-stack"}`))
 	assert.Equal(t, http.StatusCreated, w.Code)
 
 	var resp cloudformation.CreateStackOutput
@@ -74,7 +70,8 @@ func TestCloudFormation_DeleteStack(t *testing.T) {
 
 	cf.EXPECT().DeleteStack(mock.Anything, mock.Anything).Return(&cloudformation.DeleteStackOutput{}, nil)
 
-	w := performCFRequest(handler, "cloudformation.DeleteStack", []byte(`{"StackName":"test-stack"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "DELETE", "/cloudformation/stacks/teststack", []byte(`{"StackName":"test-stack"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -89,7 +86,8 @@ func TestCloudFormation_DescribeStacks(t *testing.T) {
 	}
 	cf.EXPECT().DescribeStacks(mock.Anything, mock.Anything).Return(expected, nil)
 
-	w := performCFRequest(handler, "cloudformation.DescribeStacks", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/cloudformation/stacks/teststack", []byte(`{}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp cloudformation.DescribeStacksOutput
@@ -108,7 +106,8 @@ func TestCloudFormation_GetTemplate(t *testing.T) {
 	}
 	cf.EXPECT().GetTemplate(mock.Anything, mock.Anything).Return(expected, nil)
 
-	w := performCFRequest(handler, "cloudformation.GetTemplate", []byte(`{"StackName":"test-stack"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/cloudformation/stacks/teststack/template", []byte(`{"StackName":"test-stack"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp cloudformation.GetTemplateOutput
@@ -128,7 +127,8 @@ func TestCloudFormation_ListStackResources(t *testing.T) {
 	}
 	cf.EXPECT().ListStackResources(mock.Anything, mock.Anything).Return(expected, nil)
 
-	w := performCFRequest(handler, "cloudformation.ListStackResources", []byte(`{"StackName":"test-stack"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/cloudformation/stacks/teststack/resources", []byte(`{"StackName":"test-stack"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp cloudformation.ListStackResourcesOutput
@@ -138,26 +138,14 @@ func TestCloudFormation_ListStackResources(t *testing.T) {
 	assert.Equal(t, "MyBucket", *resp.StackResourceSummaries[0].LogicalResourceId)
 }
 
-func TestCloudFormation_UnknownAction(t *testing.T) {
-	t.Parallel()
-	_, _, handler := setupCloudFormationTest(t)
-
-	w := performCFRequest(handler, "cloudformation.UnknownAction", []byte(`{}`))
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-
-	var resp map[string]interface{}
-	err := json.Unmarshal(w.Body.Bytes(), &resp)
-	assert.NoError(t, err)
-	assert.Contains(t, resp["error"], "Unknown CloudFormation action")
-}
-
 func TestCloudFormation_ServiceError(t *testing.T) {
 	t.Parallel()
 	_, cf, handler := setupCloudFormationTest(t)
 
 	cf.EXPECT().ListStacks(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 
-	w := performCFRequest(handler, "cloudformation.ListStacks", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/cloudformation/stacks", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var resp map[string]interface{}
@@ -171,7 +159,8 @@ func TestCloudFormation_CreateStack_ServiceError(t *testing.T) {
 	_, cf, handler := setupCloudFormationTest(t)
 	cf.EXPECT().CreateStack(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 
-	w := performCFRequest(handler, "cloudformation.CreateStack", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/cloudformation/stacks", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var resp map[string]interface{}
@@ -185,7 +174,8 @@ func TestCloudFormation_DeleteStack_ServiceError(t *testing.T) {
 	_, cf, handler := setupCloudFormationTest(t)
 	cf.EXPECT().DeleteStack(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 
-	w := performCFRequest(handler, "cloudformation.DeleteStack", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "DELETE", "/cloudformation/stacks/teststack", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var resp map[string]interface{}
@@ -199,7 +189,8 @@ func TestCloudFormation_DescribeStacks_ServiceError(t *testing.T) {
 	_, cf, handler := setupCloudFormationTest(t)
 	cf.EXPECT().DescribeStacks(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 
-	w := performCFRequest(handler, "cloudformation.DescribeStacks", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/cloudformation/stacks/teststack", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var resp map[string]interface{}
@@ -213,7 +204,8 @@ func TestCloudFormation_GetTemplate_ServiceError(t *testing.T) {
 	_, cf, handler := setupCloudFormationTest(t)
 	cf.EXPECT().GetTemplate(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 
-	w := performCFRequest(handler, "cloudformation.GetTemplate", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/cloudformation/stacks/teststack/template", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var resp map[string]interface{}
@@ -227,7 +219,8 @@ func TestCloudFormation_ListStackResources_ServiceError(t *testing.T) {
 	_, cf, handler := setupCloudFormationTest(t)
 	cf.EXPECT().ListStackResources(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 
-	w := performCFRequest(handler, "cloudformation.ListStackResources", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/cloudformation/stacks/teststack/resources", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var resp map[string]interface{}
@@ -243,22 +236,28 @@ func TestCloudFormation_ListStackResources_ServiceError(t *testing.T) {
 func TestCloudFormation_ParseErrors(t *testing.T) {
 	t.Parallel()
 
-	targets := []string{
-		"cloudformation.ListStacks",
-		"cloudformation.CreateStack",
-		"cloudformation.DeleteStack",
-		"cloudformation.DescribeStacks",
-		"cloudformation.GetTemplate",
-		"cloudformation.ListStackResources",
+	// Only include actions whose handlers call parseBody.
+	// DeleteStack, DescribeStacks, GetTemplate use URL params.
+	type parseCase struct {
+		name   string
+		method string
+		path   string
+	}
+
+	targets := []parseCase{
+		{name: "ListStacks", method: "GET", path: "/cloudformation/stacks"},
+		{name: "CreateStack", method: "POST", path: "/cloudformation/stacks"},
+		{name: "ListStackResources", method: "GET", path: "/cloudformation/stacks/teststack/resources"},
 	}
 
 	for _, target := range targets {
 		target := target
-		t.Run(target, func(t *testing.T) {
+		t.Run(target.name, func(t *testing.T) {
 			t.Parallel()
 			_, _, handler := setupCloudFormationTest(t)
-			w := performCFRequest(handler, target, []byte(`{bad`))
-			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s body=%s", target, w.Body.String())
+			r := setupTestRouter(handler)
+			w := performRequest(r, target.method, target.path, []byte(`{bad`))
+			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s body=%s", target.name, w.Body.String())
 			var resp map[string]interface{}
 			err := json.Unmarshal(w.Body.Bytes(), &resp)
 			assert.NoError(t, err)

@@ -246,7 +246,7 @@ import {
 } from './msk'
 
 // --- Shared re-exports ---
-import { APIError, parseXML } from '../client'
+import { APIError } from '../client'
 
 interface ReExportEntry {
   name: string
@@ -490,9 +490,6 @@ describe('Barrel exports (index.ts)', () => {
       expect(typeof APIError).toBe('function')
     })
 
-    it('re-exports parseXML function', () => {
-      expect(parseXML).toBeDefined()
-      expect(typeof parseXML).toBe('function')
-    })
+
   })
 })

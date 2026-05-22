@@ -1,47 +1,30 @@
 /**
  * SSM Parameter Store Service API Client
- * Simple HTTP client for SSM via Go proxy
- * @module api/services/ssm
+ * REST HTTP client for SSM via Go proxy
  */
 
 import { PROXY_BACKEND } from '@/config'
 import { APIError } from '../client'
 
-async function ssmRequest(action: string, body: object = {}): Promise<any> {
-  const endpoint = PROXY_BACKEND.replace(/\/$/, '')
-
-  const url = `${endpoint}/ssm/`
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Amz-Target': `ssm.${action}`,
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new APIError(`SSM ${action} failed: ${errorText}`, response.status, 'ssm')
-    }
-
-    return response.json()
-  } catch (error) {
-    if (error instanceof APIError) throw error
-    console.error(`SSM ${action} error:`, error)
-    throw new APIError(`Failed to ${action}`, 500, 'ssm')
-  }
-}
+const api = PROXY_BACKEND.replace(/\/$/, '')
 
 export class SSMService {
   async getParameter(name: string, options?: { WithDecryption?: boolean }): Promise<any> {
-    return ssmRequest('GetParameter', { Name: name, ...options })
+    const url = `${api}/ssm/parameters/${encodeURIComponent(name)}`
+    const qs = options?.WithDecryption ? '?WithDecryption=true' : ''
+    const res = await fetch(url + qs)
+    if (!res.ok) throw new APIError(`GetParameter failed`, res.status, 'ssm')
+    return res.json()
   }
 
   async getParameters(names: string[], options?: { WithDecryption?: boolean }): Promise<any> {
-    return ssmRequest('GetParameters', { Names: names, ...options })
+    const res = await fetch(`${api}/ssm/parameters/batch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ Names: names, ...options }),
+    })
+    if (!res.ok) throw new APIError(`GetParameters failed`, res.status, 'ssm')
+    return res.json()
   }
 
   async getParametersByPath(path: string, options?: {
@@ -49,7 +32,15 @@ export class SSMService {
     Recursive?: boolean
     NextToken?: string
   }): Promise<any> {
-    return ssmRequest('GetParametersByPath', { Path: path, ...options })
+    const params = new URLSearchParams()
+    if (options?.WithDecryption) params.set('WithDecryption', 'true')
+    if (options?.Recursive) params.set('Recursive', 'true')
+    if (options?.NextToken) params.set('NextToken', options.NextToken)
+    const qs = params.toString()
+    const url = qs ? `${api}/ssm/parameters-by-path/${encodeURIComponent(path)}?${qs}` : `${api}/ssm/parameters-by-path/${encodeURIComponent(path)}`
+    const res = await fetch(url)
+    if (!res.ok) throw new APIError(`GetParametersByPath failed`, res.status, 'ssm')
+    return res.json()
   }
 
   async putParameter(params: {
@@ -63,11 +54,19 @@ export class SSMService {
     DataType?: string
     Policies?: string
   }): Promise<any> {
-    return ssmRequest('PutParameter', params)
+    const res = await fetch(`${api}/ssm/parameters`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    })
+    if (!res.ok) throw new APIError(`PutParameter failed`, res.status, 'ssm')
+    return res.json()
   }
 
   async deleteParameter(name: string): Promise<any> {
-    return ssmRequest('DeleteParameter', { Name: name })
+    const res = await fetch(`${api}/ssm/parameters/${encodeURIComponent(name)}`, { method: 'DELETE' })
+    if (!res.ok) throw new APIError(`DeleteParameter failed`, res.status, 'ssm')
+    return res.json()
   }
 
   async describeParameters(options?: {
@@ -75,24 +74,51 @@ export class SSMService {
     NextToken?: string
     MaxResults?: number
   }): Promise<any> {
-    return ssmRequest('DescribeParameters', options || {})
+    const res = await fetch(`${api}/ssm/parameters`)
+    if (!res.ok) throw new APIError(`DescribeParameters failed`, res.status, 'ssm')
+    return res.json()
   }
 
   async getParameterHistory(name: string, options?: { WithDecryption?: boolean; MaxResults?: number }): Promise<any> {
-    return ssmRequest('GetParameterHistory', { Name: name, ...options })
+    const params = new URLSearchParams()
+    if (options?.WithDecryption) params.set('WithDecryption', 'true')
+    if (options?.MaxResults) params.set('MaxResults', String(options.MaxResults))
+    const qs = params.toString()
+    const url = qs ? `${api}/ssm/parameters/${encodeURIComponent(name)}/history?${qs}` : `${api}/ssm/parameters/${encodeURIComponent(name)}/history`
+    const res = await fetch(url)
+    if (!res.ok) throw new APIError(`GetParameterHistory failed`, res.status, 'ssm')
+    return res.json()
   }
 
   async listTagsForResource(resourceType: string, resourceId: string): Promise<any> {
-    return ssmRequest('ListTagsForResource', { ResourceType: resourceType, ResourceId: resourceId })
+    const res = await fetch(`${api}/ssm/tags/list`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ResourceType: resourceType, ResourceId: resourceId }),
+    })
+    if (!res.ok) throw new APIError(`ListTagsForResource failed`, res.status, 'ssm')
+    return res.json()
   }
 
   async addTagsToResource(resourceType: string, resourceId: string, tags: Record<string, string>): Promise<any> {
     const tagArray = Object.entries(tags).map(([Key, Value]) => ({ Key, Value }))
-    return ssmRequest('AddTagsToResource', { ResourceType: resourceType, ResourceId: resourceId, Tags: tagArray })
+    const res = await fetch(`${api}/ssm/tags`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ResourceType: resourceType, ResourceId: resourceId, Tags: tagArray }),
+    })
+    if (!res.ok) throw new APIError(`AddTagsToResource failed`, res.status, 'ssm')
+    return res.json()
   }
 
   async removeTagsFromResource(resourceType: string, resourceId: string, keys: string[]): Promise<any> {
-    return ssmRequest('RemoveTagsFromResource', { ResourceType: resourceType, ResourceId: resourceId, TagKeys: keys })
+    const res = await fetch(`${api}/ssm/tags/delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ResourceType: resourceType, ResourceId: resourceId, TagKeys: keys }),
+    })
+    if (!res.ok) throw new APIError(`RemoveTagsFromResource failed`, res.status, 'ssm')
+    return res.json()
   }
 }
 

@@ -49,6 +49,7 @@ function isJson(value: string): boolean {
 
       <!-- Modal -->
       <div
+        role="dialog"
         class="relative bg-light-surface dark:bg-dark-surface rounded-lg shadow-xl max-w-2xl w-full p-6"
         :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
       >

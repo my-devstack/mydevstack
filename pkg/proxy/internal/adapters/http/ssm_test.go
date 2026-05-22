@@ -2,7 +2,6 @@ package httphandlers
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -17,39 +16,40 @@ import (
 func TestSSMActions(t *testing.T) {
 	t.Parallel()
 
-	// NOTE: "GetParameter" is a substring of "GetParameters",
-	// "GetParametersByPath", and "GetParameterHistory", so the switch always
-	// routes them to the getParameter handler. Unreachable handlers are tested
-	// separately.
 	tests := []struct {
 		name      string
-		target    string
+		method    string
+		path      string
 		setupMock func(mp *mockports.SSMPort)
 	}{
-		{name: "GetParameter", target: "GetParameter", setupMock: func(mp *mockports.SSMPort) {
+		{name: "GetParameter", method: "GET", path: "/ssm/parameters/testparam", setupMock: func(mp *mockports.SSMPort) {
 			mp.EXPECT().GetParameter(mock.Anything, mock.Anything).Return(&ssm.GetParameterOutput{}, nil)
 		}},
-		{name: "PutParameter", target: "PutParameter", setupMock: func(mp *mockports.SSMPort) {
+		{name: "GetParameters", method: "POST", path: "/ssm/parameters/batch", setupMock: func(mp *mockports.SSMPort) {
+			mp.EXPECT().GetParameters(mock.Anything, mock.Anything).Return(&ssm.GetParametersOutput{}, nil)
+		}},
+		{name: "GetParametersByPath", method: "GET", path: "/ssm/parameters-by-path/testpath", setupMock: func(mp *mockports.SSMPort) {
+			mp.EXPECT().GetParametersByPath(mock.Anything, mock.Anything).Return(&ssm.GetParametersByPathOutput{}, nil)
+		}},
+		{name: "PutParameter", method: "POST", path: "/ssm/parameters", setupMock: func(mp *mockports.SSMPort) {
 			mp.EXPECT().PutParameter(mock.Anything, mock.Anything).Return(&ssm.PutParameterOutput{}, nil)
 		}},
-		{name: "DeleteParameter", target: "DeleteParameter", setupMock: func(mp *mockports.SSMPort) {
+		{name: "DeleteParameter", method: "DELETE", path: "/ssm/parameters/testparam", setupMock: func(mp *mockports.SSMPort) {
 			mp.EXPECT().DeleteParameter(mock.Anything, mock.Anything).Return(&ssm.DeleteParameterOutput{}, nil)
 		}},
-		{name: "DescribeParameters", target: "DescribeParameters", setupMock: func(mp *mockports.SSMPort) {
+		{name: "DescribeParameters", method: "GET", path: "/ssm/parameters", setupMock: func(mp *mockports.SSMPort) {
 			mp.EXPECT().DescribeParameters(mock.Anything, mock.Anything).Return(&ssm.DescribeParametersOutput{}, nil)
 		}},
-		// "GetParameterHistory" routes to getParameter handler because
-		// "GetParameter" is a substring of "GetParameterHistory".
-		{name: "GetParameterHistory_routes_to_GetParameter", target: "GetParameterHistory", setupMock: func(mp *mockports.SSMPort) {
-			mp.EXPECT().GetParameter(mock.Anything, mock.Anything).Return(&ssm.GetParameterOutput{}, nil)
+		{name: "GetParameterHistory", method: "GET", path: "/ssm/parameters/testparam/history", setupMock: func(mp *mockports.SSMPort) {
+			mp.EXPECT().GetParameterHistory(mock.Anything, mock.Anything).Return(&ssm.GetParameterHistoryOutput{}, nil)
 		}},
-		{name: "ListTagsForResource", target: "ListTagsForResource", setupMock: func(mp *mockports.SSMPort) {
+		{name: "ListTagsForResource", method: "POST", path: "/ssm/tags/list", setupMock: func(mp *mockports.SSMPort) {
 			mp.EXPECT().ListTagsForResource(mock.Anything, mock.Anything).Return(&ssm.ListTagsForResourceOutput{}, nil)
 		}},
-		{name: "AddTagsToResource", target: "AddTagsToResource", setupMock: func(mp *mockports.SSMPort) {
+		{name: "AddTagsToResource", method: "POST", path: "/ssm/tags", setupMock: func(mp *mockports.SSMPort) {
 			mp.EXPECT().AddTagsToResource(mock.Anything, mock.Anything).Return(&ssm.AddTagsToResourceOutput{}, nil)
 		}},
-		{name: "RemoveTagsFromResource", target: "RemoveTagsFromResource", setupMock: func(mp *mockports.SSMPort) {
+		{name: "RemoveTagsFromResource", method: "POST", path: "/ssm/tags/delete", setupMock: func(mp *mockports.SSMPort) {
 			mp.EXPECT().RemoveTagsFromResource(mock.Anything, mock.Anything).Return(&ssm.RemoveTagsFromResourceOutput{}, nil)
 		}},
 	}
@@ -64,15 +64,13 @@ func TestSSMActions(t *testing.T) {
 			svc.EXPECT().SSM().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/ssm", tt.target, []byte("{}"))
+			w := performRequest(r, tt.method, tt.path, []byte("{}"))
 			assert.Equal(t, http.StatusOK, w.Code, "body=%s", w.Body.String())
 		})
 	}
 }
 
 // TestSSM_GetParameters_Direct tests the getParameters handler directly.
-// Unreachable through normal router because "GetParameter" is a substring of
-// "GetParameters".
 func TestSSM_GetParameters_Direct(t *testing.T) {
 	t.Parallel()
 
@@ -85,12 +83,12 @@ func TestSSM_GetParameters_Direct(t *testing.T) {
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/ssm", bytes.NewReader([]byte("{}")))
 
-	handler.getParameters(context.Background(), w, req, []byte("{}"))
+	handler.getParameters(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
 // TestSSM_GetParametersByPath_Direct tests the getParametersByPath handler
-// directly (unreachable via router).
+// directly.
 func TestSSM_GetParametersByPath_Direct(t *testing.T) {
 	t.Parallel()
 
@@ -103,12 +101,12 @@ func TestSSM_GetParametersByPath_Direct(t *testing.T) {
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/ssm", bytes.NewReader([]byte("{}")))
 
-	handler.getParametersByPath(context.Background(), w, req, []byte("{}"))
+	handler.getParametersByPath(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
 // TestSSM_GetParameterHistory_Direct tests the getParameterHistory handler
-// directly (unreachable via router because "GetParameter" is a substring).
+// directly.
 func TestSSM_GetParameterHistory_Direct(t *testing.T) {
 	t.Parallel()
 
@@ -121,7 +119,7 @@ func TestSSM_GetParameterHistory_Direct(t *testing.T) {
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/ssm", bytes.NewReader([]byte("{}")))
 
-	handler.getParameterHistory(context.Background(), w, req, []byte("{}"))
+	handler.getParameterHistory(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -132,7 +130,7 @@ func TestSSM_InvalidBody(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/ssm", "PutParameter", []byte(`{bad`))
+	w := performRequest(r, "POST", "/ssm/parameters", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -146,19 +144,8 @@ func TestSSM_ServiceError(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/ssm", "DescribeParameters", []byte("{}"))
+	w := performRequest(r, "GET", "/ssm/parameters", []byte("{}"))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
-}
-
-func TestSSM_UnknownAction(t *testing.T) {
-	t.Parallel()
-
-	svc := createMockSvc(t, nil)
-	handler := createHandler(svc, createTestVersionService(t))
-	r := setupTestRouter(handler)
-
-	w := performRequest(r, "POST", "/ssm", "UnknownSSMAction", []byte("{}"))
-	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
 // ---------------------------------------------------------------------------
@@ -170,47 +157,60 @@ func TestSSM_ServiceErrors(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		target    string
+		method    string
+		path      string
 		setupMock func(mp *mockports.SSMPort)
 	}{
 		{
-			name: "GetParameter", target: "GetParameter",
+			name: "GetParameter", method: "GET", path: "/ssm/parameters/testparam",
 			setupMock: func(mp *mockports.SSMPort) {
 				mp.EXPECT().GetParameter(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "PutParameter", target: "PutParameter",
+			name: "GetParameters", method: "POST", path: "/ssm/parameters/batch",
+			setupMock: func(mp *mockports.SSMPort) {
+				mp.EXPECT().GetParameters(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
+			},
+		},
+		{
+			name: "GetParametersByPath", method: "GET", path: "/ssm/parameters-by-path/testpath",
+			setupMock: func(mp *mockports.SSMPort) {
+				mp.EXPECT().GetParametersByPath(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
+			},
+		},
+		{
+			name: "PutParameter", method: "POST", path: "/ssm/parameters",
 			setupMock: func(mp *mockports.SSMPort) {
 				mp.EXPECT().PutParameter(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "DeleteParameter", target: "DeleteParameter",
+			name: "DeleteParameter", method: "DELETE", path: "/ssm/parameters/testparam",
 			setupMock: func(mp *mockports.SSMPort) {
 				mp.EXPECT().DeleteParameter(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "GetParameterHistory_routes_to_GetParameter", target: "GetParameterHistory",
+			name: "GetParameterHistory", method: "GET", path: "/ssm/parameters/testparam/history",
 			setupMock: func(mp *mockports.SSMPort) {
-				mp.EXPECT().GetParameter(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
+				mp.EXPECT().GetParameterHistory(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "ListTagsForResource", target: "ListTagsForResource",
+			name: "ListTagsForResource", method: "POST", path: "/ssm/tags/list",
 			setupMock: func(mp *mockports.SSMPort) {
 				mp.EXPECT().ListTagsForResource(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "AddTagsToResource", target: "AddTagsToResource",
+			name: "AddTagsToResource", method: "POST", path: "/ssm/tags",
 			setupMock: func(mp *mockports.SSMPort) {
 				mp.EXPECT().AddTagsToResource(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "RemoveTagsFromResource", target: "RemoveTagsFromResource",
+			name: "RemoveTagsFromResource", method: "POST", path: "/ssm/tags/delete",
 			setupMock: func(mp *mockports.SSMPort) {
 				mp.EXPECT().RemoveTagsFromResource(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
@@ -227,7 +227,7 @@ func TestSSM_ServiceErrors(t *testing.T) {
 			svc.EXPECT().SSM().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/ssm", tt.target, []byte("{}"))
+			w := performRequest(r, tt.method, tt.path, []byte("{}"))
 			assert.Equal(t, http.StatusInternalServerError, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -249,7 +249,7 @@ func TestSSM_GetParameters_ServiceError(t *testing.T) {
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/ssm", bytes.NewReader([]byte("{}")))
 
-	handler.getParameters(context.Background(), w, req, []byte("{}"))
+	handler.getParameters(w, req)
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -265,7 +265,7 @@ func TestSSM_GetParametersByPath_ServiceError(t *testing.T) {
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/ssm", bytes.NewReader([]byte("{}")))
 
-	handler.getParametersByPath(context.Background(), w, req, []byte("{}"))
+	handler.getParametersByPath(w, req)
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -281,7 +281,7 @@ func TestSSM_GetParameterHistory_ServiceError(t *testing.T) {
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/ssm", bytes.NewReader([]byte("{}")))
 
-	handler.getParameterHistory(context.Background(), w, req, []byte("{}"))
+	handler.getParameterHistory(w, req)
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -292,24 +292,34 @@ func TestSSM_GetParameterHistory_ServiceError(t *testing.T) {
 func TestSSM_ParseErrors(t *testing.T) {
 	t.Parallel()
 
-	// All actions are reachable through the router for parse errors because
-	// parseBody fails before any port dispatch happens.
-	targets := []string{
-		"GetParameter", "GetParameters", "GetParametersByPath",
-		"PutParameter", "DeleteParameter", "DescribeParameters",
-		"GetParameterHistory", "ListTagsForResource",
-		"AddTagsToResource", "RemoveTagsFromResource",
+	// Only include actions whose handlers call parseBody.
+	// GetParameter and DeleteParameter use URL params, not body parse.
+	type parseCase struct {
+		name   string
+		method string
+		path   string
+	}
+
+	targets := []parseCase{
+		{name: "GetParameters", method: "POST", path: "/ssm/parameters/batch"},
+		{name: "GetParametersByPath", method: "GET", path: "/ssm/parameters-by-path/testpath"},
+		{name: "PutParameter", method: "POST", path: "/ssm/parameters"},
+		{name: "DescribeParameters", method: "GET", path: "/ssm/parameters"},
+		{name: "GetParameterHistory", method: "GET", path: "/ssm/parameters/testparam/history"},
+		{name: "ListTagsForResource", method: "POST", path: "/ssm/tags/list"},
+		{name: "AddTagsToResource", method: "POST", path: "/ssm/tags"},
+		{name: "RemoveTagsFromResource", method: "POST", path: "/ssm/tags/delete"},
 	}
 
 	for _, target := range targets {
 		target := target
-		t.Run(target, func(t *testing.T) {
+		t.Run(target.name, func(t *testing.T) {
 			t.Parallel()
 			svc := createMockSvc(t, nil)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/ssm", target, []byte(`{bad`))
-			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s body=%s", target, w.Body.String())
+			w := performRequest(r, target.method, target.path, []byte(`{bad`))
+			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s body=%s", target.name, w.Body.String())
 		})
 	}
 }

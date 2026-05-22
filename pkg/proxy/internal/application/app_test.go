@@ -98,7 +98,7 @@ func TestContainer_SetupRoutes(t *testing.T) {
 	assert.Equal(t, "*", w3.Header().Get("Access-Control-Allow-Origin"))
 
 	// S3 route dispatches (may get 500 if emulator unreachable, but not 404).
-	w4 := performPost(r, "/s3/test", "ListBuckets", `{}`)
+	w4 := performPost(r, "/s3/buckets", "", `{}`)
 	assert.NotEqual(t, http.StatusNotFound, w4.Code,
 		"S3 route should be registered and not return 404")
 
@@ -121,7 +121,7 @@ func performGet(r http.Handler, path string) *httptest.ResponseRecorder {
 func performPost(r http.Handler, path, target, body string) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", path, strings.NewReader(body))
-	req.Header.Set("X-Amz-Target", target)
+	// req.Header.Set(httphandlers.XAmzTarget, target)
 	r.ServeHTTP(w, req)
 	return w
 }

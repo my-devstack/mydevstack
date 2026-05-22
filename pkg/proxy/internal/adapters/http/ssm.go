@@ -1,93 +1,94 @@
 package httphandlers
 
 import (
-	"context"
 	"net/http"
-	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/go-chi/chi/v5"
 )
 
-func (h *ProxyHandler) handleSSM(w http.ResponseWriter, r *http.Request) {
-	xAmzTarget := r.Header.Get("X-Amz-Target")
-	bodyBytes := readBody(r)
-	ctx := h.ctx
-
-	switch {
-	case strings.Contains(xAmzTarget, "GetParameter"):
-		h.getParameter(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetParameters"):
-		h.getParameters(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetParametersByPath"):
-		h.getParametersByPath(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutParameter"):
-		h.putParameter(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteParameter"):
-		h.deleteParameter(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "DescribeParameters"):
-		h.describeParameters(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetParameterHistory"):
-		h.getParameterHistory(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "ListTagsForResource"):
-		h.listTagsForResource(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "AddTagsToResource"):
-		h.addTagsToResource(ctx, w, r, bodyBytes)
-	case strings.Contains(xAmzTarget, "RemoveTagsFromResource"):
-		h.removeTagsFromResource(ctx, w, r, bodyBytes)
-	default:
-		writeJSON(w, http.StatusBadRequest, map[string]interface{}{"error": "Unknown SSM action: " + xAmzTarget})
-	}
+func (h *ProxyHandler) registerSSMRoutes(r chi.Router) {
+	r.Route("/ssm", func(r chi.Router) {
+		r.Get("/parameters", h.describeParameters)
+		r.Get("/parameters/{parameterName}", h.getParameter)
+		r.Post("/parameters", h.putParameter)
+		r.Delete("/parameters/{parameterName}", h.deleteParameter)
+		r.Get("/parameters/{parameterName}/history", h.getParameterHistory)
+		r.Post("/parameters/batch", h.getParameters)
+		r.Get("/parameters-by-path/*", h.getParametersByPath)
+		r.Post("/tags", h.addTagsToResource)
+		r.Post("/tags/list", h.listTagsForResource)
+		r.Post("/tags/delete", h.removeTagsFromResource)
+	})
 }
 
-func (h *ProxyHandler) getParameter(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &ssm.GetParameterInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getParameter(w http.ResponseWriter, r *http.Request) {
+	input := &ssm.GetParameterInput{
+		Name: aws.String(urlParam(r, "parameterName")),
 	}
-	result, err := h.Svc.SSM().GetParameter(ctx, input)
+	result, err := h.Svc.SSM().GetParameter(h.ctx, input)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Failed to get parameter", err)
+		sendErrorWithStatus(w, "Failed to get parameter", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getParameters(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) getParameters(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &ssm.GetParametersInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.SSM().GetParameters(ctx, input)
+	result, err := h.Svc.SSM().GetParameters(h.ctx, input)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Failed to get parameters", err)
+		sendErrorWithStatus(w, "Failed to get parameters", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getParametersByPath(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &ssm.GetParametersByPathInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
+func (h *ProxyHandler) getParametersByPath(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	var body struct {
+		Recursive bool   `json:"Recursive"`
+		MaxResults int32 `json:"MaxResults"`
+		NextToken  string `json:"NextToken"`
+	}
+	if err := parseBody(bodyBytes, &body); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.SSM().GetParametersByPath(ctx, input)
+	input := &ssm.GetParametersByPathInput{
+		Path: aws.String(urlParam(r, "*")),
+	}
+	if body.Recursive {
+		input.Recursive = aws.Bool(true)
+	}
+	if body.MaxResults > 0 {
+		input.MaxResults = aws.Int32(body.MaxResults)
+	}
+	if body.NextToken != "" {
+		input.NextToken = aws.String(body.NextToken)
+	}
+	result, err := h.Svc.SSM().GetParametersByPath(h.ctx, input)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Failed to get parameters by path", err)
+		sendErrorWithStatus(w, "Failed to get parameters by path", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putParameter(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) putParameter(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &ssm.PutParameterInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.SSM().PutParameter(ctx, input)
+	result, err := h.Svc.SSM().PutParameter(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to put parameter", err)
 		return
@@ -95,27 +96,26 @@ func (h *ProxyHandler) putParameter(ctx context.Context, w http.ResponseWriter, 
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteParameter(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &ssm.DeleteParameterInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteParameter(w http.ResponseWriter, r *http.Request) {
+	input := &ssm.DeleteParameterInput{
+		Name: aws.String(urlParam(r, "parameterName")),
 	}
-	result, err := h.Svc.SSM().DeleteParameter(ctx, input)
+	result, err := h.Svc.SSM().DeleteParameter(h.ctx, input)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Failed to delete parameter", err)
+		sendErrorWithStatus(w, "Failed to delete parameter", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) describeParameters(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) describeParameters(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &ssm.DescribeParametersInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.SSM().DescribeParameters(ctx, input)
+	result, err := h.Svc.SSM().DescribeParameters(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to describe parameters", err)
 		return
@@ -123,27 +123,45 @@ func (h *ProxyHandler) describeParameters(ctx context.Context, w http.ResponseWr
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getParameterHistory(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
-	input := &ssm.GetParameterHistoryInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
+func (h *ProxyHandler) getParameterHistory(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	var body struct {
+		MaxResults int32  `json:"MaxResults"`
+		NextToken  string `json:"NextToken"`
+	}
+	if err := parseBody(bodyBytes, &body); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.SSM().GetParameterHistory(ctx, input)
+	input := &ssm.GetParameterHistoryInput{
+		Name: aws.String(urlParam(r, "parameterName")),
+	}
+	// Read optional params from query string (FE sends WithDecryption as query param)
+	if v := r.URL.Query().Get("WithDecryption"); v == "true" {
+		input.WithDecryption = aws.Bool(true)
+	}
+	if body.MaxResults > 0 {
+		input.MaxResults = aws.Int32(body.MaxResults)
+	}
+	if body.NextToken != "" {
+		input.NextToken = aws.String(body.NextToken)
+	}
+	result, err := h.Svc.SSM().GetParameterHistory(h.ctx, input)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Failed to get parameter history", err)
+		sendErrorWithStatus(w, "Failed to get parameter history", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) listTagsForResource(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) listTagsForResource(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &ssm.ListTagsForResourceInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.SSM().ListTagsForResource(ctx, input)
+	result, err := h.Svc.SSM().ListTagsForResource(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to list tags for resource", err)
 		return
@@ -151,13 +169,14 @@ func (h *ProxyHandler) listTagsForResource(ctx context.Context, w http.ResponseW
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) addTagsToResource(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) addTagsToResource(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &ssm.AddTagsToResourceInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.SSM().AddTagsToResource(ctx, input)
+	result, err := h.Svc.SSM().AddTagsToResource(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to add tags to resource", err)
 		return
@@ -165,13 +184,14 @@ func (h *ProxyHandler) addTagsToResource(ctx context.Context, w http.ResponseWri
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) removeTagsFromResource(ctx context.Context, w http.ResponseWriter, r *http.Request, bodyBytes []byte) {
+func (h *ProxyHandler) removeTagsFromResource(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &ssm.RemoveTagsFromResourceInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.SSM().RemoveTagsFromResource(ctx, input)
+	result, err := h.Svc.SSM().RemoveTagsFromResource(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to remove tags from resource", err)
 		return

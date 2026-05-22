@@ -1,6 +1,6 @@
 /**
  * S3 Service API Client
- * Simple HTTP client for S3 via Go proxy
+ * REST HTTP client for S3 via Go proxy
  * @module api/services/s3
  */
 
@@ -8,44 +8,39 @@ import { PROXY_BACKEND } from '@/config'
 import { APIError } from '../client'
 import type { S3Bucket, S3Object } from '../types/aws'
 
-async function s3Request(action: string, body: object = {}): Promise<any> {
-  const endpoint = PROXY_BACKEND.replace(/\/$/, '')
+const BASE = PROXY_BACKEND.replace(/\/$/, '')
 
-  const url = `${endpoint}/s3/`
+function enc(s: string): string {
+  return encodeURIComponent(s)
+}
 
+async function restFetch<T = any>(method: string, path: string, body?: object): Promise<T> {
+  const url = `${BASE}${path}`
   try {
     const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Amz-Target': `s3.${action}`,
-      },
-      body: JSON.stringify(body),
+      method,
+      headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
     })
-
-    const contentLength = response.headers.get('content-length')
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new APIError(`S3 ${action} failed: ${errorText}`, response.status, 's3')
+      const text = await response.text()
+      throw new APIError(`S3 ${method} ${path} failed: ${text}`, response.status, 's3')
     }
-
-    // Handle empty responses
+    const contentLength = response.headers.get('content-length')
     if (contentLength === '0' || response.status === 204) {
-      return {}
+      return {} as T
     }
-
     return response.json()
   } catch (error) {
     if (error instanceof APIError) throw error
-    console.error(`S3 ${action} error:`, error)
-    throw new APIError(`Failed to ${action}`, 500, 's3')
+    throw new APIError(`S3 request error`, 500, 's3')
   }
 }
 
 export class S3Service {
   async listBuckets(): Promise<S3Bucket[]> {
-    const response = await s3Request('ListBuckets', {})
-    return (response.Buckets || []).map(bucket => ({
+    const data = await restFetch<any>('GET', '/s3/buckets')
+    return (data.Buckets || []).map(bucket => ({
       Name: bucket.Name || '',
       CreationDate: bucket.CreationDate || '',
     }))
@@ -80,22 +75,20 @@ export class S3Service {
     }
 
     // Create the bucket first
-    await s3Request('CreateBucket', params)
+    await restFetch('POST', '/s3/buckets', params)
+
+    const bucketEnc = enc(bucket)
 
     // Apply versioning if enabled
     if (options?.enableVersioning) {
-      await s3Request('PutBucketVersioning', {
-        Bucket: bucket,
-        VersioningConfiguration: {
-          Status: 'Enabled',
-        },
+      await restFetch('PUT', `/s3/buckets/${bucketEnc}/versioning`, {
+        VersioningConfiguration: { Status: 'Enabled' },
       })
     }
 
     // Apply encryption if specified
     if (options?.encryptionType) {
-      const encryptionParams: any = {
-        Bucket: bucket,
+      const encryptionBody: any = {
         ServerSideEncryptionConfiguration: {
           Rules: [
             {
@@ -104,30 +97,24 @@ export class S3Service {
               },
             },
           ],
-        }
+        },
       }
-
       if (options.encryptionType === 'aws:kms' && options.kmsKeyId) {
-        encryptionParams.ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.KMSKeyId = options.kmsKeyId
+        encryptionBody.ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.KMSKeyId = options.kmsKeyId
       }
-
-      await s3Request('PutBucketEncryption', encryptionParams)
+      await restFetch('PUT', `/s3/buckets/${bucketEnc}/encryption`, encryptionBody)
     }
 
     // Apply tags if specified
     if (options?.tags && options.tags.length > 0) {
-      await s3Request('PutBucketTagging', {
-        Bucket: bucket,
-        Tagging: {
-          TagSet: options.tags,
-        },
+      await restFetch('PUT', `/s3/buckets/${bucketEnc}/tagging`, {
+        Tagging: { TagSet: options.tags },
       })
     }
 
     // Block public access if enabled
     if (options?.blockPublicAccess) {
-      await s3Request('PutPublicAccessBlock', {
-        Bucket: bucket,
+      await restFetch('PUT', `/s3/buckets/${bucketEnc}/public-access-block`, {
         PublicAccessBlockConfiguration: {
           BlockPublicAcls: true,
           BlockPublicPolicy: true,
@@ -145,9 +132,7 @@ export class S3Service {
       } catch {
         throw new Error('Invalid bucket policy JSON')
       }
-
-      await s3Request('PutBucketPolicy', {
-        Bucket: bucket,
+      await restFetch('PUT', `/s3/buckets/${bucketEnc}/policy`, {
         Policy: options.bucketPolicy,
       })
     }
@@ -156,30 +141,26 @@ export class S3Service {
   }
 
   async deleteBucket(bucket: string): Promise<void> {
-    return s3Request('DeleteBucket', { Bucket: bucket })
+    await restFetch('DELETE', `/s3/buckets/${enc(bucket)}`)
   }
 
   async emptyBucket(bucket: string): Promise<void> {
-    // List and delete all objects
-    let continuationToken: string | undefined
+    let marker: string | undefined
     do {
-      const params: any = { Bucket: bucket }
-      if (continuationToken) {
-        params.ContinuationToken = continuationToken
+      const result = await this.listObjects(bucket, marker ? { marker } : undefined)
+      for (const obj of result.objects) {
+        await this.deleteObject(bucket, obj.Key)
       }
-      const listResponse = await s3Request('ListObjectsV2', params)
-
-      if (listResponse.Contents && listResponse.Contents.length > 0) {
-        const objects = listResponse.Contents.map((obj: any) => ({ Key: obj.Key }))
-        await s3Request('DeleteObjects', { Bucket: bucket, Delete: { Objects: objects } })
-      }
-
-      continuationToken = listResponse.NextContinuationToken
-    } while (continuationToken)
+      marker = result.nextMarker
+    } while (marker)
   }
 
   async headBucket(bucket: string): Promise<void> {
-    return s3Request('HeadBucket', { Bucket: bucket })
+    const url = `${BASE}/s3/buckets/${enc(bucket)}`
+    const response = await fetch(url, { method: 'HEAD' })
+    if (!response.ok) {
+      throw new APIError(`S3 headBucket failed`, response.status, 's3')
+    }
   }
 
   async listObjects(
@@ -191,8 +172,14 @@ export class S3Service {
       maxKeys?: number
     }
   ): Promise<{ objects: S3Object[]; prefixes: string[]; isTruncated: boolean; nextMarker?: string }> {
-    const params: any = { Bucket: bucket, ...options }
-    const response = await s3Request('ListObjectsV2', params)
+    const qp = new URLSearchParams()
+    if (options?.prefix) qp.set('prefix', options.prefix)
+    if (options?.delimiter) qp.set('delimiter', options.delimiter)
+    if (options?.marker) qp.set('marker', options.marker)
+    if (options?.maxKeys !== undefined) qp.set('maxKeys', String(options.maxKeys))
+    const qs = qp.toString()
+    const path = `/s3/buckets/${enc(bucket)}/objects${qs ? `?${qs}` : ''}`
+    const response = await restFetch<any>('GET', path)
 
     const objects = (response.Contents || []).map(obj => ({
       Key: obj.Key || '',
@@ -217,21 +204,13 @@ export class S3Service {
     contentType: string
     metadata: Record<string, string>
   }> {
-    const endpoint = PROXY_BACKEND.replace(/\/$/, '')
-    const url = `${endpoint}/s3/`
+    const url = `${BASE}/s3/buckets/${enc(bucket)}/objects/${enc(key)}`
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Amz-Target': 's3.GetObject',
-      },
-      body: JSON.stringify({ Bucket: bucket, Key: key }),
-    })
+    const response = await fetch(url)
 
     if (!response.ok) {
       const errorText = await response.text()
-      throw new APIError(`S3 GetObject failed: ${errorText}`, response.status, 's3')
+      throw new APIError(`S3 getObject failed: ${errorText}`, response.status, 's3')
     }
 
     const contentType = response.headers.get('Content-Type') || 'application/octet-stream'
@@ -251,8 +230,7 @@ export class S3Service {
     contentType?: string
   ): Promise<any> {
     const serializedBody = body instanceof Uint8Array ? Array.from(body) : body
-    return s3Request('PutObject', {
-      Bucket: bucket,
+    return restFetch('POST', `/s3/buckets/${enc(bucket)}/objects`, {
       Key: key,
       Body: serializedBody,
       ContentType: contentType,
@@ -260,21 +238,36 @@ export class S3Service {
   }
 
   async deleteObject(bucket: string, key: string): Promise<any> {
-    return s3Request('DeleteObject', { Bucket: bucket, Key: key })
+    return restFetch('DELETE', `/s3/buckets/${enc(bucket)}/objects/${enc(key)}`)
   }
 
   async headObject(bucket: string, key: string): Promise<Record<string, string>> {
-    const response = await s3Request('HeadObject', { Bucket: bucket, Key: key })
-    return {
-      contentLength: String(response.ContentLength || 0),
-      contentType: response.ContentType || '',
-      etag: response.ETag?.replace(/"/g, '') || '',
-      lastModified: response.LastModified || '',
+    const url = `${BASE}/s3/buckets/${enc(bucket)}/objects/${enc(key)}`
+    const response = await fetch(url, { method: 'HEAD' })
+    if (!response.ok) {
+      throw new APIError(`S3 headObject failed`, response.status, 's3')
+    }
+    // Go backend returns JSON body even for HEAD; fallback to response headers
+    try {
+      const data = await response.json()
+      return {
+        contentLength: String(data.ContentLength || 0),
+        contentType: data.ContentType || '',
+        etag: (data.ETag || '').replace(/"/g, ''),
+        lastModified: data.LastModified || '',
+      }
+    } catch {
+      return {
+        contentLength: response.headers.get('content-length') || '0',
+        contentType: response.headers.get('content-type') || '',
+        etag: (response.headers.get('etag') || '').replace(/"/g, ''),
+        lastModified: response.headers.get('last-modified') || '',
+      }
     }
   }
 
   async getBucketVersioning(bucket: string): Promise<{ status: string; mfaDelete: string }> {
-    const response = await s3Request('GetBucketVersioning', { Bucket: bucket })
+    const response = await restFetch<any>('GET', `/s3/buckets/${enc(bucket)}/versioning`)
     return {
       status: response.Status || 'Unknown',
       mfaDelete: response.MFADelete || 'Disabled',
@@ -282,25 +275,24 @@ export class S3Service {
   }
 
   async getBucketEncryption(bucket: string): Promise<{ algorithm: string; keyId: string }> {
-    const response = await s3Request('GetBucketEncryption', { Bucket: bucket })
-    const rule = response.ServerSideEncryptionRules?.[0] || {}
+    const response = await restFetch<any>('GET', `/s3/buckets/${enc(bucket)}/encryption`)
+    const rule = response.ServerSideEncryptionConfiguration?.Rules?.[0]?.ApplyServerSideEncryptionByDefault || {}
     return {
-      algorithm: rule.ServerSideEncryptionAlgorithm || 'None',
-      keyId: rule.ServerSideEncryptionKeyManagementService?.KeyId || '',
+      algorithm: rule.SSEAlgorithm || 'None',
+      keyId: rule.KMSKeyId || '',
     }
   }
 
   async getBucketTagging(bucket: string): Promise<{ tags: Array<{ Key: string; Value: string }> }> {
-    const response = await s3Request('GetBucketTagging', { Bucket: bucket })
+    const response = await restFetch<any>('GET', `/s3/buckets/${enc(bucket)}/tagging`)
     return {
       tags: response.TagSet || [],
     }
   }
 
   async getBucketPolicy(bucket: string): Promise<{ Policy?: string }> {
-    // This may return 404 if no policy exists
     try {
-      return await s3Request('GetBucketPolicy', { Bucket: bucket })
+      return await restFetch<any>('GET', `/s3/buckets/${enc(bucket)}/policy`)
     } catch (error: any) {
       if (error.statusCode === 404 || error.message?.includes('NoSuchBucketPolicy')) {
         return {}
@@ -334,8 +326,7 @@ export const createFolder = async (bucket: string, folderPath: string) => {
 }
 
 export const getPresignedUrl = async (bucket: string, key: string, expiresIn: number = 3600): Promise<string> => {
-  const response = await s3Request('PresignGetObject', {
-    Bucket: bucket,
+  const response = await restFetch<any>('POST', `/s3/buckets/${enc(bucket)}/presign-get`, {
     Key: key,
     Expires: expiresIn,
   })
@@ -348,8 +339,7 @@ export const getPresignedUploadUrl = async (
   contentType: string,
   expiresIn: number = 3600
 ): Promise<string> => {
-  const response = await s3Request('PresignPutObject', {
-    Bucket: bucket,
+  const response = await restFetch<any>('POST', `/s3/buckets/${enc(bucket)}/presign-put`, {
     Key: key,
     ContentType: contentType,
     Expires: expiresIn,
@@ -384,14 +374,13 @@ export interface NotificationConfig {
 }
 
 export async function configureNotification(bucket: string, config: NotificationConfig): Promise<any> {
-  return s3Request('PutBucketNotificationConfiguration', {
-    Bucket: bucket,
+  return restFetch('PUT', `/s3/buckets/${enc(bucket)}/notification`, {
     NotificationConfiguration: config.NotificationConfiguration,
   })
 }
 
 export async function getNotificationConfig(bucket: string): Promise<any> {
-  return s3Request('GetBucketNotificationConfiguration', { Bucket: bucket })
+  return restFetch('GET', `/s3/buckets/${enc(bucket)}/notification`)
 }
 
 export default s3Service

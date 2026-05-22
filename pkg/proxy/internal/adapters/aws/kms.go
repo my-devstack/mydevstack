@@ -54,3 +54,19 @@ func (a *KMSAdapter) GenerateDataKey(ctx context.Context, input *kms.GenerateDat
 func (a *KMSAdapter) GenerateRandom(ctx context.Context, input *kms.GenerateRandomInput) (*kms.GenerateRandomOutput, error) {
 	return a.client.GenerateRandom(ctx, input)
 }
+
+func (a *KMSAdapter) GetKeyPolicy(ctx context.Context, input *kms.GetKeyPolicyInput) (*kms.GetKeyPolicyOutput, error) {
+	return a.client.GetKeyPolicy(ctx, input)
+}
+
+func (a *KMSAdapter) EnableKey(ctx context.Context, input *kms.EnableKeyInput) (*kms.EnableKeyOutput, error) {
+	return a.client.EnableKey(ctx, input)
+}
+
+func (a *KMSAdapter) DisableKey(ctx context.Context, input *kms.DisableKeyInput) (*kms.DisableKeyOutput, error) {
+	return a.client.DisableKey(ctx, input)
+}
+
+func (a *KMSAdapter) ScheduleKeyDeletion(ctx context.Context, input *kms.ScheduleKeyDeletionInput) (*kms.ScheduleKeyDeletionOutput, error) {
+	return a.client.ScheduleKeyDeletion(ctx, input)
+}

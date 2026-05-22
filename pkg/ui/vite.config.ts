@@ -19,116 +19,44 @@ export default defineConfig(({ mode }) => {
         '@': resolve(__dirname, 'src'),
       },
     },
+    // Exclude SDK packages referenced only in code example template literals
+    optimizeDeps: {
+      exclude: [
+        '@aws-sdk/client-iam',
+        '@aws-sdk/client-kafka',
+        '@aws-sdk/client-opensearch',
+        '@aws-sdk/client-sesv2',
+        '@aws-sdk/client-sfn',
+        '@aws-sdk/client-cloudformation',
+      ],
+    },
     server: {
       port: 3000,
       proxy: {
-        // S3 - uses /s3/ prefix
-        '/s3': {
-          target,
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/s3/, ''),
-        },
-        // DynamoDB - uses POST to root with X-Amz-Target header
-        '/dynamodb': {
-          target,
-          changeOrigin: true,
-        },
-        // Secrets Manager - uses POST to root with X-Amz-Target header
-        '/secrets': {
-          target,
-          changeOrigin: true,
-        },
-        // Lambda - REST API
-        '/2015-03-31': {
-          target,
-          changeOrigin: true,
-        },
-        // SNS - Query API
-        '/sns': {
-          target,
-          changeOrigin: true,
-        },
-        // SQS - Query API
-        '/sqs': {
-          target,
-          changeOrigin: true,
-        },
-        // IAM - Query API
-        '/iam': {
-          target,
-          changeOrigin: true,
-        },
-        // KMS - Query API
-        '/kms': {
-          target,
-          changeOrigin: true,
-        },
-        // Secrets Manager - Query API (alternative path)
-        '/secretsmanager': {
-          target,
-          changeOrigin: true,
-        },
-        // EventBridge
-        '/events': {
-          target,
-          changeOrigin: true,
-        },
-        // CloudWatch Logs
-        '/logs': {
-          target,
-          changeOrigin: true,
-        },
-        // SSM
-        '/ssm': {
-          target,
-          changeOrigin: true,
-        },
-        // API Gateway REST APIs (v1)
-        '/restapis': {
-          target,
-          changeOrigin: true,
-        },
-        // API Gateway HTTP APIs (v2)
-        '/v2/apis': {
-          target,
-          changeOrigin: true,
-        },
-        // API Gateway (legacy path)
-        '/apigateway': {
-          target,
-          changeOrigin: true,
-        },
-        // Kinesis
-        '/kinesis': {
-          target,
-          changeOrigin: true,
-        },
-        // CloudFormation
-        '/cloudformation': {
-          target,
-          changeOrigin: true,
-        },
-        // Cognito
-        '/cognito-idp': {
-          target,
-          changeOrigin: true,
-        },
-        // ElastiCache
-        '/elasticache': {
-          target,
-          changeOrigin: true,
-        },
-		// RDS
-		'/rds': {
-		  target,
-		  changeOrigin: true,
-		},
-		// Step Functions
-		'/stepfunctions': {
-		  target,
-		  changeOrigin: true,
-		},
-	      },
+        // Vite dev handles static assets — only proxy API paths to Go backend
+        '/health':         { target, changeOrigin: true },
+        '/proxy':          { target, changeOrigin: true },
+        '/s3':             { target, changeOrigin: true },
+        '/iam':            { target, changeOrigin: true },
+        '/lambda':         { target, changeOrigin: true },
+        '/dynamodb':       { target, changeOrigin: true },
+        '/sqs':            { target, changeOrigin: true },
+        '/sns':            { target, changeOrigin: true },
+        '/kms':            { target, changeOrigin: true },
+        '/ssm':            { target, changeOrigin: true },
+        '/cloudformation': { target, changeOrigin: true },
+        '/cloudwatch':     { target, changeOrigin: true },
+        '/cloudwatch-logs':{ target, changeOrigin: true },
+        '/secrets-manager':{ target, changeOrigin: true },
+        '/elasticache':    { target, changeOrigin: true },
+        '/rds':            { target, changeOrigin: true },
+        '/sesv2':          { target, changeOrigin: true },
+        '/kinesis':        { target, changeOrigin: true },
+        '/msk':            { target, changeOrigin: true },
+        '/opensearch':     { target, changeOrigin: true },
+        '/apigateway':     { target, changeOrigin: true },
+        '/step-functions': { target, changeOrigin: true },
+      },
     },
     build: {
       target: 'esnext',

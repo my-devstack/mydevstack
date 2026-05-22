@@ -65,6 +65,7 @@ describe('S3 Service', () => {
       const result = await listBuckets()
       expect(result).toHaveLength(1)
       expect(result[0].Name).toBe('my-bucket')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets')
     })
 
     it('handles empty response', async () => {
@@ -79,6 +80,8 @@ describe('S3 Service', () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       const result = await createBucket('my-bucket')
       expect(result.Location).toBe('/my-bucket')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Bucket).toBe('my-bucket')
     })
@@ -87,6 +90,8 @@ describe('S3 Service', () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       const service = new S3Service()
       await service.createBucket('my-bucket', { enableCors: true })
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Bucket).toBe('my-bucket')
       expect(body.CORSConfiguration).toBeDefined()
@@ -100,6 +105,12 @@ describe('S3 Service', () => {
       const service = new S3Service()
       await service.createBucket('my-bucket', { enableVersioning: true })
       expect(mockFetch).toHaveBeenCalledTimes(2)
+      // First call: POST create bucket
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+      // Second call: PUT versioning
+      expect(mockFetch.mock.calls[1][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/versioning')
+      expect(mockFetch.mock.calls[1][1].method).toBe('PUT')
       const versionBody = JSON.parse(mockFetch.mock.calls[1][1].body)
       expect(versionBody.VersioningConfiguration.Status).toBe('Enabled')
     })
@@ -111,6 +122,9 @@ describe('S3 Service', () => {
       const service = new S3Service()
       await service.createBucket('my-bucket', { encryptionType: 'AES256' })
       expect(mockFetch).toHaveBeenCalledTimes(2)
+      // Second call: PUT encryption
+      expect(mockFetch.mock.calls[1][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/encryption')
+      expect(mockFetch.mock.calls[1][1].method).toBe('PUT')
       const encBody = JSON.parse(mockFetch.mock.calls[1][1].body)
       expect(encBody.ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.SSEAlgorithm).toBe('AES256')
     })
@@ -134,6 +148,8 @@ describe('S3 Service', () => {
       const service = new S3Service()
       await service.createBucket('my-bucket', { tags: [{ Key: 'Env', Value: 'dev' }] })
       expect(mockFetch).toHaveBeenCalledTimes(2)
+      expect(mockFetch.mock.calls[1][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/tagging')
+      expect(mockFetch.mock.calls[1][1].method).toBe('PUT')
       const tagBody = JSON.parse(mockFetch.mock.calls[1][1].body)
       expect(tagBody.Tagging.TagSet).toEqual([{ Key: 'Env', Value: 'dev' }])
     })
@@ -145,6 +161,8 @@ describe('S3 Service', () => {
       const service = new S3Service()
       await service.createBucket('my-bucket', { blockPublicAccess: true })
       expect(mockFetch).toHaveBeenCalledTimes(2)
+      expect(mockFetch.mock.calls[1][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/public-access-block')
+      expect(mockFetch.mock.calls[1][1].method).toBe('PUT')
       const blockBody = JSON.parse(mockFetch.mock.calls[1][1].body)
       expect(blockBody.PublicAccessBlockConfiguration.BlockPublicAcls).toBe(true)
     })
@@ -157,6 +175,8 @@ describe('S3 Service', () => {
       const service = new S3Service()
       await service.createBucket('my-bucket', { bucketPolicy: policy })
       expect(mockFetch).toHaveBeenCalledTimes(2)
+      expect(mockFetch.mock.calls[1][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/policy')
+      expect(mockFetch.mock.calls[1][1].method).toBe('PUT')
       const policyBody = JSON.parse(mockFetch.mock.calls[1][1].body)
       expect(policyBody.Policy).toBe(policy)
     })
@@ -190,29 +210,37 @@ describe('S3 Service', () => {
   })
 
   describe('deleteBucket', () => {
-    it('sends Bucket name', async () => {
+    it('sends DELETE request with bucket name', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await deleteBucket('my-bucket')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.Bucket).toBe('my-bucket')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket')
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
     })
   })
 
   describe('emptyBucket', () => {
-    it('deletes all objects', async () => {
+    it('deletes all objects individually', async () => {
       mockFetch
         .mockResolvedValueOnce(mockResponse({ Contents: [{ Key: 'obj1' }, { Key: 'obj2' }] }))
         .mockResolvedValueOnce(mockResponse({}))
+        .mockResolvedValueOnce(mockResponse({}))
       await emptyBucket('my-bucket')
-      expect(mockFetch).toHaveBeenCalledTimes(2)
-      const body2 = JSON.parse(mockFetch.mock.calls[1][1].body)
-      expect(body2.Delete.Objects).toHaveLength(2)
+      expect(mockFetch).toHaveBeenCalledTimes(3)
+      // First call: list objects
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects')
+      // Second call: delete obj1
+      expect(mockFetch.mock.calls[1][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects/obj1')
+      expect(mockFetch.mock.calls[1][1].method).toBe('DELETE')
+      // Third call: delete obj2
+      expect(mockFetch.mock.calls[2][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects/obj2')
+      expect(mockFetch.mock.calls[2][1].method).toBe('DELETE')
     })
 
     it('handles empty bucket', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await emptyBucket('my-bucket')
       expect(mockFetch).toHaveBeenCalledTimes(1)
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects')
     })
 
     it('handles pagination', async () => {
@@ -226,15 +254,39 @@ describe('S3 Service', () => {
         .mockResolvedValueOnce(mockResponse({}))
       await emptyBucket('my-bucket')
       expect(mockFetch.mock.calls.length).toBe(4)
+      // First page: list + delete obj1
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects')
+      expect(mockFetch.mock.calls[1][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects/obj1')
+      expect(mockFetch.mock.calls[1][1].method).toBe('DELETE')
+      // Second page: list + delete obj2
+      expect(mockFetch.mock.calls[2][0]).toContain('/s3/buckets/my-bucket/objects?marker=token1')
+      expect(mockFetch.mock.calls[3][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects/obj2')
+      expect(mockFetch.mock.calls[3][1].method).toBe('DELETE')
     })
   })
 
   describe('headBucket', () => {
-    it('checks bucket exists', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
+    it('checks bucket exists with HEAD', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+        text: () => Promise.resolve(''),
+        json: () => Promise.resolve({}),
+      })
       await headBucket('my-bucket')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.Bucket).toBe('my-bucket')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket')
+      expect(mockFetch.mock.calls[0][1].method).toBe('HEAD')
+    })
+
+    it('throws on non-existent bucket', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+        headers: { get: () => null },
+        text: () => Promise.resolve('Not found'),
+      })
+      await expect(headBucket('no-bucket')).rejects.toThrow(/S3 headBucket failed/)
     })
   })
 
@@ -249,6 +301,7 @@ describe('S3 Service', () => {
       expect(result.objects[0].Key).toBe('file.txt')
       expect(result.objects[0].ETag).toBe('abc123')
       expect(result.prefixes).toEqual(['folder/'])
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects')
     })
 
     it('handles empty response', async () => {
@@ -259,12 +312,13 @@ describe('S3 Service', () => {
       expect(result.isTruncated).toBe(false)
     })
 
-    it('passes options as params', async () => {
+    it('passes options as query params', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await listObjects('my-bucket', { prefix: 'folder/', maxKeys: 10 })
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.prefix).toBe('folder/')
-      expect(body.maxKeys).toBe(10)
+      const url = mockFetch.mock.calls[0][0] as string
+      expect(url).toContain('/s3/buckets/my-bucket/objects?')
+      expect(url).toContain('prefix=folder%2F')
+      expect(url).toContain('maxKeys=10')
     })
 
     it('handles paginated response with IsTruncated and nextMarker', async () => {
@@ -284,6 +338,7 @@ describe('S3 Service', () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       const result = await listObjectsV2('my-bucket', { prefix: 'test/' })
       expect(result.objects).toEqual([])
+      expect(mockFetch.mock.calls[0][0]).toContain('/s3/buckets/my-bucket/objects?prefix=test%2F')
     })
   })
 
@@ -300,6 +355,7 @@ describe('S3 Service', () => {
       const result = await getObject('my-bucket', 'file.txt')
       expect(result.contentType).toBe('text/plain')
       expect(result.body.byteLength).toBe(5)
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects/file.txt')
     })
 
     it('throws on error response', async () => {
@@ -309,7 +365,7 @@ describe('S3 Service', () => {
         headers: new Headers({}),
         text: () => Promise.resolve('Not found'),
       })
-      await expect(getObject('my-bucket', 'missing.txt')).rejects.toThrow(/S3 GetObject failed/)
+      await expect(getObject('my-bucket', 'missing.txt')).rejects.toThrow(/S3 getObject failed/)
     })
 
     it('uses default content-type when header missing', async () => {
@@ -323,6 +379,7 @@ describe('S3 Service', () => {
       })
       const result = await getObject('my-bucket', 'file.bin')
       expect(result.contentType).toBe('application/octet-stream')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects/file.bin')
     })
   })
 
@@ -330,8 +387,12 @@ describe('S3 Service', () => {
     it('sends body as-is for string', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await putObject('my-bucket', 'file.txt', 'hello', 'text/plain')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.Key).toBe('file.txt')
       expect(body.Body).toBe('hello')
+      expect(body.ContentType).toBe('text/plain')
     })
 
     it('converts Uint8Array to Array', async () => {
@@ -343,31 +404,64 @@ describe('S3 Service', () => {
   })
 
   describe('deleteObject', () => {
-    it('sends Bucket and Key', async () => {
+    it('sends DELETE request with bucket and key', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await deleteObject('my-bucket', 'file.txt')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.Bucket).toBe('my-bucket')
-      expect(body.Key).toBe('file.txt')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects/file.txt')
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
     })
   })
 
   describe('headObject', () => {
-    it('returns metadata from response', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ ContentLength: 100, ContentType: 'text/plain', ETag: '"abc"', LastModified: '2024-01-01' }))
+    it('returns metadata from JSON body', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({}),
+        json: () => Promise.resolve({ ContentLength: 100, ContentType: 'text/plain', ETag: '"abc"', LastModified: '2024-01-01' }),
+        text: () => Promise.resolve(''),
+      })
       const result = await headObject('my-bucket', 'file.txt')
       expect(result.contentLength).toBe('100')
       expect(result.contentType).toBe('text/plain')
       expect(result.etag).toBe('abc')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects/file.txt')
+      expect(mockFetch.mock.calls[0][1].method).toBe('HEAD')
     })
 
     it('provides defaults for missing response fields', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({}),
+        json: () => Promise.resolve({}),
+        text: () => Promise.resolve(''),
+      })
       const result = await headObject('my-bucket', 'missing.txt')
       expect(result.contentLength).toBe('0')
       expect(result.contentType).toBe('')
       expect(result.etag).toBe('')
       expect(result.lastModified).toBe('')
+    })
+
+    it('falls back to response headers when JSON body unavailable', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({
+          'content-length': '200',
+          'content-type': 'image/png',
+          'etag': '"xyz"',
+          'last-modified': '2024-06-01',
+        }),
+        json: () => Promise.reject(new Error('no body')),
+        text: () => Promise.resolve(''),
+      })
+      const result = await headObject('my-bucket', 'img.png')
+      expect(result.contentLength).toBe('200')
+      expect(result.contentType).toBe('image/png')
+      expect(result.etag).toBe('xyz')
+      expect(result.lastModified).toBe('2024-06-01')
     })
   })
 
@@ -376,16 +470,21 @@ describe('S3 Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ Status: 'Enabled', MFADelete: 'Disabled' }))
       const result = await getBucketVersioning('my-bucket')
       expect(result.status).toBe('Enabled')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/versioning')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
   })
 
   describe('getBucketEncryption', () => {
     it('returns encryption info', async () => {
       mockFetch.mockResolvedValue(mockResponse({
-        ServerSideEncryptionRules: [{ ServerSideEncryptionAlgorithm: 'AES256' }],
+        ServerSideEncryptionConfiguration: {
+          Rules: [{ ApplyServerSideEncryptionByDefault: { SSEAlgorithm: 'AES256' } }],
+        },
       }))
       const result = await getBucketEncryption('my-bucket')
       expect(result.algorithm).toBe('AES256')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/encryption')
     })
 
     it('handles missing rules', async () => {
@@ -400,6 +499,7 @@ describe('S3 Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ TagSet: [{ Key: 'Env', Value: 'dev' }] }))
       const result = await getBucketTagging('my-bucket')
       expect(result.tags).toHaveLength(1)
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/tagging')
     })
   })
 
@@ -408,6 +508,7 @@ describe('S3 Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ Policy: '{}' }))
       const result = await getBucketPolicy('my-bucket')
       expect(result.Policy).toBe('{}')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/policy')
     })
 
     it('returns empty on 404', async () => {
@@ -424,7 +525,7 @@ describe('S3 Service', () => {
 
     it('throws non-matching errors', async () => {
       mockFetch.mockResolvedValue(mockResponse('AccessDenied', 403))
-      await expect(getBucketPolicy('my-bucket')).rejects.toThrow(/S3 GetBucketPolicy failed/)
+      await expect(getBucketPolicy('my-bucket')).rejects.toThrow(/S3 GET/)
     })
   })
 
@@ -432,6 +533,8 @@ describe('S3 Service', () => {
     it('adds trailing slash and calls putObject', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await createFolder('my-bucket', 'my-folder')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Key).toBe('my-folder/')
       expect(body.ContentType).toBe('application/directory')
@@ -450,6 +553,8 @@ describe('S3 Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ url: 'https://presigned.url' }))
       const result = await getPresignedUrl('my-bucket', 'file.txt')
       expect(result).toBe('https://presigned.url')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/presign-get')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Expires).toBe(3600)
     })
@@ -467,6 +572,8 @@ describe('S3 Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ url: 'https://upload.url' }))
       const result = await getPresignedUploadUrl('my-bucket', 'file.txt', 'text/plain')
       expect(result).toBe('https://upload.url')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/presign-put')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.ContentType).toBe('text/plain')
     })
@@ -481,8 +588,12 @@ describe('S3 Service', () => {
           LambdaFunctionConfigurations: [{ LambdaFunctionArn: 'arn:lambda:func', Events: ['s3:ObjectCreated:*'] }],
         },
       })
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/notification')
+      expect(mockFetch.mock.calls[0][1].method).toBe('PUT')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.NotificationConfiguration.LambdaFunctionConfigurations).toHaveLength(1)
+      // Bucket field should not be in body (it's in URL path)
+      expect(body.Bucket).toBeUndefined()
     })
   })
 
@@ -490,34 +601,19 @@ describe('S3 Service', () => {
     it('returns notification config', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await getNotificationConfig('my-bucket')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.Bucket).toBe('my-bucket')
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/notification')
     })
   })
 
   describe('Error handling', () => {
     it('throws APIError on server error', async () => {
       mockFetch.mockResolvedValue(mockResponse('Error', 500))
-      await expect(listBuckets()).rejects.toThrow(/S3 ListBuckets failed/)
+      await expect(listBuckets()).rejects.toThrow(/S3 GET/)
     })
 
     it('throws APIError on network error', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'))
-      await expect(listBuckets()).rejects.toThrow(/Failed to ListBuckets/)
-    })
-
-    it('returns empty for 204 responses', async () => {
-      mockFetch.mockResolvedValue(mock204Response())
-      const result = await headBucket('my-bucket')
-      expect(result).toEqual({})
-    })
-  })
-
-  describe('X-Amz-Target header', () => {
-    it('uses s3 prefix', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Buckets: [] }))
-      await listBuckets()
-      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('s3.ListBuckets')
+      await expect(listBuckets()).rejects.toThrow(/S3 request error/)
     })
   })
 })

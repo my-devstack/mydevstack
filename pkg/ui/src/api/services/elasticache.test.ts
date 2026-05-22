@@ -26,7 +26,7 @@ describe('ElastiCache Service', () => {
   })
 
   describe('describeReplicationGroups', () => {
-    it('returns parsed ReplicationGroups from XML', async () => {
+    it('correct REST endpoint and returns parsed ReplicationGroups from XML', async () => {
       const xml = `
         <DescribeReplicationGroupsResponse>
           <DescribeReplicationGroupsResult>
@@ -43,6 +43,13 @@ describe('ElastiCache Service', () => {
       `
       mockFetch.mockResolvedValue(mockXmlResponse(xml))
       const result = await describeReplicationGroups()
+
+      const [url, options] = mockFetch.mock.calls[0]
+      expect(url).toContain('/elasticache/replication-groups')
+      expect(options.method).toBe('GET')
+      expect(options.body).toBeUndefined()
+      expect(options.headers?.['X-Amz-Target']).toBeUndefined()
+
       expect(result).toHaveLength(1)
       expect(result[0].ReplicationGroupId).toBe('my-group')
       expect(result[0].Status).toBe('available')
@@ -58,7 +65,7 @@ describe('ElastiCache Service', () => {
   })
 
   describe('createReplicationGroup', () => {
-    it('returns ReplicationGroup from XML', async () => {
+    it('correct REST endpoint and returns ReplicationGroup from XML', async () => {
       const xml = `
         <CreateReplicationGroupResponse>
           <CreateReplicationGroupResult>
@@ -75,6 +82,12 @@ describe('ElastiCache Service', () => {
         Engine: 'valkey',
         CacheNodeType: 'cache.t3.micro',
       })
+
+      const [url, options] = mockFetch.mock.calls[0]
+      expect(url).toContain('/elasticache/replication-groups')
+      expect(options.method).toBe('POST')
+      expect(options.headers?.['X-Amz-Target']).toBeUndefined()
+
       expect(result.ReplicationGroupId).toBe('my-group')
     })
 
@@ -85,7 +98,10 @@ describe('ElastiCache Service', () => {
         ReplicationGroupId: 'my-group',
         Engine: 'valkey',
       })
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      const [url, options] = mockFetch.mock.calls[0]
+      expect(url).toContain('/elasticache/replication-groups')
+      expect(options.method).toBe('POST')
+      const body = JSON.parse(options.body)
       expect(body.ReplicationGroupId).toBe('my-group')
       expect(body.Engine).toBe('valkey')
       expect(body.CacheNodeType).toBe('cache.t3.micro')
@@ -95,11 +111,24 @@ describe('ElastiCache Service', () => {
   })
 
   describe('deleteReplicationGroup', () => {
-    it('sends ReplicationGroupId', async () => {
+    it('sends DELETE with encoded ID in URL and ReplicationGroupId in body', async () => {
       mockFetch.mockResolvedValue(mockXmlResponse('', 200))
       await deleteReplicationGroup('my-group')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+
+      const [url, options] = mockFetch.mock.calls[0]
+      expect(url).toContain('/elasticache/replication-groups/my-group')
+      expect(options.method).toBe('DELETE')
+      expect(options.headers?.['X-Amz-Target']).toBeUndefined()
+      const body = JSON.parse(options.body)
       expect(body.ReplicationGroupId).toBe('my-group')
+    })
+
+    it('encodes special characters in group ID', async () => {
+      mockFetch.mockResolvedValue(mockXmlResponse('', 200))
+      await deleteReplicationGroup('my/group+name')
+
+      const [url] = mockFetch.mock.calls[0]
+      expect(url).toContain('/elasticache/replication-groups/my%2Fgroup%2Bname')
     })
   })
 
@@ -119,14 +148,6 @@ describe('ElastiCache Service', () => {
     it('throws APIError with 500 on network error', async () => {
       mockFetch.mockRejectedValue(new Error('Network failure'))
       await expect(describeReplicationGroups()).rejects.toThrow(/Failed to/)
-    })
-  })
-
-  describe('X-Amz-Target header', () => {
-    it('sets correct target', async () => {
-      mockFetch.mockResolvedValue(mockXmlResponse('<root/>', 200))
-      await describeReplicationGroups()
-      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('elasticache.DescribeReplicationGroups')
     })
   })
 })

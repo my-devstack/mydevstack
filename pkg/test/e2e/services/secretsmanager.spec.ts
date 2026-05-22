@@ -176,7 +176,7 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
     await page.waitForLoadState('networkidle')
 
     // Wait for modal to close
-    await expect(editHeading).not.toBeVisible({ timeout: 15000 })
+    await expect(editDialog).not.toBeVisible({ timeout: 15000 })
 
     // Reload and verify new value — re-query secretDiv after reload (stale ref fix)
     await page.reload({ waitUntil: 'networkidle' })
