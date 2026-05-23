@@ -11,8 +11,8 @@ import (
 const apiDir = "pkg/proxy/api"
 
 func main() {
-	entry := filepath.Join(apiDir, "openapi.yaml")
-	out := filepath.Join(apiDir, "openapi.bundled.yaml")
+	entry := filepath.Join(apiDir, "openapi.definitions.yaml")
+	out := filepath.Join(apiDir, "openapi.yaml")
 
 	fmt.Println("Loading entry:", entry)
 	spec := loadYAML(entry)
@@ -24,15 +24,15 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Error: no 'services' list in spec")
 		os.Exit(1)
 	}
-	svcFiles, ok := svcFilesRaw.([]interface{})
+	svcFiles, ok := svcFilesRaw.([]any)
 	if !ok {
 		fmt.Fprintln(os.Stderr, "Error: 'services' must be a list")
 		os.Exit(1)
 	}
 
-	allPaths := map[string]interface{}{}
-	allSchemas := map[string]interface{}{}
-	allParams := map[string]interface{}{}
+	allPaths := map[string]any{}
+	allSchemas := map[string]any{}
+	allParams := map[string]any{}
 
 	for _, svcRaw := range svcFiles {
 		svcFile, ok := svcRaw.(string)
@@ -95,7 +95,7 @@ func main() {
 
 	// 3. Assemble bundled spec
 	fmt.Println("3. Assembling bundled spec...")
-	bundled := map[string]interface{}{
+	bundled := map[string]any{
 		"openapi": "3.0.0",
 		"info":    spec["info"],
 	}
@@ -109,7 +109,7 @@ func main() {
 
 	bundled["paths"] = allPaths
 
-	components := map[string]interface{}{}
+	components := map[string]any{}
 	if len(allSchemas) > 0 {
 		components["schemas"] = allSchemas
 	}
@@ -154,13 +154,13 @@ func main() {
 }
 
 // loadYAML reads and parses a YAML file.
-func loadYAML(path string) map[string]interface{} {
+func loadYAML(path string) map[string]any {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading %s: %v\n", path, err)
 		os.Exit(1)
 	}
-	var result map[string]interface{}
+	var result map[string]any
 	if err := yaml.Unmarshal(data, &result); err != nil {
 		fmt.Fprintf(os.Stderr, "Error parsing %s: %v\n", path, err)
 		os.Exit(1)
@@ -169,7 +169,7 @@ func loadYAML(path string) map[string]interface{} {
 }
 
 // getMap navigates nested map keys safely.
-func getMap(m map[string]interface{}, keys ...string) map[string]interface{} {
+func getMap(m map[string]any, keys ...string) map[string]any {
 	current := m
 	for i, k := range keys {
 		v, ok := current[k]
@@ -177,12 +177,12 @@ func getMap(m map[string]interface{}, keys ...string) map[string]interface{} {
 			return nil
 		}
 		if i == len(keys)-1 {
-			if vm, ok := v.(map[string]interface{}); ok {
+			if vm, ok := v.(map[string]any); ok {
 				return vm
 			}
 			return nil
 		}
-		if vm, ok := v.(map[string]interface{}); ok {
+		if vm, ok := v.(map[string]any); ok {
 			current = vm
 		} else {
 			return nil
