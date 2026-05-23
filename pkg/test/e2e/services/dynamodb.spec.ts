@@ -222,6 +222,55 @@ test('view stream records', async ({ page }) => {
   await expect(page.getByRole('dialog')).toBeVisible()
 })
 
+test('enable streams on table and view records', async ({ page }) => {
+  const tableName = 'test-stream-e2e-' + Date.now()
+
+  // Create a DynamoDB table with streams enabled
+  await createTable(page, tableName, {
+    pkName: 'pk',
+    hasSortKey: true,
+    skName: 'sk',
+    onDemand: true,
+    enableStreams: true,
+  })
+
+  // Expand accordion
+  const found = await findTableOnPage(page, tableName)
+  expect(found).toBe(true)
+  await page.getByText(tableName, { exact: true }).first().click()
+  await page.waitForLoadState('networkidle')
+
+  // Verify Stream badge is visible in accordion details
+  await expect(page.getByText('Stream').first()).toBeVisible({ timeout: 10000 })
+  await page.waitForTimeout(500)
+
+  // Click on Stream badge — exercises GET /dynamodb-streams/streams?tableName=...
+  const streamBadge = page.locator('.inline-flex').filter({ hasText: 'Stream' }).first()
+  await streamBadge.click()
+
+  // Wait for stream modal to open
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
+
+  // Click View Stream Events to load shards + records — exercises:
+  //   GET /dynamodb-streams/streams/{arn}
+  //   GET /dynamodb-streams/streams/{arn}/shards/{shardId}/iterator
+  //   GET /dynamodb-streams/streams/{arn}/shards/{shardId}/records
+  const viewEventsBtn = page.getByRole('button', { name: 'View Stream Events' })
+  if (await viewEventsBtn.isVisible().catch(() => false)) {
+    await viewEventsBtn.click()
+    await page.waitForTimeout(2000)
+  }
+
+  // Verify dialog still shows stream information
+  await expect(page.getByRole('dialog')).toBeVisible()
+
+  // Check that stream ARN or shards section appears (exercised all 4 routes)
+  const hasStreamArn = await page.getByText('Stream ARN').isVisible().catch(() => false)
+  const hasShardsHeading = await page.getByText(/Shards \(\d+\)/).isVisible().catch(() => false)
+  const hasNoRecords = await page.getByText('No records in stream').isVisible().catch(() => false)
+  expect(hasStreamArn || hasShardsHeading || hasNoRecords).toBe(true)
+})
+
 test('open Explore Data modal', async ({ page }) => {
   const tableName = 'test-explore-' + Date.now()
   

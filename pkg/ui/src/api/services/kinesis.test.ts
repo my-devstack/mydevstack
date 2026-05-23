@@ -53,9 +53,9 @@ describe('Kinesis Service', () => {
     it('passes ExclusiveStartStreamName and Limit as query params', async () => {
       mockFetch.mockResolvedValue(mockResponse({ StreamNames: ['stream1'] }))
       await listStreams({ ExclusiveStartStreamName: 'stream0', Limit: 10 })
-      const url = mockFetch.mock.calls[0][0] as string
-      expect(url).toContain('ExclusiveStartStreamName=stream0')
-      expect(url).toContain('Limit=10')
+      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\?/)
+      expect(mockFetch.mock.calls[0][0]).toContain('ExclusiveStartStreamName=stream0')
+      expect(mockFetch.mock.calls[0][0]).toContain('Limit=10')
       expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
   })
