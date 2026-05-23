@@ -371,6 +371,109 @@ paths:
               schema:
                 $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
 
+  # ============================================================
+  # Custom Verification Email Templates
+  # ============================================================
+  /sesv2/custom-verification-email-templates:
+    get:
+      tags: [SES]
+      summary: List custom verification email templates
+      operationId: listCustomVerificationEmailTemplates
+      responses:
+        "200":
+          description: List of custom verification email templates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCustomVerificationEmailTemplatesOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sesv2/custom-verification-email-templates/{templateName}:
+    get:
+      tags: [SES]
+      summary: Get custom verification email template
+      operationId: getCustomVerificationEmailTemplate
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TemplateNamePath'
+      responses:
+        "200":
+          description: Custom verification email template details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCustomVerificationEmailTemplateOutput'
+        "404":
+          description: Template not found
+        "500":
+          description: Internal server error
+
+  # ============================================================
+  # Dedicated IP Pools
+  # ============================================================
+  /sesv2/dedicated-ip-pools:
+    get:
+      tags: [SES]
+      summary: List dedicated IP pools
+      operationId: listDedicatedIpPools
+      responses:
+        "200":
+          description: List of dedicated IP pools
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDedicatedIpPoolsOutput'
+
+  /sesv2/dedicated-ip-pools/{poolName}:
+    get:
+      tags: [SES]
+      summary: Get dedicated IP pool
+      operationId: getDedicatedIpPool
+      parameters:
+        - name: poolName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dedicated IP pool details
+
+  /sesv2/dedicated-ip-pools/{poolName}/warmup:
+    get:
+      tags: [SES]
+      summary: Get dedicated IP pool warmup attributes
+      operationId: getDedicatedIpPoolWarmupAttributes
+      parameters:
+        - name: poolName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Warmup attributes
+
+  # ============================================================
+  # Suppressed Destinations
+  # ============================================================
+  /sesv2/suppressed-destinations:
+    get:
+      tags: [SES]
+      summary: List suppressed destinations
+      operationId: listSuppressedDestinations
+      responses:
+        "200":
+          description: List of suppressed destinations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSuppressedDestinationsOutput'
+
 components:
   schemas:
     # ============================================================
@@ -901,3 +1004,73 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/BulkEmailEntryResult'
+
+    # ============================================================
+    # Custom Verification Email Templates
+    # ============================================================
+    ListCustomVerificationEmailTemplatesOutput:
+      type: object
+      properties:
+        CustomVerificationEmailTemplates:
+          type: array
+          items:
+            type: object
+            properties:
+              TemplateName:
+                type: string
+              FromEmailAddress:
+                type: string
+              TemplateSubject:
+                type: string
+              SuccessRedirectionURL:
+                type: string
+              FailureRedirectionURL:
+                type: string
+
+    GetCustomVerificationEmailTemplateOutput:
+      type: object
+      properties:
+        TemplateName:
+          type: string
+        FromEmailAddress:
+          type: string
+        TemplateSubject:
+          type: string
+        TemplateContent:
+          type: string
+        SuccessRedirectionURL:
+          type: string
+        FailureRedirectionURL:
+          type: string
+
+    # ============================================================
+    # Dedicated IP Pools
+    # ============================================================
+    ListDedicatedIpPoolsOutput:
+      type: object
+      properties:
+        DedicatedIpPools:
+          type: array
+          items:
+            type: object
+            properties:
+              PoolName:
+                type: string
+
+    # ============================================================
+    # Suppressed Destinations
+    # ============================================================
+    ListSuppressedDestinationsOutput:
+      type: object
+      properties:
+        SuppressedDestinationSummaries:
+          type: array
+          items:
+            type: object
+            properties:
+              EmailAddress:
+                type: string
+              Reason:
+                type: string
+              LastUpdateTime:
+                type: string

@@ -3596,6 +3596,21 @@ components:
             $ref: '#/components/schemas/CompatibleVersionsMap'
           type: array
       type: object
+    GetCustomVerificationEmailTemplateOutput:
+      properties:
+        FailureRedirectionURL:
+          type: string
+        FromEmailAddress:
+          type: string
+        SuccessRedirectionURL:
+          type: string
+        TemplateContent:
+          type: string
+        TemplateName:
+          type: string
+        TemplateSubject:
+          type: string
+      type: object
     GetDeploymentsOutput:
       properties:
         items:
@@ -6183,6 +6198,34 @@ components:
           description: Pagination token
           type: string
       type: object
+    ListCustomVerificationEmailTemplatesOutput:
+      properties:
+        CustomVerificationEmailTemplates:
+          items:
+            properties:
+              FailureRedirectionURL:
+                type: string
+              FromEmailAddress:
+                type: string
+              SuccessRedirectionURL:
+                type: string
+              TemplateName:
+                type: string
+              TemplateSubject:
+                type: string
+            type: object
+          type: array
+      type: object
+    ListDedicatedIpPoolsOutput:
+      properties:
+        DedicatedIpPools:
+          items:
+            properties:
+              PoolName:
+                type: string
+            type: object
+          type: array
+      type: object
     ListDomainNamesInput:
       properties:
         EngineType:
@@ -6646,6 +6689,20 @@ components:
         Subscriptions:
           items:
             $ref: '#/components/schemas/Subscription'
+          type: array
+      type: object
+    ListSuppressedDestinationsOutput:
+      properties:
+        SuppressedDestinationSummaries:
+          items:
+            properties:
+              EmailAddress:
+                type: string
+              LastUpdateTime:
+                type: string
+              Reason:
+                type: string
+            type: object
           type: array
       type: object
     ListTablesInput:
@@ -18706,6 +18763,87 @@ paths:
       summary: Put secret value
       tags:
         - Secrets Manager
+  /sesv2/custom-verification-email-templates:
+    get:
+      operationId: listCustomVerificationEmailTemplates
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCustomVerificationEmailTemplatesOutput'
+          description: List of custom verification email templates
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List custom verification email templates
+      tags:
+        - SES
+  /sesv2/custom-verification-email-templates/{templateName}:
+    get:
+      operationId: getCustomVerificationEmailTemplate
+      parameters:
+        - $ref: ../common/_parameters.yaml#/components/parameters/TemplateNamePath
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCustomVerificationEmailTemplateOutput'
+          description: Custom verification email template details
+        "404":
+          description: Template not found
+        "500":
+          description: Internal server error
+      summary: Get custom verification email template
+      tags:
+        - SES
+  /sesv2/dedicated-ip-pools:
+    get:
+      operationId: listDedicatedIpPools
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDedicatedIpPoolsOutput'
+          description: List of dedicated IP pools
+      summary: List dedicated IP pools
+      tags:
+        - SES
+  /sesv2/dedicated-ip-pools/{poolName}:
+    get:
+      operationId: getDedicatedIpPool
+      parameters:
+        - in: path
+          name: poolName
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dedicated IP pool details
+      summary: Get dedicated IP pool
+      tags:
+        - SES
+  /sesv2/dedicated-ip-pools/{poolName}/warmup:
+    get:
+      operationId: getDedicatedIpPoolWarmupAttributes
+      parameters:
+        - in: path
+          name: poolName
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Warmup attributes
+      summary: Get dedicated IP pool warmup attributes
+      tags:
+        - SES
   /sesv2/email-identities:
     get:
       description: |
@@ -19059,6 +19197,19 @@ paths:
                 $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
           description: Internal server error
       summary: Send email
+      tags:
+        - SES
+  /sesv2/suppressed-destinations:
+    get:
+      operationId: listSuppressedDestinations
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSuppressedDestinationsOutput'
+          description: List of suppressed destinations
+      summary: List suppressed destinations
       tags:
         - SES
   /sns/publish:

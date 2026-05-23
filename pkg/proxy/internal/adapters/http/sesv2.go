@@ -17,30 +17,12 @@ func (h *ProxyHandler) registerSESRoutes(r chi.Router) {
 
 		r.Post("/email/send", h.sendEmail)
 
-		r.Get("/suppressed-destinations/{email}", h.getSuppressedDestination)
 		r.Get("/suppressed-destinations", h.listSuppressedDestinations)
-		r.Put("/suppressed-destinations/{email}", h.putSuppressedDestination)
-		r.Delete("/suppressed-destinations/{email}", h.deleteSuppressedDestination)
-
-		r.Get("/dedicated-ips", h.getDedicatedIps)
-		r.Get("/dedicated-ips/{ip}", h.getDedicatedIp)
-		r.Post("/dedicated-ip-pools", h.createDedicatedIpPool)
 		r.Get("/dedicated-ip-pools", h.listDedicatedIpPools)
 		r.Get("/dedicated-ip-pools/{poolName}", h.getDedicatedIpPool)
-		r.Delete("/dedicated-ip-pools/{poolName}", h.deleteDedicatedIpPool)
-		r.Put("/dedicated-ip-pools/{poolName}/warmup", h.putDedicatedIpWarmupAttributes)
 		r.Get("/dedicated-ip-pools/{poolName}/warmup", h.getDedicatedIpWarmupAttributes)
-
-		r.Get("/account", h.getAccount)
-		r.Post("/deliverability-test", h.createDeliverabilityTestReport)
-		r.Get("/recommendations", h.listRecommendations)
-
-		r.Post("/custom-verification-email-templates", h.createCustomVerificationEmailTemplate)
 		r.Get("/custom-verification-email-templates", h.listCustomVerificationEmailTemplates)
 		r.Get("/custom-verification-email-templates/{templateName}", h.getCustomVerificationEmailTemplate)
-		r.Put("/custom-verification-email-templates/{templateName}", h.updateCustomVerificationEmailTemplate)
-		r.Delete("/custom-verification-email-templates/{templateName}", h.deleteCustomVerificationEmailTemplate)
-		r.Post("/custom-verification-email-templates/{templateName}/test", h.testRenderEmailTemplate)
 
 		// Email templates (standard)
 		r.Get("/email-templates", h.listEmailTemplates)
@@ -208,36 +190,8 @@ func (h *ProxyHandler) deleteEmailTemplate(w http.ResponseWriter, r *http.Reques
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getAccount(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "getAccount not yet implemented"})
-}
-
-func (h *ProxyHandler) getSuppressedDestination(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "getSuppressedDestination not yet implemented"})
-}
-
 func (h *ProxyHandler) listSuppressedDestinations(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"suppressedDestinations": []interface{}{}})
-}
-
-func (h *ProxyHandler) putSuppressedDestination(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "putSuppressedDestination not yet implemented"})
-}
-
-func (h *ProxyHandler) deleteSuppressedDestination(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "deleteSuppressedDestination not yet implemented"})
-}
-
-func (h *ProxyHandler) getDedicatedIps(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"ips": []interface{}{}})
-}
-
-func (h *ProxyHandler) getDedicatedIp(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "getDedicatedIp not yet implemented"})
-}
-
-func (h *ProxyHandler) createDedicatedIpPool(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "createDedicatedIpPool not yet implemented"})
 }
 
 func (h *ProxyHandler) listDedicatedIpPools(w http.ResponseWriter, r *http.Request) {
@@ -248,28 +202,8 @@ func (h *ProxyHandler) getDedicatedIpPool(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "getDedicatedIpPool not yet implemented"})
 }
 
-func (h *ProxyHandler) deleteDedicatedIpPool(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "deleteDedicatedIpPool not yet implemented"})
-}
-
-func (h *ProxyHandler) putDedicatedIpWarmupAttributes(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "putDedicatedIpWarmupAttributes not yet implemented"})
-}
-
 func (h *ProxyHandler) getDedicatedIpWarmupAttributes(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "getDedicatedIpWarmupAttributes not yet implemented"})
-}
-
-func (h *ProxyHandler) createDeliverabilityTestReport(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "createDeliverabilityTestReport not yet implemented"})
-}
-
-func (h *ProxyHandler) listRecommendations(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"recommendations": []interface{}{}})
-}
-
-func (h *ProxyHandler) createCustomVerificationEmailTemplate(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "createCustomVerificationEmailTemplate not yet implemented"})
 }
 
 func (h *ProxyHandler) listCustomVerificationEmailTemplates(w http.ResponseWriter, r *http.Request) {
@@ -278,16 +212,4 @@ func (h *ProxyHandler) listCustomVerificationEmailTemplates(w http.ResponseWrite
 
 func (h *ProxyHandler) getCustomVerificationEmailTemplate(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "getCustomVerificationEmailTemplate not yet implemented"})
-}
-
-func (h *ProxyHandler) updateCustomVerificationEmailTemplate(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "updateCustomVerificationEmailTemplate not yet implemented"})
-}
-
-func (h *ProxyHandler) deleteCustomVerificationEmailTemplate(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "deleteCustomVerificationEmailTemplate not yet implemented"})
-}
-
-func (h *ProxyHandler) testRenderEmailTemplate(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "testRenderEmailTemplate not yet implemented"})
 }
