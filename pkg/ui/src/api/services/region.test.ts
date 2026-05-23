@@ -26,8 +26,8 @@ describe('Region Service', () => {
     it('posts region to backend', async () => {
       mockPost.mockResolvedValue({ data: { region: 'us-west-2', message: 'Region set' } })
       const result = await setRegion('us-west-2')
-      expect(result.data.region).toBe('us-west-2')
-      expect(result.data.message).toBe('Region set')
+      expect(result.region).toBe('us-west-2')
+      expect(result.message).toBe('Region set')
       expect(mockPost).toHaveBeenCalledWith('/proxy/region', { region: 'us-west-2' })
     })
   })

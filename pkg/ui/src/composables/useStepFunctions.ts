@@ -12,6 +12,7 @@ export interface StateMachineItem {
   creationDate?: string
   description?: string
   definition?: string
+  roleArn?: string
 }
 
 export interface ExecutionItem {

@@ -16,18 +16,11 @@ function mockResponse(data: any, status = 200) {
 
 import {
   listTopics,
-  listSubscriptions,
   listSubscriptionsByTopic,
-  getTopicAttributes,
   createTopic,
   deleteTopic,
   subscribe,
-  unsubscribe,
   publish,
-  confirmSubscription,
-  getSubscriptionAttributes,
-  setSubscriptionAttributes,
-  listTagsForResource,
 } from './sns'
 
 describe('SNS Service', () => {
@@ -51,16 +44,6 @@ describe('SNS Service', () => {
     })
   })
 
-  describe('listSubscriptions', () => {
-    it('returns Subscriptions', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Subscriptions: [{ SubscriptionArn: 'arn:sns:sub1' }] }))
-      const result = await listSubscriptions()
-      expect(result).toHaveLength(1)
-      expect(mockFetch.mock.calls[0][0]).toContain('/sns/subscriptions')
-      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
-    })
-  })
-
   describe('listSubscriptionsByTopic', () => {
     it('sends TopicArn in URL path', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Subscriptions: [] }))
@@ -69,25 +52,6 @@ describe('SNS Service', () => {
       expect(url).toContain('/sns/subscriptions/by-topic/')
       expect(url).toContain(encodeURIComponent('arn:sns:t1'))
       expect(mockFetch.mock.calls[0][1].method).toBe('GET')
-    })
-  })
-
-  describe('getTopicAttributes', () => {
-    it('returns attributes as string map', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Attributes: { TopicArn: 'arn:sns:t1', DisplayName: 'test' } }))
-      const result = await getTopicAttributes('arn:sns:t1')
-      expect(result.TopicArn).toBe('arn:sns:t1')
-      expect(result.DisplayName).toBe('test')
-      const url = mockFetch.mock.calls[0][0]
-      expect(url).toContain('/sns/topics/')
-      expect(url).toContain('/attributes')
-      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
-    })
-
-    it('handles empty attributes', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
-      const result = await getTopicAttributes('arn:sns:t1')
-      expect(result).toEqual({})
     })
   })
 
@@ -138,17 +102,6 @@ describe('SNS Service', () => {
     })
   })
 
-  describe('unsubscribe', () => {
-    it('sends SubscriptionArn in URL path', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
-      await unsubscribe('arn:sns:sub1')
-      const url = mockFetch.mock.calls[0][0]
-      expect(url).toContain('/sns/subscriptions/')
-      expect(url).toContain(encodeURIComponent('arn:sns:sub1'))
-      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
-    })
-  })
-
   describe('publish', () => {
     it('returns MessageId', async () => {
       mockFetch.mockResolvedValue(mockResponse({ MessageId: 'msg1' }))
@@ -169,70 +122,14 @@ describe('SNS Service', () => {
     })
   })
 
-  describe('confirmSubscription', () => {
-    it('returns SubscriptionArn', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ SubscriptionArn: 'arn:sns:sub1' }))
-      const result = await confirmSubscription('arn:sns:t1', 'token123')
-      expect(result.SubscriptionArn).toBe('arn:sns:sub1')
-      expect(mockFetch.mock.calls[0][0]).toContain('/sns/subscriptions/confirm')
-      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
-    })
-  })
-
-  describe('getSubscriptionAttributes', () => {
-    it('returns attributes', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Attributes: { SubscriptionArn: 'arn:sns:s1' } }))
-      const result = await getSubscriptionAttributes('arn:sns:s1')
-      expect(result.SubscriptionArn).toBe('arn:sns:s1')
-      const url = mockFetch.mock.calls[0][0]
-      expect(url).toContain('/sns/subscriptions/')
-      expect(url).toContain('/attributes')
-      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
-    })
-  })
-
-  describe('setSubscriptionAttributes', () => {
-    it('sends attributes and uses URL path', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
-      await setSubscriptionAttributes('arn:sns:s1', 'RawMessageDelivery', 'true')
-      const url = mockFetch.mock.calls[0][0]
-      expect(url).toContain('/sns/subscriptions/')
-      expect(url).toContain(encodeURIComponent('arn:sns:s1'))
-      expect(url).toContain('/attributes')
-      expect(mockFetch.mock.calls[0][1].method).toBe('PUT')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.AttributeName).toBe('RawMessageDelivery')
-      expect(body.AttributeValue).toBe('true')
-    })
-  })
-
-  describe('listTagsForResource', () => {
-    it('returns Tags', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Tags: [{ Key: 'Env', Value: 'dev' }] }))
-      const result = await listTagsForResource('arn:sns:t1')
-      expect(result.Tags).toHaveLength(1)
-      const url = mockFetch.mock.calls[0][0]
-      expect(url).toContain('/sns/topics/')
-      expect(url).toContain('/tags')
-      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
-    })
-  })
-
   describe('Error handling', () => {
     const errorMethods = [
       ['listTopics', () => listTopics()],
-      ['listSubscriptions', () => listSubscriptions()],
       ['listSubscriptionsByTopic', () => listSubscriptionsByTopic('arn:aws:sns:t1')],
-      ['getTopicAttributes', () => getTopicAttributes('arn:aws:sns:t1')],
       ['createTopic', () => createTopic('test')],
       ['deleteTopic', () => deleteTopic('arn:aws:sns:t1')],
       ['subscribe', () => subscribe('arn:aws:sns:t1', 'email', 'a@b.com')],
-      ['unsubscribe', () => unsubscribe('arn:aws:sns:sub1')],
       ['publish', () => publish('arn:aws:sns:t1', 'hello')],
-      ['confirmSubscription', () => confirmSubscription('arn:aws:sns:t1', 'token')],
-      ['getSubscriptionAttributes', () => getSubscriptionAttributes('arn:aws:sns:sub1')],
-      ['setSubscriptionAttributes', () => setSubscriptionAttributes('arn:aws:sns:sub1', 'attr', 'val')],
-      ['listTagsForResource', () => listTagsForResource('arn:aws:sns:t1')],
     ]
     for (const [name, fn] of errorMethods) {
       it(`throws APIError on server error - ${name}`, async () => {

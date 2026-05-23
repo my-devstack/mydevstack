@@ -40,6 +40,7 @@ export default defineConfig(({ mode }) => {
         '/iam':            { target, changeOrigin: true },
         '/lambda':         { target, changeOrigin: true },
         '/dynamodb':       { target, changeOrigin: true },
+        '/dynamodb-streams': { target, changeOrigin: true },
         '/sqs':            { target, changeOrigin: true },
         '/sns':            { target, changeOrigin: true },
         '/kms':            { target, changeOrigin: true },

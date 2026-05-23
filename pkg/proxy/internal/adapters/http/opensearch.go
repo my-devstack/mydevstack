@@ -16,26 +16,12 @@ func (h *ProxyHandler) registerOpenSearchRoutes(r chi.Router) {
 		r.Put("/domains/{domainName}/config", h.updateDomainConfig)
 		r.Get("/domains/{domainName}/config", h.describeDomainConfig)
 		r.Delete("/domains/{domainName}", h.deleteDomain)
-		r.Post("/domains/{domainName}/upgrade", h.upgradeDomain)
-		r.Get("/domains/{domainName}/auto-tones", h.describeDomainAutoTunes)
-
 		r.Post("/tags", h.addOpenSearchTags)
 		r.Delete("/tags", h.removeOpenSearchTags)
 		r.Get("/tags", h.listOpenSearchTags)
 
 		r.Get("/compatible-versions", h.getCompatibleVersions)
-		r.Get("/versions", h.listVersions)
 
-		r.Get("/reserved-instances", h.describeReservedInstances)
-		r.Get("/reserved-instance-offerings", h.describeReservedInstanceOfferings)
-		r.Post("/reserved-instance-offerings/{offeringId}/purchase", h.purchaseReservedInstanceOffering)
-
-		r.Get("/instance-type-details", h.listInstanceTypeDetails)
-
-		r.Get("/packages", h.listPackages)
-		r.Post("/packages", h.associatePackage)
-		r.Delete("/packages/{packageId}", h.dissociatePackage)
-		r.Get("/packages/{packageId}", h.describePackages)
 	})
 }
 
@@ -181,48 +167,4 @@ func (h *ProxyHandler) getCompatibleVersions(w http.ResponseWriter, r *http.Requ
 	writeJSON(w, http.StatusOK, result)
 }
 
-// Stub functions for OpenSearch routes not yet implemented.
 
-func (h *ProxyHandler) upgradeDomain(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "upgradeDomain not yet implemented"})
-}
-
-func (h *ProxyHandler) describeDomainAutoTunes(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"autoTunes": []interface{}{}})
-}
-
-func (h *ProxyHandler) listVersions(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"versions": []string{}})
-}
-
-func (h *ProxyHandler) describeReservedInstances(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"reservedInstances": []interface{}{}})
-}
-
-func (h *ProxyHandler) describeReservedInstanceOfferings(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"offerings": []interface{}{}})
-}
-
-func (h *ProxyHandler) purchaseReservedInstanceOffering(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "purchaseReservedInstanceOffering not yet implemented"})
-}
-
-func (h *ProxyHandler) listInstanceTypeDetails(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"instanceTypeDetails": []interface{}{}})
-}
-
-func (h *ProxyHandler) listPackages(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"packages": []interface{}{}})
-}
-
-func (h *ProxyHandler) associatePackage(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "associatePackage not yet implemented"})
-}
-
-func (h *ProxyHandler) dissociatePackage(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "dissociatePackage not yet implemented"})
-}
-
-func (h *ProxyHandler) describePackages(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"message": "describePackages not yet implemented"})
-}

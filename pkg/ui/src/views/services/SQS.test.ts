@@ -5,12 +5,12 @@ import { ref } from 'vue'
 
 vi.mock('@/composables/useSQS', () => ({
   useSQS: () => ({
-    queues: ref([]),
+    queues: ref<any[]>([]),
     loading: ref(false),
-    expandedQueues: ref({}),
-    queueAttributesMap: ref({}),
-    queueArnMap: ref({}),
-    messages: ref([]),
+    expandedQueues: ref<Record<string, any>>({}),
+    queueAttributesMap: ref<Record<string, any>>({}),
+    queueArnMap: ref<Record<string, any>>({}),
+    messages: ref<any[]>([]),
     loadingMessages: ref(false),
     codeExamples: {},
     loadQueues: vi.fn(),

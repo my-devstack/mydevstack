@@ -135,6 +135,45 @@ test.describe('Kinesis', () => {
     await expect(page.getByText(streamName).first()).toBeVisible({ timeout: 15000 })
   })
 
+  test('get records from stream', async ({ page }) => {
+    const streamName = `test-records-${Date.now()}`
+    await page.goto('/#/services/kinesis')
+    await page.waitForLoadState('networkidle')
+
+    // Create a stream first
+    await page.getByRole('button', { name: 'Create Stream' }).first().click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
+    await page.getByLabel('Stream Name').fill(streamName)
+    await page.getByLabel('Number of Shards').fill('1')
+    await page.getByRole('button', { name: 'Create' }).last().click()
+
+    // Wait for stream to appear
+    await page.waitForTimeout(2000)
+    const found = await findStreamOnPage(page, streamName)
+    expect(found).toBe(true)
+
+    // Click on the stream row to expand accordion (loads shards)
+    await page.getByText(streamName).first().click()
+    await page.waitForTimeout(2000)
+
+    // Put a record (so there's data to get)
+    await page.getByRole('button', { name: 'Put Record' }).first().click()
+    await expect(page.getByRole('heading', { name: 'Put Record' })).toBeVisible({ timeout: 15000 })
+    await page.getByLabel('Partition Key').fill('partition-key-1')
+    await page.locator('textarea').fill('{"message": "hello world"}')
+    await page.getByRole('button', { name: 'Put Record' }).last().click()
+    await expect(page.getByText(streamName).first()).toBeVisible({ timeout: 15000 })
+
+    // Click Get Records on first shard — exercises:
+    //   POST /kinesis/streams/{name}/shards/{shardId}/iterator
+    //   POST /kinesis/streams/{name}/shards/{shardId}/records
+    await page.getByRole('button', { name: 'Get Records' }).first().click()
+
+    // Wait for records to load and verify data appears
+    await page.waitForTimeout(2000)
+    await expect(page.getByText('hello world').first()).toBeVisible({ timeout: 15000 })
+  })
+
   test('delete stream flow', async ({ page }) => {
     // SKIP: UI delete not working - API delete works but UI not reflecting
     // TODO: Debug proxy/UI communication for delete

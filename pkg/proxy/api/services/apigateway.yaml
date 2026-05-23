@@ -1,0 +1,3025 @@
+openapi: 3.0.0
+info:
+  title: "API Gateway"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # V2 HTTP APIs
+  # ============================================================
+
+  # --- 1. GET /apigateway/apis ---
+  /apigateway/apis:
+    get:
+      tags: [API Gateway]
+      summary: Get HTTP APIs (V2)
+      description: |
+        Returns a list of HTTP APIs (V2) with optional pagination.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getApis
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetApisInput'
+      responses:
+        "200":
+          description: List of HTTP APIs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApisOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    # --- 2. POST /apigateway/apis ---
+    post:
+      tags: [API Gateway]
+      summary: Create HTTP API (V2)
+      description: |
+        Creates a new HTTP API (V2). Defaults ProtocolType to HTTP if not specified.
+        For WEBSOCKET protocol, RouteSelectionExpression defaults to $request.body.action.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createApi
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApiInput'
+      responses:
+        "200":
+          description: HTTP API created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateApiOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 3. GET /apigateway/apis/{apiId} ---
+  /apigateway/apis/{apiId}:
+    get:
+      tags: [API Gateway]
+      summary: Get HTTP API (V2)
+      description: |
+        Returns information about a specific HTTP API (V2).
+      operationId: getApi
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+      responses:
+        "200":
+          description: HTTP API details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetApiOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    # --- 4. DELETE /apigateway/apis/{apiId} ---
+    delete:
+      tags: [API Gateway]
+      summary: Delete HTTP API (V2)
+      description: |
+        Deletes a specific HTTP API (V2).
+      operationId: deleteApi
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+      responses:
+        "200":
+          description: HTTP API deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteApiOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 5-8: Routes ---
+  /apigateway/apis/{apiId}/routes:
+    get:
+      tags: [API Gateway]
+      summary: Get routes (V2)
+      description: |
+        Returns a list of routes for a given HTTP API (V2).
+      operationId: getRoutes
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+      responses:
+        "200":
+          description: List of routes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRoutesOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [API Gateway]
+      summary: Create route (V2)
+      description: |
+        Creates a new route for an HTTP API (V2). RouteKey is required.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createRoute
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRouteInput'
+      responses:
+        "200":
+          description: Route created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRouteOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /apigateway/apis/{apiId}/routes/{routeId}:
+    put:
+      tags: [API Gateway]
+      summary: Update route (V2)
+      description: |
+        Updates a route for an HTTP API (V2).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateRoute
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+        - name: routeId
+          in: path
+          required: true
+          schema: { type: string }
+          description: Route ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRouteInput'
+      responses:
+        "200":
+          description: Route updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateRouteOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [API Gateway]
+      summary: Delete route (V2)
+      description: |
+        Deletes a route from an HTTP API (V2).
+      operationId: deleteRoute
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+        - name: routeId
+          in: path
+          required: true
+          schema: { type: string }
+          description: Route ID
+      responses:
+        "200":
+          description: Route deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteRouteOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 9-12: Integrations (V2) ---
+  /apigateway/apis/{apiId}/integrations:
+    get:
+      tags: [API Gateway]
+      summary: Get integrations (V2)
+      description: |
+        Returns a list of integrations for a given HTTP API (V2).
+      operationId: getIntegrations
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+      responses:
+        "200":
+          description: List of integrations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetIntegrationsOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [API Gateway]
+      summary: Create integration (V2)
+      description: |
+        Creates a new integration for an HTTP API (V2). IntegrationType is required.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createIntegration
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIntegrationInput'
+      responses:
+        "200":
+          description: Integration created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateIntegrationOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /apigateway/apis/{apiId}/integrations/{integrationId}:
+    put:
+      tags: [API Gateway]
+      summary: Update integration (V2)
+      description: |
+        Updates an integration for an HTTP API (V2).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateIntegration
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+        - name: integrationId
+          in: path
+          required: true
+          schema: { type: string }
+          description: Integration ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateIntegrationInput'
+      responses:
+        "200":
+          description: Integration updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateIntegrationOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [API Gateway]
+      summary: Delete integration (V2)
+      description: |
+        Deletes an integration from an HTTP API (V2).
+      operationId: deleteIntegration
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+        - name: integrationId
+          in: path
+          required: true
+          schema: { type: string }
+          description: Integration ID
+      responses:
+        "200":
+          description: Integration deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteIntegrationOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 13-17: Stages (V2) ---
+  /apigateway/apis/{apiId}/stages:
+    get:
+      tags: [API Gateway]
+      summary: Get stages (V2)
+      description: |
+        Returns a list of stages for a given HTTP API (V2).
+      operationId: getStages
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+      responses:
+        "200":
+          description: List of stages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetStagesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [API Gateway]
+      summary: Create stage (V2)
+      description: |
+        Creates a new stage for an HTTP API (V2). StageName is required.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createStage
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStageInput'
+      responses:
+        "200":
+          description: Stage created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateStageOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /apigateway/apis/{apiId}/stages/{stageName}:
+    get:
+      tags: [API Gateway]
+      summary: Get stage (V2)
+      description: |
+        Returns information about a specific stage for an HTTP API (V2).
+      operationId: getStage
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+        - name: stageName
+          in: path
+          required: true
+          schema: { type: string }
+          description: Stage name
+      responses:
+        "200":
+          description: Stage details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetStageOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [API Gateway]
+      summary: Update stage (V2)
+      description: |
+        Updates a stage for an HTTP API (V2).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateStage
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+        - name: stageName
+          in: path
+          required: true
+          schema: { type: string }
+          description: Stage name
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStageInput'
+      responses:
+        "200":
+          description: Stage updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateStageOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [API Gateway]
+      summary: Delete stage (V2)
+      description: |
+        Deletes a stage from an HTTP API (V2).
+      operationId: deleteStage
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+        - name: stageName
+          in: path
+          required: true
+          schema: { type: string }
+          description: Stage name
+      responses:
+        "200":
+          description: Stage deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteStageOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 18. POST /apigateway/apis/{apiId}/invoke-url ---
+  /apigateway/apis/{apiId}/invoke-url:
+    post:
+      tags: [API Gateway]
+      summary: Get invoke URL (V2)
+      description: |
+        Generates the invocation URL for an HTTP API (V2) stage.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getInvokeUrlV2
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvokeUrlRequestV2'
+      responses:
+        "200":
+          description: Invoke URL
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/InvokeUrlResponse'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # V1 REST APIs
+  # ============================================================
+
+  # --- 19. GET /apigateway/rest-apis ---
+  /apigateway/rest-apis:
+    get:
+      tags: [API Gateway]
+      summary: Get REST APIs (V1)
+      description: |
+        Returns a list of REST APIs (V1) with optional pagination.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getRestApis
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetRestApisInput'
+      responses:
+        "200":
+          description: List of REST APIs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRestApisOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    # --- 20. POST /apigateway/rest-apis ---
+    post:
+      tags: [API Gateway]
+      summary: Create REST API (V1)
+      description: |
+        Creates a new REST API (V1). Name is required.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createRestApi
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRestApiInput'
+      responses:
+        "200":
+          description: REST API created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRestApiOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 21. PUT /apigateway/rest-apis/{restApiId} ---
+  /apigateway/rest-apis/{restApiId}:
+    put:
+      tags: [API Gateway]
+      summary: Update REST API (V1)
+      description: |
+        Updates a REST API (V1). Accepts either a simple format with
+        name/description fields, or the SDK format with patchOperations array.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateRestApi
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/RestApiUpdateSimpleRequest'
+                - $ref: '#/components/schemas/UpdateRestApiInput'
+      responses:
+        "200":
+          description: REST API updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateRestApiOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    # --- 22. GET /apigateway/rest-apis/{restApiId} ---
+    get:
+      tags: [API Gateway]
+      summary: Get REST API (V1)
+      description: |
+        Returns information about a specific REST API (V1).
+      operationId: getRestApi
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+      responses:
+        "200":
+          description: REST API details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRestApiOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    # --- 23. DELETE /apigateway/rest-apis/{restApiId} ---
+    delete:
+      tags: [API Gateway]
+      summary: Delete REST API (V1)
+      description: |
+        Deletes a specific REST API (V1).
+      operationId: deleteRestApi
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+      responses:
+        "200":
+          description: REST API deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteRestApiOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 24. POST /apigateway/rest-apis/{restApiId}/import ---
+  /apigateway/rest-apis/{restApiId}/import:
+    post:
+      tags: [API Gateway]
+      summary: Import REST API (V1)
+      description: |
+        Imports a Swagger/OpenAPI specification into an existing REST API (V1).
+        Accepts raw JSON body or {"body":"<base64>"} format.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: importRestApi
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportRestApiRequest'
+      responses:
+        "200":
+          description: REST API imported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportRestApiOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 25. GET /apigateway/rest-apis/{restApiId}/resources ---
+  /apigateway/rest-apis/{restApiId}/resources:
+    get:
+      tags: [API Gateway]
+      summary: Get resources (V1)
+      description: |
+        Returns a list of resources for a given REST API (V1).
+        Returns empty arrays if the API is not found.
+      operationId: getResources
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+      responses:
+        "200":
+          description: List of resources
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetResourcesOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    # --- 27. POST /apigateway/rest-apis/{restApiId}/resources ---
+    post:
+      tags: [API Gateway]
+      summary: Create resource (V1)
+      description: |
+        Creates a new resource in a REST API (V1). ParentId and PathPart are required.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createResource
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateResourceInput'
+      responses:
+        "200":
+          description: Resource created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResourceOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 26. GET /apigateway/rest-apis/{restApiId}/resources/{resourceId} ---
+  /apigateway/rest-apis/{restApiId}/resources/{resourceId}:
+    get:
+      tags: [API Gateway]
+      summary: Get resource (V1)
+      description: |
+        Returns information about a specific resource in a REST API (V1).
+      operationId: getResource
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+        - name: resourceId
+          in: path
+          required: true
+          schema: { type: string }
+          description: Resource ID
+      responses:
+        "200":
+          description: Resource details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetResourceOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    # --- 28. DELETE /apigateway/rest-apis/{restApiId}/resources/{resourceId} ---
+    delete:
+      tags: [API Gateway]
+      summary: Delete resource (V1)
+      description: |
+        Deletes a resource from a REST API (V1).
+      operationId: deleteResource
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+        - name: resourceId
+          in: path
+          required: true
+          schema: { type: string }
+          description: Resource ID
+      responses:
+        "200":
+          description: Resource deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResourceOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 29-31: Methods ---
+  /apigateway/rest-apis/{restApiId}/resources/{resourceId}/methods/{httpMethod}:
+    put:
+      tags: [API Gateway]
+      summary: Put method (V1)
+      description: |
+        Creates or updates a method for a resource in a REST API (V1).
+        AuthorizationType is required.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putMethod
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+        - name: resourceId
+          in: path
+          required: true
+          schema: { type: string }
+          description: Resource ID
+        - name: httpMethod
+          in: path
+          required: true
+          schema: { type: string }
+          description: HTTP method (e.g., GET, POST, PUT, DELETE, ANY)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutMethodInput'
+      responses:
+        "200":
+          description: Method created/updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PutMethodOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [API Gateway]
+      summary: Get method (V1)
+      description: |
+        Returns information about a specific method on a resource.
+        Returns 404 with {"message":"Method not found"} if not found.
+      operationId: getMethod
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+        - name: resourceId
+          in: path
+          required: true
+          schema: { type: string }
+          description: Resource ID
+        - name: httpMethod
+          in: path
+          required: true
+          schema: { type: string }
+          description: HTTP method
+      responses:
+        "200":
+          description: Method details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMethodOutput'
+        "404":
+          description: Method not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Method not found
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [API Gateway]
+      summary: Delete method (V1)
+      description: |
+        Deletes a method from a resource in a REST API (V1).
+      operationId: deleteMethod
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+        - name: resourceId
+          in: path
+          required: true
+          schema: { type: string }
+          description: Resource ID
+        - name: httpMethod
+          in: path
+          required: true
+          schema: { type: string }
+          description: HTTP method
+      responses:
+        "200":
+          description: Method deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteMethodOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 32-34: Integrations (V1) ---
+  /apigateway/rest-apis/{restApiId}/resources/{resourceId}/methods/{httpMethod}/integrations:
+    put:
+      tags: [API Gateway]
+      summary: Put integration (V1)
+      description: |
+        Creates or updates an integration for a method in a REST API (V1).
+        Type is required.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putIntegration
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+        - name: resourceId
+          in: path
+          required: true
+          schema: { type: string }
+          description: Resource ID
+        - name: httpMethod
+          in: path
+          required: true
+          schema: { type: string }
+          description: HTTP method
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutIntegrationInput'
+      responses:
+        "200":
+          description: Integration created/updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PutIntegrationOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [API Gateway]
+      summary: Get integration (V1)
+      description: |
+        Returns information about a specific integration for a method.
+        Returns 404 with {"message":"Integration not found"} if not found.
+      operationId: getIntegration
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+        - name: resourceId
+          in: path
+          required: true
+          schema: { type: string }
+          description: Resource ID
+        - name: httpMethod
+          in: path
+          required: true
+          schema: { type: string }
+          description: HTTP method
+      responses:
+        "200":
+          description: Integration details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetIntegrationOutput'
+        "404":
+          description: Integration not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Integration not found
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [API Gateway]
+      summary: Delete integration (V1)
+      description: |
+        Deletes an integration from a method in a REST API (V1).
+      operationId: deleteIntegration
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+        - name: resourceId
+          in: path
+          required: true
+          schema: { type: string }
+          description: Resource ID
+        - name: httpMethod
+          in: path
+          required: true
+          schema: { type: string }
+          description: HTTP method
+      responses:
+        "200":
+          description: Integration deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteIntegrationOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 35-37: Deployments ---
+  /apigateway/rest-apis/{restApiId}/deployments:
+    post:
+      tags: [API Gateway]
+      summary: Create deployment (V1)
+      description: |
+        Creates a new deployment for a REST API (V1).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createDeployment
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeploymentInput'
+      responses:
+        "200":
+          description: Deployment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDeploymentOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [API Gateway]
+      summary: Get deployments (V1)
+      description: |
+        Returns a list of deployments for a REST API (V1).
+      operationId: getDeployments
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+      responses:
+        "200":
+          description: List of deployments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDeploymentsOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /apigateway/rest-apis/{restApiId}/deployments/{deploymentId}:
+    delete:
+      tags: [API Gateway]
+      summary: Delete deployment (V1)
+      description: |
+        Deletes a deployment from a REST API (V1).
+      operationId: deleteDeployment
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+        - name: deploymentId
+          in: path
+          required: true
+          schema: { type: string }
+          description: Deployment ID
+      responses:
+        "200":
+          description: Deployment deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteDeploymentOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 38-41: Stages (V1) ---
+  /apigateway/rest-apis/{restApiId}/stages:
+    post:
+      tags: [API Gateway]
+      summary: Create stage (V1)
+      description: |
+        Creates a new stage for a REST API (V1). StageName is required.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createStageV1
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStageInputV1'
+      responses:
+        "200":
+          description: Stage created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateStageOutputV1'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [API Gateway]
+      summary: Get stages (V1)
+      description: |
+        Returns a list of stages for a REST API (V1).
+      operationId: getStagesV1
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+      responses:
+        "200":
+          description: List of stages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetStagesOutputV1'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /apigateway/rest-apis/{restApiId}/stages/{stageName}:
+    put:
+      tags: [API Gateway]
+      summary: Update stage (V1)
+      description: |
+        Updates a stage for a REST API (V1).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateStageV1
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+        - name: stageName
+          in: path
+          required: true
+          schema: { type: string }
+          description: Stage name
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStageInputV1'
+      responses:
+        "200":
+          description: Stage updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateStageOutputV1'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [API Gateway]
+      summary: Delete stage (V1)
+      description: |
+        Deletes a stage from a REST API (V1).
+      operationId: deleteStageV1
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+        - name: stageName
+          in: path
+          required: true
+          schema: { type: string }
+          description: Stage name
+      responses:
+        "200":
+          description: Stage deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteStageOutputV1'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 42. POST /apigateway/rest-apis/{restApiId}/invoke-url ---
+  /apigateway/rest-apis/{restApiId}/invoke-url:
+    post:
+      tags: [API Gateway]
+      summary: Get invoke URL (V1)
+      description: |
+        Generates the invocation URL for a REST API (V1) stage.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getInvokeUrlV1
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvokeUrlRequestV1'
+      responses:
+        "200":
+          description: Invoke URL
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/InvokeUrlResponse'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # V2 HTTP API (apigatewayv2 SDK) Core Types
+    # ============================================================
+
+    Api:
+      type: object
+      description: Represents an HTTP API (V2) in API Gateway
+      properties:
+        ApiEndpoint:
+          type: string
+          description: The URI of the API, of the form https://{api-id}.execute-api.{region}.amazonaws.com
+        ApiId:
+          type: string
+          description: The API ID
+        ApiKeySelectionExpression:
+          type: string
+          description: An API key selection expression, e.g., $request.header.x-api-key
+        CorsConfiguration:
+          $ref: '#/components/schemas/CorsConfiguration'
+        CreatedDate:
+          type: string
+          format: date-time
+          description: The timestamp when the API was created
+        Description:
+          type: string
+          description: The description of the API
+        DisableExecuteApiEndpoint:
+          type: boolean
+          description: Specifies whether clients can invoke your API by using the default execute-api endpoint
+        DisableSchemaValidation:
+          type: boolean
+          description: Avoid validating models when creating the APIs
+        Name:
+          type: string
+          description: The name of the API
+        ProtocolType:
+          type: string
+          enum: [HTTP, WEBSOCKET]
+          description: The API protocol
+        RouteSelectionExpression:
+          type: string
+          description: The route selection expression for the API
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: The collection of tags
+        Version:
+          type: string
+          description: A version identifier for the API
+        Warnings:
+          type: array
+          items:
+            type: string
+          description: The warning messages reported when failonwarnings is turned on during API import
+
+    CorsConfiguration:
+      type: object
+      description: Represents a CORS configuration
+      properties:
+        AllowCredentials:
+          type: boolean
+          description: Specifies whether credentials are included in the CORS request
+        AllowHeaders:
+          type: array
+          items:
+            type: string
+          description: Represents the allowed HTTP headers
+        AllowMethods:
+          type: array
+          items:
+            type: string
+          description: Represents the allowed HTTP methods
+        AllowOrigins:
+          type: array
+          items:
+            type: string
+          description: Represents the allowed origins
+        ExposeHeaders:
+          type: array
+          items:
+            type: string
+          description: Represents the exposed HTTP headers
+        MaxAge:
+          type: integer
+          format: int32
+          description: The number of seconds that the browser should cache a preflight request result
+
+    Route:
+      type: object
+      description: Represents a route for an HTTP API (V2)
+      properties:
+        ApiGatewayManaged:
+          type: boolean
+          description: Specifies whether the route was created by API Gateway
+        ApiKeyRequired:
+          type: boolean
+          description: Specifies whether an API key is required for this route
+        AuthorizationScopes:
+          type: array
+          items:
+            type: string
+          description: A list of authorization scopes configured on this route
+        AuthorizationType:
+          type: string
+          enum: [NONE, AWS_IAM, CUSTOM, JWT, COGNITO_USER_POOLS, MUTUAL_TLS]
+          description: The authorization type for the route
+        AuthorizerId:
+          type: string
+          description: The identifier of the Authorizer resource to be associated with this route
+        ModelSelectionExpression:
+          type: string
+          description: The model selection expression for the route
+        OperationName:
+          type: string
+          description: The operation name for the route
+        RequestModels:
+          type: object
+          additionalProperties:
+            type: string
+          description: The request models for the route
+        RequestParameters:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ParameterConstraints'
+          description: The request parameters for the route
+        RouteId:
+          type: string
+          description: The route ID
+        RouteKey:
+          type: string
+          description: The route key for the route
+        RouteResponseSelectionExpression:
+          type: string
+          description: The route response selection expression for the route
+        Target:
+          type: string
+          description: The target for the route
+
+    ParameterConstraints:
+      type: object
+      description: Validation constraints for route parameters
+      properties:
+        Required:
+          type: boolean
+          description: Whether the parameter is required
+
+    Integration:
+      type: object
+      description: Represents an integration for an HTTP API (V2)
+      properties:
+        ApiGatewayManaged:
+          type: boolean
+          description: Specifies whether the integration was created by API Gateway
+        ConnectionId:
+          type: string
+          description: The ID of the VPC link for a private integration
+        ConnectionType:
+          type: string
+          enum: [INTERNET, VPC_LINK]
+          description: The type of the network connection to the integration endpoint
+        ContentHandlingStrategy:
+          type: string
+          enum: [CONVERT_TO_BINARY, CONVERT_TO_TEXT]
+          description: Specifies how to handle response payload content type conversions
+        CredentialsArn:
+          type: string
+          description: Specifies the credentials required for the integration, if any
+        Description:
+          type: string
+          description: The description of the integration
+        IntegrationId:
+          type: string
+          description: The integration ID
+        IntegrationMethod:
+          type: string
+          description: The integration HTTP method (e.g., GET, POST)
+        IntegrationResponseSelectionExpression:
+          type: string
+          description: The integration response selection expression
+        IntegrationSubtype:
+          type: string
+          description: The AWS service action to invoke
+        IntegrationUri:
+          type: string
+          description: The integration URI
+        IntegrationType:
+          type: string
+          enum: [AWS, AWS_PROXY, HTTP, HTTP_PROXY, MOCK]
+          description: The integration type
+        PayloadFormatVersion:
+          type: string
+          description: Specifies the format of the payload sent to an integration
+        RequestParameters:
+          type: object
+          additionalProperties:
+            type: string
+          description: The request parameters for the integration
+        RequestTemplates:
+          type: object
+          additionalProperties:
+            type: string
+          description: The request templates for the integration
+        ResponseParameters:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ResponseParameterList'
+          description: The response parameters for the integration
+        TemplateSelectionExpression:
+          type: string
+          description: The template selection expression for the integration
+        TimeoutInMillis:
+          type: integer
+          format: int32
+          description: Custom timeout between 50 and 30000 milliseconds
+        TlsConfig:
+          $ref: '#/components/schemas/TlsConfig'
+
+    ResponseParameterList:
+      type: object
+      properties:
+        ResponseParameters:
+          type: object
+          additionalProperties:
+            type: string
+          description: Mapping of response parameters
+
+    TlsConfig:
+      type: object
+      description: The TLS configuration for a private integration
+      properties:
+        ServerNameToVerify:
+          type: string
+          description: The name of the server to verify
+
+    Stage:
+      type: object
+      description: Represents a stage for an HTTP API (V2)
+      properties:
+        AccessLogSettings:
+          $ref: '#/components/schemas/AccessLogSettings'
+        ApiGatewayManaged:
+          type: boolean
+          description: Specifies whether the stage was created by API Gateway
+        AutoDeploy:
+          type: boolean
+          description: Specifies whether updates to an API automatically trigger a new deployment
+        ClientCertificateId:
+          type: string
+          description: The identifier of a client certificate for a Stage
+        CreatedDate:
+          type: string
+          format: date-time
+          description: The timestamp when the stage was created
+        DefaultRouteSettings:
+          $ref: '#/components/schemas/RouteSettings'
+        DeploymentId:
+          type: string
+          description: The identifier of the Deployment that the Stage is associated with
+        Description:
+          type: string
+          description: The description of the stage
+        LastDeploymentStatusMessage:
+          type: string
+          description: Description of the last deployment status message
+        LastUpdatedDate:
+          type: string
+          format: date-time
+          description: The timestamp when the stage was last updated
+        RouteSettings:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/RouteSettings'
+          description: The route settings for the stage
+        StageName:
+          type: string
+          description: The name of the stage
+        StageVariables:
+          type: object
+          additionalProperties:
+            type: string
+          description: A map that defines the stage variables
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: The collection of tags
+
+    AccessLogSettings:
+      type: object
+      description: Settings for logging access in a stage
+      properties:
+        DestinationArn:
+          type: string
+          description: The ARN of the CloudWatch Logs log group to receive access logs
+        Format:
+          type: string
+          description: A single line format of the access logs of data, as specified by selected $context variables
+
+    RouteSettings:
+      type: object
+      description: Represents a collection of route settings
+      properties:
+        DataTraceEnabled:
+          type: boolean
+          description: Specifies whether data trace logging is enabled for this route
+        DetailedMetricsEnabled:
+          type: boolean
+          description: Specifies whether detailed metrics are enabled
+        LoggingLevel:
+          type: string
+          enum: [ERROR, INFO, OFF]
+          description: The logging level
+        ThrottlingBurstLimit:
+          type: integer
+          format: int32
+          description: The throttling burst limit
+        ThrottlingRateLimit:
+          type: number
+          format: double
+          description: The throttling rate limit
+
+    # ============================================================
+    # V2 Input/Output Schemas
+    # ============================================================
+
+    GetApisInput:
+      type: object
+      description: Input for listing HTTP APIs (V2)
+      properties:
+        MaxResults:
+          type: string
+          description: The maximum number of results to return
+        NextToken:
+          type: string
+          description: The next token for paginated results
+
+    GetApisOutput:
+      type: object
+      properties:
+        Items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Api'
+          description: The HTTP API objects
+        NextToken:
+          type: string
+          description: The next token for paginated results
+
+    CreateApiInput:
+      type: object
+      description: Input for creating an HTTP API (V2)
+      properties:
+        ApiKeySelectionExpression:
+          type: string
+          description: An API key selection expression
+        CorsConfiguration:
+          $ref: '#/components/schemas/CorsConfiguration'
+        CredentialsArn:
+          type: string
+          description: This property is part of the import API, not used for creation
+        Description:
+          type: string
+          description: The description of the API
+        DisableExecuteApiEndpoint:
+          type: boolean
+          description: Specifies whether clients can invoke your API by using the default execute-api endpoint
+        DisableSchemaValidation:
+          type: boolean
+          description: Avoid validating models when creating the APIs
+        Name:
+          type: string
+          description: The name of the API
+        ProtocolType:
+          type: string
+          enum: [HTTP, WEBSOCKET]
+          description: The API protocol (defaults to HTTP)
+        RouteKey:
+          type: string
+          description: The route key for the first route
+        RouteSelectionExpression:
+          type: string
+          description: The route selection expression for the API
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: The collection of tags
+        Target:
+          type: string
+          description: The target for the first route
+        Version:
+          type: string
+          description: A version identifier for the API
+
+    CreateApiOutput:
+      type: object
+      properties:
+        ApiEndpoint:
+          type: string
+        ApiId:
+          type: string
+        ApiKeySelectionExpression:
+          type: string
+        CorsConfiguration:
+          $ref: '#/components/schemas/CorsConfiguration'
+        CreatedDate:
+          type: string
+          format: date-time
+        Description:
+          type: string
+        DisableExecuteApiEndpoint:
+          type: boolean
+        DisableSchemaValidation:
+          type: boolean
+        Name:
+          type: string
+        ProtocolType:
+          type: string
+        RouteSelectionExpression:
+          type: string
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+        Version:
+          type: string
+        Warnings:
+          type: array
+          items:
+            type: string
+
+    GetApiOutput:
+      $ref: '#/components/schemas/Api'
+
+    DeleteApiOutput:
+      type: object
+      properties: {}
+
+    GetRoutesOutput:
+      type: object
+      properties:
+        Items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Route'
+          description: The route elements
+        NextToken:
+          type: string
+          description: The next token for paginated results
+
+    CreateRouteInput:
+      type: object
+      required: [RouteKey]
+      description: Input for creating a route (V2)
+      properties:
+        ApiKeyRequired:
+          type: boolean
+          description: Specifies whether an API key is required for this route
+        AuthorizationScopes:
+          type: array
+          items:
+            type: string
+          description: A list of authorization scopes configured on this route
+        AuthorizationType:
+          type: string
+          enum: [NONE, AWS_IAM, CUSTOM, JWT, COGNITO_USER_POOLS, MUTUAL_TLS]
+          description: The authorization type for the route
+        AuthorizerId:
+          type: string
+          description: The identifier of the Authorizer resource to be associated with this route
+        ModelSelectionExpression:
+          type: string
+          description: The model selection expression for the route
+        OperationName:
+          type: string
+          description: The operation name for the route
+        RequestModels:
+          type: object
+          additionalProperties:
+            type: string
+          description: The request models for the route
+        RequestParameters:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ParameterConstraints'
+          description: The request parameters for the route
+        RouteKey:
+          type: string
+          description: The route key for the route
+        RouteResponseSelectionExpression:
+          type: string
+          description: The route response selection expression for the route
+        Target:
+          type: string
+          description: The target for the route
+
+    CreateRouteOutput:
+      $ref: '#/components/schemas/Route'
+
+    UpdateRouteInput:
+      type: object
+      description: Input for updating a route (V2)
+      properties:
+        ApiKeyRequired:
+          type: boolean
+        AuthorizationScopes:
+          type: array
+          items:
+            type: string
+        AuthorizationType:
+          type: string
+          enum: [NONE, AWS_IAM, CUSTOM, JWT, COGNITO_USER_POOLS, MUTUAL_TLS]
+        AuthorizerId:
+          type: string
+        ModelSelectionExpression:
+          type: string
+        OperationName:
+          type: string
+        RequestModels:
+          type: object
+          additionalProperties:
+            type: string
+        RequestParameters:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ParameterConstraints'
+        RouteKey:
+          type: string
+        RouteResponseSelectionExpression:
+          type: string
+        Target:
+          type: string
+
+    UpdateRouteOutput:
+      $ref: '#/components/schemas/Route'
+
+    DeleteRouteOutput:
+      type: object
+      properties: {}
+
+    GetIntegrationsOutput:
+      type: object
+      properties:
+        Items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Integration'
+          description: The integration elements
+        NextToken:
+          type: string
+          description: The next token for paginated results
+
+    CreateIntegrationInput:
+      type: object
+      required: [IntegrationType]
+      description: Input for creating an integration (V2)
+      properties:
+        ConnectionId:
+          type: string
+          description: The ID of the VPC link for a private integration
+        ConnectionType:
+          type: string
+          enum: [INTERNET, VPC_LINK]
+          description: The type of the network connection to the integration endpoint
+        ContentHandlingStrategy:
+          type: string
+          enum: [CONVERT_TO_BINARY, CONVERT_TO_TEXT]
+          description: Specifies how to handle response payload content type conversions
+        CredentialsArn:
+          type: string
+          description: Specifies the credentials required for the integration, if any
+        Description:
+          type: string
+          description: The description of the integration
+        IntegrationMethod:
+          type: string
+          description: The integration HTTP method (e.g., GET, POST)
+        IntegrationSubtype:
+          type: string
+          description: The AWS service action to invoke
+        IntegrationType:
+          type: string
+          enum: [AWS, AWS_PROXY, HTTP, HTTP_PROXY, MOCK]
+          description: The integration type
+        IntegrationUri:
+          type: string
+          description: The integration URI
+        PassthroughBehavior:
+          type: string
+          enum: [WHEN_NO_MATCH, WHEN_NO_TEMPLATES, NEVER]
+          description: Specifies the pass-through behavior for incoming requests
+        PayloadFormatVersion:
+          type: string
+          description: Specifies the format of the payload sent to an integration
+        RequestParameters:
+          type: object
+          additionalProperties:
+            type: string
+          description: The request parameters for the integration
+        RequestTemplates:
+          type: object
+          additionalProperties:
+            type: string
+          description: The request templates for the integration
+        ResponseParameters:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ResponseParameterList'
+          description: The response parameters for the integration
+        TemplateSelectionExpression:
+          type: string
+          description: The template selection expression for the integration
+        TimeoutInMillis:
+          type: integer
+          format: int32
+          description: Custom timeout between 50 and 30000 milliseconds
+        TlsConfig:
+          $ref: '#/components/schemas/TlsConfig'
+
+    CreateIntegrationOutput:
+      $ref: '#/components/schemas/Integration'
+
+    UpdateIntegrationInput:
+      type: object
+      description: Input for updating an integration (V2)
+      properties:
+        ConnectionId:
+          type: string
+        ConnectionType:
+          type: string
+          enum: [INTERNET, VPC_LINK]
+        ContentHandlingStrategy:
+          type: string
+          enum: [CONVERT_TO_BINARY, CONVERT_TO_TEXT]
+        CredentialsArn:
+          type: string
+        Description:
+          type: string
+        IntegrationMethod:
+          type: string
+        IntegrationSubtype:
+          type: string
+        IntegrationType:
+          type: string
+          enum: [AWS, AWS_PROXY, HTTP, HTTP_PROXY, MOCK]
+        IntegrationUri:
+          type: string
+        PassthroughBehavior:
+          type: string
+          enum: [WHEN_NO_MATCH, WHEN_NO_TEMPLATES, NEVER]
+        PayloadFormatVersion:
+          type: string
+        RequestParameters:
+          type: object
+          additionalProperties:
+            type: string
+        RequestTemplates:
+          type: object
+          additionalProperties:
+            type: string
+        ResponseParameters:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ResponseParameterList'
+        TemplateSelectionExpression:
+          type: string
+        TimeoutInMillis:
+          type: integer
+          format: int32
+        TlsConfig:
+          $ref: '#/components/schemas/TlsConfig'
+
+    UpdateIntegrationOutput:
+      $ref: '#/components/schemas/Integration'
+
+    GetStagesOutput:
+      type: object
+      properties:
+        Items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Stage'
+          description: The stage elements
+        NextToken:
+          type: string
+          description: The next token for paginated results
+
+    GetStageOutput:
+      $ref: '#/components/schemas/Stage'
+
+    CreateStageInput:
+      type: object
+      description: Input for creating a stage (V2)
+      properties:
+        AccessLogSettings:
+          $ref: '#/components/schemas/AccessLogSettings'
+        AutoDeploy:
+          type: boolean
+          description: Specifies whether updates to an API automatically trigger a new deployment
+        ClientCertificateId:
+          type: string
+          description: The identifier of a client certificate for a Stage
+        DefaultRouteSettings:
+          $ref: '#/components/schemas/RouteSettings'
+        DeploymentId:
+          type: string
+          description: The identifier of the Deployment that the Stage is associated with
+        Description:
+          type: string
+          description: The description of the stage
+        RouteSettings:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/RouteSettings'
+          description: The route settings for the stage
+        StageName:
+          type: string
+          description: The name of the stage
+        StageVariables:
+          type: object
+          additionalProperties:
+            type: string
+          description: A map that defines the stage variables
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: The collection of tags
+
+    CreateStageOutput:
+      $ref: '#/components/schemas/Stage'
+
+    UpdateStageInput:
+      type: object
+      description: Input for updating a stage (V2)
+      properties:
+        AccessLogSettings:
+          $ref: '#/components/schemas/AccessLogSettings'
+        AutoDeploy:
+          type: boolean
+        ClientCertificateId:
+          type: string
+        DefaultRouteSettings:
+          $ref: '#/components/schemas/RouteSettings'
+        DeploymentId:
+          type: string
+        Description:
+          type: string
+        RouteSettings:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/RouteSettings'
+        StageVariables:
+          type: object
+          additionalProperties:
+            type: string
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+
+    UpdateStageOutput:
+      $ref: '#/components/schemas/Stage'
+
+    DeleteStageOutput:
+      type: object
+      properties: {}
+
+    InvokeUrlRequestV2:
+      type: object
+      required: [apiId, stageName]
+      description: Request body for generating an invoke URL (V2)
+      properties:
+        apiId:
+          type: string
+          description: The API ID
+        stageName:
+          type: string
+          description: The stage name
+        protocolType:
+          type: string
+          description: Protocol type (defaults to HTTP)
+          default: HTTP
+
+    # ============================================================
+    # V1 REST API (apigateway SDK) Core Types
+    # ============================================================
+
+    RestApi:
+      type: object
+      description: Represents a REST API (V1)
+      properties:
+        id:
+          type: string
+          description: The API's ID
+        name:
+          type: string
+          description: The API's name
+        description:
+          type: string
+          description: The API's description
+        createdDate:
+          type: string
+          format: date-time
+          description: The timestamp when the API was created
+        version:
+          type: string
+          description: A version identifier for the API
+        warnings:
+          type: array
+          items:
+            type: string
+          description: The warning messages
+        binaryMediaTypes:
+          type: array
+          items:
+            type: string
+          description: The list of binary media types supported by the RestApi
+        minimumCompressionSize:
+          type: integer
+          format: int32
+          description: The minimum size in bytes that a payload must be before compression
+        apiKeySource:
+          type: string
+          enum: [HEADER, AUTHORIZER]
+          description: The source of the API key for metering requests according to a usage plan
+        endpointConfiguration:
+          type: object
+          properties:
+            types:
+              type: array
+              items:
+                type: string
+                enum: [EDGE, REGIONAL, PRIVATE]
+              description: A list of endpoint types of an API or its custom domain name
+            vpcEndpointIds:
+              type: array
+              items:
+                type: string
+              description: A list of VPC endpoint IDs of an API
+        policy:
+          type: string
+          description: A stringified JSON policy document
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: The collection of tags
+        disableExecuteApiEndpoint:
+          type: boolean
+          description: Specifies whether clients can invoke your API by using the default execute-api endpoint
+        rootResourceId:
+          type: string
+          description: The ID of the API's root resource
+
+    Resource:
+      type: object
+      description: Represents a resource in a REST API (V1)
+      properties:
+        id:
+          type: string
+          description: The resource's ID
+        parentId:
+          type: string
+          description: The parent resource ID
+        pathPart:
+          type: string
+          description: The path part for the resource
+        path:
+          type: string
+          description: The full path for the resource
+        resourceMethods:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              httpMethod:
+                type: string
+              authorizationType:
+                type: string
+              apiKeyRequired:
+                type: boolean
+          description: The methods defined on this resource
+
+    Method:
+      type: object
+      description: Represents a method on a resource in a REST API (V1)
+      properties:
+        httpMethod:
+          type: string
+          description: The HTTP method
+        authorizationType:
+          type: string
+          enum: [NONE, AWS_IAM, CUSTOM, COGNITO_USER_POOLS, REQUEST]
+          description: The authorization type for the method
+        authorizerId:
+          type: string
+          description: The identifier of an Authorizer to use on this method
+        authorizationScopes:
+          type: array
+          items:
+            type: string
+          description: A list of authorization scopes
+        apiKeyRequired:
+          type: boolean
+          description: Specifies whether the method requires a valid ApiKey
+        requestValidatorId:
+          type: string
+          description: The identifier of a request validator
+        operationName:
+          type: string
+          description: A human-friendly operation identifier
+        requestParameters:
+          type: object
+          additionalProperties:
+            type: boolean
+          description: A key-value map of required or optional parameters and whether they are required
+        requestModels:
+          type: object
+          additionalProperties:
+            type: string
+          description: A key-value map specifying the content types and schemas for the method request
+        methodResponses:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/MethodResponse'
+          description: The method's responses
+        methodIntegration:
+          $ref: '#/components/schemas/IntegrationV1'
+          description: The method's integration
+        authorizationFlags:
+          type: string
+          description: Authorization flags
+
+    MethodResponse:
+      type: object
+      description: Represents a method response of a REST API (V1)
+      properties:
+        statusCode:
+          type: string
+          description: The HTTP status code
+        responseParameters:
+          type: object
+          additionalProperties:
+            type: boolean
+          description: A key-value map specifying required or optional response parameters
+        responseModels:
+          type: object
+          additionalProperties:
+            type: string
+          description: Specifies the Model resources to use for the response's content types
+
+    IntegrationV1:
+      type: object
+      description: Represents an integration for a REST API (V1)
+      properties:
+        type:
+          type: string
+          enum: [AWS, AWS_PROXY, HTTP, HTTP_PROXY, MOCK]
+          description: The integration type
+        httpMethod:
+          type: string
+          description: The integration's HTTP method
+        uri:
+          type: string
+          format: uri
+          description: The integration's URI
+        credentials:
+          type: string
+          description: The credentials required for the integration
+        requestParameters:
+          type: object
+          additionalProperties:
+            type: string
+          description: A key-value map specifying request parameters that are passed from the method request to the back end
+        requestTemplates:
+          type: object
+          additionalProperties:
+            type: string
+          description: Represents a map of Velocity templates that are applied on the request payload
+        passthroughBehavior:
+          type: string
+          enum: [WHEN_NO_MATCH, WHEN_NO_TEMPLATES, NEVER]
+          description: The integration's passthrough behavior
+        contentHandling:
+          type: string
+          enum: [CONVERT_TO_BINARY, CONVERT_TO_TEXT]
+          description: Specifies how to handle response payload content type conversions
+        cacheNamespace:
+          type: string
+          description: The integration's cache namespace
+        cacheKeyParameters:
+          type: array
+          items:
+            type: string
+          description: A list of request parameters whose values API Gateway caches
+        integrationResponses:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/IntegrationResponse'
+          description: The integration responses
+        tlsConfig:
+          $ref: '#/components/schemas/TlsConfig'
+        timeoutInMillis:
+          type: integer
+          format: int32
+          description: The integration's timeout
+
+    IntegrationResponse:
+      type: object
+      description: Represents an integration response in a REST API (V1)
+      properties:
+        statusCode:
+          type: string
+          description: The HTTP status code
+        selectionPattern:
+          type: string
+          description: Specifies the regular expression (regex) pattern used to choose an integration response
+        responseParameters:
+          type: object
+          additionalProperties:
+            type: string
+          description: A key-value map specifying response parameters that are passed to the method response
+        responseTemplates:
+          type: object
+          additionalProperties:
+            type: string
+          description: The templates used to transform the integration response body
+        contentHandling:
+          type: string
+          enum: [CONVERT_TO_BINARY, CONVERT_TO_TEXT]
+
+    Deployment:
+      type: object
+      description: Represents a deployment of a REST API (V1)
+      properties:
+        id:
+          type: string
+          description: The deployment ID
+        description:
+          type: string
+          description: The deployment description
+        createdDate:
+          type: string
+          format: date-time
+          description: The timestamp when the deployment was created
+        apiSummary:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/MethodSnapshot'
+          description: A summary of the API resources and methods
+
+    MethodSnapshot:
+      type: object
+      properties:
+        authorizationType:
+          type: string
+        apiKeyRequired:
+          type: boolean
+
+    StageV1:
+      type: object
+      description: Represents a stage for a REST API (V1)
+      properties:
+        deploymentId:
+          type: string
+          description: The identifier of the Deployment that the stage points to
+        clientCertificateId:
+          type: string
+          description: The identifier of a client certificate for the stage
+        stageName:
+          type: string
+          description: The stage name
+        description:
+          type: string
+          description: The stage description
+        cacheClusterEnabled:
+          type: boolean
+          description: Whether caching is enabled for the stage
+        cacheClusterSize:
+          type: string
+          description: The stage's cache cluster size
+          enum: ['0.5', '1.6', '6.1', '13.5', '28.4', '58.2', '118', '237']
+        cacheClusterStatus:
+          type: string
+          description: The status of the cache cluster for the stage
+          enum: [CREATE_IN_PROGRESS, AVAILABLE, DELETE_IN_PROGRESS, NOT_AVAILABLE, FLUSH_IN_PROGRESS]
+        methodSettings:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/MethodSetting'
+          description: A map that defines the method settings for a stage
+        variables:
+          type: object
+          additionalProperties:
+            type: string
+          description: A map that defines the stage variables
+        documentationVersion:
+          type: string
+          description: The version of the associated API documentation
+        accessLogSettings:
+          $ref: '#/components/schemas/AccessLogSettings'
+        canarySettings:
+          $ref: '#/components/schemas/CanarySettings'
+        tracingEnabled:
+          type: boolean
+          description: Specifies whether active tracing with X-ray is enabled
+        webAclArn:
+          type: string
+          description: The ARN of the WebAcl associated with the Stage
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: The collection of tags
+        createdDate:
+          type: string
+          format: date-time
+          description: The timestamp when the stage was created
+        lastUpdatedDate:
+          type: string
+          format: date-time
+          description: The timestamp when the stage was last updated
+
+    MethodSetting:
+      type: object
+      properties:
+        metricsEnabled:
+          type: boolean
+        loggingLevel:
+          type: string
+        dataTraceEnabled:
+          type: boolean
+        throttlingBurstLimit:
+          type: integer
+          format: int32
+        throttlingRateLimit:
+          type: number
+          format: double
+        cachingEnabled:
+          type: boolean
+        cacheTtlInSeconds:
+          type: integer
+          format: int32
+        cacheDataEncrypted:
+          type: boolean
+        requireAuthorizationForCacheControl:
+          type: boolean
+        unauthorizedCacheControlHeaderStrategy:
+          type: string
+
+    CanarySettings:
+      type: object
+      properties:
+        percentTraffic:
+          type: number
+          format: double
+          description: The percent of traffic directed to a canary deployment
+        deploymentId:
+          type: string
+          description: The ID of the canary deployment
+        stageVariableOverrides:
+          type: object
+          additionalProperties:
+            type: string
+          description: Stage variables overridden for a canary release
+        useStageCache:
+          type: boolean
+          description: Whether the canary deployment uses the stage cache
+
+    PatchOperation:
+      type: object
+      description: A patch operation to update a REST API resource
+      properties:
+        op:
+          type: string
+          enum: [add, remove, replace, move, copy, test]
+          description: The update operation to perform
+        path:
+          type: string
+          description: The operation path (e.g., /name, /description)
+        value:
+          type: string
+          description: The new value
+        from:
+          type: string
+          description: The source path for copy/move operations
+
+    # ============================================================
+    # V1 REST API Input/Output Schemas
+    # ============================================================
+
+    GetRestApisInput:
+      type: object
+      description: Input for listing REST APIs (V1)
+      properties:
+        limit:
+          type: integer
+          format: int32
+          description: The maximum number of returned results per page
+        position:
+          type: string
+          description: The current pagination position
+      # Note: V1 SDK uses lower-case JSON tags
+
+    GetRestApisOutput:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RestApi'
+          description: The list of RestApi resources
+        position:
+          type: string
+          description: The current pagination position
+
+    CreateRestApiInput:
+      type: object
+      required: [name]
+      description: Input for creating a REST API (V1)
+      properties:
+        name:
+          type: string
+          description: The name of the REST API
+        description:
+          type: string
+          description: The description of the REST API
+        cloneFrom:
+          type: string
+          description: The ID of the RestApi to clone from
+        binaryMediaTypes:
+          type: array
+          items:
+            type: string
+          description: The list of binary media types
+        minimumCompressionSize:
+          type: integer
+          format: int32
+          description: The minimum size in bytes that a payload must be before compression
+        apiKeySource:
+          type: string
+          enum: [HEADER, AUTHORIZER]
+          description: The source of the API key
+        endpointConfiguration:
+          type: object
+          properties:
+            types:
+              type: array
+              items:
+                type: string
+                enum: [EDGE, REGIONAL, PRIVATE]
+            vpcEndpointIds:
+              type: array
+              items:
+                type: string
+        policy:
+          type: string
+          description: A stringified JSON policy document
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: The collection of tags
+        version:
+          type: string
+          description: A version identifier for the API
+        disableExecuteApiEndpoint:
+          type: boolean
+          description: Specifies whether clients can invoke the API using the default execute-api endpoint
+
+    CreateRestApiOutput:
+      $ref: '#/components/schemas/RestApi'
+
+    GetRestApiOutput:
+      $ref: '#/components/schemas/RestApi'
+
+    DeleteRestApiOutput:
+      type: object
+      properties: {}
+
+    RestApiUpdateSimpleRequest:
+      type: object
+      description: Simple format for updating a REST API (name/description)
+      properties:
+        name:
+          type: string
+          description: The new name for the REST API
+        description:
+          type: string
+          description: The new description for the REST API
+
+    UpdateRestApiInput:
+      type: object
+      description: SDK format for updating a REST API using patch operations
+      properties:
+        patchOperations:
+          type: array
+          items:
+            $ref: '#/components/schemas/PatchOperation'
+          description: A list of patch operations to apply
+
+    UpdateRestApiOutput:
+      $ref: '#/components/schemas/RestApi'
+
+    ImportRestApiRequest:
+      type: object
+      description: Request body for importing a Swagger/OpenAPI specification
+      properties:
+        body:
+          oneOf:
+            - type: string
+              description: Raw Swagger JSON specification
+            - type: object
+              properties:
+                body:
+                  type: string
+                  description: Base64-encoded Swagger JSON
+              description: Base64 encoded body wrapper
+
+    ImportRestApiOutput:
+      $ref: '#/components/schemas/RestApi'
+
+    GetResourcesOutput:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Resource'
+          description: The list of Resource resources
+        position:
+          type: string
+          description: The current pagination position
+
+    GetResourceOutput:
+      $ref: '#/components/schemas/Resource'
+
+    CreateResourceInput:
+      type: object
+      required: [parentId, pathPart]
+      description: Input for creating a resource (V1)
+      properties:
+        parentId:
+          type: string
+          description: The parent resource ID
+        pathPart:
+          type: string
+          description: The path part for the resource
+
+    CreateResourceOutput:
+      $ref: '#/components/schemas/Resource'
+
+    DeleteResourceOutput:
+      type: object
+      properties: {}
+
+    PutMethodInput:
+      type: object
+      required: [authorizationType]
+      description: Input for creating/updating a method (V1)
+      properties:
+        authorizationType:
+          type: string
+          enum: [NONE, AWS_IAM, CUSTOM, COGNITO_USER_POOLS, REQUEST]
+          description: The authorization type for the method
+        apiKeyRequired:
+          type: boolean
+          description: Specifies whether the method requires a valid ApiKey
+        authorizerId:
+          type: string
+          description: The identifier of an Authorizer to use on this method
+        authorizationScopes:
+          type: array
+          items:
+            type: string
+          description: A list of authorization scopes
+        operationName:
+          type: string
+          description: A human-friendly operation identifier
+        requestModels:
+          type: object
+          additionalProperties:
+            type: string
+          description: A key-value map specifying the content types and schemas
+        requestParameters:
+          type: object
+          additionalProperties:
+            type: boolean
+          description: A key-value map of required or optional parameters
+        requestValidatorId:
+          type: string
+          description: The identifier of a request validator
+
+    PutMethodOutput:
+      $ref: '#/components/schemas/Method'
+
+    GetMethodOutput:
+      $ref: '#/components/schemas/Method'
+
+    DeleteMethodOutput:
+      type: object
+      properties: {}
+
+    PutIntegrationInput:
+      type: object
+      required: [type]
+      description: Input for creating/updating an integration (V1)
+      properties:
+        type:
+          type: string
+          enum: [AWS, AWS_PROXY, HTTP, HTTP_PROXY, MOCK]
+          description: The integration type
+        integrationHttpMethod:
+          type: string
+          description: The integration HTTP method (e.g., GET, POST)
+        uri:
+          type: string
+          format: uri
+          description: The integration URI
+        credentials:
+          type: string
+          description: The credentials required for the integration
+        requestParameters:
+          type: object
+          additionalProperties:
+            type: string
+          description: A key-value map specifying request parameters
+        requestTemplates:
+          type: object
+          additionalProperties:
+            type: string
+          description: Represents a map of Velocity templates
+        passthroughBehavior:
+          type: string
+          enum: [WHEN_NO_MATCH, WHEN_NO_TEMPLATES, NEVER]
+          description: The integration's passthrough behavior
+        contentHandling:
+          type: string
+          enum: [CONVERT_TO_BINARY, CONVERT_TO_TEXT]
+          description: How to handle response payload content type conversions
+        cacheNamespace:
+          type: string
+          description: The integration's cache namespace
+        cacheKeyParameters:
+          type: array
+          items:
+            type: string
+          description: A list of request parameters whose values API Gateway caches
+        tlsConfig:
+          $ref: '#/components/schemas/TlsConfig'
+        timeoutInMillis:
+          type: integer
+          format: int32
+          description: The integration's timeout in milliseconds
+
+    PutIntegrationOutput:
+      $ref: '#/components/schemas/IntegrationV1'
+
+    GetIntegrationOutput:
+      $ref: '#/components/schemas/IntegrationV1'
+
+    DeleteIntegrationOutput:
+      type: object
+      properties: {}
+
+    CreateDeploymentInput:
+      type: object
+      description: Input for creating a deployment (V1)
+      properties:
+        description:
+          type: string
+          description: The deployment description
+        cacheClusterEnabled:
+          type: boolean
+          description: Specifies whether a cache cluster is enabled
+        cacheClusterSize:
+          type: string
+          description: The cache cluster size
+          enum: ['0.5', '1.6', '6.1', '13.5', '28.4', '58.2', '118', '237']
+        stageName:
+          type: string
+          description: The name of the stage to create with the deployment
+        stageDescription:
+          type: string
+          description: The description of the stage
+        variables:
+          type: object
+          additionalProperties:
+            type: string
+          description: A map that defines the stage variables
+        canarySettings:
+          $ref: '#/components/schemas/DeploymentCanarySettings'
+        tracingEnabled:
+          type: boolean
+          description: Specifies whether active tracing with X-ray is enabled
+
+    DeploymentCanarySettings:
+      type: object
+      properties:
+        percentTraffic:
+          type: number
+          format: double
+          description: The percentage of traffic to the canary deployment
+        stageVariableOverrides:
+          type: object
+          additionalProperties:
+            type: string
+          description: Stage variables overridden for a canary release
+        useStageCache:
+          type: boolean
+          description: Whether the canary deployment uses the stage cache
+
+    CreateDeploymentOutput:
+      $ref: '#/components/schemas/Deployment'
+
+    GetDeploymentsOutput:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Deployment'
+          description: The list of Deployment resources
+        position:
+          type: string
+          description: The current pagination position
+
+    DeleteDeploymentOutput:
+      type: object
+      properties: {}
+
+    CreateStageInputV1:
+      type: object
+      description: Input for creating a stage (V1)
+      properties:
+        stageName:
+          type: string
+          description: The name of the stage
+        deploymentId:
+          type: string
+          description: The identifier of the Deployment that the stage points to
+        description:
+          type: string
+          description: The stage description
+        cacheClusterEnabled:
+          type: boolean
+          description: Whether caching is enabled for the stage
+        cacheClusterSize:
+          type: string
+          description: The stage's cache cluster size
+        variables:
+          type: object
+          additionalProperties:
+            type: string
+          description: A map that defines the stage variables
+        documentationVersion:
+          type: string
+          description: The version of the associated API documentation
+        accessLogSettings:
+          $ref: '#/components/schemas/AccessLogSettings'
+        canarySettings:
+          $ref: '#/components/schemas/CanarySettings'
+        tracingEnabled:
+          type: boolean
+          description: Specifies whether active tracing with X-ray is enabled
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: The collection of tags
+
+    CreateStageOutputV1:
+      $ref: '#/components/schemas/StageV1'
+
+    GetStagesOutputV1:
+      type: object
+      properties:
+        item:
+          type: array
+          items:
+            $ref: '#/components/schemas/StageV1'
+          description: The list of Stage resources
+
+    UpdateStageInputV1:
+      type: object
+      description: Input for updating a stage (V1)
+      properties:
+        deploymentId:
+          type: string
+        description:
+          type: string
+        cacheClusterEnabled:
+          type: boolean
+        cacheClusterSize:
+          type: string
+        variables:
+          type: object
+          additionalProperties:
+            type: string
+        documentationVersion:
+          type: string
+        accessLogSettings:
+          $ref: '#/components/schemas/AccessLogSettings'
+        canarySettings:
+          $ref: '#/components/schemas/CanarySettings'
+        tracingEnabled:
+          type: boolean
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+        patchOperations:
+          type: array
+          items:
+            $ref: '#/components/schemas/PatchOperation'
+          description: A list of patch operations to apply
+
+    UpdateStageOutputV1:
+      $ref: '#/components/schemas/StageV1'
+
+    DeleteStageOutputV1:
+      type: object
+      properties: {}
+
+    InvokeUrlRequestV1:
+      type: object
+      required: [apiId, stageName]
+      description: Request body for generating an invoke URL (V1)
+      properties:
+        apiId:
+          type: string
+          description: The API ID
+        stageName:
+          type: string
+          description: The stage name

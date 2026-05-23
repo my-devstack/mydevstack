@@ -200,9 +200,9 @@ export function useOpenSearch() {
 
   function getDomainTags(domainName: string): { Key: string; Value: string }[] {
     const details = domainDetails.value[domainName]
-    if (details?.Tags?.length) return details.Tags
+    if ((details as any)?.Tags?.length) return (details as any).Tags
     const domain = domains.value.find(d => d.DomainName === domainName)
-    return domain?.Tags || []
+    return domain?.TagList || []
   }
 
   function getCompatibleVersionFor(engineVersion?: string): string[] {

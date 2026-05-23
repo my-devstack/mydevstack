@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import StackList from './StackList.vue';
 
 const meta: Meta<typeof StackList> = {

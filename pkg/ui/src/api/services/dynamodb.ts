@@ -25,6 +25,12 @@ async function restFetch<T = any>(
     options.body = JSON.stringify(body)
   }
 
+  // DynamoDB Streams backend uses GET with body (unconventional but required)
+  if (body !== undefined && method === 'GET') {
+    options.body = JSON.stringify(body)
+    options.headers = { 'Content-Type': 'application/json' }
+  }
+
   try {
     const response = await fetch(url, options)
     if (!response.ok) {
@@ -407,7 +413,7 @@ export class DynamoDBService {
       ExpressionAttributeNames?: Record<string, string>
     }
   ): Promise<{ Responses?: Record<string, any>[] }> {
-    const response = await restFetch<{ Responses?: Record<string, { Items: Record<string, any>[] }> }>(
+    const response = await restFetch<{ Responses?: Record<string, Record<string, any>[]> }>(
       'POST',
       '/dynamodb/batch-get-item',
       {
@@ -560,27 +566,26 @@ export const listStreams = async (tableName: string): Promise<{ Streams: any[] }
   if (!tableName) {
     return { Streams: [] }
   }
-  return restFetch('GET', `/dynamodb/streams?tableName=${encodeURIComponent(tableName)}`, undefined, 'DynamoDBStreams')
+  return restFetch('GET', `/dynamodb-streams/streams?tableName=${encodeURIComponent(tableName)}`, undefined, 'DynamoDBStreams')
 }
 
 // List all streams without table filter - returns orphaned streams when tables deleted
 export const listAllStreams = async (): Promise<{ Streams: any[] }> => {
-  return restFetch('GET', '/dynamodb/streams', undefined, 'DynamoDBStreams')
+  return restFetch('GET', '/dynamodb-streams/streams', undefined, 'DynamoDBStreams')
 }
 
 export const describeStream = async (streamArn: string): Promise<any> => {
-  return restFetch('GET', `/dynamodb/streams/${encodeURIComponent(streamArn)}`, undefined, 'DynamoDBStreams')
+  return restFetch('GET', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}`, undefined, 'DynamoDBStreams')
 }
 
 export const getShardIterator = async (streamArn: string, shardId: string, iteratorType?: string): Promise<any> => {
-  return restFetch('POST', `/dynamodb/streams/${encodeURIComponent(streamArn)}/shard-iterator`, {
-    ShardId: shardId,
+  return restFetch('GET', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}/shards/${encodeURIComponent(shardId)}/iterator`, {
     ShardIteratorType: iteratorType || 'TRIM_HORIZON',
   }, 'DynamoDBStreams')
 }
 
-export const getRecords = async (shardIterator: string, limit?: number): Promise<any> => {
-  const response = await restFetch('POST', '/dynamodb/streams/records', {
+export const getRecords = async (streamArn: string, shardId: string, shardIterator: string, limit?: number): Promise<any> => {
+  const response = await restFetch('GET', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}/shards/${encodeURIComponent(shardId)}/records`, {
     ShardIterator: shardIterator,
     Limit: limit || 100,
   }, 'DynamoDBStreams')

@@ -51,7 +51,7 @@ export function useCloudWatch() {
 
   async function deleteAlarm(alarmName: string) {
     try {
-      await cwApi.deleteAlarms([alarmName])
+      await cwApi.deleteAlarms(alarmName)
       toast.success('Alarm deleted successfully')
       await loadAlarms()
     } catch (error: any) {
@@ -73,7 +73,7 @@ export function useCloudWatch() {
 
   async function loadAlarmHistory(alarmName: string) {
     try {
-      const result = await cwApi.describeAlarmHistory({ AlarmName: alarmName })
+      const result = await cwApi.describeAlarmHistory(alarmName)
       alarmHistory[alarmName] = result.AlarmHistoryItems || []
     } catch (error) {
       alarmHistory[alarmName] = [] // cache empty so we don't re-fetch on every expand
@@ -199,7 +199,7 @@ export function useCloudWatch() {
       }
       await cwLogsApi.createLogGroup(params)
       if (retention) {
-        await cwLogsApi.putRetentionPolicy({ logGroupName: name, retentionInDays: retention })
+        await cwLogsApi.putRetentionPolicy(name, retention)
       }
       toast.success('Log group created successfully')
       await loadLogGroups()
@@ -222,7 +222,7 @@ export function useCloudWatch() {
 
   async function createLogStreamFn(groupName: string, streamName: string) {
     try {
-      await cwLogsApi.createLogStream({ logGroupName: groupName, logStreamName: streamName })
+      await cwLogsApi.createLogStream(groupName, streamName)
       toast.success(`Stream ${streamName} created`)
       // Invalidate cache so re-expand fetches fresh streams
       delete logStreams[groupName]
@@ -238,7 +238,7 @@ export function useCloudWatch() {
 
   async function loadLogStreams(groupName: string) {
     try {
-      const result = await cwLogsApi.describeLogStreams({ logGroupName: groupName })
+      const result = await cwLogsApi.describeLogStreams(groupName)
       logStreams[groupName] = (result.LogStreams || []).map(normalizeLogStream)
     } catch (error) {
       logStreams[groupName] = [] // cache empty so we don't re-fetch on every expand
@@ -249,7 +249,7 @@ export function useCloudWatch() {
   async function loadLogEventsFn(groupName: string, streamName: string) {
     const key = `${groupName}:${streamName}`
     try {
-      const result = await cwLogsApi.getLogEvents({ logGroupName: groupName, logStreamName: streamName })
+      const result = await cwLogsApi.getLogEvents(groupName, streamName)
       logEvents[key] = (result.Events || []).map(normalizeLogEvent)
     } catch (error) {
       logEvents[key] = [] // cache empty so we don't re-fetch on every expand
@@ -259,7 +259,7 @@ export function useCloudWatch() {
 
   async function setRetentionPolicy(groupName: string, days: number) {
     try {
-      await cwLogsApi.putRetentionPolicy({ logGroupName: groupName, retentionInDays: days })
+      await cwLogsApi.putRetentionPolicy(groupName, days)
       toast.success('Retention policy updated')
       await loadLogGroups()
     } catch (error: any) {

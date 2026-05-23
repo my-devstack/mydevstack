@@ -2,6 +2,7 @@ package httphandlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
@@ -34,11 +35,39 @@ func (h *ProxyHandler) registerKinesisRoutes(r chi.Router) {
 }
 
 func (h *ProxyHandler) listStreams(w http.ResponseWriter, r *http.Request) {
+	exclusiveStartStreamName := r.URL.Query().Get("ExclusiveStartStreamName")
+	var limit int32
+	if limitStr := r.URL.Query().Get("Limit"); limitStr != "" {
+		if v, err := strconv.Atoi(limitStr); err == nil {
+			limit = int32(v)
+		}
+	}
+
+	// Also try body params for backward compatibility
 	bodyBytes := readBody(r)
+	if len(bodyBytes) > 0 {
+		var body struct {
+			ExclusiveStartStreamName string `json:"ExclusiveStartStreamName"`
+			Limit                    int32  `json:"Limit"`
+		}
+		if err := parseBody(bodyBytes, &body); err != nil {
+			sendError(w, http.StatusBadRequest, "Invalid request body", err)
+			return
+		}
+		if body.ExclusiveStartStreamName != "" {
+			exclusiveStartStreamName = body.ExclusiveStartStreamName
+		}
+		if body.Limit > 0 {
+			limit = body.Limit
+		}
+	}
+
 	input := &kinesis.ListStreamsInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+	if exclusiveStartStreamName != "" {
+		input.ExclusiveStartStreamName = aws.String(exclusiveStartStreamName)
+	}
+	if limit > 0 {
+		input.Limit = aws.Int32(limit)
 	}
 	result, err := h.Svc.Kinesis().ListStreams(h.ctx, input)
 	if err != nil {

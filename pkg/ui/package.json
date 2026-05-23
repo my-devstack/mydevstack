@@ -59,6 +59,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.48.0",
+    "@storybook/vue3": "^8.6.0",
     "@types/node": "^20.19.39",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",

@@ -71,8 +71,8 @@ export function useSSM() {
     return new Date(dateString).toLocaleString()
   }
 
-  function getParamTypeStatus(type: string): 'active' | 'pending' | 'inactive' {
-    const typeMap: Record<string, 'active' | 'pending' | 'inactive'> = {
+  function getParamTypeStatus(type: string): 'active' | 'pending' | 'inactive' | 'warning' {
+    const typeMap: Record<string, 'active' | 'pending' | 'inactive' | 'warning'> = {
       String: 'active',
       StringList: 'active',
       SecureString: 'warning',

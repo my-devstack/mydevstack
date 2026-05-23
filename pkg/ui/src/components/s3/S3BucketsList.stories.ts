@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import S3BucketsList from './S3BucketsList.vue';
 import { createPinia, setActivePinia } from 'pinia';
 

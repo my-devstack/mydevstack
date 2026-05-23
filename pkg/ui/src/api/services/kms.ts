@@ -121,17 +121,6 @@ export class KMSService {
     }
   }
 
-  async generateDataKey(keyId: string, options?: {
-    KeySpec?: 'AES_256' | 'AES_128'
-    NumberOfBytes?: number
-    GrantTokens?: string[]
-  }): Promise<any> {
-    return await this.request('GenerateDataKey', 'POST', '/kms/generate-data-key', {
-      KeyId: keyId,
-      ...options,
-    })
-  }
-
   async generateDataKeyWithoutPlaintext(keyId: string, options?: {
     KeySpec?: 'AES_256' | 'AES_128'
     NumberOfBytes?: number
@@ -140,34 +129,6 @@ export class KMSService {
       KeyId: keyId,
       ...options,
     })
-  }
-
-  async sign(keyId: string, message: string, signingAlgorithm: string, options?: {
-    GrantTokens?: string[]
-  }): Promise<any> {
-    const messageBase64 = btoa(message)
-    return await this.request('Sign', 'POST', '/kms/sign', {
-      KeyId: keyId,
-      Message: messageBase64,
-      MessageType: 'RAW',
-      SigningAlgorithm: signingAlgorithm,
-      ...options,
-    })
-  }
-
-  async verify(keyId: string, message: string, signature: string, signingAlgorithm: string): Promise<{ KeyId: string; SignatureValid: boolean }> {
-    const messageBase64 = btoa(message)
-    const response = await this.request('Verify', 'POST', '/kms/verify', {
-      KeyId: keyId,
-      Message: messageBase64,
-      MessageType: 'RAW',
-      Signature: signature,
-      SigningAlgorithm: signingAlgorithm,
-    })
-    return {
-      KeyId: response.KeyId || '',
-      SignatureValid: response.SignatureValid || false,
-    }
   }
 
   async scheduleKeyDeletion(keyId: string, pendingWindowInDays?: number): Promise<any> {
@@ -187,22 +148,6 @@ export class KMSService {
     }
   }
 
-  async cancelKeyDeletion(keyId: string): Promise<any> {
-    return await this.request('CancelKeyDeletion', 'POST', `/kms/keys/${encodeURIComponent(keyId)}/cancel-deletion`)
-  }
-
-  async getKeyRotationStatus(keyId: string): Promise<any> {
-    return await this.request('GetKeyRotationStatus', 'GET', `/kms/keys/${encodeURIComponent(keyId)}/rotation`)
-  }
-
-  async enableKeyRotation(keyId: string): Promise<any> {
-    return await this.request('EnableKeyRotation', 'POST', `/kms/keys/${encodeURIComponent(keyId)}/rotation/enable`)
-  }
-
-  async disableKeyRotation(keyId: string): Promise<any> {
-    return await this.request('DisableKeyRotation', 'POST', `/kms/keys/${encodeURIComponent(keyId)}/rotation/disable`)
-  }
-
   async enableKey(keyId: string): Promise<any> {
     return await this.request('EnableKey', 'POST', `/kms/keys/${encodeURIComponent(keyId)}/enable`)
   }
@@ -216,40 +161,6 @@ export class KMSService {
     return await this.request('GetKeyPolicy', 'GET', path)
   }
 
-  async listKeyPolicies(keyId: string): Promise<any> {
-    return await this.request('ListKeyPolicies', 'GET', `/kms/keys/${encodeURIComponent(keyId)}/policies`)
-  }
-
-  async putKeyPolicy(keyId: string, policy: string, policyName: string = 'default'): Promise<any> {
-    return await this.request('PutKeyPolicy', 'PUT', `/kms/keys/${encodeURIComponent(keyId)}/policy`, {
-      Policy: policy,
-      PolicyName: policyName,
-    })
-  }
-
-  async listAliases(options?: { Limit?: number; Marker?: string }): Promise<any> {
-    const params = new URLSearchParams()
-    if (options?.Limit !== undefined) params.set('limit', String(options.Limit))
-    if (options?.Marker !== undefined) params.set('marker', options.Marker)
-    const query = params.toString()
-    const path = `/kms/aliases${query ? '?' + query : ''}`
-    return await this.request('ListAliases', 'GET', path)
-  }
-
-  async deleteAlias(aliasName: string): Promise<void> {
-    return await this.request('DeleteAlias', 'DELETE', `/kms/aliases/${encodeURIComponent(aliasName)}`)
-  }
-
-  async generateRandom(options?: {
-    NumberOfBytes?: number
-    CustomKeyStoreId?: string
-    EntropySource?: string
-  }): Promise<{ Plaintext: string }> {
-    const response = await this.request('GenerateRandom', 'POST', '/kms/generate-random', options || {})
-    return {
-      Plaintext: response.Plaintext || '',
-    }
-  }
 }
 
 export const kmsService = new KMSService()
@@ -261,28 +172,11 @@ export const encrypt = (keyId: string, plaintext: string, options?: Parameters<K
   kmsService.encrypt(keyId, plaintext, options)
 export const decrypt = (ciphertextBlob: string, options?: Parameters<KMSService['decrypt']>[1]) =>
   kmsService.decrypt(ciphertextBlob, options)
-export const generateDataKey = (keyId: string, options?: { KeySpec?: 'AES_256' | 'AES_128'; NumberOfBytes?: number; GrantTokens?: string[] }) =>
-  kmsService.generateDataKey(keyId, options)
-export const sign = (keyId: string, message: string, signingAlgorithm: string, options?: Parameters<KMSService['sign']>[3]) =>
-  kmsService.sign(keyId, message, signingAlgorithm, options)
-export const verify = (keyId: string, message: string, signature: string, signingAlgorithm: string) =>
-  kmsService.verify(keyId, message, signature, signingAlgorithm)
 export const scheduleKeyDeletion = (keyId: string, pendingWindowInDays?: number) =>
   kmsService.scheduleKeyDeletion(keyId, pendingWindowInDays)
 export const deleteKey = (keyId: string) => kmsService.scheduleKeyDeletion(keyId, 1)
-export const cancelKeyDeletion = (keyId: string) => kmsService.cancelKeyDeletion(keyId)
-export const getKeyRotationStatus = (keyId: string) => kmsService.getKeyRotationStatus(keyId)
-export const enableKeyRotation = (keyId: string) => kmsService.enableKeyRotation(keyId)
-export const disableKeyRotation = (keyId: string) => kmsService.disableKeyRotation(keyId)
 export const enableKey = (keyId: string) => kmsService.enableKey(keyId)
 export const disableKey = (keyId: string) => kmsService.disableKey(keyId)
 export const getKeyPolicy = (keyId: string, policyName?: string) => kmsService.getKeyPolicy(keyId, policyName)
-export const listKeyPolicies = (keyId: string) => kmsService.listKeyPolicies(keyId)
-export const putKeyPolicy = (keyId: string, policy: string, policyName?: string) =>
-  kmsService.putKeyPolicy(keyId, policy, policyName)
-export const listAliases = (options?: any) => kmsService.listAliases(options)
-export const deleteAlias = (aliasName: string) => kmsService.deleteAlias(aliasName)
-export const generateRandom = (options?: { NumberOfBytes?: number; CustomKeyStoreId?: string; EntropySource?: string }) =>
-  kmsService.generateRandom(options)
 
 export default kmsService

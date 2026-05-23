@@ -1,0 +1,454 @@
+openapi: 3.0.0
+info:
+  title: "SNS"
+  version: "1.0.0"
+
+paths:
+  /sns/topics:
+    get:
+      tags: [SNS]
+      summary: List topics
+      description: |
+        Returns a list of the requester's SNS topics.
+        Supports pagination via NextToken. Accepts both camelCase and TitleCase JSON keys.
+      operationId: listTopics
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListTopicsInput'
+      responses:
+        "200":
+          description: List of topics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTopicsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [SNS]
+      summary: Create topic
+      description: |
+        Creates a topic to which notifications can be published.
+        Requires a topic Name. Accepts both camelCase and TitleCase JSON keys.
+      operationId: createTopic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTopicInput'
+      responses:
+        "200":
+          description: Topic created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTopicOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sns/topics/{topicArn}:
+    delete:
+      tags: [SNS]
+      summary: Delete topic
+      description: |
+        Deletes a topic and all its subscriptions.
+      operationId: deleteTopic
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TopicArnPath'
+      responses:
+        "200":
+          description: Topic deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteTopicOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sns/subscriptions:
+    post:
+      tags: [SNS]
+      summary: Subscribe
+      description: |
+        Subscribes an endpoint to an SNS topic. Requires TopicArn, Protocol,
+        and Endpoint. Accepts both camelCase and TitleCase JSON keys.
+      operationId: subscribe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscribeInput'
+      responses:
+        "200":
+          description: Subscribed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscribeOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [SNS]
+      summary: List subscriptions
+      description: |
+        Returns a list of the requester's subscriptions.
+        Supports pagination via NextToken.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listSubscriptions
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListSubscriptionsInput'
+      responses:
+        "200":
+          description: List of subscriptions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSubscriptionsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sns/subscriptions/{subscriptionArn}:
+    delete:
+      tags: [SNS]
+      summary: Unsubscribe
+      description: |
+        Deletes a subscription to a topic.
+      operationId: unsubscribe
+      parameters:
+        - name: subscriptionArn
+          in: path
+          required: true
+          schema: { type: string }
+          description: SNS subscription ARN
+          example: arn:aws:sns:us-east-1:123456789012:my-topic:abc123-def456
+      responses:
+        "200":
+          description: Unsubscribed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnsubscribeOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sns/subscriptions/by-topic/{topicArn}:
+    get:
+      tags: [SNS]
+      summary: List subscriptions by topic
+      description: |
+        Returns a list of subscriptions for a specific topic ARN.
+        Supports pagination via NextToken in the request body.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listSubscriptionsByTopic
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TopicArnPath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListSubscriptionsByTopicRequest'
+      responses:
+        "200":
+          description: List of subscriptions for topic
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSubscriptionsByTopicOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "404":
+          description: Topic not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sns/publish:
+    post:
+      tags: [SNS]
+      summary: Publish
+      description: |
+        Sends a message to an SNS topic or endpoint.
+        Requires TopicArn or PhoneNumber or TargetArn, and Message.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: publish
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishInput'
+      responses:
+        "200":
+          description: Message published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublishOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Core types
+    # ============================================================
+    Topic:
+      type: object
+      properties:
+        TopicArn:
+          type: string
+
+    Subscription:
+      type: object
+      properties:
+        SubscriptionArn:
+          type: string
+        Owner:
+          type: string
+        Protocol:
+          type: string
+        Endpoint:
+          type: string
+        TopicArn:
+          type: string
+
+    # ============================================================
+    # Topic operations
+    # ============================================================
+    ListTopicsInput:
+      type: object
+      properties:
+        NextToken:
+          type: string
+
+    ListTopicsOutput:
+      type: object
+      properties:
+        Topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/Topic'
+        NextToken:
+          type: string
+
+    CreateTopicInput:
+      type: object
+      required: [Name]
+      properties:
+        Name:
+          type: string
+        Attributes:
+          type: object
+          additionalProperties:
+            type: string
+        Tags:
+          type: array
+          items:
+            type: object
+            required: [Key, Value]
+            properties:
+              Key:
+                type: string
+              Value:
+                type: string
+        DataProtectionPolicy:
+          type: string
+
+    CreateTopicOutput:
+      type: object
+      properties:
+        TopicArn:
+          type: string
+
+    DeleteTopicOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # Subscription operations
+    # ============================================================
+    SubscribeInput:
+      type: object
+      required: [TopicArn, Protocol, Endpoint]
+      properties:
+        TopicArn:
+          type: string
+        Protocol:
+          type: string
+          description: Delivery protocol (e.g., http, https, email, email-json, sms, sqs, application, lambda)
+        Endpoint:
+          type: string
+        Attributes:
+          type: object
+          additionalProperties:
+            type: string
+        ReturnSubscriptionArn:
+          type: boolean
+
+    SubscribeOutput:
+      type: object
+      properties:
+        SubscriptionArn:
+          type: string
+
+    UnsubscribeOutput:
+      type: object
+      properties: {}
+
+    ListSubscriptionsInput:
+      type: object
+      properties:
+        NextToken:
+          type: string
+
+    ListSubscriptionsOutput:
+      type: object
+      properties:
+        Subscriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+        NextToken:
+          type: string
+
+    ListSubscriptionsByTopicRequest:
+      type: object
+      properties:
+        NextToken:
+          type: string
+
+    ListSubscriptionsByTopicOutput:
+      type: object
+      properties:
+        Subscriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # Publish
+    # ============================================================
+    PublishInput:
+      type: object
+      required: [Message]
+      properties:
+        TopicArn:
+          type: string
+        TargetArn:
+          type: string
+        PhoneNumber:
+          type: string
+        Message:
+          type: string
+        Subject:
+          type: string
+        MessageStructure:
+          type: string
+          description: Set to "json" for JSON-formatted message
+        MessageAttributes:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              DataType:
+                type: string
+              StringValue:
+                type: string
+              BinaryValue:
+                type: string
+                format: byte
+        MessageDeduplicationId:
+          type: string
+        MessageGroupId:
+          type: string
+
+    PublishOutput:
+      type: object
+      properties:
+        MessageId:
+          type: string
+        SequenceNumber:
+          type: string

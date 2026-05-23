@@ -20,4 +20,4 @@ export { default as UniversalCreateDeleteModal } from './UniversalCreateDeleteMo
 export { default as UniversalViewModal } from './UniversalViewModal.vue'
 
 // Re-export types
-export type { TableColumn } from './ServiceTable.vue'
+export type { TableColumn } from './types'

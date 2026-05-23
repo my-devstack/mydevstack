@@ -1,0 +1,113 @@
+openapi: 3.0.0
+info:
+  title: MyDevStack AWS Proxy API
+  description: |
+    Proxy API that exposes AWS service operations via HTTP REST endpoints.
+    All POST/PUT endpoints accept lowercase JSON keys which are TitleCased
+    for AWS SDK compatibility.
+  version: "1.0.0"
+  contact:
+    name: MyDevStack
+    url: https://my-devstack.github.io/
+
+servers:
+  - url: http://localhost:8081
+    description: Local development (Floci/LocalStack on :4566)
+  - url: http://<proxy-host>:<port>
+    description: Production
+
+tags:
+  - name: Management
+    description: Proxy management endpoints (health, region)
+  - name: S3
+    description: Simple Storage Service
+  - name: Lambda
+    description: AWS Lambda
+  - name: DynamoDB
+    description: Amazon DynamoDB
+  - name: IAM
+    description: Identity and Access Management
+  - name: SQS
+    description: Simple Queue Service
+  - name: SNS
+    description: Simple Notification Service
+  - name: CloudFormation
+    description: AWS CloudFormation
+  - name: CloudWatch
+    description: Amazon CloudWatch
+  - name: CloudWatch Logs
+    description: Amazon CloudWatch Logs
+  - name: KMS
+    description: AWS Key Management Service
+  - name: Secrets Manager
+    description: AWS Secrets Manager
+  - name: Kinesis
+    description: Amazon Kinesis
+  - name: SSM
+    description: AWS Systems Manager Parameter Store
+  - name: Step Functions
+    description: AWS Step Functions
+  - name: API Gateway
+    description: API Gateway (V1 REST + V2 HTTP APIs)
+  - name: DynamoDB Streams
+    description: Amazon DynamoDB Streams
+  - name: SES
+    description: Amazon Simple Email Service v2
+  - name: MSK
+    description: Managed Streaming for Apache Kafka
+  - name: OpenSearch
+    description: Amazon OpenSearch Service
+  - name: ElastiCache
+    description: Amazon ElastiCache
+  - name: RDS
+    description: Amazon Relational Database Service
+
+services:
+  - services/_management.yaml
+  - services/s3.yaml
+  - services/iam.yaml
+  - services/lambda.yaml
+  - services/dynamodb.yaml
+  - services/dynamodb-streams.yaml
+  - services/sqs.yaml
+  - services/sns.yaml
+  - services/cloudformation.yaml
+  - services/cloudwatch.yaml
+  - services/cloudwatch-logs.yaml
+  - services/kinesis.yaml
+  - services/kms.yaml
+  - services/secrets-manager.yaml
+  - services/sesv2.yaml
+  - services/elasticache.yaml
+  - services/rds.yaml
+  - services/opensearch.yaml
+  - services/msk.yaml
+  - services/ssm.yaml
+  - services/step-functions.yaml
+  - services/apigateway.yaml
+
+components:
+  securitySchemes:
+    MockSignature:
+      type: apiKey
+      in: header
+      name: X-Mock-Signature
+      description: Mock SigV4 signature for local development
+
+  schemas:
+    Error:
+      $ref: common/_components.yaml#/components/schemas/ErrorResponse
+    Health:
+      $ref: common/_components.yaml#/components/schemas/HealthResponse
+    RegionRequest:
+      $ref: common/_components.yaml#/components/schemas/RegionRequest
+    RegionResponse:
+      $ref: common/_components.yaml#/components/schemas/RegionResponse
+    PresignInput:
+      $ref: common/_components.yaml#/components/schemas/PresignInput
+    PresignedUrlResponse:
+      $ref: common/_components.yaml#/components/schemas/PresignedUrlResponse
+    S3ListObjectsV2Output:
+      $ref: common/_components.yaml#/components/schemas/S3ListObjectsV2Output
+    LambdaInvokeResponse:
+      $ref: common/_components.yaml#/components/schemas/LambdaInvokeResponse

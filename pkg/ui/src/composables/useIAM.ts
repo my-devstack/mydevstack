@@ -37,7 +37,7 @@ export function useIAM() {
     loading.value = true
     try {
       const result = await iamApi.listUsers()
-      users.value = result.Users
+      users.value = result.Users as IAMUser[]
     } catch (error) {
       toast.error('Failed to load users: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
@@ -89,7 +89,7 @@ export function useIAM() {
     loading.value = true
     try {
       const result = await iamApi.listRoles()
-      roles.value = result.Roles
+      roles.value = result.Roles as IAMRole[]
     } catch (error) {
       toast.error('Failed to load roles: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
@@ -126,8 +126,8 @@ export function useIAM() {
   }
 
   async function loadAllPolicies(): Promise<IAMPolicy[]> {
-    const result = await iamApi.listPolicies({ Scope: 'All' })
-    return result.Policies
+      const result = await iamApi.listPolicies({ Scope: 'All' })
+      return result.Policies as unknown as IAMPolicy[]
   }
 
   async function attachPolicy(roleName: string, policyArn: string) {
@@ -146,7 +146,7 @@ export function useIAM() {
     loading.value = true
     try {
       const result = await iamApi.listPolicies({ Scope: 'All' })
-      policies.value = result.Policies
+      policies.value = result.Policies as unknown as IAMPolicy[]
     } catch (error) {
       toast.error('Failed to load policies: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
@@ -185,7 +185,7 @@ export function useIAM() {
     loading.value = true
     try {
       const result = await iamApi.listGroups()
-      groups.value = result.Groups
+      groups.value = result.Groups as IAMGroup[]
     } catch (error) {
       toast.error('Failed to load groups: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {

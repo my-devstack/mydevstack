@@ -243,10 +243,16 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
     // Reload to see both
     await page.reload({ waitUntil: 'networkidle' })
 
-    // Find first secret (search across pages due to pagination)
-    const found1 = await findSecretOnPage(page, secretName1)
-    expect(found1).toBe(true)
+    // Set per-page to 50 so both secrets visible on one page
+    const showLabel = page.getByText('Show:')
+    if (await showLabel.isVisible().catch(() => false)) {
+      await showLabel.locator('..').locator('select').selectOption('50')
+      await page.waitForLoadState('networkidle')
+    }
+
+    // Find first secret
     const secretDiv1 = page.locator('div.cursor-pointer').filter({ hasText: secretName1 })
+    await expect(secretDiv1).toBeVisible({ timeout: 10000 })
 
     // Click first secret div to expand
     await secretDiv1.click()
@@ -258,10 +264,9 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
     // Verify first secret expanded — "Edit Value" button visible
     await expect(page.getByRole('button', { name: 'Edit Value' })).toBeVisible()
 
-    // Find second secret (may be on different page)
-    const found2 = await findSecretOnPage(page, secretName2)
-    expect(found2).toBe(true)
+    // Find second secret (same page since we set per-page to 50)
     const secretDiv2 = page.locator('div.cursor-pointer').filter({ hasText: secretName2 })
+    await expect(secretDiv2).toBeVisible({ timeout: 10000 })
 
     // Click second secret div to expand (should collapse first)
     await secretDiv2.click()
@@ -269,8 +274,8 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
     // Wait for accordion content to update
     await page.waitForLoadState('networkidle')
 
-    // Verify second secret expanded — still have "Edit Value" button (new accordion)
-    await expect(page.getByRole('button', { name: 'Edit Value' })).toBeVisible()
+    // Verify second secret expanded — "Edit Value" button should still be visible (new accordion)
+    await expect(page.getByRole('button', { name: 'Edit Value' })).toBeVisible({ timeout: 10000 })
 
     // Clean up
     await deleteSecret(page, secretName1)

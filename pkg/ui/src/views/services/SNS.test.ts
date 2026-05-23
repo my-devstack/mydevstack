@@ -5,12 +5,12 @@ import { ref } from 'vue'
 
 vi.mock('@/composables/useSNS', () => ({
   useSNS: () => ({
-    topics: ref([]),
+    topics: ref<any[]>([]),
     loading: ref(false),
-    topicSubscriptions: ref({}),
+    topicSubscriptions: ref<Record<string, any>>({}),
     loadingTopicSubscriptions: ref(false),
-    expandedTopics: ref({}),
-    protocolOptions: ref([]),
+    expandedTopics: ref<Record<string, any>>({}),
+    protocolOptions: ref<any[]>([]),
     loadTopics: vi.fn(),
     createTopic: vi.fn(),
     deleteTopic: vi.fn(),

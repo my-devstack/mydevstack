@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import type { Meta, StoryObj } from '@storybook/vue3'
 import CloudWatchCreateLogStreamModal from './CloudWatchCreateLogStreamModal.vue'
 
 const meta: Meta<typeof CloudWatchCreateLogStreamModal> = {

@@ -280,7 +280,7 @@ describe('useOpenSearch', () => {
 
   it('getDomainTags returns tags from domains list if no details', () => {
     const { getDomainTags, domains } = useOpenSearch()
-    domains.value = [{ DomainName: 'test-domain', Tags: [{ Key: 'Name', Value: 'test' }] }]
+    domains.value = [{ DomainName: 'test-domain', TagList: [{ Key: 'Name', Value: 'test' }] }]
 
     const tags = getDomainTags('test-domain')
     expect(tags).toEqual([{ Key: 'Name', Value: 'test' }])

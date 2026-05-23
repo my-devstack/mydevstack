@@ -175,7 +175,7 @@ export class S3Service {
     const qp = new URLSearchParams()
     if (options?.prefix) qp.set('prefix', options.prefix)
     if (options?.delimiter) qp.set('delimiter', options.delimiter)
-    if (options?.marker) qp.set('marker', options.marker)
+    if (options?.marker) qp.set('continuationToken', options.marker)
     if (options?.maxKeys !== undefined) qp.set('maxKeys', String(options.maxKeys))
     const qs = qp.toString()
     const path = `/s3/buckets/${enc(bucket)}/objects${qs ? `?${qs}` : ''}`

@@ -1,0 +1,1088 @@
+openapi: 3.0.0
+info:
+  title: "Kinesis"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # Streams
+  # ============================================================
+  /kinesis/streams:
+    get:
+      tags: [Kinesis]
+      summary: List streams
+      description: |
+        Returns a list of Kinesis streams. Supports pagination via
+        ExclusiveStartStreamName and Limit.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listStreams
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListStreamsInput'
+      responses:
+        "200":
+          description: List of streams
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListStreamsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Kinesis]
+      summary: Create stream
+      description: |
+        Creates a Kinesis stream with a specified name and shard count.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createStream
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStreamInput'
+      responses:
+        "200":
+          description: Stream created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateStreamOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kinesis/streams/{streamName}:
+    get:
+      tags: [Kinesis]
+      summary: Describe stream
+      description: |
+        Returns detailed information about a Kinesis stream, including
+        shard details, retention period, and monitoring.
+      operationId: describeStream
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+      responses:
+        "200":
+          description: Stream details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeStreamOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Kinesis]
+      summary: Delete stream
+      description: |
+        Deletes a Kinesis stream and all its data. This operation
+        cannot be undone.
+      operationId: deleteStream
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+      responses:
+        "200":
+          description: Stream deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteStreamOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Kinesis]
+      summary: Update shard count
+      description: |
+        Updates the shard count of a Kinesis stream.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateShardCount
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateShardCountInput'
+      responses:
+        "200":
+          description: Shard count updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateShardCountOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kinesis/streams/{streamName}/summary:
+    get:
+      tags: [Kinesis]
+      summary: Describe stream summary
+      description: |
+        Returns a summary of the Kinesis stream without shard details.
+      operationId: describeStreamSummary
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+      responses:
+        "200":
+          description: Stream summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeStreamSummaryOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Shards
+  # ============================================================
+  /kinesis/streams/{streamName}/shards:
+    get:
+      tags: [Kinesis]
+      summary: List shards
+      description: |
+        Lists the shards in a Kinesis stream with optional filtering.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listShards
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListShardsInput'
+      responses:
+        "200":
+          description: List of shards
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListShardsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kinesis/streams/{streamName}/shards/{shardId}/iterator:
+    post:
+      tags: [Kinesis]
+      summary: Get shard iterator
+      description: |
+        Gets a shard iterator for reading records from a shard.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getShardIterator
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/ShardIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetShardIteratorInput'
+      responses:
+        "200":
+          description: Shard iterator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetShardIteratorOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kinesis/streams/{streamName}/shards/{shardId}/records:
+    get:
+      tags: [Kinesis]
+      summary: Get records
+      description: |
+        Gets records from a Kinesis stream shard using a shard iterator.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getRecords
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/ShardIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetRecordsInput'
+      responses:
+        "200":
+          description: Records retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRecordsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Records
+  # ============================================================
+  /kinesis/streams/{streamName}/records:
+    post:
+      tags: [Kinesis]
+      summary: Put record
+      description: |
+        Writes a single data record to a Kinesis stream.
+        Requires StreamName and Data and PartitionKey.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putRecord
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutRecordInput'
+      responses:
+        "200":
+          description: Record written
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PutRecordOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kinesis/streams/{streamName}/records/batch:
+    post:
+      tags: [Kinesis]
+      summary: Put records (batch)
+      description: |
+        Writes multiple data records to a Kinesis stream.
+        Requires StreamName and Records array.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putRecords
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutRecordsInput'
+      responses:
+        "200":
+          description: Records written
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PutRecordsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Shard Split/Merge
+  # ============================================================
+  /kinesis/streams/{streamName}/shards/{shardId}/merge:
+    post:
+      tags: [Kinesis]
+      summary: Merge shards
+      description: |
+        Merges two adjacent shards in a Kinesis stream into a single shard.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: mergeShards
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/ShardIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MergeShardsInput'
+      responses:
+        "200":
+          description: Shards merged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MergeShardsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kinesis/streams/{streamName}/shards/{shardId}/split:
+    post:
+      tags: [Kinesis]
+      summary: Split shard
+      description: |
+        Splits a shard in a Kinesis stream into two new shards.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: splitShard
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/ShardIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SplitShardInput'
+      responses:
+        "200":
+          description: Shard split
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SplitShardOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Enhanced Monitoring
+  # ============================================================
+  /kinesis/streams/{streamName}/enhanced-monitoring:
+    post:
+      tags: [Kinesis]
+      summary: Enable enhanced monitoring
+      description: |
+        Enables enhanced monitoring for a Kinesis stream by specifying
+        shard-level metrics.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: enableEnhancedMonitoring
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnableEnhancedMonitoringInput'
+      responses:
+        "200":
+          description: Enhanced monitoring enabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnableEnhancedMonitoringOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Kinesis]
+      summary: Disable enhanced monitoring
+      description: |
+        Disables enhanced monitoring for a Kinesis stream.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: disableEnhancedMonitoring
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisableEnhancedMonitoringInput'
+      responses:
+        "200":
+          description: Enhanced monitoring disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisableEnhancedMonitoringOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Core types
+    # ============================================================
+    StreamSummary:
+      type: object
+      properties:
+        StreamARN:
+          type: string
+        StreamName:
+          type: string
+        StreamStatus:
+          type: string
+          enum: [CREATING, DELETING, ACTIVE, UPDATING]
+        StreamModeDetails:
+          type: object
+          properties:
+            StreamMode:
+              type: string
+              enum: [PROVISIONED, ON_DEMAND]
+
+    StreamDescription:
+      type: object
+      properties:
+        StreamARN:
+          type: string
+        StreamName:
+          type: string
+        StreamStatus:
+          type: string
+          enum: [CREATING, DELETING, ACTIVE, UPDATING]
+        StreamModeDetails:
+          type: object
+          properties:
+            StreamMode:
+              type: string
+              enum: [PROVISIONED, ON_DEMAND]
+        Shards:
+          type: array
+          items:
+            $ref: '#/components/schemas/Shard'
+        HasMoreShards:
+          type: boolean
+        RetentionPeriodHours:
+          type: integer
+          format: int32
+        EnhancedMonitoring:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnhancedMonitoring'
+        EncryptionType:
+          type: string
+          enum: [NONE, KMS]
+        KeyId:
+          type: string
+        StreamCreationTimestamp:
+          type: number
+          description: Creation timestamp (Unix epoch)
+
+    StreamDescriptionSummary:
+      type: object
+      properties:
+        StreamARN:
+          type: string
+        StreamName:
+          type: string
+        StreamStatus:
+          type: string
+          enum: [CREATING, DELETING, ACTIVE, UPDATING]
+        StreamModeDetails:
+          type: object
+          properties:
+            StreamMode:
+              type: string
+              enum: [PROVISIONED, ON_DEMAND]
+        RetentionPeriodHours:
+          type: integer
+          format: int32
+        StreamCreationTimestamp:
+          type: number
+        EnhancedMonitoring:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnhancedMonitoring'
+        EncryptionType:
+          type: string
+          enum: [NONE, KMS]
+        KeyId:
+          type: string
+        OpenShardCount:
+          type: integer
+          format: int32
+        ConsumerCount:
+          type: integer
+          format: int32
+
+    Shard:
+      type: object
+      properties:
+        ShardId:
+          type: string
+        ParentShardId:
+          type: string
+        AdjacentParentShardId:
+          type: string
+        HashKeyRange:
+          type: object
+          properties:
+            StartingHashKey:
+              type: string
+            EndingHashKey:
+              type: string
+        SequenceNumberRange:
+          type: object
+          properties:
+            StartingSequenceNumber:
+              type: string
+            EndingSequenceNumber:
+              type: string
+
+    Record:
+      type: object
+      properties:
+        SequenceNumber:
+          type: string
+        ApproximateArrivalTimestamp:
+          type: number
+          description: Arrival timestamp (Unix epoch)
+        Data:
+          type: string
+          format: byte
+          description: Base64-encoded data blob
+        PartitionKey:
+          type: string
+        EncryptionType:
+          type: string
+          enum: [NONE, KMS]
+
+    EnhancedMonitoring:
+      type: object
+      properties:
+        ShardLevelMetrics:
+          type: array
+          items:
+            type: string
+            enum:
+              - IncomingBytes
+              - IncomingRecords
+              - OutgoingBytes
+              - OutgoingRecords
+              - WriteProvisionedThroughputExceeded
+              - ReadProvisionedThroughputExceeded
+              - IteratorAgeMilliseconds
+              - ALL
+
+    # ============================================================
+    # ListStreams
+    # ============================================================
+    ListStreamsInput:
+      type: object
+      properties:
+        ExclusiveStartStreamName:
+          type: string
+        Limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+
+    ListStreamsOutput:
+      type: object
+      properties:
+        StreamSummaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/StreamSummary'
+        HasMoreStreams:
+          type: boolean
+
+    # ============================================================
+    # CreateStream
+    # ============================================================
+    CreateStreamInput:
+      type: object
+      required: [StreamName]
+      properties:
+        StreamName:
+          type: string
+        ShardCount:
+          type: integer
+          format: int32
+          description: Number of shards for the stream (PROVISIONED mode)
+        StreamModeDetails:
+          type: object
+          properties:
+            StreamMode:
+              type: string
+              enum: [PROVISIONED, ON_DEMAND]
+
+    CreateStreamOutput:
+      type: object
+      properties:
+        StreamDescription:
+          $ref: '#/components/schemas/StreamDescription'
+
+    # ============================================================
+    # DescribeStream
+    # ============================================================
+    DescribeStreamInput:
+      type: object
+      properties:
+        StreamName:
+          type: string
+        Limit:
+          type: integer
+          format: int32
+        ExclusiveStartShardId:
+          type: string
+
+    DescribeStreamOutput:
+      type: object
+      properties:
+        StreamDescription:
+          $ref: '#/components/schemas/StreamDescription'
+
+    # ============================================================
+    # DescribeStreamSummary
+    # ============================================================
+    DescribeStreamSummaryInput:
+      type: object
+      properties:
+        StreamName:
+          type: string
+
+    DescribeStreamSummaryOutput:
+      type: object
+      properties:
+        StreamDescriptionSummary:
+          $ref: '#/components/schemas/StreamDescriptionSummary'
+
+    # ============================================================
+    # DeleteStream
+    # ============================================================
+    DeleteStreamInput:
+      type: object
+      properties:
+        StreamName:
+          type: string
+        EnforceConsumerDeletion:
+          type: boolean
+
+    DeleteStreamOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # UpdateShardCount
+    # ============================================================
+    UpdateShardCountInput:
+      type: object
+      required: [StreamName, TargetShardCount]
+      properties:
+        StreamName:
+          type: string
+        TargetShardCount:
+          type: integer
+          format: int32
+          description: New shard count
+        ScalingType:
+          type: string
+          enum: [UNIFORM_SCALING]
+          default: UNIFORM_SCALING
+
+    UpdateShardCountOutput:
+      type: object
+      properties:
+        StreamName:
+          type: string
+        CurrentShardCount:
+          type: integer
+          format: int32
+        TargetShardCount:
+          type: integer
+          format: int32
+
+    # ============================================================
+    # ListShards
+    # ============================================================
+    ListShardsInput:
+      type: object
+      properties:
+        StreamName:
+          type: string
+        ExclusiveStartShardId:
+          type: string
+        MaxResults:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000
+        NextToken:
+          type: string
+        ShardIdFilter:
+          type: string
+        StreamCreationTimestamp:
+          type: number
+
+    ListShardsOutput:
+      type: object
+      properties:
+        Shards:
+          type: array
+          items:
+            $ref: '#/components/schemas/Shard'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # GetShardIterator
+    # ============================================================
+    GetShardIteratorInput:
+      type: object
+      required: [StreamName, ShardId, ShardIteratorType]
+      properties:
+        StreamName:
+          type: string
+        ShardId:
+          type: string
+        ShardIteratorType:
+          type: string
+          enum: [AT_SEQUENCE_NUMBER, AFTER_SEQUENCE_NUMBER, TRIM_HORIZON, LATEST, AT_TIMESTAMP]
+        StartingSequenceNumber:
+          type: string
+        Timestamp:
+          type: number
+          description: Timestamp (Unix epoch) for AT_TIMESTAMP iterator
+
+    GetShardIteratorOutput:
+      type: object
+      properties:
+        ShardIterator:
+          type: string
+
+    # ============================================================
+    # GetRecords
+    # ============================================================
+    GetRecordsInput:
+      type: object
+      properties:
+        ShardIterator:
+          type: string
+        Limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 10000
+
+    GetRecordsOutput:
+      type: object
+      properties:
+        Records:
+          type: array
+          items:
+            $ref: '#/components/schemas/Record'
+        NextShardIterator:
+          type: string
+        MillisBehindLatest:
+          type: integer
+          format: int64
+
+    # ============================================================
+    # PutRecord
+    # ============================================================
+    PutRecordInput:
+      type: object
+      required: [StreamName, Data, PartitionKey]
+      properties:
+        StreamName:
+          type: string
+        Data:
+          type: string
+          format: byte
+          description: Base64-encoded data blob
+        PartitionKey:
+          type: string
+        ExplicitHashKey:
+          type: string
+        SequenceNumberForOrdering:
+          type: string
+
+    PutRecordOutput:
+      type: object
+      properties:
+        SequenceNumber:
+          type: string
+        ShardId:
+          type: string
+        EncryptionType:
+          type: string
+          enum: [NONE, KMS]
+
+    # ============================================================
+    # PutRecords
+    # ============================================================
+    PutRecordsInput:
+      type: object
+      required: [StreamName, Records]
+      properties:
+        StreamName:
+          type: string
+        Records:
+          type: array
+          items:
+            $ref: '#/components/schemas/PutRecordsRequestEntry'
+
+    PutRecordsRequestEntry:
+      type: object
+      required: [Data, PartitionKey]
+      properties:
+        Data:
+          type: string
+          format: byte
+          description: Base64-encoded data blob
+        PartitionKey:
+          type: string
+        ExplicitHashKey:
+          type: string
+
+    PutRecordsOutput:
+      type: object
+      properties:
+        Records:
+          type: array
+          items:
+            $ref: '#/components/schemas/PutRecordsResultEntry'
+        FailedRecordCount:
+          type: integer
+          format: int32
+        EncryptionType:
+          type: string
+          enum: [NONE, KMS]
+
+    PutRecordsResultEntry:
+      type: object
+      properties:
+        SequenceNumber:
+          type: string
+        ShardId:
+          type: string
+        ErrorCode:
+          type: string
+        ErrorMessage:
+          type: string
+
+    # ============================================================
+    # MergeShards
+    # ============================================================
+    MergeShardsInput:
+      type: object
+      required: [StreamName, ShardToMerge, AdjacentShardToMerge]
+      properties:
+        StreamName:
+          type: string
+        ShardToMerge:
+          type: string
+        AdjacentShardToMerge:
+          type: string
+
+    MergeShardsOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # SplitShard
+    # ============================================================
+    SplitShardInput:
+      type: object
+      required: [StreamName, ShardToSplit, NewStartingHashKey]
+      properties:
+        StreamName:
+          type: string
+        ShardToSplit:
+          type: string
+        NewStartingHashKey:
+          type: string
+
+    SplitShardOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # EnableEnhancedMonitoring
+    # ============================================================
+    EnableEnhancedMonitoringInput:
+      type: object
+      required: [StreamName, ShardLevelMetrics]
+      properties:
+        StreamName:
+          type: string
+        ShardLevelMetrics:
+          type: array
+          items:
+            type: string
+            enum:
+              - IncomingBytes
+              - IncomingRecords
+              - OutgoingBytes
+              - OutgoingRecords
+              - WriteProvisionedThroughputExceeded
+              - ReadProvisionedThroughputExceeded
+              - IteratorAgeMilliseconds
+              - ALL
+
+    EnableEnhancedMonitoringOutput:
+      type: object
+      properties:
+        StreamName:
+          type: string
+        CurrentShardLevelMetrics:
+          type: array
+          items:
+            type: string
+        DesiredShardLevelMetrics:
+          type: array
+          items:
+            type: string
+
+    # ============================================================
+    # DisableEnhancedMonitoring
+    # ============================================================
+    DisableEnhancedMonitoringInput:
+      type: object
+      required: [StreamName, ShardLevelMetrics]
+      properties:
+        StreamName:
+          type: string
+        ShardLevelMetrics:
+          type: array
+          items:
+            type: string
+            enum:
+              - IncomingBytes
+              - IncomingRecords
+              - OutgoingBytes
+              - OutgoingRecords
+              - WriteProvisionedThroughputExceeded
+              - ReadProvisionedThroughputExceeded
+              - IteratorAgeMilliseconds
+              - ALL
+
+    DisableEnhancedMonitoringOutput:
+      type: object
+      properties:
+        StreamName:
+          type: string
+        CurrentShardLevelMetrics:
+          type: array
+          items:
+            type: string
+        DesiredShardLevelMetrics:
+          type: array
+          items:
+            type: string

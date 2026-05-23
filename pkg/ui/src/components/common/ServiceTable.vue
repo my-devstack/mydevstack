@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import EmptyState from './EmptyState.vue'
 
-export interface TableColumn {
-  key: string
-  label: string
-  sortable?: boolean
-  width?: string
-}
+import type { TableColumn } from './types'
+
+export type { TableColumn }
 
 interface Props {
   columns: TableColumn[]

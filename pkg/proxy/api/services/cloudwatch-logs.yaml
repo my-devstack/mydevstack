@@ -1,0 +1,733 @@
+openapi: 3.0.0
+info:
+  title: "CloudWatch Logs"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # Log Groups
+  # ============================================================
+  /cloudwatch-logs/log-groups:
+    get:
+      tags: [CloudWatch Logs]
+      summary: Describe log groups
+      description: |
+        Returns a list of CloudWatch log groups with optional filtering
+        by name prefix. Accepts both camelCase and TitleCase JSON keys.
+      operationId: describeLogGroups
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DescribeLogGroupsInput'
+      responses:
+        "200":
+          description: List of log groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeLogGroupsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [CloudWatch Logs]
+      summary: Create log group
+      description: |
+        Creates a new CloudWatch log group. Optionally sets retention
+        policy and tags. Accepts both camelCase and TitleCase JSON keys.
+      operationId: createLogGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLogGroupInput'
+      responses:
+        "200":
+          description: Log group created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateLogGroupOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cloudwatch-logs/log-groups/{logGroupName}:
+    delete:
+      tags: [CloudWatch Logs]
+      summary: Delete log group
+      description: |
+        Deletes a CloudWatch log group and all its log streams and events.
+        The log group name must be URL-encoded.
+      operationId: deleteLogGroup
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/LogGroupNamePath'
+      responses:
+        "200":
+          description: Log group deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteLogGroupOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cloudwatch-logs/log-groups/{logGroupName}/retention:
+    put:
+      tags: [CloudWatch Logs]
+      summary: Put retention policy
+      description: |
+        Sets the retention policy for a log group. Log events older than
+        the specified retention period are automatically deleted.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putRetentionPolicy
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/LogGroupNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutRetentionPolicyInput'
+      responses:
+        "200":
+          description: Retention policy updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PutRetentionPolicyOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Log Streams
+  # ============================================================
+  /cloudwatch-logs/log-groups/{logGroupName}/log-streams:
+    get:
+      tags: [CloudWatch Logs]
+      summary: Describe log streams
+      description: |
+        Returns a list of log streams in a log group with optional
+        filtering and ordering. Accepts both camelCase and TitleCase JSON keys.
+      operationId: describeLogStreams
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/LogGroupNamePath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DescribeLogStreamsInput'
+      responses:
+        "200":
+          description: List of log streams
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeLogStreamsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [CloudWatch Logs]
+      summary: Create log stream
+      description: |
+        Creates a new log stream in a log group.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createLogStream
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/LogGroupNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLogStreamInput'
+      responses:
+        "200":
+          description: Log stream created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateLogStreamOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cloudwatch-logs/log-groups/{logGroupName}/log-streams/{logStreamName}/events:
+    post:
+      tags: [CloudWatch Logs]
+      summary: Put log events
+      description: |
+        Uploads a batch of log events to a log stream. The sequence token
+        is required if the stream already has events.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putLogEvents
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/LogGroupNamePath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/LogStreamNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutLogEventsInput'
+      responses:
+        "200":
+          description: Log events uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PutLogEventsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [CloudWatch Logs]
+      summary: Get log events
+      description: |
+        Returns log events from a log stream with optional pagination
+        and ordering. Accepts both camelCase and TitleCase JSON keys.
+      operationId: getLogEvents
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/LogGroupNamePath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/LogStreamNamePath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetLogEventsInput'
+      responses:
+        "200":
+          description: Log events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetLogEventsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Metric Filters
+  # ============================================================
+  /cloudwatch-logs/metric-filters:
+    post:
+      tags: [CloudWatch Logs]
+      summary: Put metric filter
+      description: |
+        Creates or updates a metric filter that extracts metric data
+        from log events. Accepts both camelCase and TitleCase JSON keys.
+      operationId: putMetricFilter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutMetricFilterInput'
+      responses:
+        "200":
+          description: Metric filter created or updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PutMetricFilterOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [CloudWatch Logs]
+      summary: Describe metric filters
+      description: |
+        Returns a list of metric filters with optional filtering by
+        log group name or filter name prefix.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: describeMetricFilters
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DescribeMetricFiltersInput'
+      responses:
+        "200":
+          description: List of metric filters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeMetricFiltersOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Core types
+    # ============================================================
+    LogGroup:
+      type: object
+      properties:
+        LogGroupName:
+          type: string
+        CreationTime:
+          type: integer
+          format: int64
+          description: Creation timestamp in milliseconds
+        RetentionInDays:
+          type: integer
+          format: int32
+        MetricFilterCount:
+          type: integer
+          format: int32
+        Arn:
+          type: string
+        StoredBytes:
+          type: integer
+          format: int64
+        LogGroupClass:
+          type: string
+          enum: [STANDARD, INFREQUENT_ACCESS]
+          description: Log group class
+        LogGroupArn:
+          type: string
+
+    LogStream:
+      type: object
+      properties:
+        LogStreamName:
+          type: string
+        CreationTime:
+          type: integer
+          format: int64
+        FirstEventTimestamp:
+          type: integer
+          format: int64
+        LastEventTimestamp:
+          type: integer
+          format: int64
+        LastIngestionTime:
+          type: integer
+          format: int64
+        UploadSequenceToken:
+          type: string
+        Arn:
+          type: string
+        StoredBytes:
+          type: integer
+          format: int64
+
+    InputLogEvent:
+      type: object
+      required: [Timestamp, Message]
+      properties:
+        Timestamp:
+          type: integer
+          format: int64
+          description: Event timestamp in milliseconds
+        Message:
+          type: string
+          description: Log event message
+
+    OutputLogEvent:
+      type: object
+      properties:
+        Timestamp:
+          type: integer
+          format: int64
+        Message:
+          type: string
+        IngestionTime:
+          type: integer
+          format: int64
+
+    MetricFilter:
+      type: object
+      properties:
+        FilterName:
+          type: string
+        FilterPattern:
+          type: string
+        MetricTransformations:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricTransformation'
+        LogGroupName:
+          type: string
+        CreationTime:
+          type: integer
+          format: int64
+
+    MetricTransformation:
+      type: object
+      required: [MetricName, MetricNamespace, MetricValue]
+      properties:
+        MetricName:
+          type: string
+        MetricNamespace:
+          type: string
+        MetricValue:
+          type: string
+          description: Value to publish (e.g., "1" or "$.myField")
+        DefaultValue:
+          type: number
+        Dimensions:
+          type: object
+          additionalProperties:
+            type: string
+        Unit:
+          type: string
+          enum: [Seconds, Microseconds, Milliseconds, Bytes, Kilobytes, Megabytes, Gigabytes, Terabytes, Bits, Kilobits, Megabits, Gigabits, Terabits, Percent, Count, Bytes/Second, Kilobytes/Second, Megabytes/Second, Gigabytes/Second, Terabytes/Second, Bits/Second, Kilobits/Second, Megabits/Second, Gigabits/Second, Terabits/Second, Count/Second, None]
+
+    # ============================================================
+    # DescribeLogGroups
+    # ============================================================
+    DescribeLogGroupsInput:
+      type: object
+      properties:
+        LogGroupNamePrefix:
+          type: string
+        NextToken:
+          type: string
+        Limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+        LogGroupNamePattern:
+          type: string
+
+    DescribeLogGroupsOutput:
+      type: object
+      properties:
+        LogGroups:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogGroup'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # CreateLogGroup
+    # ============================================================
+    CreateLogGroupInput:
+      type: object
+      required: [LogGroupName]
+      properties:
+        LogGroupName:
+          type: string
+        KmsKeyId:
+          type: string
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+        LogGroupClass:
+          type: string
+          enum: [STANDARD, INFREQUENT_ACCESS]
+
+    CreateLogGroupOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # DeleteLogGroup
+    # ============================================================
+    DeleteLogGroupInput:
+      type: object
+      properties:
+        LogGroupName:
+          type: string
+
+    DeleteLogGroupOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # PutRetentionPolicy
+    # ============================================================
+    PutRetentionPolicyInput:
+      type: object
+      required: [LogGroupName, RetentionInDays]
+      properties:
+        LogGroupName:
+          type: string
+        RetentionInDays:
+          type: integer
+          format: int32
+          enum: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 2192, 2557, 2922, 3288, 3653]
+
+    PutRetentionPolicyOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # DescribeLogStreams
+    # ============================================================
+    DescribeLogStreamsInput:
+      type: object
+      properties:
+        LogGroupName:
+          type: string
+        LogStreamNamePrefix:
+          type: string
+        OrderBy:
+          type: string
+          enum: [LogStreamName, LastEventTime]
+        Descending:
+          type: boolean
+        Limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+        NextToken:
+          type: string
+
+    DescribeLogStreamsOutput:
+      type: object
+      properties:
+        LogStreams:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogStream'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # CreateLogStream
+    # ============================================================
+    CreateLogStreamInput:
+      type: object
+      required: [LogGroupName, LogStreamName]
+      properties:
+        LogGroupName:
+          type: string
+        LogStreamName:
+          type: string
+
+    CreateLogStreamOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # PutLogEvents
+    # ============================================================
+    PutLogEventsInput:
+      type: object
+      required: [LogGroupName, LogStreamName, LogEvents]
+      properties:
+        LogGroupName:
+          type: string
+        LogStreamName:
+          type: string
+        LogEvents:
+          type: array
+          items:
+            $ref: '#/components/schemas/InputLogEvent'
+        SequenceToken:
+          type: string
+
+    PutLogEventsOutput:
+      type: object
+      properties:
+        NextSequenceToken:
+          type: string
+        RejectedLogEventsInfo:
+          type: object
+          properties:
+            TooNewLogEventStartIndex:
+              type: integer
+              format: int32
+            TooOldLogEventEndIndex:
+              type: integer
+              format: int32
+            ExpiredLogEventEndIndex:
+              type: integer
+              format: int32
+
+    # ============================================================
+    # GetLogEvents
+    # ============================================================
+    GetLogEventsInput:
+      type: object
+      properties:
+        LogGroupName:
+          type: string
+        LogStreamName:
+          type: string
+        StartTime:
+          type: integer
+          format: int64
+        EndTime:
+          type: integer
+          format: int64
+        Limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 10000
+        NextToken:
+          type: string
+        StartFromHead:
+          type: boolean
+
+    GetLogEventsOutput:
+      type: object
+      properties:
+        Events:
+          type: array
+          items:
+            $ref: '#/components/schemas/OutputLogEvent'
+        NextForwardToken:
+          type: string
+        NextBackwardToken:
+          type: string
+
+    # ============================================================
+    # PutMetricFilter
+    # ============================================================
+    PutMetricFilterInput:
+      type: object
+      required: [LogGroupName, FilterName, FilterPattern, MetricTransformations]
+      properties:
+        LogGroupName:
+          type: string
+        FilterName:
+          type: string
+        FilterPattern:
+          type: string
+        MetricTransformations:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricTransformation'
+
+    PutMetricFilterOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # DescribeMetricFilters
+    # ============================================================
+    DescribeMetricFiltersInput:
+      type: object
+      properties:
+        LogGroupName:
+          type: string
+        FilterNamePrefix:
+          type: string
+        NextToken:
+          type: string
+        Limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+        MetricName:
+          type: string
+        MetricNamespace:
+          type: string
+
+    DescribeMetricFiltersOutput:
+      type: object
+      properties:
+        MetricFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricFilter'
+        NextToken:
+          type: string

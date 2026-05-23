@@ -1,0 +1,354 @@
+openapi: 3.0.0
+info:
+  title: "DynamoDB Streams"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # Streams
+  # ============================================================
+  /dynamodb-streams/streams:
+    get:
+      tags: [DynamoDB Streams]
+      summary: List streams
+      description: |
+        Returns a list of DynamoDB streams for a table.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listStreams
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListStreamsInput'
+      responses:
+        "200":
+          description: List of streams
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListStreamsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /dynamodb-streams/streams/{streamArn}:
+    get:
+      tags: [DynamoDB Streams]
+      summary: Describe stream
+      description: |
+        Returns detailed information about a DynamoDB stream, including
+        shard details and key schema.
+      operationId: describeStream
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamArnPath'
+      responses:
+        "200":
+          description: Stream details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeStreamOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /dynamodb-streams/streams/{streamArn}/shards/{shardId}/iterator:
+    get:
+      tags: [DynamoDB Streams]
+      summary: Get shard iterator
+      description: |
+        Returns a shard iterator for reading records from a DynamoDB
+        stream shard.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getShardIterator
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamArnPath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/ShardIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetShardIteratorInput'
+      responses:
+        "200":
+          description: Shard iterator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetShardIteratorOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /dynamodb-streams/streams/{streamArn}/shards/{shardId}/records:
+    get:
+      tags: [DynamoDB Streams]
+      summary: Get records
+      description: |
+        Returns records from a DynamoDB stream shard using a shard
+        iterator.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getRecords
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamArnPath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/ShardIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetRecordsInput'
+      responses:
+        "200":
+          description: Records retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRecordsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Core types
+    # ============================================================
+    StreamSummary:
+      type: object
+      properties:
+        StreamArn:
+          type: string
+          format: arn
+        TableName:
+          type: string
+        StreamLabel:
+          type: string
+
+    StreamDescription:
+      type: object
+      properties:
+        StreamArn:
+          type: string
+          format: arn
+        StreamLabel:
+          type: string
+        StreamStatus:
+          type: string
+          enum: [ENABLING, ENABLED, DISABLING, DISABLED]
+        StreamViewType:
+          type: string
+          enum: [NEW_IMAGE, OLD_IMAGE, NEW_AND_OLD_IMAGES, KEYS_ONLY]
+        CreationRequestDateTime:
+          type: number
+          description: Creation timestamp (Unix epoch)
+        TableName:
+          type: string
+        KeySchema:
+          type: array
+          items:
+            type: object
+            properties:
+              AttributeName:
+                type: string
+              KeyType:
+                type: string
+                enum: [HASH, RANGE]
+        Shards:
+          type: array
+          items:
+            $ref: '#/components/schemas/Shard'
+
+    Shard:
+      type: object
+      properties:
+        ShardId:
+          type: string
+        SequenceNumberRange:
+          type: object
+          properties:
+            StartingSequenceNumber:
+              type: string
+            EndingSequenceNumber:
+              type: string
+        ParentShardId:
+          type: string
+
+    Record:
+      type: object
+      properties:
+        eventID:
+          type: string
+        eventName:
+          type: string
+          enum: [INSERT, MODIFY, REMOVE]
+        eventVersion:
+          type: string
+        eventSource:
+          type: string
+        awsRegion:
+          type: string
+        dynamodb:
+          $ref: '#/components/schemas/StreamRecord'
+        userIdentity:
+          type: object
+          properties:
+            PrincipalId:
+              type: string
+            Type:
+              type: string
+
+    StreamRecord:
+      type: object
+      properties:
+        ApproximateCreationDateTime:
+          type: number
+          description: Approximate creation timestamp (Unix epoch)
+        Keys:
+          type: object
+          description: DynamoDB item keys (AttributeValue map)
+          additionalProperties:
+            type: object
+        OldImage:
+          type: object
+          description: Item image before modification (AttributeValue map)
+          additionalProperties:
+            type: object
+        NewImage:
+          type: object
+          description: Item image after modification (AttributeValue map)
+          additionalProperties:
+            type: object
+        SequenceNumber:
+          type: string
+        SizeBytes:
+          type: integer
+          format: int64
+        StreamViewType:
+          type: string
+          enum: [NEW_IMAGE, OLD_IMAGE, NEW_AND_OLD_IMAGES, KEYS_ONLY]
+
+    # ============================================================
+    # ListStreams
+    # ============================================================
+    ListStreamsInput:
+      type: object
+      properties:
+        TableName:
+          type: string
+        Limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+        ExclusiveStartStreamArn:
+          type: string
+          format: arn
+
+    ListStreamsOutput:
+      type: object
+      properties:
+        Streams:
+          type: array
+          items:
+            $ref: '#/components/schemas/StreamSummary'
+
+    # ============================================================
+    # DescribeStream
+    # ============================================================
+    DescribeStreamInput:
+      type: object
+      properties:
+        StreamArn:
+          type: string
+        Limit:
+          type: integer
+          format: int32
+        ExclusiveStartShardId:
+          type: string
+
+    DescribeStreamOutput:
+      type: object
+      properties:
+        StreamDescription:
+          $ref: '#/components/schemas/StreamDescription'
+
+    # ============================================================
+    # GetShardIterator
+    # ============================================================
+    GetShardIteratorInput:
+      type: object
+      required: [StreamArn, ShardId, ShardIteratorType]
+      properties:
+        StreamArn:
+          type: string
+          format: arn
+        ShardId:
+          type: string
+        ShardIteratorType:
+          type: string
+          enum: [TRIM_HORIZON, LATEST, AT_SEQUENCE_NUMBER, AFTER_SEQUENCE_NUMBER]
+        SequenceNumber:
+          type: string
+
+    GetShardIteratorOutput:
+      type: object
+      properties:
+        ShardIterator:
+          type: string
+
+    # ============================================================
+    # GetRecords
+    # ============================================================
+    GetRecordsInput:
+      type: object
+      properties:
+        ShardIterator:
+          type: string
+        Limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000
+
+    GetRecordsOutput:
+      type: object
+      properties:
+        Records:
+          type: array
+          items:
+            $ref: '#/components/schemas/Record'
+        NextShardIterator:
+          type: string

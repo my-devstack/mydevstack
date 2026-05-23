@@ -62,7 +62,7 @@ export class MSKService {
   }
 
   async getBootstrapBrokers(clusterArn: string): Promise<any> {
-    return request(`/msk/clusters/${encodeURIComponent(clusterArn)}/brokers`, { method: 'GET' })
+    return request(`/msk/clusters/${encodeURIComponent(clusterArn)}/bootstrap-brokers`, { method: 'GET' })
   }
 }
 

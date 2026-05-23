@@ -259,7 +259,7 @@ describe('S3 Service', () => {
       expect(mockFetch.mock.calls[1][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects/obj1')
       expect(mockFetch.mock.calls[1][1].method).toBe('DELETE')
       // Second page: list + delete obj2
-      expect(mockFetch.mock.calls[2][0]).toContain('/s3/buckets/my-bucket/objects?marker=token1')
+      expect(mockFetch.mock.calls[2][0]).toContain('/s3/buckets/my-bucket/objects?continuationToken=token1')
       expect(mockFetch.mock.calls[3][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/objects/obj2')
       expect(mockFetch.mock.calls[3][1].method).toBe('DELETE')
     })

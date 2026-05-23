@@ -1,0 +1,797 @@
+openapi: 3.0.0
+info:
+  title: "KMS"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # Keys
+  # ============================================================
+  /kms/keys:
+    get:
+      tags: [KMS]
+      summary: List keys
+      description: |
+        Returns a list of KMS keys in the account. Supports pagination.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listKeys
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListKeysInput'
+      responses:
+        "200":
+          description: List of KMS keys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListKeysOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [KMS]
+      summary: Create key
+      description: |
+        Creates a new KMS key. Can be symmetric or asymmetric, with
+        optional description, key spec, and origin.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateKeyInput'
+      responses:
+        "200":
+          description: Key created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateKeyOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kms/keys/{keyId}:
+    get:
+      tags: [KMS]
+      summary: Describe key
+      description: |
+        Returns detailed metadata about a KMS key, including its ARN,
+        creation date, state, and usage.
+      operationId: describeKey
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/KeyIdPath'
+      responses:
+        "200":
+          description: Key metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeKeyOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kms/keys/{keyId}/policy:
+    get:
+      tags: [KMS]
+      summary: Get key policy
+      description: |
+        Returns the key policy for a KMS key. The policy name defaults
+        to "default" if not specified.
+      operationId: getKeyPolicy
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/KeyIdPath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/PolicyNameQuery'
+      responses:
+        "200":
+          description: Key policy document
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetKeyPolicyOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kms/keys/{keyId}/enable:
+    post:
+      tags: [KMS]
+      summary: Enable key
+      description: |
+        Enables a disabled KMS key, making it available for use.
+      operationId: enableKey
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/KeyIdPath'
+      responses:
+        "200":
+          description: Key enabled
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/KMSStatusResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kms/keys/{keyId}/disable:
+    post:
+      tags: [KMS]
+      summary: Disable key
+      description: |
+        Disables a KMS key, making it unavailable for use.
+      operationId: disableKey
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/KeyIdPath'
+      responses:
+        "200":
+          description: Key disabled
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/KMSStatusResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kms/keys/{keyId}/schedule-deletion:
+    post:
+      tags: [KMS]
+      summary: Schedule key deletion
+      description: |
+        Schedules a KMS key for deletion with a pending window (default 30 days).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: scheduleKeyDeletion
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/KeyIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleKeyDeletionInput'
+      responses:
+        "200":
+          description: Key deletion scheduled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleKeyDeletionOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Aliases
+  # ============================================================
+  /kms/aliases/{aliasName}:
+    delete:
+      tags: [KMS]
+      summary: Delete alias
+      description: |
+        Deletes a KMS alias. The alias name should include the "alias/"
+        prefix (e.g., "alias/my-alias").
+      operationId: deleteAlias
+      parameters:
+        - name: aliasName
+          in: path
+          required: true
+          schema: { type: string }
+          description: KMS alias name (with or without "alias/" prefix)
+          example: alias/my-key
+      responses:
+        "200":
+          description: Alias deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteAliasOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Cryptographic Operations
+  # ============================================================
+  /kms/encrypt:
+    post:
+      tags: [KMS]
+      summary: Encrypt
+      description: |
+        Encrypts plaintext using a KMS key. Requires a KeyId and Plaintext
+        (base64-encoded). Accepts both camelCase and TitleCase JSON keys.
+      operationId: encrypt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EncryptInput'
+      responses:
+        "200":
+          description: Encrypted ciphertext
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncryptOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kms/decrypt:
+    post:
+      tags: [KMS]
+      summary: Decrypt
+      description: |
+        Decrypts ciphertext that was previously encrypted by a KMS key.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: decrypt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecryptInput'
+      responses:
+        "200":
+          description: Decrypted plaintext
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecryptOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kms/generate-data-key:
+    post:
+      tags: [KMS]
+      summary: Generate data key
+      description: |
+        Generates a symmetric data key for client-side encryption.
+        Requires a KeyId. Specify KeySpec or NumberOfBytes for size.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: generateDataKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateDataKeyInput'
+      responses:
+        "200":
+          description: Data key generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateDataKeyOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /kms/generate-random:
+    post:
+      tags: [KMS]
+      summary: Generate random
+      description: |
+        Returns a random byte string that is cryptographically secure.
+        Optionally specify the number of bytes.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: generateRandom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateRandomInput'
+      responses:
+        "200":
+          description: Random bytes generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateRandomOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Core types
+    # ============================================================
+    KeyMetadata:
+      type: object
+      properties:
+        AWSAccountId:
+          type: string
+        KeyId:
+          type: string
+        Arn:
+          type: string
+        CreationDate:
+          type: number
+          description: Creation timestamp (Unix epoch)
+        Enabled:
+          type: boolean
+        Description:
+          type: string
+        KeyUsage:
+          type: string
+          enum: [SIGN_VERIFY, ENCRYPT_DECRYPT, GENERATE_VERIFY_MAC, KEY_AGREEMENT]
+        KeyState:
+          type: string
+          enum: [Creating, Enabled, Disabled, PendingDeletion, PendingImport, PendingReplicaDeletion, Unavailable, Updating]
+        KeySpec:
+          type: string
+          enum: [RSA_2048, RSA_3072, RSA_4096, ECC_NIST_P256, ECC_NIST_P384, ECC_NIST_P521, ECC_SECG_P256K1, SYMMETRIC_DEFAULT, HMAC_224, HMAC_256, HMAC_384, HMAC_512, SM2]
+        Origin:
+          type: string
+          enum: [AWS_KMS, EXTERNAL, AWS_CLOUDHSM]
+        KeyManager:
+          type: string
+          enum: [AWS, CUSTOMER]
+        CustomerMasterKeySpec:
+          type: string
+          enum: [RSA_2048, RSA_3072, RSA_4096, ECC_NIST_P256, ECC_NIST_P384, ECC_NIST_P521, ECC_SECG_P256K1, SYMMETRIC_DEFAULT, HMAC_224, HMAC_256, HMAC_384, HMAC_512, SM2]
+        EncryptionAlgorithms:
+          type: array
+          items:
+            type: string
+            enum: [SYMMETRIC_DEFAULT, RSAES_OAEP_SHA_1, RSAES_OAEP_SHA_256, SM2PKE]
+        SigningAlgorithms:
+          type: array
+          items:
+            type: string
+            enum: [RSASSA_PSS_SHA_256, RSASSA_PSS_SHA_384, RSASSA_PSS_SHA_512, RSASSA_PKCS1_V1_5_SHA_256, RSASSA_PKCS1_V1_5_SHA_384, RSASSA_PKCS1_V1_5_SHA_512, ECDSA_SHA_256, ECDSA_SHA_384, ECDSA_SHA_512, SM2DSA]
+        KeyAgreementAlgorithms:
+          type: array
+          items:
+            type: string
+        MultiRegion:
+          type: boolean
+        MultiRegionConfiguration:
+          type: object
+          properties:
+            MultiRegionKeyType:
+              type: string
+              enum: [PRIMARY, REPLICA]
+            PrimaryKey:
+              type: object
+              properties:
+                Arn:
+                  type: string
+                Region:
+                  type: string
+            ReplicaKeys:
+              type: array
+              items:
+                type: object
+                properties:
+                  Arn:
+                    type: string
+                  Region:
+                    type: string
+        PendingDeletionWindowInDays:
+          type: integer
+          format: int32
+        MacAlgorithms:
+          type: array
+          items:
+            type: string
+        XksKeyConfiguration:
+          type: object
+          properties:
+            Id:
+              type: string
+        DeletionDate:
+          type: number
+        ValidTo:
+          type: number
+
+    KeyListEntry:
+      type: object
+      properties:
+        KeyId:
+          type: string
+        KeyArn:
+          type: string
+
+
+
+    # ============================================================
+    # ListKeys
+    # ============================================================
+    ListKeysInput:
+      type: object
+      properties:
+        Limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000
+        Marker:
+          type: string
+
+    ListKeysOutput:
+      type: object
+      properties:
+        Keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyListEntry'
+        NextMarker:
+          type: string
+        Truncated:
+          type: boolean
+
+    # ============================================================
+    # CreateKey
+    # ============================================================
+    CreateKeyInput:
+      type: object
+      properties:
+        Policy:
+          type: string
+          description: Key policy JSON string
+        Description:
+          type: string
+        KeyUsage:
+          type: string
+          enum: [SIGN_VERIFY, ENCRYPT_DECRYPT, GENERATE_VERIFY_MAC, KEY_AGREEMENT]
+          default: ENCRYPT_DECRYPT
+        KeySpec:
+          type: string
+          enum: [RSA_2048, RSA_3072, RSA_4096, ECC_NIST_P256, ECC_NIST_P384, ECC_NIST_P521, ECC_SECG_P256K1, SYMMETRIC_DEFAULT, HMAC_224, HMAC_256, HMAC_384, HMAC_512, SM2]
+          default: SYMMETRIC_DEFAULT
+        Origin:
+          type: string
+          enum: [AWS_KMS, EXTERNAL, AWS_CLOUDHSM]
+          default: AWS_KMS
+        CustomKeyStoreId:
+          type: string
+        BypassPolicyLockoutSafetyCheck:
+          type: boolean
+        Tags:
+          type: array
+          items:
+            type: object
+            required: [TagKey, TagValue]
+            properties:
+              TagKey:
+                type: string
+              TagValue:
+                type: string
+        MultiRegion:
+          type: boolean
+        XksKeyId:
+          type: string
+
+    CreateKeyOutput:
+      type: object
+      properties:
+        KeyMetadata:
+          $ref: '#/components/schemas/KeyMetadata'
+
+    # ============================================================
+    # DescribeKey
+    # ============================================================
+    DescribeKeyInput:
+      type: object
+      properties:
+        KeyId:
+          type: string
+        GrantTokens:
+          type: array
+          items:
+            type: string
+
+    DescribeKeyOutput:
+      type: object
+      properties:
+        KeyMetadata:
+          $ref: '#/components/schemas/KeyMetadata'
+
+    # ============================================================
+    # GetKeyPolicy
+    # ============================================================
+    GetKeyPolicyInput:
+      type: object
+      properties:
+        KeyId:
+          type: string
+        PolicyName:
+          type: string
+          default: "default"
+
+    GetKeyPolicyOutput:
+      type: object
+      properties:
+        Policy:
+          type: string
+          description: Key policy document as JSON string
+
+    # ============================================================
+    # ScheduleKeyDeletion
+    # ============================================================
+    ScheduleKeyDeletionInput:
+      type: object
+      required: [KeyId]
+      properties:
+        KeyId:
+          type: string
+        PendingWindowInDays:
+          type: integer
+          format: int32
+          minimum: 7
+          maximum: 30
+          default: 30
+
+    ScheduleKeyDeletionOutput:
+      type: object
+      properties:
+        KeyId:
+          type: string
+        DeletionDate:
+          type: number
+          description: Deletion timestamp (Unix epoch)
+        KeyState:
+          type: string
+          enum: [PendingDeletion]
+
+    # ============================================================
+    # DeleteAlias
+    # ============================================================
+    DeleteAliasInput:
+      type: object
+      properties:
+        AliasName:
+          type: string
+
+    DeleteAliasOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # Encrypt
+    # ============================================================
+    EncryptInput:
+      type: object
+      required: [KeyId, Plaintext]
+      properties:
+        KeyId:
+          type: string
+        Plaintext:
+          type: string
+          format: byte
+          description: Base64-encoded plaintext to encrypt
+        EncryptionContext:
+          type: object
+          additionalProperties:
+            type: string
+        GrantTokens:
+          type: array
+          items:
+            type: string
+        EncryptionAlgorithm:
+          type: string
+          enum: [SYMMETRIC_DEFAULT, RSAES_OAEP_SHA_1, RSAES_OAEP_SHA_256]
+
+    EncryptOutput:
+      type: object
+      properties:
+        CiphertextBlob:
+          type: string
+          format: byte
+          description: Base64-encoded encrypted ciphertext
+        KeyId:
+          type: string
+        EncryptionAlgorithm:
+          type: string
+          enum: [SYMMETRIC_DEFAULT, RSAES_OAEP_SHA_1, RSAES_OAEP_SHA_256]
+
+    # ============================================================
+    # Decrypt
+    # ============================================================
+    DecryptInput:
+      type: object
+      required: [CiphertextBlob]
+      properties:
+        CiphertextBlob:
+          type: string
+          format: byte
+          description: Base64-encoded ciphertext to decrypt
+        EncryptionContext:
+          type: object
+          additionalProperties:
+            type: string
+        KeyId:
+          type: string
+        GrantTokens:
+          type: array
+          items:
+            type: string
+        EncryptionAlgorithm:
+          type: string
+          enum: [SYMMETRIC_DEFAULT, RSAES_OAEP_SHA_1, RSAES_OAEP_SHA_256]
+
+    DecryptOutput:
+      type: object
+      properties:
+        KeyId:
+          type: string
+        Plaintext:
+          type: string
+          format: byte
+          description: Base64-encoded decrypted plaintext
+        EncryptionAlgorithm:
+          type: string
+          enum: [SYMMETRIC_DEFAULT, RSAES_OAEP_SHA_1, RSAES_OAEP_SHA_256]
+
+    # ============================================================
+    # GenerateDataKey
+    # ============================================================
+    GenerateDataKeyInput:
+      type: object
+      required: [KeyId]
+      properties:
+        KeyId:
+          type: string
+        KeySpec:
+          type: string
+          enum: [AES_256, AES_128]
+        NumberOfBytes:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1024
+        EncryptionContext:
+          type: object
+          additionalProperties:
+            type: string
+        GrantTokens:
+          type: array
+          items:
+            type: string
+        RecipientInfo:
+          type: object
+          properties:
+            KeyEncryptionAlgorithm:
+              type: string
+              enum: [RSAES_OAEP_SHA_256]
+            AttestationDocument:
+              type: string
+              format: byte
+
+    GenerateDataKeyOutput:
+      type: object
+      properties:
+        CiphertextBlob:
+          type: string
+          format: byte
+          description: Base64-encoded encrypted data key
+        Plaintext:
+          type: string
+          format: byte
+          description: Base64-encoded plaintext data key
+        KeyId:
+          type: string
+        CiphertextForRecipient:
+          type: string
+          format: byte
+
+    # ============================================================
+    # GenerateRandom
+    # ============================================================
+    GenerateRandomInput:
+      type: object
+      properties:
+        NumberOfBytes:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1024
+        RecipientInfo:
+          type: object
+          properties:
+            KeyEncryptionAlgorithm:
+              type: string
+              enum: [RSAES_OAEP_SHA_256]
+            AttestationDocument:
+              type: string
+              format: byte
+
+    GenerateRandomOutput:
+      type: object
+      properties:
+        Plaintext:
+          type: string
+          format: byte
+          description: Base64-encoded random bytes
+        CiphertextForRecipient:
+          type: string
+          format: byte
