@@ -15,7 +15,8 @@ export interface SetRegionResponse {
  * @param region - AWS region code (e.g., 'us-east-1', 'us-west-2')
  */
 export async function setRegion(region: string): Promise<SetRegionResponse> {
-  return api.post<SetRegionResponse>('/proxy/region', { region })
+  const response = await api.post<SetRegionResponse>('/proxy/region', { region })
+  return response.data
 }
 
 /**

@@ -1,0 +1,480 @@
+openapi: 3.0.0
+info:
+  title: MyDevStack AWS Proxy API
+  description: |
+    Proxy API that exposes AWS service operations via HTTP REST endpoints.
+    All POST/PUT endpoints accept lowercase JSON keys which are TitleCased
+    for AWS SDK compatibility.
+  version: "1.0.0"
+  contact:
+    name: MyDevStack
+    url: https://my-devstack.github.io/
+
+servers:
+  - url: http://localhost:8081
+    description: Local development (Floci/LocalStack on :4566)
+  - url: http://<proxy-host>:<port>
+    description: Production
+
+tags:
+  - name: Management
+    description: Proxy management endpoints (health, region)
+  - name: S3
+    description: Simple Storage Service
+  - name: Lambda
+    description: AWS Lambda
+  - name: DynamoDB
+    description: Amazon DynamoDB
+  - name: IAM
+    description: Identity and Access Management
+  - name: SQS
+    description: Simple Queue Service
+  - name: SNS
+    description: Simple Notification Service
+  - name: CloudFormation
+    description: AWS CloudFormation
+  - name: CloudWatch
+    description: Amazon CloudWatch
+  - name: CloudWatch Logs
+    description: Amazon CloudWatch Logs
+  - name: KMS
+    description: AWS Key Management Service
+  - name: Secrets Manager
+    description: AWS Secrets Manager
+  - name: Kinesis
+    description: Amazon Kinesis
+  - name: SSM
+    description: AWS Systems Manager Parameter Store
+  - name: Step Functions
+    description: AWS Step Functions
+  - name: API Gateway
+    description: API Gateway (V1 REST + V2 HTTP APIs)
+  - name: DynamoDB Streams
+    description: Amazon DynamoDB Streams
+  - name: SES
+    description: Amazon Simple Email Service v2
+  - name: MSK
+    description: Managed Streaming for Apache Kafka
+  - name: OpenSearch
+    description: Amazon OpenSearch Service
+  - name: ElastiCache
+    description: Amazon ElastiCache
+  - name: RDS
+    description: Amazon Relational Database Service
+
+paths:
+  # Management
+  /health:
+    $ref: services/_management.yaml#/paths/~1health
+  /proxy/region:
+    $ref: services/_management.yaml#/paths/~1proxy~1region
+
+  # S3
+  /s3/buckets:
+    $ref: services/s3.yaml#/paths/~1s3~1buckets
+  /s3/buckets/{bucket}:
+    $ref: services/s3.yaml#/paths/~1s3~1buckets~1{bucket}
+  /s3/buckets/{bucket}/objects:
+    $ref: services/s3.yaml#/paths/~1s3~1buckets~1{bucket}~1objects
+  /s3/buckets/{bucket}/objects/{key}:
+    $ref: services/s3.yaml#/paths/~1s3~1buckets~1{bucket}~1objects~1{key}
+  /s3/buckets/{bucket}/presign-get:
+    $ref: services/s3.yaml#/paths/~1s3~1buckets~1{bucket}~1presign-get
+  /s3/buckets/{bucket}/presign-put:
+    $ref: services/s3.yaml#/paths/~1s3~1buckets~1{bucket}~1presign-put
+  /s3/buckets/{bucket}/versioning:
+    $ref: services/s3.yaml#/paths/~1s3~1buckets~1{bucket}~1versioning
+  /s3/buckets/{bucket}/encryption:
+    $ref: services/s3.yaml#/paths/~1s3~1buckets~1{bucket}~1encryption
+  /s3/buckets/{bucket}/tagging:
+    $ref: services/s3.yaml#/paths/~1s3~1buckets~1{bucket}~1tagging
+  /s3/buckets/{bucket}/policy:
+    $ref: services/s3.yaml#/paths/~1s3~1buckets~1{bucket}~1policy
+  /s3/buckets/{bucket}/public-access-block:
+    $ref: services/s3.yaml#/paths/~1s3~1buckets~1{bucket}~1public-access-block
+  /s3/buckets/{bucket}/notification:
+    $ref: services/s3.yaml#/paths/~1s3~1buckets~1{bucket}~1notification
+
+  # Lambda
+  /lambda/functions:
+    $ref: services/lambda.yaml#/paths/~1lambda~1functions
+  /lambda/functions/{functionName}:
+    $ref: services/lambda.yaml#/paths/~1lambda~1functions~1{functionName}
+  /lambda/functions/{functionName}/code:
+    $ref: services/lambda.yaml#/paths/~1lambda~1functions~1{functionName}~1code
+  /lambda/functions/{functionName}/invocations:
+    $ref: services/lambda.yaml#/paths/~1lambda~1functions~1{functionName}~1invocations
+  /lambda/functions/{functionName}/configuration:
+    $ref: services/lambda.yaml#/paths/~1lambda~1functions~1{functionName}~1configuration
+  /lambda/event-source-mappings:
+    $ref: services/lambda.yaml#/paths/~1lambda~1event-source-mappings
+  /lambda/event-source-mappings/{uuid}:
+    $ref: services/lambda.yaml#/paths/~1lambda~1event-source-mappings~1{uuid}
+
+  # DynamoDB
+  /dynamodb/tables:
+    $ref: services/dynamodb.yaml#/paths/~1dynamodb~1tables
+  /dynamodb/tables/{tableName}:
+    $ref: services/dynamodb.yaml#/paths/~1dynamodb~1tables~1{tableName}
+  /dynamodb/tables/{tableName}/items:
+    $ref: services/dynamodb.yaml#/paths/~1dynamodb~1tables~1{tableName}~1items
+  /dynamodb/tables/{tableName}/items/{key}:
+    $ref: services/dynamodb.yaml#/paths/~1dynamodb~1tables~1{tableName}~1items~1{key}
+  /dynamodb/tables/{tableName}/query:
+    $ref: services/dynamodb.yaml#/paths/~1dynamodb~1tables~1{tableName}~1query
+  /dynamodb/tables/{tableName}/scan:
+    $ref: services/dynamodb.yaml#/paths/~1dynamodb~1tables~1{tableName}~1scan
+  /dynamodb/batch-write-item:
+    $ref: services/dynamodb.yaml#/paths/~1dynamodb~1batch-write-item
+  /dynamodb/batch-get-item:
+    $ref: services/dynamodb.yaml#/paths/~1dynamodb~1batch-get-item
+  /dynamodb/tables/{tableName}/ttl:
+    $ref: services/dynamodb.yaml#/paths/~1dynamodb~1tables~1{tableName}~1ttl
+
+  # IAM
+  /iam/users:
+    $ref: services/iam.yaml#/paths/~1iam~1users
+  /iam/users/{userName}:
+    $ref: services/iam.yaml#/paths/~1iam~1users~1{userName}
+  /iam/access-keys:
+    $ref: services/iam.yaml#/paths/~1iam~1access-keys
+  /iam/access-keys/{accessKeyId}:
+    $ref: services/iam.yaml#/paths/~1iam~1access-keys~1{accessKeyId}
+  /iam/roles:
+    $ref: services/iam.yaml#/paths/~1iam~1roles
+  /iam/roles/{roleName}:
+    $ref: services/iam.yaml#/paths/~1iam~1roles~1{roleName}
+  /iam/roles/{roleName}/policies:
+    $ref: services/iam.yaml#/paths/~1iam~1roles~1{roleName}~1policies
+  /iam/roles/{roleName}/detach-policy:
+    $ref: services/iam.yaml#/paths/~1iam~1roles~1{roleName}~1detach-policy
+  /iam/roles/{roleName}/policies/{policyName}:
+    $ref: services/iam.yaml#/paths/~1iam~1roles~1{roleName}~1policies~1{policyName}
+  /iam/roles/{roleName}/inline-policies:
+    $ref: services/iam.yaml#/paths/~1iam~1roles~1{roleName}~1inline-policies
+  /iam/policies:
+    $ref: services/iam.yaml#/paths/~1iam~1policies
+  /iam/policies/get:
+    $ref: services/iam.yaml#/paths/~1iam~1policies~1get
+  /iam/policies/delete:
+    $ref: services/iam.yaml#/paths/~1iam~1policies~1delete
+  /iam/groups:
+    $ref: services/iam.yaml#/paths/~1iam~1groups
+  /iam/groups/{groupName}:
+    $ref: services/iam.yaml#/paths/~1iam~1groups~1{groupName}
+  /iam/groups/{groupName}/users:
+    $ref: services/iam.yaml#/paths/~1iam~1groups~1{groupName}~1users
+  /iam/groups/{groupName}/users/{userName}:
+    $ref: services/iam.yaml#/paths/~1iam~1groups~1{groupName}~1users~1{userName}
+  /iam/users/{userName}/groups:
+    $ref: services/iam.yaml#/paths/~1iam~1users~1{userName}~1groups
+  /iam/users/{userName}/policies:
+    $ref: services/iam.yaml#/paths/~1iam~1users~1{userName}~1policies
+
+  # SQS
+  /sqs/queues:
+    $ref: services/sqs.yaml#/paths/~1sqs~1queues
+  /sqs/queues/{queueName}:
+    $ref: services/sqs.yaml#/paths/~1sqs~1queues~1{queueName}
+  /sqs/queues/{queueName}/attributes:
+    $ref: services/sqs.yaml#/paths/~1sqs~1queues~1{queueName}~1attributes
+  /sqs/queues/{queueName}/messages:
+    $ref: services/sqs.yaml#/paths/~1sqs~1queues~1{queueName}~1messages
+  /sqs/queues/{queueName}/messages/{receiptHandle}:
+    $ref: services/sqs.yaml#/paths/~1sqs~1queues~1{queueName}~1messages~1{receiptHandle}
+  /sqs/queues/{queueName}/purge:
+    $ref: services/sqs.yaml#/paths/~1sqs~1queues~1{queueName}~1purge
+
+  # SNS
+  /sns/topics:
+    $ref: services/sns.yaml#/paths/~1sns~1topics
+  /sns/topics/{topicArn}:
+    $ref: services/sns.yaml#/paths/~1sns~1topics~1{topicArn}
+  /sns/subscriptions:
+    $ref: services/sns.yaml#/paths/~1sns~1subscriptions
+  /sns/subscriptions/{subscriptionArn}:
+    $ref: services/sns.yaml#/paths/~1sns~1subscriptions~1{subscriptionArn}
+  /sns/subscriptions/by-topic/{topicArn}:
+    $ref: services/sns.yaml#/paths/~1sns~1subscriptions~1by-topic~1{topicArn}
+  /sns/publish:
+    $ref: services/sns.yaml#/paths/~1sns~1publish
+
+  # CloudFormation
+  /cloudformation/stacks:
+    $ref: services/cloudformation.yaml#/paths/~1cloudformation~1stacks
+  /cloudformation/stacks/{stackName}:
+    $ref: services/cloudformation.yaml#/paths/~1cloudformation~1stacks~1{stackName}
+  /cloudformation/stacks/{stackName}/template:
+    $ref: services/cloudformation.yaml#/paths/~1cloudformation~1stacks~1{stackName}~1template
+  /cloudformation/stacks/{stackName}/resources:
+    $ref: services/cloudformation.yaml#/paths/~1cloudformation~1stacks~1{stackName}~1resources
+
+  # CloudWatch
+  /cloudwatch/alarms:
+    $ref: services/cloudwatch.yaml#/paths/~1cloudwatch~1alarms
+  /cloudwatch/alarms/{alarmName}:
+    $ref: services/cloudwatch.yaml#/paths/~1cloudwatch~1alarms~1{alarmName}
+  /cloudwatch/alarms/{alarmName}/history:
+    $ref: services/cloudwatch.yaml#/paths/~1cloudwatch~1alarms~1{alarmName}~1history
+  /cloudwatch/metrics:
+    $ref: services/cloudwatch.yaml#/paths/~1cloudwatch~1metrics
+  /cloudwatch/metrics/statistics:
+    $ref: services/cloudwatch.yaml#/paths/~1cloudwatch~1metrics~1statistics
+  /cloudwatch/metrics/data:
+    $ref: services/cloudwatch.yaml#/paths/~1cloudwatch~1metrics~1data
+
+  # CloudWatch Logs
+  /cloudwatch-logs/log-groups:
+    $ref: services/cloudwatch-logs.yaml#/paths/~1cloudwatch-logs~1log-groups
+  /cloudwatch-logs/log-groups/{logGroupName}:
+    $ref: services/cloudwatch-logs.yaml#/paths/~1cloudwatch-logs~1log-groups~1{logGroupName}
+  /cloudwatch-logs/log-groups/{logGroupName}/retention:
+    $ref: services/cloudwatch-logs.yaml#/paths/~1cloudwatch-logs~1log-groups~1{logGroupName}~1retention
+  /cloudwatch-logs/log-groups/{logGroupName}/log-streams:
+    $ref: services/cloudwatch-logs.yaml#/paths/~1cloudwatch-logs~1log-groups~1{logGroupName}~1log-streams
+  /cloudwatch-logs/log-groups/{logGroupName}/log-streams/{logStreamName}/events:
+    $ref: services/cloudwatch-logs.yaml#/paths/~1cloudwatch-logs~1log-groups~1{logGroupName}~1log-streams~1{logStreamName}~1events
+  /cloudwatch-logs/metric-filters:
+    $ref: services/cloudwatch-logs.yaml#/paths/~1cloudwatch-logs~1metric-filters
+
+  # KMS
+  /kms/keys:
+    $ref: services/kms.yaml#/paths/~1kms~1keys
+  /kms/keys/{keyId}:
+    $ref: services/kms.yaml#/paths/~1kms~1keys~1{keyId}
+  /kms/keys/{keyId}/policy:
+    $ref: services/kms.yaml#/paths/~1kms~1keys~1{keyId}~1policy
+  /kms/keys/{keyId}/enable:
+    $ref: services/kms.yaml#/paths/~1kms~1keys~1{keyId}~1enable
+  /kms/keys/{keyId}/disable:
+    $ref: services/kms.yaml#/paths/~1kms~1keys~1{keyId}~1disable
+  /kms/keys/{keyId}/schedule-deletion:
+    $ref: services/kms.yaml#/paths/~1kms~1keys~1{keyId}~1schedule-deletion
+  /kms/aliases/{aliasName}:
+    $ref: services/kms.yaml#/paths/~1kms~1aliases~1{aliasName}
+  /kms/encrypt:
+    $ref: services/kms.yaml#/paths/~1kms~1encrypt
+  /kms/decrypt:
+    $ref: services/kms.yaml#/paths/~1kms~1decrypt
+  /kms/generate-data-key:
+    $ref: services/kms.yaml#/paths/~1kms~1generate-data-key
+  /kms/generate-random:
+    $ref: services/kms.yaml#/paths/~1kms~1generate-random
+
+  # Secrets Manager
+  /secrets-manager/secrets:
+    $ref: services/secrets-manager.yaml#/paths/~1secrets-manager~1secrets
+  /secrets-manager/secrets/{secretId}:
+    $ref: services/secrets-manager.yaml#/paths/~1secrets-manager~1secrets~1{secretId}
+  /secrets-manager/secrets/{secretId}/restore:
+    $ref: services/secrets-manager.yaml#/paths/~1secrets-manager~1secrets~1{secretId}~1restore
+  /secrets-manager/secrets/{secretId}/rotate:
+    $ref: services/secrets-manager.yaml#/paths/~1secrets-manager~1secrets~1{secretId}~1rotate
+  /secrets-manager/secrets/{secretId}/value:
+    $ref: services/secrets-manager.yaml#/paths/~1secrets-manager~1secrets~1{secretId}~1value
+  /secrets-manager/random-password:
+    $ref: services/secrets-manager.yaml#/paths/~1secrets-manager~1random-password
+
+  # Kinesis
+  /kinesis/streams:
+    $ref: services/kinesis.yaml#/paths/~1kinesis~1streams
+  /kinesis/streams/{streamName}:
+    $ref: services/kinesis.yaml#/paths/~1kinesis~1streams~1{streamName}
+  /kinesis/streams/{streamName}/summary:
+    $ref: services/kinesis.yaml#/paths/~1kinesis~1streams~1{streamName}~1summary
+  /kinesis/streams/{streamName}/shards:
+    $ref: services/kinesis.yaml#/paths/~1kinesis~1streams~1{streamName}~1shards
+  /kinesis/streams/{streamName}/shards/{shardId}/iterator:
+    $ref: services/kinesis.yaml#/paths/~1kinesis~1streams~1{streamName}~1shards~1{shardId}~1iterator
+  /kinesis/streams/{streamName}/shards/{shardId}/records:
+    $ref: services/kinesis.yaml#/paths/~1kinesis~1streams~1{streamName}~1shards~1{shardId}~1records
+  /kinesis/streams/{streamName}/records:
+    $ref: services/kinesis.yaml#/paths/~1kinesis~1streams~1{streamName}~1records
+  /kinesis/streams/{streamName}/records/batch:
+    $ref: services/kinesis.yaml#/paths/~1kinesis~1streams~1{streamName}~1records~1batch
+  /kinesis/streams/{streamName}/shards/{shardId}/merge:
+    $ref: services/kinesis.yaml#/paths/~1kinesis~1streams~1{streamName}~1shards~1{shardId}~1merge
+  /kinesis/streams/{streamName}/shards/{shardId}/split:
+    $ref: services/kinesis.yaml#/paths/~1kinesis~1streams~1{streamName}~1shards~1{shardId}~1split
+  /kinesis/streams/{streamName}/enhanced-monitoring:
+    $ref: services/kinesis.yaml#/paths/~1kinesis~1streams~1{streamName}~1enhanced-monitoring
+
+  # SSM
+  /ssm/parameters:
+    $ref: services/ssm.yaml#/paths/~1ssm~1parameters
+  /ssm/parameters/{parameterName}:
+    $ref: services/ssm.yaml#/paths/~1ssm~1parameters~1{parameterName}
+  /ssm/parameters/{parameterName}/history:
+    $ref: services/ssm.yaml#/paths/~1ssm~1parameters~1{parameterName}~1history
+  /ssm/parameters/batch:
+    $ref: services/ssm.yaml#/paths/~1ssm~1parameters~1batch
+  /ssm/parameters-by-path/{path}:
+    $ref: services/ssm.yaml#/paths/~1ssm~1parameters-by-path~1{path}
+  /ssm/tags:
+    $ref: services/ssm.yaml#/paths/~1ssm~1tags
+  /ssm/tags/list:
+    $ref: services/ssm.yaml#/paths/~1ssm~1tags~1list
+  /ssm/tags/delete:
+    $ref: services/ssm.yaml#/paths/~1ssm~1tags~1delete
+
+  # Step Functions
+  /step-functions/state-machines:
+    $ref: services/step-functions.yaml#/paths/~1step-functions~1state-machines
+  /step-functions/state-machines/{stateMachineArn}:
+    $ref: services/step-functions.yaml#/paths/~1step-functions~1state-machines~1{stateMachineArn}
+  /step-functions/state-machines/{stateMachineArn}/executions:
+    $ref: services/step-functions.yaml#/paths/~1step-functions~1state-machines~1{stateMachineArn}~1executions
+  /step-functions/executions/{executionArn}:
+    $ref: services/step-functions.yaml#/paths/~1step-functions~1executions~1{executionArn}
+  /step-functions/executions/{executionArn}/history:
+    $ref: services/step-functions.yaml#/paths/~1step-functions~1executions~1{executionArn}~1history
+  /step-functions/executions/{executionArn}/stop:
+    $ref: services/step-functions.yaml#/paths/~1step-functions~1executions~1{executionArn}~1stop
+
+  # API Gateway (V2 HTTP APIs)
+  /apigateway/apis:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1apis
+  /apigateway/apis/{apiId}:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1apis~1{apiId}
+  /apigateway/apis/{apiId}/routes:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1apis~1{apiId}~1routes
+  /apigateway/apis/{apiId}/routes/{routeId}:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1apis~1{apiId}~1routes~1{routeId}
+  /apigateway/apis/{apiId}/integrations:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1apis~1{apiId}~1integrations
+  /apigateway/apis/{apiId}/integrations/{integrationId}:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1apis~1{apiId}~1integrations~1{integrationId}
+  /apigateway/apis/{apiId}/stages:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1apis~1{apiId}~1stages
+  /apigateway/apis/{apiId}/stages/{stageName}:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1apis~1{apiId}~1stages~1{stageName}
+  /apigateway/apis/{apiId}/invoke-url:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1apis~1{apiId}~1invoke-url
+
+  # API Gateway (V1 REST APIs)
+  /apigateway/rest-apis:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1rest-apis
+  /apigateway/rest-apis/{restApiId}:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1rest-apis~1{restApiId}
+  /apigateway/rest-apis/{restApiId}/import:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1rest-apis~1{restApiId}~1import
+  /apigateway/rest-apis/{restApiId}/resources:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1rest-apis~1{restApiId}~1resources
+  /apigateway/rest-apis/{restApiId}/resources/{resourceId}:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1rest-apis~1{restApiId}~1resources~1{resourceId}
+  /apigateway/rest-apis/{restApiId}/resources/{resourceId}/methods/{httpMethod}:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1rest-apis~1{restApiId}~1resources~1{resourceId}~1methods~1{httpMethod}
+  /apigateway/rest-apis/{restApiId}/resources/{resourceId}/methods/{httpMethod}/integrations:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1rest-apis~1{restApiId}~1resources~1{resourceId}~1methods~1{httpMethod}~1integrations
+  /apigateway/rest-apis/{restApiId}/deployments:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1rest-apis~1{restApiId}~1deployments
+  /apigateway/rest-apis/{restApiId}/deployments/{deploymentId}:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1rest-apis~1{restApiId}~1deployments~1{deploymentId}
+  /apigateway/rest-apis/{restApiId}/stages:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1rest-apis~1{restApiId}~1stages
+  /apigateway/rest-apis/{restApiId}/stages/{stageName}:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1rest-apis~1{restApiId}~1stages~1{stageName}
+  /apigateway/rest-apis/{restApiId}/invoke-url:
+    $ref: services/apigateway.yaml#/paths/~1apigateway~1rest-apis~1{restApiId}~1invoke-url
+
+  # DynamoDB Streams
+  /dynamodb-streams/streams:
+    $ref: services/dynamodb-streams.yaml#/paths/~1dynamodb-streams~1streams
+  /dynamodb-streams/streams/{streamArn}:
+    $ref: services/dynamodb-streams.yaml#/paths/~1dynamodb-streams~1streams~1{streamArn}
+  /dynamodb-streams/streams/{streamArn}/shards/{shardId}/iterator:
+    $ref: services/dynamodb-streams.yaml#/paths/~1dynamodb-streams~1streams~1{streamArn}~1shards~1{shardId}~1iterator
+  /dynamodb-streams/streams/{streamArn}/shards/{shardId}/records:
+    $ref: services/dynamodb-streams.yaml#/paths/~1dynamodb-streams~1streams~1{streamArn}~1shards~1{shardId}~1records
+
+  # SES v2
+  /sesv2/email-identities:
+    $ref: services/sesv2.yaml#/paths/~1sesv2~1email-identities
+  /sesv2/email-identities/{emailIdentity}:
+    $ref: services/sesv2.yaml#/paths/~1sesv2~1email-identities~1{emailIdentity}
+  /sesv2/email/send:
+    $ref: services/sesv2.yaml#/paths/~1sesv2~1email~1send
+  /sesv2/email-templates:
+    $ref: services/sesv2.yaml#/paths/~1sesv2~1email-templates
+  /sesv2/email-templates/{templateName}:
+    $ref: services/sesv2.yaml#/paths/~1sesv2~1email-templates~1{templateName}
+  /sesv2/email/bulk:
+    $ref: services/sesv2.yaml#/paths/~1sesv2~1email~1bulk
+
+  # MSK
+  /msk/clusters:
+    $ref: services/msk.yaml#/paths/~1msk~1clusters
+  /msk/clusters/{clusterArn}:
+    $ref: services/msk.yaml#/paths/~1msk~1clusters~1{clusterArn}
+  /msk/clusters/{clusterArn}/bootstrap-brokers:
+    $ref: services/msk.yaml#/paths/~1msk~1clusters~1{clusterArn}~1bootstrap-brokers
+
+  # OpenSearch
+  /opensearch/domains:
+    $ref: services/opensearch.yaml#/paths/~1opensearch~1domains
+  /opensearch/domains/{domainName}:
+    $ref: services/opensearch.yaml#/paths/~1opensearch~1domains~1{domainName}
+  /opensearch/domains/{domainName}/config:
+    $ref: services/opensearch.yaml#/paths/~1opensearch~1domains~1{domainName}~1config
+  /opensearch/tags:
+    $ref: services/opensearch.yaml#/paths/~1opensearch~1tags
+  /opensearch/compatible-versions:
+    $ref: services/opensearch.yaml#/paths/~1opensearch~1compatible-versions
+
+  # ElastiCache
+  /elasticache/cache-clusters:
+    $ref: services/elasticache.yaml#/paths/~1elasticache~1cache-clusters
+  /elasticache/cache-clusters/{id}:
+    $ref: services/elasticache.yaml#/paths/~1elasticache~1cache-clusters~1{id}
+  /elasticache/replication-groups:
+    $ref: services/elasticache.yaml#/paths/~1elasticache~1replication-groups
+  /elasticache/replication-groups/{id}:
+    $ref: services/elasticache.yaml#/paths/~1elasticache~1replication-groups~1{id}
+  /elasticache/cache-parameter-groups:
+    $ref: services/elasticache.yaml#/paths/~1elasticache~1cache-parameter-groups
+  /elasticache/cache-parameters:
+    $ref: services/elasticache.yaml#/paths/~1elasticache~1cache-parameters
+  /elasticache/cache-subnet-groups:
+    $ref: services/elasticache.yaml#/paths/~1elasticache~1cache-subnet-groups
+  /elasticache/cache-security-groups:
+    $ref: services/elasticache.yaml#/paths/~1elasticache~1cache-security-groups
+  /elasticache/snapshots:
+    $ref: services/elasticache.yaml#/paths/~1elasticache~1snapshots
+  /elasticache/update-actions:
+    $ref: services/elasticache.yaml#/paths/~1elasticache~1update-actions
+
+  # RDS
+  /rds/db-instances:
+    $ref: services/rds.yaml#/paths/~1rds~1db-instances
+  /rds/db-instances/{id}:
+    $ref: services/rds.yaml#/paths/~1rds~1db-instances~1{id}
+  /rds/db-instances/{id}/reboot:
+    $ref: services/rds.yaml#/paths/~1rds~1db-instances~1{id}~1reboot
+  /rds/engine-versions:
+    $ref: services/rds.yaml#/paths/~1rds~1engine-versions
+
+components:
+  securitySchemes:
+    MockSignature:
+      type: apiKey
+      in: header
+      name: X-Mock-Signature
+      description: Mock SigV4 signature for local development
+
+  schemas:
+    Error:
+      $ref: common/_components.yaml#/components/schemas/ErrorResponse
+    Health:
+      $ref: common/_components.yaml#/components/schemas/HealthResponse
+    RegionRequest:
+      $ref: common/_components.yaml#/components/schemas/RegionRequest
+    RegionResponse:
+      $ref: common/_components.yaml#/components/schemas/RegionResponse
+    PresignInput:
+      $ref: common/_components.yaml#/components/schemas/PresignInput
+    PresignedUrlResponse:
+      $ref: common/_components.yaml#/components/schemas/PresignedUrlResponse
+    S3ListObjectsV2Output:
+      $ref: common/_components.yaml#/components/schemas/S3ListObjectsV2Output
+    LambdaInvokeResponse:
+      $ref: common/_components.yaml#/components/schemas/LambdaInvokeResponse

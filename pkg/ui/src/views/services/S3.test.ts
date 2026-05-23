@@ -21,11 +21,11 @@ const mockBuckets = ref([
 vi.mock('@/composables/useS3', () => ({
   useS3: () => ({
     buckets: mockBuckets,
-    objects: ref([]),
-    selectedBucket: ref(null),
+    objects: ref<any[]>([]),
+    selectedBucket: ref<any>(null),
     loading: ref(false),
     uploading: ref(false),
-    bucketDetails: ref({}),
+    bucketDetails: ref<Record<string, any>>({}),
     loadBuckets: mockLoadBuckets,
     loadObjects: mockLoadObjects,
     loadBucketDetails: mockLoadBucketDetails,

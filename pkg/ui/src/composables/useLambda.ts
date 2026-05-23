@@ -99,9 +99,14 @@ export function useLambda() {
     updating.value = true
     try {
       const zipFileData = await zipFile.arrayBuffer().then(buf => new Uint8Array(buf))
+      let binary = ''
+      for (let i = 0; i < zipFileData.length; i++) {
+        binary += String.fromCharCode(zipFileData[i])
+      }
+      const zipFileBase64 = btoa(binary)
       await lambdaApi.updateFunctionCode({
         FunctionName: functionName,
-        ZipFile: zipFileData,
+        ZipFile: zipFileBase64,
       })
       toast.success('Function code updated successfully')
       await loadFunctions()

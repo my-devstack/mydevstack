@@ -1,0 +1,262 @@
+openapi: 3.0.0
+info:
+  title: "RDS"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # DB Instances
+  # ============================================================
+  /rds/db-instances:
+    get:
+      tags: [RDS]
+      summary: Describe DB instances
+      description: |
+        Returns a list of RDS DB instances.
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=DescribeDBInstances`
+        and `Version=2014-10-31`. The XML response is converted to JSON.
+      operationId: describeDBInstances
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for DescribeDBInstances
+                (e.g., DBInstanceIdentifier, Filters, MaxRecords, Marker).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBInstances.html).
+      responses:
+        "200":
+          description: List of DB instances
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/RDSDBInstancesResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [RDS]
+      summary: Create DB instance
+      description: |
+        Creates a new RDS DB instance. Requires DBInstanceIdentifier,
+        DBInstanceClass, Engine, MasterUsername, and MasterUserPassword.
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=CreateDBInstance`
+        and `Version=2014-10-31`. The XML response is converted to JSON.
+      operationId: createDBInstance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for CreateDBInstance
+                (e.g., DBInstanceIdentifier, DBInstanceClass, Engine,
+                MasterUsername, MasterUserPassword, AllocatedStorage,
+                DBName, Port, VpcSecurityGroupIds, PubliclyAccessible,
+                MultiAZ, StorageType, BackupRetentionPeriod).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html).
+      responses:
+        "200":
+          description: Created DB instance
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/RDSDBInstanceResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /rds/db-instances/{id}:
+    delete:
+      tags: [RDS]
+      summary: Delete DB instance
+      description: |
+        Deletes an RDS DB instance.
+        The path parameter `id` is used for routing only; actual parameters
+        are passed in the JSON body (e.g., DBInstanceIdentifier).
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=DeleteDBInstance`
+        and `Version=2014-10-31`. The XML response is converted to JSON.
+      operationId: deleteDBInstance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          description: DB instance identifier (routing only; pass DBInstanceIdentifier in body)
+          example: my-db-instance
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for DeleteDBInstance
+                (e.g., DBInstanceIdentifier, SkipFinalSnapshot,
+                FinalDBSnapshotIdentifier, DeleteAutomatedBackups).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DeleteDBInstance.html).
+      responses:
+        "200":
+          description: DB instance deleted
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/RDSStatusResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [RDS]
+      summary: Modify DB instance
+      description: |
+        Modifies an existing RDS DB instance.
+        The path parameter `id` is used for routing only; actual parameters
+        are passed in the JSON body (e.g., DBInstanceIdentifier).
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=ModifyDBInstance`
+        and `Version=2014-10-31`. The XML response is converted to JSON.
+      operationId: modifyDBInstance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          description: DB instance identifier (routing only; pass DBInstanceIdentifier in body)
+          example: my-db-instance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for ModifyDBInstance
+                (e.g., DBInstanceIdentifier, DBInstanceClass,
+                AllocatedStorage, MasterUserPassword, NewDBInstanceIdentifier,
+                BackupRetentionPeriod, PreferredBackupWindow,
+                MultiAZ, StorageType, PubliclyAccessible,
+                DeletionProtection, VpcSecurityGroupIds).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_ModifyDBInstance.html).
+      responses:
+        "200":
+          description: Modified DB instance
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/RDSDBInstanceResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /rds/db-instances/{id}/reboot:
+    post:
+      tags: [RDS]
+      summary: Reboot DB instance
+      description: |
+        Reboots an RDS DB instance.
+        The path parameter `id` is used for routing only; actual parameters
+        are passed in the JSON body (e.g., DBInstanceIdentifier).
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=RebootDBInstance`
+        and `Version=2014-10-31`. The XML response is converted to JSON.
+      operationId: rebootDBInstance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          description: DB instance identifier (routing only; pass DBInstanceIdentifier in body)
+          example: my-db-instance
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for RebootDBInstance
+                (e.g., DBInstanceIdentifier, ForceFailover).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_RebootDBInstance.html).
+      responses:
+        "200":
+          description: DB instance rebooting
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/RDSStatusResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Engine Versions
+  # ============================================================
+  /rds/engine-versions:
+    get:
+      tags: [RDS]
+      summary: Describe DB engine versions
+      description: |
+        Returns a list of available DB engine versions.
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=DescribeDBEngineVersions`
+        and `Version=2014-10-31`. The XML response is converted to JSON.
+      operationId: describeDBEngineVersions
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for DescribeDBEngineVersions
+                (e.g., Engine, EngineVersion, DBParameterGroupFamily,
+                MaxRecords, Marker).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeDBEngineVersions.html).
+      responses:
+        "200":
+          description: List of DB engine versions
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/RDSDBEngineVersionsResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'

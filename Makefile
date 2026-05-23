@@ -5,7 +5,7 @@ ifneq ("$(wildcard $(FILE))","")
 	export $(shell sed 's/=.*//' $(FILE))
 endif
 
-.PHONY: help run-proxy run-ui build dist lint lint-proxy lint-ui test clean unit unit-coverage test-e2e
+.PHONY: help run-proxy run-ui build dist lint lint-proxy lint-ui test clean unit unit-coverage test-e2e openapi openapi-bundle
 
 .DEFAULT_GOAL := help
 
@@ -61,3 +61,8 @@ unit:
 
 unit-coverage: unit ## Runs unit tests and generates a html coverage report
 	go tool cover -html=.testCoverage.txt -o unit.html
+
+openapi-bundle: ## Bundle multi-file OpenAPI spec into single self-contained YAML
+	go run ./pkg/proxy/cmd/openapi-bundle
+
+openapi: openapi-bundle ## Alias for openapi-bundle

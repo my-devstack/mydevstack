@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import RDSDeleteModal from './RDSDeleteModal.vue';
 
 const meta: Meta<typeof RDSDeleteModal> = {

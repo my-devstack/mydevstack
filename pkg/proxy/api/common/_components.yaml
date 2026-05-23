@@ -1,0 +1,1527 @@
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+      example:
+        error: "Failed to create bucket: BucketAlreadyExists"
+
+    RegionRequest:
+      type: object
+      required: [region]
+      properties:
+        region:
+          type: string
+          description: AWS region name
+          example: eu-west-1
+
+    RegionResponse:
+      type: object
+      properties:
+        region:
+          type: string
+        message:
+          type: string
+          example: Region updated successfully
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        proxy:
+          type: string
+          example: aws-proxy
+        target:
+          type: string
+          format: uri
+          example: http://localhost:4566
+        endpoint_url:
+          type: string
+          format: uri
+        region:
+          type: string
+          example: us-east-1
+        emulator:
+          type: string
+        github_repo:
+          type: string
+          format: uri
+        latestVersion:
+          type: string
+          description: Latest available version (empty if unknown)
+
+    InvokeUrlResponse:
+      type: object
+      properties:
+        invokeUrl:
+          type: string
+          format: uri
+          description: Generated invocation URL
+
+    PresignedUrlResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Pre-signed URL for S3 object access
+
+    PresignInput:
+      type: object
+      required: [Key]
+      properties:
+        Key:
+          type: string
+          description: S3 object key
+        Expires:
+          type: integer
+          description: Expiration time in seconds (default 3600)
+          default: 3600
+
+    S3ListObjectsV2Output:
+      type: object
+      properties:
+        IsTruncated:
+          type: boolean
+        NextContinuationToken:
+          type: string
+        Contents:
+          type: array
+          items:
+            type: object
+            properties:
+              Key:            { type: string }
+              LastModified:   { type: string, format: date-time }
+              ETag:           { type: string }
+              Size:           { type: integer, format: int64 }
+              StorageClass:   { type: string }
+        CommonPrefixes:
+          type: array
+          items:
+            type: object
+            properties:
+              Prefix: { type: string }
+
+    LambdaInvokeResponse:
+      type: object
+      properties:
+        StatusCode:
+          type: integer
+          description: HTTP status code from the invocation
+        Payload:
+          type: string
+          description: Base64-encoded function response payload
+        FunctionError:
+          type: string
+          description: Error string if invocation failed
+
+    KMSStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [enabled, disabled]
+          description: Current key status
+
+    IAMGroupUsersResponse:
+      type: object
+      properties:
+        Users:
+          type: array
+          items: {}
+        IsTruncated:
+          type: boolean
+        Marker:
+          type: string
+
+    RDSDBInstanceResponse:
+      type: object
+      properties:
+        DBInstance:
+          type: object
+          properties:
+            DBInstanceIdentifier:             { type: string }
+            DBInstanceStatus:                 { type: string }
+            Engine:                           { type: string }
+            EngineVersion:                    { type: string }
+            MasterUsername:                    { type: string }
+            DBInstanceClass:                  { type: string }
+            AllocatedStorage:                 { type: string }
+            IAMDatabaseAuthenticationEnabled: { type: boolean }
+            MultiAZ:                          { type: boolean }
+            StorageType:                      { type: string }
+            PubliclyAccessible:               { type: boolean }
+            DBName:                           { type: string }
+            BackupRetentionPeriod:            { type: string }
+            DeletionProtection:               { type: boolean }
+            Endpoint:
+              type: object
+              properties:
+                Address: { type: string }
+                Port:    { type: string }
+            VpcSecurityGroups:
+              type: array
+              items:
+                type: object
+                properties:
+                  VpcSecurityGroupId: { type: string }
+                  Status:             { type: string }
+        status:
+          type: string
+
+    RDSDBInstancesResponse:
+      type: object
+      properties:
+        DBInstances:
+          type: array
+          items:
+            $ref: '#/components/schemas/RDSDBInstanceResponse/properties/DBInstance'
+
+    RDSDBEngineVersionsResponse:
+      type: object
+      properties:
+        EngineVersions:
+          type: array
+          items:
+            type: object
+            properties:
+              Engine:            { type: string }
+              EngineVersion:     { type: string }
+              DBEngineVersionDescription: { type: string }
+
+    EmptySuccessResponse:
+      type: object
+      description: Response with no meaningful body content
+
+    RDSStatusResponse:
+      type: object
+      properties:
+        DBInstance:
+          type: object
+          properties:
+            status:
+              type: string
+
+    # --- S3 SDK Expanded Types ---
+
+    S3Owner:
+      type: object
+      properties:
+        DisplayName:
+          type: string
+          description: Display name of the owner
+        ID:
+          type: string
+          description: ID of the owner
+
+    S3Bucket:
+      type: object
+      properties:
+        Name:
+          type: string
+          description: The name of the bucket
+        CreationDate:
+          type: string
+          format: date-time
+          description: Date the bucket was created
+        BucketRegion:
+          type: string
+          description: The AWS region where the bucket is located
+        BucketArn:
+          type: string
+          description: The Amazon Resource Name (ARN) of the S3 bucket
+
+    S3CreateBucketConfiguration:
+      type: object
+      properties:
+        LocationConstraint:
+          type: string
+          description: Specifies the Region where the bucket will be created
+          enum: [af-south-1, ap-east-1, ap-northeast-1, ap-northeast-2, ap-northeast-3, ap-south-1, ap-south-2, ap-southeast-1, ap-southeast-2, ap-southeast-3, ap-southeast-4, ap-southeast-5, ap-southeast-7, ca-central-1, cn-north-1, cn-northwest-1, eu-central-1, eu-central-2, eu-north-1, eu-south-1, eu-south-2, eu-west-1, eu-west-2, eu-west-3, il-central-1, me-central-1, me-south-1, mx-central-1, sa-east-1, us-east-1, us-east-2, us-gov-east-1, us-gov-west-1, us-west-1, us-west-2]
+        Location:
+          type: object
+          properties:
+            Name:
+              type: string
+            Type:
+              type: string
+              enum: [AvailabilityZone]
+        Bucket:
+          type: object
+          properties:
+            DataRedundancy:
+              type: string
+              enum: [SingleAvailabilityZone]
+            Type:
+              type: string
+              enum: [Directory]
+
+    S3CreateBucketInput:
+      type: object
+      required: [Bucket]
+      properties:
+        Bucket:
+          type: string
+          description: Name of the bucket to create
+        CreateBucketConfiguration:
+          $ref: '#/components/schemas/S3CreateBucketConfiguration'
+        ACL:
+          type: string
+          enum: [private, public-read, public-read-write, authenticated-read]
+          description: The canned ACL to apply to the bucket
+        GrantFullControl:
+          type: string
+          description: Allows grantee the read, write, read ACP, and write ACP permissions on the bucket
+        GrantRead:
+          type: string
+          description: Allows grantee to list the objects in the bucket
+        GrantReadACP:
+          type: string
+          description: Allows grantee to read the bucket ACL
+        GrantWrite:
+          type: string
+          description: Allows grantee to create, overwrite, and delete objects in the bucket
+        ObjectLockEnabledForBucket:
+          type: boolean
+          description: Specifies whether you want S3 Object Lock to be enabled for the new bucket
+        ObjectOwnership:
+          type: string
+          enum: [BucketOwnerEnforced, BucketOwnerPreferred, ObjectWriter]
+          description: Specifies the object ownership of the bucket
+
+    S3CreateBucketOutput:
+      type: object
+      properties:
+        Location:
+          type: string
+          description: A forward slash followed by the name of the created bucket
+
+    S3ListBucketsOutput:
+      type: object
+      properties:
+        Buckets:
+          type: array
+          items:
+            $ref: '#/components/schemas/S3Bucket'
+          description: The list of buckets owned by the requester
+        Owner:
+          $ref: '#/components/schemas/S3Owner'
+          description: The owner of the buckets listed
+        ContinuationToken:
+          type: string
+          description: Token for pagination when more buckets are available
+        Prefix:
+          type: string
+          description: Prefix filter used in the request
+
+    S3DeleteBucketOutput:
+      type: object
+      properties: {}
+
+    S3BucketStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+
+    S3PutObjectInputJSON:
+      type: object
+      required: [Bucket, Key]
+      properties:
+        Bucket:
+          type: string
+          description: Name of the bucket
+        Key:
+          type: string
+          description: Object key
+        Body:
+          type: string
+          description: Object body content as string
+        ContentType:
+          type: string
+          description: Content type of the object (e.g., text/plain)
+        ContentDisposition:
+          type: string
+        CacheControl:
+          type: string
+        ContentEncoding:
+          type: string
+        ContentLanguage:
+          type: string
+        Expires:
+          type: string
+          format: date-time
+        Metadata:
+          type: object
+          additionalProperties:
+            type: string
+          description: Metadata key-value pairs for the object
+        StorageClass:
+          type: string
+          enum: [STANDARD, REDUCED_REDUNDANCY, STANDARD_IA, ONEZONE_IA, INTELLIGENT_TIERING, GLACIER, DEEP_ARCHIVE, OUTPOSTS, GLACIER_IR, SNOW, EXPRESS_ONEZONE]
+        ServerSideEncryption:
+          type: string
+          enum: [AES256, "aws:kms", "aws:kms:dsse"]
+        SSEKMSKeyId:
+          type: string
+        BucketKeyEnabled:
+          type: boolean
+
+    S3PutObjectOutput:
+      type: object
+      properties:
+        ETag:
+          type: string
+          description: Entity tag for the uploaded object
+        ServerSideEncryption:
+          type: string
+          enum: [AES256, "aws:kms", "aws:kms:dsse"]
+        VersionId:
+          type: string
+          description: Version ID of the object
+        BucketKeyEnabled:
+          type: boolean
+        ChecksumCRC32:
+          type: string
+        ChecksumCRC32C:
+          type: string
+        ChecksumCRC64NVME:
+          type: string
+        ChecksumSHA1:
+          type: string
+        ChecksumSHA256:
+          type: string
+
+    S3DeleteObjectOutput:
+      type: object
+      properties:
+        DeleteMarker:
+          type: boolean
+        VersionId:
+          type: string
+
+    S3HeadObjectOutput:
+      type: object
+      properties:
+        AcceptRanges:
+          type: string
+        ArchiveStatus:
+          type: string
+        BucketKeyEnabled:
+          type: boolean
+        CacheControl:
+          type: string
+        ContentDisposition:
+          type: string
+        ContentEncoding:
+          type: string
+        ContentLanguage:
+          type: string
+        ContentLength:
+          type: integer
+          format: int64
+        ContentType:
+          type: string
+        DeleteMarker:
+          type: boolean
+        ETag:
+          type: string
+        Expires:
+          type: string
+          format: date-time
+        Expiration:
+          type: string
+        LastModified:
+          type: string
+          format: date-time
+        Metadata:
+          type: object
+          additionalProperties:
+            type: string
+        MissingMeta:
+          type: integer
+          format: int32
+        ObjectLockLegalHoldStatus:
+          type: string
+          enum: [ON, OFF]
+        ObjectLockMode:
+          type: string
+          enum: [GOVERNANCE, COMPLIANCE]
+        ObjectLockRetainUntilDate:
+          type: string
+          format: date-time
+        PartsCount:
+          type: integer
+          format: int32
+        ReplicationStatus:
+          type: string
+        Restore:
+          type: string
+        ServerSideEncryption:
+          type: string
+          enum: [AES256, "aws:kms", "aws:kms:dsse"]
+        SSEKMSKeyId:
+          type: string
+        StorageClass:
+          type: string
+        VersionId:
+          type: string
+        WebsiteRedirectLocation:
+          type: string
+
+    S3GetBucketVersioningOutput:
+      type: object
+      properties:
+        Status:
+          type: string
+          enum: [Enabled, Suspended]
+          description: The versioning state of the bucket
+        MFADelete:
+          type: string
+          enum: [Enabled, Disabled]
+          description: Specifies whether MFA delete is enabled
+
+    S3PutBucketVersioningInput:
+      type: object
+      required: [Bucket, VersioningConfiguration]
+      properties:
+        Bucket:
+          type: string
+          description: The bucket name
+        VersioningConfiguration:
+          type: object
+          required: [Status]
+          properties:
+            Status:
+              type: string
+              enum: [Enabled, Suspended]
+              description: The versioning state to apply
+            MFADelete:
+              type: string
+              enum: [Enabled, Disabled]
+        MFA:
+          type: string
+          description: The MFA token to use for the request
+
+    S3PutBucketVersioningOutput:
+      type: object
+      properties: {}
+
+    S3GetBucketEncryptionOutput:
+      type: object
+      properties:
+        ServerSideEncryptionConfiguration:
+          type: object
+          properties:
+            Rules:
+              type: array
+              items:
+                type: object
+                properties:
+                  ApplyServerSideEncryptionByDefault:
+                    type: object
+                    properties:
+                      SSEAlgorithm:
+                        type: string
+                        enum: [AES256, "aws:kms", "aws:kms:dsse"]
+                      KMSMasterKeyID:
+                        type: string
+
+    S3PutBucketEncryptionInput:
+      type: object
+      required: [Bucket, ServerSideEncryptionConfiguration]
+      properties:
+        Bucket:
+          type: string
+        ServerSideEncryptionConfiguration:
+          type: object
+          required: [Rules]
+          properties:
+            Rules:
+              type: array
+              items:
+                type: object
+                properties:
+                  ApplyServerSideEncryptionByDefault:
+                    type: object
+                    properties:
+                      SSEAlgorithm:
+                        type: string
+                        enum: [AES256, "aws:kms", "aws:kms:dsse"]
+                      KMSMasterKeyID:
+                        type: string
+                  BucketKeyEnabled:
+                    type: boolean
+
+    S3PutBucketEncryptionOutput:
+      type: object
+      properties: {}
+
+    S3GetBucketTaggingOutput:
+      type: object
+      properties:
+        TagSet:
+          type: array
+          items:
+            $ref: '#/components/schemas/S3Tag'
+
+    S3PutBucketTaggingInput:
+      type: object
+      required: [Bucket, Tagging]
+      properties:
+        Bucket:
+          type: string
+        Tagging:
+          type: object
+          required: [TagSet]
+          properties:
+            TagSet:
+              type: array
+              items:
+                $ref: '#/components/schemas/S3Tag'
+
+    S3PutBucketTaggingOutput:
+      type: object
+      properties: {}
+
+    S3Tag:
+      type: object
+      required: [Key, Value]
+      properties:
+        Key:
+          type: string
+          description: Name of the object key
+        Value:
+          type: string
+          description: Value of the tag
+
+    S3GetBucketPolicyOutput:
+      type: object
+      properties:
+        Policy:
+          type: string
+          description: The bucket policy as a JSON string
+
+    S3PutBucketPolicyInput:
+      type: object
+      required: [Bucket, Policy]
+      properties:
+        Bucket:
+          type: string
+        Policy:
+          type: string
+          description: The bucket policy JSON document
+        ConfirmRemoveSelfBucketAccess:
+          type: boolean
+          description: Set this flag to remove self-bucket access
+
+    S3PutBucketPolicyOutput:
+      type: object
+      properties: {}
+
+    S3GetPublicAccessBlockOutput:
+      type: object
+      properties:
+        PublicAccessBlockConfiguration:
+          type: object
+          properties:
+            BlockPublicAcls:
+              type: boolean
+            IgnorePublicAcls:
+              type: boolean
+            BlockPublicPolicy:
+              type: boolean
+            RestrictPublicBuckets:
+              type: boolean
+
+    S3PutPublicAccessBlockInput:
+      type: object
+      required: [Bucket, PublicAccessBlockConfiguration]
+      properties:
+        Bucket:
+          type: string
+        PublicAccessBlockConfiguration:
+          type: object
+          required: [BlockPublicAcls, IgnorePublicAcls, BlockPublicPolicy, RestrictPublicBuckets]
+          properties:
+            BlockPublicAcls:
+              type: boolean
+            IgnorePublicAcls:
+              type: boolean
+            BlockPublicPolicy:
+              type: boolean
+            RestrictPublicBuckets:
+              type: boolean
+        ContentMD5:
+          type: string
+          description: The MD5 hash of the request body
+        ChecksumAlgorithm:
+          type: string
+          enum: [CRC32, CRC32C, CRC64NVME, SHA1, SHA256]
+
+    S3PutPublicAccessBlockOutput:
+      type: object
+      properties: {}
+
+    S3GetBucketNotificationConfigurationOutput:
+      type: object
+      properties:
+        TopicConfigurations:
+          type: array
+          items:
+            $ref: '#/components/schemas/S3NotificationConfiguration'
+        QueueConfigurations:
+          type: array
+          items:
+            $ref: '#/components/schemas/S3NotificationConfiguration'
+        LambdaFunctionConfigurations:
+          type: array
+          items:
+            $ref: '#/components/schemas/S3NotificationConfiguration'
+        EventBridgeConfiguration:
+          type: object
+          properties: {}
+
+    S3NotificationConfiguration:
+      type: object
+      properties:
+        Id:
+          type: string
+        Arn:
+          type: string
+        Events:
+          type: array
+          items:
+            type: string
+          description: The events for which to send notifications
+        Filter:
+          type: object
+          properties:
+            Key:
+              type: object
+              properties:
+                FilterRules:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      Name:
+                        type: string
+                        enum: [prefix, suffix]
+                      Value:
+                        type: string
+
+    S3PutBucketNotificationConfigurationInput:
+      type: object
+      required: [Bucket, NotificationConfiguration]
+      properties:
+        Bucket:
+          type: string
+        NotificationConfiguration:
+          type: object
+          properties:
+            TopicConfigurations:
+              type: array
+              items:
+                $ref: '#/components/schemas/S3NotificationConfiguration'
+            QueueConfigurations:
+              type: array
+              items:
+                $ref: '#/components/schemas/S3NotificationConfiguration'
+            LambdaFunctionConfigurations:
+              type: array
+              items:
+                $ref: '#/components/schemas/S3NotificationConfiguration'
+            EventBridgeConfiguration:
+              type: object
+              properties: {}
+
+    S3PutBucketNotificationConfigurationOutput:
+      type: object
+      properties: {}
+
+    # --- Lambda SDK Expanded Types ---
+
+    LambdaFunctionConfiguration:
+      type: object
+      properties:
+        FunctionName:
+          type: string
+        FunctionArn:
+          type: string
+        Runtime:
+          type: string
+          enum: [nodejs18.x, nodejs20.x, nodejs22.x, python3.9, python3.10, python3.11, python3.12, python3.13, java8, java8.al2, java11, java17, java21, dotnet6, dotnet8, dotnet9, go1.x, provided, provided.al2, provided.al2023, ruby3.2, ruby3.3, ruby3.4]
+        Role:
+          type: string
+        Handler:
+          type: string
+        CodeSize:
+          type: integer
+          format: int64
+        Description:
+          type: string
+        Timeout:
+          type: integer
+          format: int32
+        MemorySize:
+          type: integer
+          format: int32
+        LastModified:
+          type: string
+        Version:
+          type: string
+        VpcConfig:
+          type: object
+          properties:
+            SubnetIds:
+              type: array
+              items: { type: string }
+            SecurityGroupIds:
+              type: array
+              items: { type: string }
+            VpcId:
+              type: string
+        Environment:
+          type: object
+          properties:
+            Variables:
+              type: object
+              additionalProperties:
+                type: string
+            Error:
+              type: object
+              properties:
+                ErrorCode:
+                  type: string
+                Message:
+                  type: string
+        KMSKeyArn:
+          type: string
+        TracingConfig:
+          type: object
+          properties:
+            Mode:
+              type: string
+              enum: [Active, PassThrough]
+        Layers:
+          type: array
+          items:
+            type: object
+            properties:
+              Arn:
+                type: string
+              CodeSize:
+                type: integer
+                format: int64
+              SigningProfileVersionArn:
+                type: string
+              SigningJobArn:
+                type: string
+        State:
+          type: string
+          enum: [Pending, Active, Inactive, Failed]
+        StateReason:
+          type: string
+        StateReasonCode:
+          type: string
+          enum: [Idle, Creating, Restoring, EniLimitExceeded, InsufficientRolePermissions, InvalidConfiguration, InternalError, SubnetOutOfIPAddresses, InvalidSubnet, InvalidSecurityGroup, ImageDeleted, ImageAccessDenied, InvalidImage, KMSKeyAccessDenied, KMSKeyNotFound, InvalidStateKMSKey, DisabledKMSKey, EFSIOError, EFSMountConnectivityError, EFSMountFailure, EFSMountTimeout, InvalidRuntime, InvalidZipFileException, FunctionError]
+        LastUpdateStatus:
+          type: string
+          enum: [Successful, Failed, InProgress]
+        LastUpdateStatusReason:
+          type: string
+        LastUpdateStatusReasonCode:
+          type: string
+        PackageType:
+          type: string
+          enum: [Zip, Image]
+        Architectures:
+          type: array
+          items:
+            type: string
+            enum: [x86_64, arm64]
+        ImageConfigResponse:
+          type: object
+          properties:
+            Error:
+              type: object
+              properties:
+                ErrorCode:
+                  type: string
+                Message:
+                  type: string
+            ImageConfig:
+              type: object
+              properties:
+                EntryPoint:
+                  type: array
+                  items: { type: string }
+                Command:
+                  type: array
+                  items: { type: string }
+                WorkingDirectory:
+                  type: string
+        EphemeralStorage:
+          type: object
+          properties:
+            Size:
+              type: integer
+              format: int32
+        SnapStart:
+          type: object
+          properties:
+            ApplyOn:
+              type: string
+              enum: [PublishedVersions, None]
+            OptimizationStatus:
+              type: string
+              enum: [On, Off]
+        RuntimeVersionConfig:
+          type: object
+          properties:
+            RuntimeVersionArn:
+              type: string
+            Error:
+              type: object
+              properties:
+                ErrorCode:
+                  type: string
+                Message:
+                  type: string
+        LoggingConfig:
+          type: object
+          properties:
+            LogFormat:
+              type: string
+              enum: [Text, JSON]
+            ApplicationLogLevel:
+              type: string
+              enum: [TRACE, DEBUG, INFO, WARN, ERROR, FATAL]
+            SystemLogLevel:
+              type: string
+              enum: [DEBUG, INFO, WARN]
+            LogGroup:
+              type: string
+
+    LambdaFunctionCodeLocation:
+      type: object
+      properties:
+        RepositoryType:
+          type: string
+        Location:
+          type: string
+        ImageUri:
+          type: string
+        ResolvedImageUri:
+          type: string
+
+    LambdaFunction:
+      type: object
+      properties:
+        Configuration:
+          $ref: '#/components/schemas/LambdaFunctionConfiguration'
+        Code:
+          $ref: '#/components/schemas/LambdaFunctionCodeLocation'
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+
+    LambdaListFunctionsOutput:
+      type: object
+      properties:
+        Functions:
+          type: array
+          items:
+            $ref: '#/components/schemas/LambdaFunctionConfiguration'
+        NextMarker:
+          type: string
+
+    LambdaFunctionCode:
+      type: object
+      required: [ZipFile]
+      properties:
+        ZipFile:
+          type: string
+          description: Base64-encoded zip file containing the function code
+        S3Bucket:
+          type: string
+        S3Key:
+          type: string
+        S3ObjectVersion:
+          type: string
+        ImageUri:
+          type: string
+
+    LambdaCreateFunctionInput:
+      type: object
+      required: [FunctionName, Runtime, Role, Handler, Code]
+      properties:
+        FunctionName:
+          type: string
+        Runtime:
+          type: string
+          enum: [nodejs18.x, nodejs20.x, nodejs22.x, python3.9, python3.10, python3.11, python3.12, python3.13, java8, java8.al2, java11, java17, java21, dotnet6, dotnet8, dotnet9, go1.x, provided, provided.al2, provided.al2023, ruby3.2, ruby3.3, ruby3.4]
+        Role:
+          type: string
+        Handler:
+          type: string
+        Code:
+          $ref: '#/components/schemas/LambdaFunctionCode'
+        Description:
+          type: string
+        Timeout:
+          type: integer
+          format: int32
+        MemorySize:
+          type: integer
+          format: int32
+        Publish:
+          type: boolean
+        VpcConfig:
+          type: object
+          properties:
+            SubnetIds:
+              type: array
+              items: { type: string }
+            SecurityGroupIds:
+              type: array
+              items: { type: string }
+            Ipv6AllowedForDualStack:
+              type: boolean
+        Environment:
+          type: object
+          properties:
+            Variables:
+              type: object
+              additionalProperties:
+                type: string
+        KMSKeyArn:
+          type: string
+        TracingConfig:
+          type: object
+          properties:
+            Mode:
+              type: string
+              enum: [Active, PassThrough]
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+        Layers:
+          type: array
+          items: { type: string }
+        FileSystemConfigs:
+          type: array
+          items:
+            type: object
+            properties:
+              Arn:
+                type: string
+              LocalMountPath:
+                type: string
+        ImageConfig:
+          type: object
+          properties:
+            EntryPoint:
+              type: array
+              items: { type: string }
+            Command:
+              type: array
+              items: { type: string }
+            WorkingDirectory:
+              type: string
+        CodeSigningConfigArn:
+          type: string
+        DeadLetterConfig:
+          type: object
+          properties:
+            TargetArn:
+              type: string
+        Architectures:
+          type: array
+          items:
+            type: string
+            enum: [x86_64, arm64]
+        EphemeralStorage:
+          type: object
+          properties:
+            Size:
+              type: integer
+              format: int32
+        SnapStart:
+          type: object
+          properties:
+            ApplyOn:
+              type: string
+              enum: [PublishedVersions, None]
+        LoggingConfig:
+          type: object
+          properties:
+            LogFormat:
+              type: string
+              enum: [Text, JSON]
+            ApplicationLogLevel:
+              type: string
+              enum: [TRACE, DEBUG, INFO, WARN, ERROR, FATAL]
+            SystemLogLevel:
+              type: string
+              enum: [DEBUG, INFO, WARN]
+            LogGroup:
+              type: string
+
+    LambdaCreateFunctionOutput:
+      type: object
+      properties:
+        Configuration:
+          $ref: '#/components/schemas/LambdaFunctionConfiguration'
+        Code:
+          $ref: '#/components/schemas/LambdaFunctionCodeLocation'
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+
+    LambdaGetFunctionOutput:
+      type: object
+      properties:
+        Configuration:
+          $ref: '#/components/schemas/LambdaFunctionConfiguration'
+        Code:
+          $ref: '#/components/schemas/LambdaFunctionCodeLocation'
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+        Concurrency:
+          type: object
+          properties:
+            ReservedConcurrentExecutions:
+              type: integer
+              format: int32
+
+    LambdaUpdateFunctionConfigurationInput:
+      type: object
+      required: [FunctionName]
+      properties:
+        FunctionName:
+          type: string
+        Role:
+          type: string
+        Handler:
+          type: string
+        Description:
+          type: string
+        Timeout:
+          type: integer
+          format: int32
+        MemorySize:
+          type: integer
+          format: int32
+        VpcConfig:
+          type: object
+          properties:
+            SubnetIds:
+              type: array
+              items: { type: string }
+            SecurityGroupIds:
+              type: array
+              items: { type: string }
+            Ipv6AllowedForDualStack:
+              type: boolean
+        Environment:
+          type: object
+          properties:
+            Variables:
+              type: object
+              additionalProperties:
+                type: string
+        KMSKeyArn:
+          type: string
+        TracingConfig:
+          type: object
+          properties:
+            Mode:
+              type: string
+              enum: [Active, PassThrough]
+        ImageConfig:
+          type: object
+          properties:
+            EntryPoint:
+              type: array
+              items: { type: string }
+            Command:
+              type: array
+              items: { type: string }
+            WorkingDirectory:
+              type: string
+        DeadLetterConfig:
+          type: object
+          properties:
+            TargetArn:
+              type: string
+        Layers:
+          type: array
+          items: { type: string }
+        EphemeralStorage:
+          type: object
+          properties:
+            Size:
+              type: integer
+              format: int32
+        SnapStart:
+          type: object
+          properties:
+            ApplyOn:
+              type: string
+              enum: [PublishedVersions, None]
+        LoggingConfig:
+          type: object
+          properties:
+            LogFormat:
+              type: string
+              enum: [Text, JSON]
+            ApplicationLogLevel:
+              type: string
+              enum: [TRACE, DEBUG, INFO, WARN, ERROR, FATAL]
+            SystemLogLevel:
+              type: string
+              enum: [DEBUG, INFO, WARN]
+            LogGroup:
+              type: string
+
+    LambdaUpdateFunctionConfigurationOutput:
+      $ref: '#/components/schemas/LambdaFunctionConfiguration'
+
+    LambdaUpdateFunctionCodeInput:
+      type: object
+      required: [FunctionName]
+      properties:
+        FunctionName:
+          type: string
+        ZipFile:
+          type: string
+          description: Base64-encoded zip file containing the function code
+        S3Bucket:
+          type: string
+        S3Key:
+          type: string
+        S3ObjectVersion:
+          type: string
+        ImageUri:
+          type: string
+        Publish:
+          type: boolean
+        RevisionId:
+          type: string
+        Architectures:
+          type: array
+          items:
+            type: string
+            enum: [x86_64, arm64]
+
+    LambdaUpdateFunctionCodeOutput:
+      $ref: '#/components/schemas/LambdaFunctionConfiguration'
+
+    LambdaDeleteFunctionOutput:
+      type: object
+      properties: {}
+
+    LambdaInvokeInput:
+      type: object
+      required: [FunctionName]
+      properties:
+        FunctionName:
+          type: string
+        InvocationType:
+          type: string
+          enum: [Event, RequestResponse, DryRun]
+        LogType:
+          type: string
+          enum: [None, Tail]
+        ClientContext:
+          type: string
+        Payload:
+          type: string
+          description: Base64-encoded function payload
+        Qualifier:
+          type: string
+
+    LambdaGetFunctionConfigurationOutput:
+      $ref: '#/components/schemas/LambdaFunctionConfiguration'
+
+    LambdaEventSourceMapping:
+      type: object
+      properties:
+        UUID:
+          type: string
+        StartingPosition:
+          type: string
+          enum: [TRIM_HORIZON, LATEST, AT_TIMESTAMP]
+        StartingPositionTimestamp:
+          type: string
+          format: date-time
+        BatchSize:
+          type: integer
+          format: int32
+        MaximumBatchingWindowInSeconds:
+          type: integer
+          format: int32
+        ParallelizationFactor:
+          type: integer
+          format: int32
+        EventSourceArn:
+          type: string
+        FunctionArn:
+          type: string
+        LastModified:
+          type: string
+          format: date-time
+        LastProcessingResult:
+          type: string
+        State:
+          type: string
+        StateTransitionReason:
+          type: string
+        DestinationConfig:
+          type: object
+          properties:
+            OnFailure:
+              type: object
+              properties:
+                Destination:
+                  type: string
+        Topics:
+          type: array
+          items: { type: string }
+        Queues:
+          type: array
+          items: { type: string }
+        SourceAccessConfigurations:
+          type: array
+          items:
+            type: object
+            properties:
+              Type:
+                type: string
+              URI:
+                type: string
+        SelfManagedEventSource:
+          type: object
+          properties:
+            Endpoints:
+              type: object
+              additionalProperties:
+                type: array
+                items: { type: string }
+        MaximumRecordAgeInSeconds:
+          type: integer
+          format: int32
+        BisectBatchOnFunctionError:
+          type: boolean
+        MaximumRetryAttempts:
+          type: integer
+          format: int32
+        TumblingWindowInSeconds:
+          type: integer
+          format: int32
+        FunctionResponseTypes:
+          type: array
+          items: { type: string }
+        AmazonManagedKafkaEventSourceConfig:
+          type: object
+          properties:
+            ConsumerGroupId:
+              type: string
+        SelfManagedKafkaEventSourceConfig:
+          type: object
+          properties:
+            ConsumerGroupId:
+              type: string
+        ScalingConfig:
+          type: object
+          properties:
+            MaximumConcurrency:
+              type: integer
+              format: int32
+        DocumentDBEventSourceConfig:
+          type: object
+          properties:
+            DatabaseName:
+              type: string
+            CollectionName:
+              type: string
+            FullDocument:
+              type: string
+              enum: [UpdateLookup, Default]
+        FilterCriteria:
+          type: object
+          properties:
+            Filters:
+              type: array
+              items:
+                type: object
+                properties:
+                  Pattern:
+                    type: string
+
+    LambdaListEventSourceMappingsOutput:
+      type: object
+      properties:
+        EventSourceMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/LambdaEventSourceMapping'
+        NextMarker:
+          type: string
+
+    LambdaCreateEventSourceMappingInput:
+      type: object
+      required: [EventSourceArn, FunctionName]
+      properties:
+        EventSourceArn:
+          type: string
+        FunctionName:
+          type: string
+        Enabled:
+          type: boolean
+        BatchSize:
+          type: integer
+          format: int32
+        FilterCriteria:
+          type: object
+          properties:
+            Filters:
+              type: array
+              items:
+                type: object
+                properties:
+                  Pattern:
+                    type: string
+        MaximumBatchingWindowInSeconds:
+          type: integer
+          format: int32
+        ParallelizationFactor:
+          type: integer
+          format: int32
+        StartingPosition:
+          type: string
+          enum: [TRIM_HORIZON, LATEST, AT_TIMESTAMP]
+        StartingPositionTimestamp:
+          type: string
+          format: date-time
+        DestinationConfig:
+          type: object
+          properties:
+            OnFailure:
+              type: object
+              properties:
+                Destination:
+                  type: string
+        MaximumRecordAgeInSeconds:
+          type: integer
+          format: int32
+        BisectBatchOnFunctionError:
+          type: boolean
+        MaximumRetryAttempts:
+          type: integer
+          format: int32
+        TumblingWindowInSeconds:
+          type: integer
+          format: int32
+        Topics:
+          type: array
+          items: { type: string }
+        Queues:
+          type: array
+          items: { type: string }
+        SourceAccessConfigurations:
+          type: array
+          items:
+            type: object
+            properties:
+              Type:
+                type: string
+              URI:
+                type: string
+        SelfManagedEventSource:
+          type: object
+          properties:
+            Endpoints:
+              type: object
+              additionalProperties:
+                type: array
+                items: { type: string }
+        FunctionResponseTypes:
+          type: array
+          items: { type: string }
+        AmazonManagedKafkaEventSourceConfig:
+          type: object
+          properties:
+            ConsumerGroupId:
+              type: string
+        SelfManagedKafkaEventSourceConfig:
+          type: object
+          properties:
+            ConsumerGroupId:
+              type: string
+        ScalingConfig:
+          type: object
+          properties:
+            MaximumConcurrency:
+              type: integer
+              format: int32
+        DocumentDBEventSourceConfig:
+          type: object
+          properties:
+            DatabaseName:
+              type: string
+            CollectionName:
+              type: string
+            FullDocument:
+              type: string
+              enum: [UpdateLookup, Default]
+
+    LambdaCreateEventSourceMappingOutput:
+      $ref: '#/components/schemas/LambdaEventSourceMapping'
+
+    LambdaGetEventSourceMappingOutput:
+      $ref: '#/components/schemas/LambdaEventSourceMapping'
+
+    LambdaDeleteEventSourceMappingOutput:
+      $ref: '#/components/schemas/LambdaEventSourceMapping'
+
+    LambdaListFunctionsInput:
+      type: object
+      properties:
+        MasterRegion:
+          type: string
+        FunctionVersion:
+          type: string
+          enum: [ALL]
+        Marker:
+          type: string
+        MaxItems:
+          type: integer
+          format: int32
+
+    LambdaListEventSourceMappingsInput:
+      type: object
+      properties:
+        EventSourceArn:
+          type: string
+        FunctionName:
+          type: string
+        Marker:
+          type: string
+        MaxItems:
+          type: integer
+          format: int32

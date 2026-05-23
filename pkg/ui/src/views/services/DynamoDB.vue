@@ -72,6 +72,10 @@ const tableError = ref<string | null>(null)
 
 // Delete confirmation
 const showDeleteModal = ref(false)
+
+// Stream pagination state
+const streamArnForLoadMore = ref<string>('')
+const shardIdForLoadMore = ref<string>('')
 const tableToDelete = ref<string | null>(null)
 const deleting = ref(false)
 
@@ -230,8 +234,8 @@ async function selectStream(stream: unknown) {
   streamError.value = null
 
   try {
-    const streamArn = s.StreamArn
-    const shards = await getStreamShards(streamArn)
+    streamArnForLoadMore.value = s.StreamArn
+    const shards = await getStreamShards(streamArnForLoadMore.value)
     streamShards.value = shards
 
     if (shards.length === 0) {
@@ -240,7 +244,8 @@ async function selectStream(stream: unknown) {
     }
 
     const shard = shards[0]
-    const iterator = await getShardIterator(streamArn, shard.ShardId, 'TRIM_HORIZON')
+    shardIdForLoadMore.value = shard.ShardId
+    const iterator = await getShardIterator(streamArnForLoadMore.value, shard.ShardId, 'TRIM_HORIZON')
 
     if (!iterator?.ShardIterator) {
       streamError.value = 'Failed to get shard iterator'
@@ -249,7 +254,7 @@ async function selectStream(stream: unknown) {
 
     shardIterator.value = iterator.ShardIterator
 
-    const response = await getRecords(shardIterator.value)
+    const response = await getRecords(streamArnForLoadMore.value, shard.ShardId, shardIterator.value)
     streamRecords.value = response.Records || []
     shardIterator.value = response.NextShardIterator || null
   } catch (e: unknown) {
@@ -270,7 +275,7 @@ async function loadMoreRecords() {
   loadingRecords.value = true
   
   try {
-    const records = await getRecords(shardIterator.value)
+    const records = await getRecords(streamArnForLoadMore.value, shardIdForLoadMore.value, shardIterator.value)
     streamRecords.value = [...streamRecords.value, ...((records as { Records?: unknown[] }).Records || [])]
     shardIterator.value = (records as { NextShardIterator?: string }).NextShardIterator
     

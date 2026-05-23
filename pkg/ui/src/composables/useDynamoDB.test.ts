@@ -228,10 +228,7 @@ describe('useDynamoDB', () => {
     const { putItem } = useDynamoDB()
     await putItem('users', { id: '1', name: 'Alice' })
 
-    expect(dynamodbApi.putItem).toHaveBeenCalledWith({
-      TableName: 'users',
-      Item: { id: '1', name: 'Alice' },
-    })
+    expect(dynamodbApi.putItem).toHaveBeenCalledWith('users', { id: '1', name: 'Alice' })
   })
 
   it('putItem error propagates', async () => {
@@ -247,10 +244,7 @@ describe('useDynamoDB', () => {
     const { deleteItem } = useDynamoDB()
     await deleteItem('users', { id: '1' })
 
-    expect(dynamodbApi.deleteItem).toHaveBeenCalledWith({
-      TableName: 'users',
-      Key: { id: '1' },
-    })
+    expect(dynamodbApi.deleteItem).toHaveBeenCalledWith('users', { id: '1' })
   })
 
   it('deleteItem error propagates', async () => {
@@ -270,8 +264,7 @@ describe('useDynamoDB', () => {
       ExpressionAttributeValues: { ':pk': '1' },
     })
 
-    expect(dynamodbApi.query).toHaveBeenCalledWith({
-      TableName: 'users',
+    expect(dynamodbApi.query).toHaveBeenCalledWith('users', {
       KeyConditionExpression: '#pk = :pk',
       ExpressionAttributeValues: { ':pk': '1' },
     })
@@ -285,10 +278,7 @@ describe('useDynamoDB', () => {
     const { scanTable } = useDynamoDB()
     const result = await scanTable('users', { Limit: 10 })
 
-    expect(dynamodbApi.scan).toHaveBeenCalledWith({
-      TableName: 'users',
-      Limit: 10,
-    })
+    expect(dynamodbApi.scan).toHaveBeenCalledWith('users', { Limit: 10 })
     expect(result).toEqual(mockResult)
   })
 
@@ -298,7 +288,7 @@ describe('useDynamoDB', () => {
     const { scanTable } = useDynamoDB()
     const result = await scanTable('users')
 
-    expect(dynamodbApi.scan).toHaveBeenCalledWith({ TableName: 'users' })
+    expect(dynamodbApi.scan).toHaveBeenCalledWith('users', undefined)
     expect(result).toEqual({ Items: [] })
   })
 
@@ -377,11 +367,10 @@ describe('useDynamoDB', () => {
 
     await scanTableData('users', { filter: '#pk = :pk', limit: 10 })
 
-    expect(dynamodbApi.scan).toHaveBeenCalledWith({
-      TableName: 'users',
+    expect(dynamodbApi.scan).toHaveBeenCalledWith('users', expect.objectContaining({
       FilterExpression: '#pk = :pk',
       Limit: 10,
-    })
+    }))
     expect(scanItems.value).toEqual([{ id: '1' }])
     expect(scanLastKey.value).toEqual({ id: '1' })
     expect(scanLoading.value).toBe(false)
@@ -425,12 +414,11 @@ describe('useDynamoDB', () => {
       names: { '#pk': 'pk' },
     })
 
-    expect(dynamodbApi.query).toHaveBeenCalledWith({
-      TableName: 'users',
+    expect(dynamodbApi.query).toHaveBeenCalledWith('users', expect.objectContaining({
       KeyConditionExpression: '#pk = :pk',
       ExpressionAttributeValues: { ':pk': '1' },
       ExpressionAttributeNames: { '#pk': 'pk' },
-    })
+    }))
     expect(scanItems.value).toEqual([{ id: '1' }])
     expect(scanLastKey.value).toEqual({ id: '1' })
     expect(scanLoading.value).toBe(false)

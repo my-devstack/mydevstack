@@ -1,0 +1,495 @@
+openapi: 3.0.0
+info:
+  title: "ElastiCache"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # Cache Clusters
+  # ============================================================
+  /elasticache/cache-clusters:
+    get:
+      tags: [ElastiCache]
+      summary: Describe cache clusters
+      description: |
+        Returns a list of ElastiCache cache clusters. Supports optional
+        filtering by CacheClusterId, MaxRecords, Marker, and ShowCacheNodeInfo.
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=DescribeCacheClusters`
+        and `Version=2015-02-01`.
+      operationId: describeCacheClusters
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for DescribeCacheClusters
+                (e.g., CacheClusterId, MaxRecords, Marker, ShowCacheNodeInfo).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_DescribeCacheClusters.html).
+      responses:
+        "200":
+          description: List of cache clusters (passthrough from emulator)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [ElastiCache]
+      summary: Create cache cluster
+      description: |
+        Creates a new ElastiCache cache cluster. Required parameters
+        include CacheClusterId and NumCacheNodes or ReplicationGroupId.
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=CreateCacheCluster`
+        and `Version=2015-02-01`.
+      operationId: createCacheCluster
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for CreateCacheCluster
+                (e.g., CacheClusterId, NumCacheNodes, CacheNodeType, Engine,
+                EngineVersion, CacheSubnetGroupName, SecurityGroupIds, Port).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_CreateCacheCluster.html).
+      responses:
+        "200":
+          description: Created cache cluster (passthrough from emulator)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /elasticache/cache-clusters/{id}:
+    delete:
+      tags: [ElastiCache]
+      summary: Delete cache cluster
+      description: |
+        Deletes an ElastiCache cache cluster.
+        The path parameter `id` is used for routing only; actual parameters
+        are passed in the JSON body (e.g., CacheClusterId).
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=DeleteCacheCluster`
+        and `Version=2015-02-01`.
+      operationId: deleteCacheCluster
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          description: Cache cluster ID (routing only; pass CacheClusterId in body)
+          example: my-cluster
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for DeleteCacheCluster
+                (e.g., CacheClusterId, FinalSnapshotIdentifier).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_DeleteCacheCluster.html).
+      responses:
+        "200":
+          description: Cache cluster deleted (passthrough from emulator)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Replication Groups
+  # ============================================================
+  /elasticache/replication-groups:
+    get:
+      tags: [ElastiCache]
+      summary: Describe replication groups
+      description: |
+        Returns a list of ElastiCache replication groups.
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=DescribeReplicationGroups`
+        and `Version=2015-02-01`.
+      operationId: describeReplicationGroups
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for DescribeReplicationGroups
+                (e.g., ReplicationGroupId, MaxRecords, Marker).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_DescribeReplicationGroups.html).
+      responses:
+        "200":
+          description: List of replication groups (passthrough from emulator)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [ElastiCache]
+      summary: Create replication group
+      description: |
+        Creates a new ElastiCache replication group.
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=CreateReplicationGroup`
+        and `Version=2015-02-01`.
+      operationId: createReplicationGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for CreateReplicationGroup
+                (e.g., ReplicationGroupId, ReplicationGroupDescription,
+                NumCacheClusters, CacheNodeType, Engine, EngineVersion,
+                CacheSubnetGroupName, SecurityGroupIds).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_CreateReplicationGroup.html).
+      responses:
+        "200":
+          description: Created replication group (passthrough from emulator)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /elasticache/replication-groups/{id}:
+    delete:
+      tags: [ElastiCache]
+      summary: Delete replication group
+      description: |
+        Deletes an ElastiCache replication group.
+        The path parameter `id` is used for routing only; actual parameters
+        are passed in the JSON body (e.g., ReplicationGroupId).
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=DeleteReplicationGroup`
+        and `Version=2015-02-01`.
+      operationId: deleteReplicationGroup
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          description: Replication group ID (routing only; pass ReplicationGroupId in body)
+          example: my-replication-group
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for DeleteReplicationGroup
+                (e.g., ReplicationGroupId, FinalSnapshotIdentifier,
+                RetainPrimaryCluster).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_DeleteReplicationGroup.html).
+      responses:
+        "200":
+          description: Replication group deleted (passthrough from emulator)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Parameter Groups
+  # ============================================================
+  /elasticache/cache-parameter-groups:
+    get:
+      tags: [ElastiCache]
+      summary: Describe cache parameter groups
+      description: |
+        Returns a list of ElastiCache cache parameter groups.
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=DescribeCacheParameterGroups`
+        and `Version=2015-02-01`.
+      operationId: describeCacheParameterGroups
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for DescribeCacheParameterGroups
+                (e.g., CacheParameterGroupName, MaxRecords, Marker).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_DescribeCacheParameterGroups.html).
+      responses:
+        "200":
+          description: List of cache parameter groups (passthrough from emulator)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /elasticache/cache-parameters:
+    get:
+      tags: [ElastiCache]
+      summary: Describe cache parameters
+      description: |
+        Returns the parameters for a specific cache parameter group.
+        Requires CacheParameterGroupName in the request body.
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=DescribeCacheParameters`
+        and `Version=2015-02-01`.
+      operationId: describeCacheParameters
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for DescribeCacheParameters
+                (e.g., CacheParameterGroupName, Source, MaxRecords, Marker).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_DescribeCacheParameters.html).
+      responses:
+        "200":
+          description: List of cache parameters (passthrough from emulator)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Subnet Groups
+  # ============================================================
+  /elasticache/cache-subnet-groups:
+    get:
+      tags: [ElastiCache]
+      summary: Describe cache subnet groups
+      description: |
+        Returns a list of ElastiCache cache subnet groups.
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=DescribeCacheSubnetGroups`
+        and `Version=2015-02-01`.
+      operationId: describeCacheSubnetGroups
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for DescribeCacheSubnetGroups
+                (e.g., CacheSubnetGroupName, MaxRecords, Marker).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_DescribeCacheSubnetGroups.html).
+      responses:
+        "200":
+          description: List of cache subnet groups (passthrough from emulator)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Security Groups
+  # ============================================================
+  /elasticache/cache-security-groups:
+    get:
+      tags: [ElastiCache]
+      summary: Describe cache security groups
+      description: |
+        Returns a list of ElastiCache cache security groups.
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=DescribeCacheSecurityGroups`
+        and `Version=2015-02-01`.
+      operationId: describeCacheSecurityGroups
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for DescribeCacheSecurityGroups
+                (e.g., CacheSecurityGroupName, MaxRecords, Marker).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_DescribeCacheSecurityGroups.html).
+      responses:
+        "200":
+          description: List of cache security groups (passthrough from emulator)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Snapshots
+  # ============================================================
+  /elasticache/snapshots:
+    get:
+      tags: [ElastiCache]
+      summary: Describe snapshots
+      description: |
+        Returns a list of ElastiCache snapshots.
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=DescribeSnapshots`
+        and `Version=2015-02-01`.
+      operationId: describeSnapshots
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for DescribeSnapshots
+                (e.g., CacheClusterId, ReplicationGroupId, SnapshotName,
+                SnapshotSource, MaxRecords, Marker).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_DescribeSnapshots.html).
+      responses:
+        "200":
+          description: List of snapshots (passthrough from emulator)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Update Actions
+  # ============================================================
+  /elasticache/update-actions:
+    get:
+      tags: [ElastiCache]
+      summary: Describe update actions
+      description: |
+        Returns a list of ElastiCache update actions.
+
+        Request body parameters (JSON) are converted to form fields and
+        forwarded to the emulator with `Action=DescribeUpdateActions`
+        and `Version=2015-02-01`.
+      operationId: describeUpdateActions
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: |
+                Parameters for DescribeUpdateActions
+                (e.g., ReplicationGroupIds, CacheClusterIds, ServiceUpdateName,
+                UpdateActionStatus, MaxRecords, Marker).
+                See [AWS docs](https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_DescribeUpdateActions.html).
+      responses:
+        "200":
+          description: List of update actions (passthrough from emulator)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'

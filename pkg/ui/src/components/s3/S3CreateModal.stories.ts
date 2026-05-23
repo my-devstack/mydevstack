@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import S3CreateModal from './S3CreateModal.vue';
 
 const meta: Meta<typeof S3CreateModal> = {

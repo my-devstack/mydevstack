@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import KinesisCreateModal from './KinesisCreateModal.vue';
 import type { StreamForm } from '@/composables/useKinesis';
 

@@ -1,0 +1,535 @@
+openapi: 3.0.0
+info:
+  title: "SQS"
+  version: "1.0.0"
+
+paths:
+  /sqs/queues:
+    get:
+      tags: [SQS]
+      summary: List queues
+      description: |
+        Returns a list of your queues. The prefix parameter can be used
+        to filter results. Accepts both camelCase and TitleCase JSON keys.
+      operationId: listQueues
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListQueuesInput'
+      responses:
+        "200":
+          description: List of queues
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListQueuesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [SQS]
+      summary: Create queue
+      description: |
+        Creates a new standard or FIFO queue. For FIFO queues, the
+        QueueName must end with .fifo suffix.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createQueue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQueueInput'
+      responses:
+        "200":
+          description: Queue created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateQueueOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sqs/queues/{queueName}:
+    get:
+      tags: [SQS]
+      summary: Get queue URL
+      description: |
+        Returns the queue URL for the specified queue name.
+        Internally resolves queue name to queue URL for subsequent operations.
+      operationId: getQueueUrl
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/QueueNamePath'
+      responses:
+        "200":
+          description: Queue URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetQueueUrlOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [SQS]
+      summary: Delete queue
+      description: |
+        Deletes the specified queue. The queue must be empty.
+        Optionally accepts QueueUrl in body to override queue resolution.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: deleteQueue
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/QueueNamePath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteQueueRequest'
+      responses:
+        "200":
+          description: Queue deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteQueueOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sqs/queues/{queueName}/attributes:
+    get:
+      tags: [SQS]
+      summary: Get queue attributes
+      description: |
+        Returns the specified attributes of the queue.
+        Accepts AttributeName query parameter to filter which attributes to return.
+      operationId: getQueueAttributes
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/QueueNamePath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/AttributeNameQuery'
+      responses:
+        "200":
+          description: Queue attributes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetQueueAttributesOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [SQS]
+      summary: Set queue attributes
+      description: |
+        Sets the specified attributes of the queue.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: setQueueAttributes
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/QueueNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetQueueAttributesInput'
+      responses:
+        "200":
+          description: Queue attributes updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetQueueAttributesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sqs/queues/{queueName}/messages:
+    post:
+      tags: [SQS]
+      summary: Send message
+      description: |
+        Delivers a message to the specified queue.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: sendMessage
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/QueueNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageInput'
+      responses:
+        "200":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendMessageOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [SQS]
+      summary: Receive message
+      description: |
+        Retrieves one or more messages from the specified queue.
+        Supports query parameters MaxNumberOfMessages, WaitTimeSeconds,
+        and VisibilityTimeout. Also accepts optional body.
+      operationId: receiveMessage
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/QueueNamePath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/MaxNumberOfMessagesQuery'
+        - $ref: '../common/_parameters.yaml#/components/parameters/WaitTimeSecondsQuery'
+        - $ref: '../common/_parameters.yaml#/components/parameters/VisibilityTimeoutQuery'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiveMessageRequest'
+      responses:
+        "200":
+          description: Messages received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiveMessageOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sqs/queues/{queueName}/messages/{receiptHandle}:
+    delete:
+      tags: [SQS]
+      summary: Delete message
+      description: |
+        Deletes the specified message from the queue using the receipt handle.
+      operationId: deleteMessage
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/QueueNamePath'
+        - name: receiptHandle
+          in: path
+          required: true
+          schema: { type: string }
+          description: Receipt handle of the message to delete
+      responses:
+        "200":
+          description: Message deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteMessageOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sqs/queues/{queueName}/purge:
+    post:
+      tags: [SQS]
+      summary: Purge queue
+      description: |
+        Purges all messages from the specified queue. Messages deleted
+        cannot be recovered. The purge operation can take up to 60 seconds.
+      operationId: purgeQueue
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/QueueNamePath'
+      responses:
+        "200":
+          description: Queue purged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurgeQueueOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Queue operations
+    # ============================================================
+    ListQueuesInput:
+      type: object
+      properties:
+        QueueNamePrefix:
+          type: string
+        MaxResults:
+          type: integer
+          format: int32
+        NextToken:
+          type: string
+
+    ListQueuesOutput:
+      type: object
+      properties:
+        QueueUrls:
+          type: array
+          items: { type: string, format: uri }
+        NextToken:
+          type: string
+
+    CreateQueueInput:
+      type: object
+      required: [QueueName]
+      properties:
+        QueueName:
+          type: string
+          description: Queue name (use .fifo suffix for FIFO queues)
+        Attributes:
+          type: object
+          additionalProperties:
+            type: string
+          description: Map of queue attribute names to values
+          example:
+            DelaySeconds: "0"
+            MaximumMessageSize: "262144"
+            MessageRetentionPeriod: "345600"
+            ReceiveMessageWaitTimeSeconds: "0"
+            VisibilityTimeout: "30"
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+
+    CreateQueueOutput:
+      type: object
+      properties:
+        QueueUrl:
+          type: string
+          format: uri
+
+    GetQueueUrlOutput:
+      type: object
+      properties:
+        QueueUrl:
+          type: string
+          format: uri
+
+    DeleteQueueRequest:
+      type: object
+      properties:
+        QueueUrl:
+          type: string
+          format: uri
+          description: Optional override for queue URL
+
+    DeleteQueueOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # Queue attributes
+    # ============================================================
+    GetQueueAttributesOutput:
+      type: object
+      properties:
+        Attributes:
+          type: object
+          additionalProperties:
+            type: string
+          description: Map of attribute names to values
+
+    SetQueueAttributesInput:
+      type: object
+      required: [Attributes]
+      properties:
+        Attributes:
+          type: object
+          additionalProperties:
+            type: string
+
+    SetQueueAttributesOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # Message operations
+    # ============================================================
+    MessageAttributeValue:
+      type: object
+      properties:
+        StringValue:
+          type: string
+        BinaryValue:
+          type: string
+          format: byte
+        StringListValues:
+          type: array
+          items: { type: string }
+        BinaryListValues:
+          type: array
+          items: { type: string, format: byte }
+        DataType:
+          type: string
+          description: Message attribute data type (e.g., String, Number, Binary)
+
+    SendMessageInput:
+      type: object
+      required: [MessageBody]
+      properties:
+        MessageBody:
+          type: string
+        DelaySeconds:
+          type: integer
+          format: int32
+        MessageAttributes:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/MessageAttributeValue'
+        MessageSystemAttributes:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/MessageAttributeValue'
+        MessageDeduplicationId:
+          type: string
+        MessageGroupId:
+          type: string
+
+    SendMessageOutput:
+      type: object
+      properties:
+        MD5OfMessageBody:
+          type: string
+        MD5OfMessageAttributes:
+          type: string
+        MD5OfMessageSystemAttributes:
+          type: string
+        MessageId:
+          type: string
+        SequenceNumber:
+          type: string
+
+    Message:
+      type: object
+      properties:
+        MessageId:
+          type: string
+        ReceiptHandle:
+          type: string
+        MD5OfBody:
+          type: string
+        Body:
+          type: string
+        Attributes:
+          type: object
+          additionalProperties:
+            type: string
+        MD5OfMessageAttributes:
+          type: string
+        MessageAttributes:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/MessageAttributeValue'
+
+    ReceiveMessageRequest:
+      type: object
+      properties:
+        MaxNumberOfMessages:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 10
+        WaitTimeSeconds:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 20
+        VisibilityTimeout:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 43200
+        MessageAttributeNames:
+          type: array
+          items: { type: string }
+        MessageSystemAttributeNames:
+          type: array
+          items: { type: string }
+        ReceiveRequestAttemptId:
+          type: string
+
+    ReceiveMessageOutput:
+      type: object
+      properties:
+        Messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+
+    DeleteMessageOutput:
+      type: object
+      properties: {}
+
+    PurgeQueueOutput:
+      type: object
+      properties: {}

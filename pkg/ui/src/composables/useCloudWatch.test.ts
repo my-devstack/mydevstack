@@ -91,7 +91,7 @@ describe('useCloudWatch', () => {
     const { deleteAlarm } = useCloudWatch()
     await deleteAlarm('test-alarm')
 
-    expect(cwApi.deleteAlarms).toHaveBeenCalledWith(['test-alarm'])
+    expect(cwApi.deleteAlarms).toHaveBeenCalledWith('test-alarm')
     expect(cwApi.describeAlarms).toHaveBeenCalled()
   })
 
@@ -158,7 +158,7 @@ describe('useCloudWatch', () => {
     expect(expandedAlarms.value.has('test-alarm')).toBe(true)
     // Wait a tick for the async load
     await new Promise(process.nextTick)
-    expect(cwApi.describeAlarmHistory).toHaveBeenCalledWith({ AlarmName: 'test-alarm' })
+    expect(cwApi.describeAlarmHistory).toHaveBeenCalledWith('test-alarm')
   })
 
   // --- Logs tests ---
@@ -203,7 +203,7 @@ describe('useCloudWatch', () => {
 
     toggleLogGroup('/aws/test')
     expect(expandedLogGroups.value.has('/aws/test')).toBe(true)
-    expect(cwLogsApi.describeLogStreams).toHaveBeenCalledWith({ logGroupName: '/aws/test' })
+    expect(cwLogsApi.describeLogStreams).toHaveBeenCalledWith('/aws/test')
 
     toggleLogGroup('/aws/test')
     expect(expandedLogGroups.value.has('/aws/test')).toBe(false)
@@ -403,10 +403,7 @@ describe('useCloudWatch', () => {
       logGroupName: '/aws/test',
       tags: { Env: 'Dev' },
     })
-    expect(cwLogsApi.putRetentionPolicy).toHaveBeenCalledWith({
-      logGroupName: '/aws/test',
-      retentionInDays: 30,
-    })
+    expect(cwLogsApi.putRetentionPolicy).toHaveBeenCalledWith('/aws/test', 30)
   })
 
   it('createLogGroup without tags', async () => {
@@ -445,10 +442,7 @@ describe('useCloudWatch', () => {
 
     await createLogStream('/aws/test', 'new-stream')
 
-    expect(cwLogsApi.createLogStream).toHaveBeenCalledWith({
-      logGroupName: '/aws/test',
-      logStreamName: 'new-stream',
-    })
+    expect(cwLogsApi.createLogStream).toHaveBeenCalledWith('/aws/test', 'new-stream')
     // Should invalidate cache and reload
     expect(cwLogsApi.describeLogStreams).toHaveBeenCalled()
   })
@@ -485,10 +479,7 @@ describe('useCloudWatch', () => {
     const { setRetentionPolicy } = useCloudWatch()
     await setRetentionPolicy('/aws/test', 7)
 
-    expect(cwLogsApi.putRetentionPolicy).toHaveBeenCalledWith({
-      logGroupName: '/aws/test',
-      retentionInDays: 7,
-    })
+    expect(cwLogsApi.putRetentionPolicy).toHaveBeenCalledWith('/aws/test', 7)
   })
 
   it('setRetentionPolicy error shows toast', async () => {
@@ -505,10 +496,7 @@ describe('useCloudWatch', () => {
 
     toggleLogStream('/aws/test', 'stream1')
     expect(expandedLogStreams.value.has('/aws/test:stream1')).toBe(true)
-    expect(cwLogsApi.getLogEvents).toHaveBeenCalledWith({
-      logGroupName: '/aws/test',
-      logStreamName: 'stream1',
-    })
+    expect(cwLogsApi.getLogEvents).toHaveBeenCalledWith('/aws/test', 'stream1')
 
     toggleLogStream('/aws/test', 'stream1')
     expect(expandedLogStreams.value.has('/aws/test:stream1')).toBe(false)

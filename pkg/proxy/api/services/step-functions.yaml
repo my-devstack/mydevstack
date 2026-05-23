@@ -1,0 +1,1107 @@
+openapi: 3.0.0
+info:
+  title: "Step Functions"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # State Machines
+  # ============================================================
+  /step-functions/state-machines:
+    get:
+      tags: [Step Functions]
+      summary: List state machines
+      description: |
+        Returns a list of existing state machines. Supports pagination.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listStateMachines
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListStateMachinesInput'
+      responses:
+        "200":
+          description: List of state machines
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListStateMachinesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Step Functions]
+      summary: Create state machine
+      description: |
+        Creates a new state machine with the specified definition and
+        IAM role. Requires Name, Definition, and RoleArn.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createStateMachine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStateMachineInput'
+      responses:
+        "200":
+          description: State machine created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateStateMachineOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /step-functions/state-machines/{stateMachineArn}:
+    get:
+      tags: [Step Functions]
+      summary: Describe state machine
+      description: |
+        Returns details about a state machine, including its definition,
+        role ARN, and status.
+      operationId: describeStateMachine
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StateMachineArnPath'
+      responses:
+        "200":
+          description: State machine details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeStateMachineOutput'
+        "404":
+          description: State machine not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Step Functions]
+      summary: Update state machine
+      description: |
+        Updates an existing state machine's definition, role ARN,
+        logging configuration, or tracing configuration.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateStateMachine
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StateMachineArnPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStateMachineInput'
+      responses:
+        "200":
+          description: State machine updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateStateMachineOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Step Functions]
+      summary: Delete state machine
+      description: |
+        Deletes a state machine and all its executions.
+      operationId: deleteStateMachine
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StateMachineArnPath'
+      responses:
+        "200":
+          description: State machine deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteStateMachineOutput'
+        "404":
+          description: State machine not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Executions
+  # ============================================================
+  /step-functions/state-machines/{stateMachineArn}/executions:
+    post:
+      tags: [Step Functions]
+      summary: Start execution
+      description: |
+        Starts a new execution of a state machine.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: startExecution
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StateMachineArnPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartExecutionInput'
+      responses:
+        "200":
+          description: Execution started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartExecutionOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [Step Functions]
+      summary: List executions
+      description: |
+        Returns a list of executions for a state machine.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listExecutions
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StateMachineArnPath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListExecutionsInput'
+      responses:
+        "200":
+          description: List of executions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListExecutionsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /step-functions/executions/{executionArn}:
+    get:
+      tags: [Step Functions]
+      summary: Describe execution
+      description: |
+        Returns details about a specific execution of a state machine.
+      operationId: describeExecution
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ExecutionArnPath'
+      responses:
+        "200":
+          description: Execution details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeExecutionOutput'
+        "404":
+          description: Execution not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /step-functions/executions/{executionArn}/history:
+    get:
+      tags: [Step Functions]
+      summary: Get execution history
+      description: |
+        Returns the history of a specific execution, including all events.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getExecutionHistory
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ExecutionArnPath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetExecutionHistoryInput'
+      responses:
+        "200":
+          description: Execution history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetExecutionHistoryOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /step-functions/executions/{executionArn}/stop:
+    post:
+      tags: [Step Functions]
+      summary: Stop execution
+      description: |
+        Stops a running execution. Optionally provide a cause or error.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: stopExecution
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ExecutionArnPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StopExecutionInput'
+      responses:
+        "200":
+          description: Execution stopped
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StopExecutionOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Core types
+    # ============================================================
+    StateMachineListItem:
+      type: object
+      properties:
+        StateMachineArn:
+          type: string
+        Name:
+          type: string
+        Type:
+          type: string
+          enum: [STANDARD, EXPRESS]
+        CreationDate:
+          type: number
+          description: Creation timestamp (Unix epoch)
+
+    StateMachineDescription:
+      type: object
+      properties:
+        StateMachineArn:
+          type: string
+        Name:
+          type: string
+        Status:
+          type: string
+          enum: [ACTIVE, DELETING]
+        Definition:
+          type: string
+          description: Amazon States Language definition (JSON string)
+        RoleArn:
+          type: string
+        Type:
+          type: string
+          enum: [STANDARD, EXPRESS]
+        CreationDate:
+          type: number
+        LoggingConfiguration:
+          type: object
+          properties:
+            Level:
+              type: string
+              enum: [ALL, ERROR, FATAL, OFF]
+            IncludeExecutionData:
+              type: boolean
+            Destinations:
+              type: array
+              items:
+                type: object
+                properties:
+                  CloudWatchLogsLogGroup:
+                    type: object
+                    properties:
+                      LogGroupArn:
+                        type: string
+        TracingConfiguration:
+          type: object
+          properties:
+            Enabled:
+              type: boolean
+        Label:
+          type: string
+        RevisionId:
+          type: string
+        Description:
+          type: string
+
+    ExecutionListItem:
+      type: object
+      properties:
+        ExecutionArn:
+          type: string
+        StateMachineArn:
+          type: string
+        Name:
+          type: string
+        Status:
+          type: string
+          enum: [RUNNING, SUCCEEDED, FAILED, TIMED_OUT, ABORTED, PENDING_REDIRECT]
+        StartDate:
+          type: number
+          description: Start timestamp (Unix epoch)
+        StopDate:
+          type: number
+          description: Stop timestamp (Unix epoch)
+        MapRunArn:
+          type: string
+        ItemCount:
+          type: integer
+          format: int32
+
+    ExecutionDescription:
+      type: object
+      properties:
+        ExecutionArn:
+          type: string
+        StateMachineArn:
+          type: string
+        Name:
+          type: string
+        Status:
+          type: string
+          enum: [RUNNING, SUCCEEDED, FAILED, TIMED_OUT, ABORTED, PENDING_REDIRECT]
+        StartDate:
+          type: number
+        StopDate:
+          type: number
+        Input:
+          type: string
+          description: Execution input (JSON string)
+        InputDetails:
+          type: object
+          properties:
+            Included:
+              type: boolean
+        Output:
+          type: string
+          description: Execution output (JSON string)
+        OutputDetails:
+          type: object
+          properties:
+            Included:
+              type: boolean
+        TraceHeader:
+          type: string
+
+    HistoryEvent:
+      type: object
+      properties:
+        Timestamp:
+          type: number
+          description: Event timestamp (Unix epoch)
+        Type:
+          type: string
+        Id:
+          type: integer
+          format: int64
+        PreviousEventId:
+          type: integer
+          format: int64
+        ExecutionFailedEventDetails:
+          type: object
+          properties:
+            Error:
+              type: string
+            Cause:
+              type: string
+        ExecutionStartedEventDetails:
+          type: object
+          properties:
+            Input:
+              type: string
+            InputDetails:
+              type: object
+              properties:
+                Included:
+                  type: boolean
+            RoleArn:
+              type: string
+        ExecutionSucceededEventDetails:
+          type: object
+          properties:
+            Output:
+              type: string
+            OutputDetails:
+              type: object
+              properties:
+                Included:
+                  type: boolean
+        ExecutionAbortedEventDetails:
+          type: object
+          properties:
+            Error:
+              type: string
+            Cause:
+              type: string
+        ExecutionTimedOutEventDetails:
+          type: object
+          properties:
+            Error:
+              type: string
+            Cause:
+              type: string
+        TaskStateEnteredEventDetails:
+          type: object
+          properties:
+            Resource:
+              type: string
+            ResourceType:
+              type: string
+            Input:
+              type: string
+            InputDetails:
+              type: object
+              properties:
+                Included:
+                  type: boolean
+        TaskScheduledEventDetails:
+          type: object
+          properties:
+            Resource:
+              type: string
+            ResourceType:
+              type: string
+            Region:
+              type: string
+            Parameters:
+              type: string
+            HeartbeatInSeconds:
+              type: integer
+              format: int64
+            TaskTimeoutInSeconds:
+              type: integer
+              format: int64
+        TaskStartedEventDetails:
+          type: object
+          properties:
+            Resource:
+              type: string
+            ResourceType:
+              type: string
+        TaskSubmitFailedEventDetails:
+          type: object
+          properties:
+            Resource:
+              type: string
+            ResourceType:
+              type: string
+            Error:
+              type: string
+            Cause:
+              type: string
+        TaskSubmittedEventDetails:
+          type: object
+          properties:
+            Resource:
+              type: string
+            ResourceType:
+              type: string
+            Output:
+              type: string
+            OutputDetails:
+              type: object
+              properties:
+                Included:
+                  type: boolean
+        TaskSucceededEventDetails:
+          type: object
+          properties:
+            Resource:
+              type: string
+            ResourceType:
+              type: string
+            Output:
+              type: string
+            OutputDetails:
+              type: object
+              properties:
+                Included:
+                  type: boolean
+        TaskFailedEventDetails:
+          type: object
+          properties:
+            Resource:
+              type: string
+            ResourceType:
+              type: string
+            Error:
+              type: string
+            Cause:
+              type: string
+        TaskTimedOutEventDetails:
+          type: object
+          properties:
+            Resource:
+              type: string
+            ResourceType:
+              type: string
+            Error:
+              type: string
+            Cause:
+              type: string
+        MapStateStartedEventDetails:
+          type: object
+          properties:
+            Length:
+              type: integer
+              format: int32
+        MapIterationStartedEventDetails:
+          type: object
+          properties:
+            Name:
+              type: string
+            Index:
+              type: integer
+              format: int32
+        MapIterationSucceededEventDetails:
+          type: object
+          properties:
+            Name:
+              type: string
+            Index:
+              type: integer
+              format: int32
+        MapIterationFailedEventDetails:
+          type: object
+          properties:
+            Name:
+              type: string
+            Index:
+              type: integer
+              format: int32
+        MapIterationAbortedEventDetails:
+          type: object
+          properties:
+            Name:
+              type: string
+            Index:
+              type: integer
+              format: int32
+        LambdaFunctionScheduledEventDetails:
+          type: object
+          properties:
+            Resource:
+              type: string
+            Input:
+              type: string
+            InputDetails:
+              type: object
+              properties:
+                Included:
+                  type: boolean
+            TaskTimeoutInSeconds:
+              type: integer
+              format: int64
+        LambdaFunctionStartedEventDetails:
+          type: object
+          properties: {}
+        LambdaFunctionSubmitFailedEventDetails:
+          type: object
+          properties:
+            Error:
+              type: string
+            Cause:
+              type: string
+        LambdaFunctionSucceededEventDetails:
+          type: object
+          properties:
+            Output:
+              type: string
+            OutputDetails:
+              type: object
+              properties:
+                Included:
+                  type: boolean
+        LambdaFunctionFailedEventDetails:
+          type: object
+          properties:
+            Error:
+              type: string
+            Cause:
+              type: string
+        LambdaFunctionTimedOutEventDetails:
+          type: object
+          properties:
+            Error:
+              type: string
+            Cause:
+              type: string
+        StateEnteredEventDetails:
+          type: object
+          properties:
+            Name:
+              type: string
+            Input:
+              type: string
+            InputDetails:
+              type: object
+              properties:
+                Included:
+                  type: boolean
+        StateExitedEventDetails:
+          type: object
+          properties:
+            Name:
+              type: string
+            Output:
+              type: string
+            OutputDetails:
+              type: object
+              properties:
+                Included:
+                  type: boolean
+
+    # ============================================================
+    # ListStateMachines
+    # ============================================================
+    ListStateMachinesInput:
+      type: object
+      properties:
+        MaxResults:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000
+        NextToken:
+          type: string
+
+    ListStateMachinesOutput:
+      type: object
+      properties:
+        StateMachines:
+          type: array
+          items:
+            $ref: '#/components/schemas/StateMachineListItem'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # CreateStateMachine
+    # ============================================================
+    CreateStateMachineInput:
+      type: object
+      required: [Name, Definition, RoleArn]
+      properties:
+        Name:
+          type: string
+          description: State machine name
+        Definition:
+          type: string
+          description: Amazon States Language definition (JSON string)
+        RoleArn:
+          type: string
+          description: IAM role ARN for execution
+        Type:
+          type: string
+          enum: [STANDARD, EXPRESS]
+          default: STANDARD
+        LoggingConfiguration:
+          type: object
+          properties:
+            Level:
+              type: string
+              enum: [ALL, ERROR, FATAL, OFF]
+            IncludeExecutionData:
+              type: boolean
+            Destinations:
+              type: array
+              items:
+                type: object
+                properties:
+                  CloudWatchLogsLogGroup:
+                    type: object
+                    properties:
+                      LogGroupArn:
+                        type: string
+        Tags:
+          type: array
+          items:
+            type: object
+            properties:
+              Key:
+                type: string
+              Value:
+                type: string
+        TracingConfiguration:
+          type: object
+          properties:
+            Enabled:
+              type: boolean
+        Publish:
+          type: boolean
+        VersionDescription:
+          type: string
+
+    CreateStateMachineOutput:
+      type: object
+      properties:
+        StateMachineArn:
+          type: string
+        CreationDate:
+          type: number
+          description: Creation timestamp (Unix epoch)
+        StateMachineVersionArn:
+          type: string
+
+    # ============================================================
+    # DescribeStateMachine
+    # ============================================================
+    DescribeStateMachineInput:
+      type: object
+      properties:
+        StateMachineArn:
+          type: string
+
+    DescribeStateMachineOutput:
+      type: object
+      properties:
+        StateMachineArn:
+          type: string
+        Name:
+          type: string
+        Status:
+          type: string
+          enum: [ACTIVE, DELETING]
+        Definition:
+          type: string
+        RoleArn:
+          type: string
+        Type:
+          type: string
+          enum: [STANDARD, EXPRESS]
+        CreationDate:
+          type: number
+        LoggingConfiguration:
+          type: object
+          properties:
+            Level:
+              type: string
+              enum: [ALL, ERROR, FATAL, OFF]
+            IncludeExecutionData:
+              type: boolean
+            Destinations:
+              type: array
+              items:
+                type: object
+                properties:
+                  CloudWatchLogsLogGroup:
+                    type: object
+                    properties:
+                      LogGroupArn:
+                        type: string
+        TracingConfiguration:
+          type: object
+          properties:
+            Enabled:
+              type: boolean
+        Label:
+          type: string
+        RevisionId:
+          type: string
+        Description:
+          type: string
+
+    # ============================================================
+    # UpdateStateMachine
+    # ============================================================
+    UpdateStateMachineInput:
+      type: object
+      required: [StateMachineArn]
+      properties:
+        StateMachineArn:
+          type: string
+        Definition:
+          type: string
+        RoleArn:
+          type: string
+        LoggingConfiguration:
+          type: object
+          properties:
+            Level:
+              type: string
+              enum: [ALL, ERROR, FATAL, OFF]
+            IncludeExecutionData:
+              type: boolean
+            Destinations:
+              type: array
+              items:
+                type: object
+                properties:
+                  CloudWatchLogsLogGroup:
+                    type: object
+                    properties:
+                      LogGroupArn:
+                        type: string
+        TracingConfiguration:
+          type: object
+          properties:
+            Enabled:
+              type: boolean
+        Publish:
+          type: boolean
+        VersionDescription:
+          type: string
+
+    UpdateStateMachineOutput:
+      type: object
+      properties:
+        UpdateDate:
+          type: number
+          description: Update timestamp (Unix epoch)
+        RevisionId:
+          type: string
+        StateMachineVersionArn:
+          type: string
+
+    # ============================================================
+    # DeleteStateMachine
+    # ============================================================
+    DeleteStateMachineInput:
+      type: object
+      properties:
+        StateMachineArn:
+          type: string
+
+    DeleteStateMachineOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # StartExecution
+    # ============================================================
+    StartExecutionInput:
+      type: object
+      required: [StateMachineArn]
+      properties:
+        StateMachineArn:
+          type: string
+        Input:
+          type: string
+          description: Execution input (JSON string)
+        Name:
+          type: string
+          description: Execution name
+        TraceHeader:
+          type: string
+
+    StartExecutionOutput:
+      type: object
+      properties:
+        ExecutionArn:
+          type: string
+        StartDate:
+          type: number
+          description: Start timestamp (Unix epoch)
+
+    # ============================================================
+    # ListExecutions
+    # ============================================================
+    ListExecutionsInput:
+      type: object
+      properties:
+        StateMachineArn:
+          type: string
+        MaxResults:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000
+        NextToken:
+          type: string
+        StatusFilter:
+          type: string
+          enum: [RUNNING, SUCCEEDED, FAILED, TIMED_OUT, ABORTED, PENDING_REDIRECT]
+
+    ListExecutionsOutput:
+      type: object
+      properties:
+        Executions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExecutionListItem'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # DescribeExecution
+    # ============================================================
+    DescribeExecutionInput:
+      type: object
+      properties:
+        ExecutionArn:
+          type: string
+
+    DescribeExecutionOutput:
+      type: object
+      properties:
+        ExecutionArn:
+          type: string
+        StateMachineArn:
+          type: string
+        Name:
+          type: string
+        Status:
+          type: string
+          enum: [RUNNING, SUCCEEDED, FAILED, TIMED_OUT, ABORTED, PENDING_REDIRECT]
+        StartDate:
+          type: number
+        StopDate:
+          type: number
+        Input:
+          type: string
+        InputDetails:
+          type: object
+          properties:
+            Included:
+              type: boolean
+        Output:
+          type: string
+        OutputDetails:
+          type: object
+          properties:
+            Included:
+              type: boolean
+        TraceHeader:
+          type: string
+
+    # ============================================================
+    # GetExecutionHistory
+    # ============================================================
+    GetExecutionHistoryInput:
+      type: object
+      properties:
+        ExecutionArn:
+          type: string
+        MaxResults:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000
+        NextToken:
+          type: string
+        ReverseOrder:
+          type: boolean
+        IncludeExecutionData:
+          type: boolean
+
+    GetExecutionHistoryOutput:
+      type: object
+      properties:
+        Events:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryEvent'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # StopExecution
+    # ============================================================
+    StopExecutionInput:
+      type: object
+      required: [ExecutionArn]
+      properties:
+        ExecutionArn:
+          type: string
+        Cause:
+          type: string
+          description: Reason for stopping the execution
+        Error:
+          type: string
+          description: Error code
+
+    StopExecutionOutput:
+      type: object
+      properties:
+        StopDate:
+          type: number
+          description: Stop timestamp (Unix epoch)

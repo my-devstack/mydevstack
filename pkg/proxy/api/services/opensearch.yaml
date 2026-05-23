@@ -1,0 +1,949 @@
+openapi: 3.0.0
+info:
+  title: "OpenSearch"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # Domains
+  # ============================================================
+  /opensearch/domains:
+    get:
+      tags: [OpenSearch]
+      summary: List domain names
+      description: |
+        Returns the names of all OpenSearch domains for the current account.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listDomainNames
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListDomainNamesInput'
+      responses:
+        "200":
+          description: List of domain names
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDomainNamesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [OpenSearch]
+      summary: Create domain
+      description: |
+        Creates a new OpenSearch domain with the specified configuration.
+        Requires DomainName. Accepts both camelCase and TitleCase JSON keys.
+      operationId: createDomain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDomainInput'
+      responses:
+        "200":
+          description: Domain created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDomainOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /opensearch/domains/{domainName}:
+    get:
+      tags: [OpenSearch]
+      summary: Describe domain
+      description: |
+        Returns details about a specific OpenSearch domain, including its
+        cluster configuration, EBS options, and endpoint.
+      operationId: describeDomain
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/DomainNamePath'
+      responses:
+        "200":
+          description: Domain details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeDomainOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [OpenSearch]
+      summary: Delete domain
+      description: |
+        Deletes an OpenSearch domain and all its data.
+      operationId: deleteDomain
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/DomainNamePath'
+      responses:
+        "200":
+          description: Domain deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteDomainOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /opensearch/domains/{domainName}/config:
+    put:
+      tags: [OpenSearch]
+      summary: Update domain config
+      description: |
+        Updates the configuration of an OpenSearch domain. Supports dry run.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateDomainConfig
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/DomainNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDomainConfigInput'
+      responses:
+        "200":
+          description: Domain config updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateDomainConfigOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [OpenSearch]
+      summary: Describe domain config
+      description: |
+        Returns the configuration of an OpenSearch domain.
+      operationId: describeDomainConfig
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/DomainNamePath'
+      responses:
+        "200":
+          description: Domain configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeDomainConfigOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Tags
+  # ============================================================
+  /opensearch/tags:
+    post:
+      tags: [OpenSearch]
+      summary: Add tags
+      description: |
+        Adds tags to an OpenSearch resource. Requires ARN and TagList.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: addTags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddTagsInput'
+      responses:
+        "200":
+          description: Tags added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddTagsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [OpenSearch]
+      summary: Remove tags
+      description: |
+        Removes tags from an OpenSearch resource. Requires ARN and TagKeys.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: removeTags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveTagsInput'
+      responses:
+        "200":
+          description: Tags removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoveTagsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [OpenSearch]
+      summary: List tags
+      description: |
+        Returns all tags for an OpenSearch resource. ARN is provided in
+        the request body. Accepts both camelCase and TitleCase JSON keys.
+      operationId: listTags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListTagsInput'
+      responses:
+        "200":
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTagsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Compatible Versions
+  # ============================================================
+  /opensearch/compatible-versions:
+    get:
+      tags: [OpenSearch]
+      summary: Get compatible versions
+      description: |
+        Returns a list of compatible OpenSearch and Elasticsearch versions.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getCompatibleVersions
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetCompatibleVersionsInput'
+      responses:
+        "200":
+          description: Compatible versions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCompatibleVersionsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Core types
+    # ============================================================
+    DomainInfo:
+      type: object
+      properties:
+        DomainName:
+          type: string
+          description: OpenSearch domain name
+        EngineType:
+          type: string
+          enum: [OpenSearch, Elasticsearch]
+          description: Engine type
+
+    ClusterConfig:
+      type: object
+      properties:
+        InstanceType:
+          type: string
+          description: Instance type (e.g., r6g.large.search)
+        InstanceCount:
+          type: integer
+          format: int32
+          description: Number of instances
+        DedicatedMasterEnabled:
+          type: boolean
+          description: Whether dedicated master nodes are enabled
+        DedicatedMasterType:
+          type: string
+          description: Instance type for dedicated master nodes
+        DedicatedMasterCount:
+          type: integer
+          format: int32
+          description: Number of dedicated master nodes
+        WarmEnabled:
+          type: boolean
+          description: Whether UltraWarm is enabled
+        WarmType:
+          type: string
+          description: Instance type for UltraWarm nodes
+        WarmCount:
+          type: integer
+          format: int32
+          description: Number of UltraWarm nodes
+        ColdStorageOptions:
+          type: object
+          properties:
+            Enabled:
+              type: boolean
+        MultiAZWithStandbyEnabled:
+          type: boolean
+
+    EBSOptions:
+      type: object
+      properties:
+        EBSEnabled:
+          type: boolean
+          description: Whether EBS volumes are enabled
+        VolumeType:
+          type: string
+          enum: [standard, gp2, gp3, io1, io2]
+          description: EBS volume type
+        VolumeSize:
+          type: integer
+          format: int32
+          description: EBS volume size in GiB
+        Iops:
+          type: integer
+          format: int32
+          description: IOPS for the volume
+        Throughput:
+          type: integer
+          format: int32
+          description: Throughput (MiB/s) for gp3 volumes
+
+    SnapshotOptions:
+      type: object
+      properties:
+        AutomatedSnapshotStartHour:
+          type: integer
+          format: int32
+          description: Hour (0-23) for automated snapshots
+
+    VPCOptions:
+      type: object
+      properties:
+        SubnetIds:
+          type: array
+          items:
+            type: string
+          description: List of subnet IDs
+        SecurityGroupIds:
+          type: array
+          items:
+            type: string
+          description: List of security group IDs
+
+    CognitoOptions:
+      type: object
+      properties:
+        Enabled:
+          type: boolean
+        UserPoolId:
+          type: string
+        IdentityPoolId:
+          type: string
+        RoleArn:
+          type: string
+
+    EncryptionAtRestOptions:
+      type: object
+      properties:
+        Enabled:
+          type: boolean
+        KmsKeyId:
+          type: string
+
+    NodeToNodeEncryptionOptions:
+      type: object
+      properties:
+        Enabled:
+          type: boolean
+
+    AdvancedOptions:
+      type: object
+      additionalProperties:
+        type: string
+      description: Advanced options (e.g., rest.action.multi.allow_explicit_index)
+
+    LogPublishingOptions:
+      type: object
+      additionalProperties:
+        type: object
+        properties:
+          CloudWatchLogsLogGroupArn:
+            type: string
+          Enabled:
+            type: boolean
+      description: Log publishing options keyed by log type
+
+    DomainEndpointOptions:
+      type: object
+      properties:
+        EnforceHTTPS:
+          type: boolean
+        TLSSecurityPolicy:
+          type: string
+          enum: [Policy-Min-TLS-1-0-2019-07, Policy-Min-TLS-1-2-2019-07]
+        CustomEndpointEnabled:
+          type: boolean
+        CustomEndpoint:
+          type: string
+        CustomEndpointCertificateArn:
+          type: string
+
+    AdvancedSecurityOptions:
+      type: object
+      properties:
+        Enabled:
+          type: boolean
+        InternalUserDatabaseEnabled:
+          type: boolean
+        MasterUserOptions:
+          type: object
+          properties:
+            MasterUserName:
+              type: string
+            MasterUserPassword:
+              type: string
+        SAMLOptions:
+          type: object
+          properties:
+            Enabled:
+              type: boolean
+            Idp:
+              type: object
+              properties:
+                EntityId:
+                  type: string
+                MetadataContent:
+                  type: string
+            SubjectKey:
+              type: string
+            RolesKey:
+              type: string
+            SessionTimeoutMinutes:
+              type: integer
+              format: int64
+        AnonymousAuthEnabled:
+          type: boolean
+
+    AutoTuneOptions:
+      type: object
+      properties:
+        DesiredState:
+          type: string
+          enum: [ENABLED, DISABLED]
+        RollbackOnDisable:
+          type: string
+          enum: [NO_ROLLBACK, DEFAULT_ROLLBACK]
+        MaintenanceSchedules:
+          type: array
+          items:
+            type: object
+            properties:
+              StartAt:
+                type: string
+                format: date-time
+              Duration:
+                type: object
+                properties:
+                  Value:
+                    type: integer
+                    format: int64
+                  Unit:
+                    type: string
+                    enum: [HOURS]
+              CronExpressionForRecurrence:
+                type: string
+        UseOffPeakWindow:
+          type: boolean
+
+    ChangeProgressDetails:
+      type: object
+      properties:
+        ChangeId:
+          type: string
+        Message:
+          type: string
+        ConfigChangeStatus:
+          type: string
+          enum: [Pending, Initializing, Validating, ValidationFailed, Applying, Completed, Failed]
+
+    DomainStatus:
+      type: object
+      properties:
+        DomainId:
+          type: string
+        DomainName:
+          type: string
+        ARN:
+          type: string
+        Created:
+          type: boolean
+        Deleted:
+          type: boolean
+        Endpoint:
+          type: string
+          description: Domain endpoint
+        EndpointV2:
+          type: string
+          description: V2 endpoint
+        Processing:
+          type: boolean
+          description: Whether the domain is being processed
+        UpgradeProcessing:
+          type: boolean
+          description: Whether the domain is being upgraded
+        EngineVersion:
+          type: string
+          description: Engine version string
+        ClusterConfig:
+          $ref: '#/components/schemas/ClusterConfig'
+        EBSOptions:
+          $ref: '#/components/schemas/EBSOptions'
+        AccessPolicies:
+          type: string
+          description: Resource-based access policy (JSON string)
+        SnapshotOptions:
+          $ref: '#/components/schemas/SnapshotOptions'
+        VPCOptions:
+          $ref: '#/components/schemas/VPCOptions'
+        CognitoOptions:
+          $ref: '#/components/schemas/CognitoOptions'
+        EncryptionAtRestOptions:
+          $ref: '#/components/schemas/EncryptionAtRestOptions'
+        NodeToNodeEncryptionOptions:
+          $ref: '#/components/schemas/NodeToNodeEncryptionOptions'
+        AdvancedOptions:
+          $ref: '#/components/schemas/AdvancedOptions'
+        LogPublishingOptions:
+          $ref: '#/components/schemas/LogPublishingOptions'
+        DomainEndpointOptions:
+          $ref: '#/components/schemas/DomainEndpointOptions'
+        AdvancedSecurityOptions:
+          $ref: '#/components/schemas/AdvancedSecurityOptions'
+        AutoTuneOptions:
+          $ref: '#/components/schemas/AutoTuneOptions'
+        ChangeProgressDetails:
+          $ref: '#/components/schemas/ChangeProgressDetails'
+        TagList:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        ServiceSoftwareOptions:
+          type: object
+          properties:
+            CurrentVersion:
+              type: string
+            NewVersion:
+              type: string
+            UpdateAvailable:
+              type: boolean
+            Cancellable:
+              type: boolean
+            UpdateStatus:
+              type: string
+              enum: [PENDING_UPDATE, IN_PROGRESS, COMPLETED, NOT_ELIGIBLE, ELIGIBLE]
+            Description:
+              type: string
+            AutomatedUpdateDate:
+              type: string
+              format: date-time
+            OptionalDeployment:
+              type: boolean
+
+    DomainConfig:
+      type: object
+      properties:
+        ClusterConfig:
+          $ref: '#/components/schemas/ClusterConfig'
+        EBSOptions:
+          $ref: '#/components/schemas/EBSOptions'
+        AccessPolicies:
+          type: object
+          properties:
+            Options:
+              type: string
+            Status:
+              $ref: '#/components/schemas/OptionStatus'
+        SnapshotOptions:
+          $ref: '#/components/schemas/SnapshotOptions'
+        VPCOptions:
+          $ref: '#/components/schemas/VPCOptions'
+        CognitoOptions:
+          $ref: '#/components/schemas/CognitoOptions'
+        EncryptionAtRestOptions:
+          $ref: '#/components/schemas/EncryptionAtRestOptions'
+        NodeToNodeEncryptionOptions:
+          $ref: '#/components/schemas/NodeToNodeEncryptionOptions'
+        AdvancedOptions:
+          $ref: '#/components/schemas/AdvancedOptions'
+        LogPublishingOptions:
+          $ref: '#/components/schemas/LogPublishingOptions'
+        DomainEndpointOptions:
+          $ref: '#/components/schemas/DomainEndpointOptions'
+        AdvancedSecurityOptions:
+          $ref: '#/components/schemas/AdvancedSecurityOptions'
+        AutoTuneOptions:
+          $ref: '#/components/schemas/AutoTuneOptions'
+        ChangeProgressDetails:
+          $ref: '#/components/schemas/ChangeProgressDetails'
+
+    OptionStatus:
+      type: object
+      properties:
+        CreationDate:
+          type: string
+          format: date-time
+        UpdateDate:
+          type: string
+          format: date-time
+        UpdateVersion:
+          type: integer
+          format: int32
+        State:
+          type: string
+          enum: [RequiresIndexDocuments, Processing, Active]
+        PendingDeletion:
+          type: boolean
+
+    Tag:
+      type: object
+      required: [Key, Value]
+      properties:
+        Key:
+          type: string
+          description: Tag key
+        Value:
+          type: string
+          description: Tag value
+
+    CompatibleVersionsMap:
+      type: object
+      properties:
+        SourceVersion:
+          type: string
+          description: Source engine version
+        TargetVersions:
+          type: array
+          items:
+            type: string
+          description: Compatible target versions
+
+    # ============================================================
+    # ListDomainNames
+    # ============================================================
+    ListDomainNamesInput:
+      type: object
+      properties:
+        EngineType:
+          type: string
+          enum: [OpenSearch, Elasticsearch]
+          description: Filter by engine type
+
+    ListDomainNamesOutput:
+      type: object
+      properties:
+        DomainNames:
+          type: array
+          items:
+            $ref: '#/components/schemas/DomainInfo'
+          description: List of domain names
+
+    # ============================================================
+    # CreateDomain
+    # ============================================================
+    CreateDomainInput:
+      type: object
+      required: [DomainName]
+      properties:
+        DomainName:
+          type: string
+          description: Name of the domain
+        EngineVersion:
+          type: string
+          description: Engine version (e.g., OpenSearch_2.11)
+        ClusterConfig:
+          $ref: '#/components/schemas/ClusterConfig'
+        EBSOptions:
+          $ref: '#/components/schemas/EBSOptions'
+        AccessPolicies:
+          type: string
+          description: Resource-based access policy (JSON string)
+        SnapshotOptions:
+          $ref: '#/components/schemas/SnapshotOptions'
+        VPCOptions:
+          $ref: '#/components/schemas/VPCOptions'
+        CognitoOptions:
+          $ref: '#/components/schemas/CognitoOptions'
+        EncryptionAtRestOptions:
+          $ref: '#/components/schemas/EncryptionAtRestOptions'
+        NodeToNodeEncryptionOptions:
+          $ref: '#/components/schemas/NodeToNodeEncryptionOptions'
+        AdvancedOptions:
+          $ref: '#/components/schemas/AdvancedOptions'
+        LogPublishingOptions:
+          $ref: '#/components/schemas/LogPublishingOptions'
+        DomainEndpointOptions:
+          $ref: '#/components/schemas/DomainEndpointOptions'
+        AdvancedSecurityOptions:
+          $ref: '#/components/schemas/AdvancedSecurityOptions'
+        AutoTuneOptions:
+          $ref: '#/components/schemas/AutoTuneOptions'
+        TagList:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+
+    CreateDomainOutput:
+      type: object
+      properties:
+        DomainStatus:
+          $ref: '#/components/schemas/DomainStatus'
+          description: Domain status after creation
+
+    # ============================================================
+    # DescribeDomain
+    # ============================================================
+    DescribeDomainOutput:
+      type: object
+      properties:
+        DomainStatus:
+          $ref: '#/components/schemas/DomainStatus'
+          description: Domain status
+
+    # ============================================================
+    # UpdateDomainConfig
+    # ============================================================
+    UpdateDomainConfigInput:
+      type: object
+      required: [DomainName]
+      properties:
+        DomainName:
+          type: string
+        ClusterConfig:
+          $ref: '#/components/schemas/ClusterConfig'
+        EBSOptions:
+          $ref: '#/components/schemas/EBSOptions'
+        AccessPolicies:
+          type: string
+        SnapshotOptions:
+          $ref: '#/components/schemas/SnapshotOptions'
+        VPCOptions:
+          $ref: '#/components/schemas/VPCOptions'
+        CognitoOptions:
+          $ref: '#/components/schemas/CognitoOptions'
+        EncryptionAtRestOptions:
+          $ref: '#/components/schemas/EncryptionAtRestOptions'
+        NodeToNodeEncryptionOptions:
+          $ref: '#/components/schemas/NodeToNodeEncryptionOptions'
+        AdvancedOptions:
+          $ref: '#/components/schemas/AdvancedOptions'
+        LogPublishingOptions:
+          $ref: '#/components/schemas/LogPublishingOptions'
+        DomainEndpointOptions:
+          $ref: '#/components/schemas/DomainEndpointOptions'
+        AdvancedSecurityOptions:
+          $ref: '#/components/schemas/AdvancedSecurityOptions'
+        AutoTuneOptions:
+          $ref: '#/components/schemas/AutoTuneOptions'
+        DryRun:
+          type: boolean
+          description: If true, validates the update without applying it
+
+    UpdateDomainConfigOutput:
+      type: object
+      properties:
+        DomainConfig:
+          $ref: '#/components/schemas/DomainConfig'
+          description: Updated domain configuration
+        DryRunResults:
+          type: object
+          properties:
+            DeploymentType:
+              type: string
+            Message:
+              type: string
+
+    # ============================================================
+    # DescribeDomainConfig
+    # ============================================================
+    DescribeDomainConfigOutput:
+      type: object
+      properties:
+        DomainConfig:
+          $ref: '#/components/schemas/DomainConfig'
+          description: Domain configuration
+
+    # ============================================================
+    # DeleteDomain
+    # ============================================================
+    DeleteDomainOutput:
+      type: object
+      properties:
+        DomainStatus:
+          $ref: '#/components/schemas/DomainStatus'
+          description: Domain status after deletion
+
+    # ============================================================
+    # AddTags
+    # ============================================================
+    AddTagsInput:
+      type: object
+      required: [ARN, TagList]
+      properties:
+        ARN:
+          type: string
+          description: ARN of the resource to tag
+        TagList:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          description: Tags to add
+
+    AddTagsOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # RemoveTags
+    # ============================================================
+    RemoveTagsInput:
+      type: object
+      required: [ARN, TagKeys]
+      properties:
+        ARN:
+          type: string
+          description: ARN of the resource to untag
+        TagKeys:
+          type: array
+          items:
+            type: string
+          description: Tag keys to remove
+
+    RemoveTagsOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # ListTags
+    # ============================================================
+    ListTagsInput:
+      type: object
+      required: [ARN]
+      properties:
+        ARN:
+          type: string
+          description: ARN of the resource
+
+    ListTagsOutput:
+      type: object
+      properties:
+        TagList:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          description: List of tags
+
+    # ============================================================
+    # GetCompatibleVersions
+    # ============================================================
+    GetCompatibleVersionsInput:
+      type: object
+      properties:
+        DomainName:
+          type: string
+          description: Filter by domain name
+
+    GetCompatibleVersionsOutput:
+      type: object
+      properties:
+        CompatibleVersions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompatibleVersionsMap'
+          description: List of compatible version maps

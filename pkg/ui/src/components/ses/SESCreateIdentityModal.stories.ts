@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import SESCreateIdentityModal from './SESCreateIdentityModal.vue';
 
 const meta: Meta<typeof SESCreateIdentityModal> = {

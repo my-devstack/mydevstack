@@ -76,16 +76,9 @@ export {
   listTopics,
   createTopic,
   deleteTopic,
-  getTopicAttributes,
   subscribe,
-  listSubscriptions,
   listSubscriptionsByTopic,
-  unsubscribe,
   publish,
-  confirmSubscription,
-  getSubscriptionAttributes,
-  setSubscriptionAttributes,
-  listTagsForResource,
 } from './sns'
 
 // IAM Service
@@ -114,17 +107,10 @@ export {
   listKeys,
   encrypt,
   decrypt,
-  generateDataKey,
-  sign,
-  verify,
   enableKey,
   disableKey,
   scheduleKeyDeletion,
   deleteKey,
-  cancelKeyDeletion,
-  getKeyRotationStatus,
-  enableKeyRotation,
-  disableKeyRotation,
 } from './kms'
 
 // Secrets Manager Service
@@ -171,40 +157,23 @@ export {
 // Kinesis Service
 export {
   createStream,
-  listStreams,
+  listStreams as listKinesisStreams,
   describeStream,
-  describeStreamSummary,
   deleteStream,
   putRecord,
-  putRecords,
   getRecords,
   getShardIterator,
-  listShards,
-  splitShard,
-  mergeShards,
-  updateShardCount,
 } from './kinesis'
 
 // CloudFormation Service
 export {
+  cloudFormationService,
+  listStacks,
   createStack,
   deleteStack,
-  listStacks,
-  describeStacks,
-  describeStackResources,
-  updateStack,
-  cancelUpdateStack,
-  describeStackEvents,
-  describeStackResource,
-  estimateTemplateCost,
-  validateTemplate,
-  getTemplate,
-  getTemplateSummary,
-  describeChangeSet,
-  createChangeSet,
-  listChangeSets,
-  deleteChangeSet,
-  executeChangeSet,
+  getStackDetails,
+  getStackTemplate,
+  listStackResources,
 } from './cloudformation'
 
 // SSM Parameter Store Service

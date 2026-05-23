@@ -1,0 +1,413 @@
+openapi: 3.0.0
+info:
+  title: "Lambda"
+  version: "1.0.0"
+
+paths:
+  /lambda/functions:
+    get:
+      tags: [Lambda]
+      summary: List functions
+      description: |
+        Returns a list of Lambda functions. Supports pagination via
+        Marker and MaxItems query parameters.
+      operationId: listFunctions
+      parameters:
+        - name: Marker
+          in: query
+          required: false
+          schema: { type: string }
+          description: Pagination marker from previous response
+        - name: MaxItems
+          in: query
+          required: false
+          schema: { type: integer, format: int32, minimum: 1, maximum: 10000 }
+          description: Maximum number of functions to return
+        - name: MasterRegion
+          in: query
+          required: false
+          schema: { type: string }
+          description: For Lambda@Edge, the AWS Region of the master function
+        - name: FunctionVersion
+          in: query
+          required: false
+          schema: { type: string, enum: [ALL] }
+          description: Set to ALL to list all versions including published
+      responses:
+        "200":
+          description: List of functions
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/LambdaListFunctionsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Lambda]
+      summary: Create function
+      description: |
+        Creates a new Lambda function. Requires FunctionName, Runtime, Role,
+        Handler, and Code properties.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createFunction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/LambdaCreateFunctionInput'
+      responses:
+        "200":
+          description: Function created
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/LambdaCreateFunctionOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /lambda/functions/{functionName}:
+    get:
+      tags: [Lambda]
+      summary: Get function
+      description: |
+        Returns detailed information about a Lambda function, including
+        configuration, code location, and tags.
+      operationId: getFunction
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/FunctionNamePath'
+        - name: Qualifier
+          in: query
+          required: false
+          schema: { type: string }
+          description: Version or alias qualifier
+      responses:
+        "200":
+          description: Function details
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/LambdaGetFunctionOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Lambda]
+      summary: Update function configuration
+      description: |
+        Updates the configuration of a Lambda function (e.g., runtime, handler,
+        memory size, timeout, environment variables).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateFunctionConfiguration
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/FunctionNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/LambdaUpdateFunctionConfigurationInput'
+      responses:
+        "200":
+          description: Function configuration updated
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/LambdaUpdateFunctionConfigurationOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Lambda]
+      summary: Delete function
+      description: |
+        Deletes a Lambda function. To delete a specific version, use the
+        Qualifier parameter.
+      operationId: deleteFunction
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/FunctionNamePath'
+        - name: Qualifier
+          in: query
+          required: false
+          schema: { type: string }
+          description: Version or alias qualifier to delete
+      responses:
+        "200":
+          description: Function deleted
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/LambdaDeleteFunctionOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /lambda/functions/{functionName}/code:
+    put:
+      tags: [Lambda]
+      summary: Update function code
+      description: |
+        Updates the code of an existing Lambda function. Provide either
+        a base64-encoded ZipFile or an S3 location.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateFunctionCode
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/FunctionNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/LambdaUpdateFunctionCodeInput'
+      responses:
+        "200":
+          description: Function code updated
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/LambdaUpdateFunctionCodeOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /lambda/functions/{functionName}/invocations:
+    post:
+      tags: [Lambda]
+      summary: Invoke function
+      description: |
+        Invokes a Lambda function. The response wraps the function payload
+        in base64. StatusCode is always 200 even on function error
+        (FunctionError field indicates failure).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: invokeFunction
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/FunctionNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/LambdaInvokeInput'
+      responses:
+        "200":
+          description: Function invocation result
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/LambdaInvokeResponse'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /lambda/functions/{functionName}/configuration:
+    get:
+      tags: [Lambda]
+      summary: Get function configuration
+      description: |
+        Returns the configuration details of a Lambda function
+        (without code or tags).
+      operationId: getFunctionConfiguration
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/FunctionNamePath'
+        - name: Qualifier
+          in: query
+          required: false
+          schema: { type: string }
+          description: Version or alias qualifier
+      responses:
+        "200":
+          description: Function configuration
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/LambdaGetFunctionConfigurationOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /lambda/event-source-mappings:
+    get:
+      tags: [Lambda]
+      summary: List event source mappings
+      description: |
+        Returns a list of event source mappings. Can be filtered by
+        EventSourceArn or FunctionName.
+      operationId: listEventSourceMappings
+      parameters:
+        - name: EventSourceArn
+          in: query
+          required: false
+          schema: { type: string }
+          description: Filter by event source ARN
+        - name: FunctionName
+          in: query
+          required: false
+          schema: { type: string }
+          description: Filter by function name
+        - name: Marker
+          in: query
+          required: false
+          schema: { type: string }
+          description: Pagination marker
+        - name: MaxItems
+          in: query
+          required: false
+          schema: { type: integer, format: int32 }
+          description: Maximum number of items to return
+      responses:
+        "200":
+          description: List of event source mappings
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/LambdaListEventSourceMappingsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Lambda]
+      summary: Create event source mapping
+      description: |
+        Creates a mapping between an event source and a Lambda function.
+        Requires EventSourceArn and FunctionName.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createEventSourceMapping
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/LambdaCreateEventSourceMappingInput'
+      responses:
+        "200":
+          description: Event source mapping created
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/LambdaCreateEventSourceMappingOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /lambda/event-source-mappings/{uuid}:
+    get:
+      tags: [Lambda]
+      summary: Get event source mapping
+      description: |
+        Returns details about a specific event source mapping by UUID.
+      operationId: getEventSourceMapping
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/UuidPath'
+      responses:
+        "200":
+          description: Event source mapping details
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/LambdaGetEventSourceMappingOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Lambda]
+      summary: Delete event source mapping
+      description: |
+        Deletes an event source mapping by UUID.
+      operationId: deleteEventSourceMapping
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/UuidPath'
+      responses:
+        "200":
+          description: Event source mapping deleted
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/LambdaDeleteEventSourceMappingOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'

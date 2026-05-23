@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import StepFunctionsList from './StepFunctionsList.vue';
 
 const meta: Meta<typeof StepFunctionsList> = {

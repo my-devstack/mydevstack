@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import ConfirmModal from './ConfirmModal.vue';
 
 const meta: Meta<typeof ConfirmModal> = {

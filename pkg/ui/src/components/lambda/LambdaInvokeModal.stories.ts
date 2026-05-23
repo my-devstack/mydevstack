@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import LambdaInvokeModal from './LambdaInvokeModal.vue';
 
 const meta: Meta<typeof LambdaInvokeModal> = {

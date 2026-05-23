@@ -877,7 +877,7 @@ describe('DynamoDB Standalone Functions', () => {
       const result = await listStreams('test-table')
       expect(result.Streams).toHaveLength(1)
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/dynamodb/streams?tableName=test-table'),
+        expect.stringContaining('/dynamodb-streams/streams?tableName=test-table'),
         expect.objectContaining({ method: 'GET' })
       )
     })
@@ -894,7 +894,7 @@ describe('DynamoDB Standalone Functions', () => {
       const result = await listAllStreams()
       expect(result.Streams).toEqual([])
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/dynamodb/streams'),
+        expect.stringContaining('/dynamodb-streams/streams'),
         expect.objectContaining({ method: 'GET' })
       )
     })
@@ -910,7 +910,7 @@ describe('DynamoDB Standalone Functions', () => {
       const result = await describeStream('arn:aws:dynamodb:...')
       expect(result.StreamDescription.StreamArn).toBeDefined()
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/dynamodb/streams/'),
+        expect.stringContaining('/dynamodb-streams/streams/'),
         expect.objectContaining({ method: 'GET' })
       )
     })
@@ -923,8 +923,8 @@ describe('DynamoDB Standalone Functions', () => {
       const result = await getShardIterator('stream-arn', 'shard-123')
       expect(result.ShardIterator).toBe('AAAAA')
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/dynamodb/streams/stream-arn/shard-iterator'),
-        expect.objectContaining({ method: 'POST' })
+        expect.stringContaining('/dynamodb-streams/streams/stream-arn/shards/shard-123/iterator'),
+        expect.objectContaining({ method: 'GET' })
       )
     })
 
@@ -933,7 +933,6 @@ describe('DynamoDB Standalone Functions', () => {
       await getShardIterator('stream-arn', 'shard-123', 'LATEST')
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(callBody.ShardIteratorType).toBe('LATEST')
-      expect(callBody.ShardId).toBe('shard-123')
     })
   })
 
@@ -949,14 +948,14 @@ describe('DynamoDB Standalone Functions', () => {
           },
         ],
       }))
-      const result = await getRecords('shard-iterator-aaaa')
+      const result = await getRecords('stream-arn', 'shard-1', 'shard-iterator-aaaa')
       expect(result.Records).toHaveLength(1)
       expect(result.Records[0].dynamodb).toBeDefined()
       expect(result.Records[0].Dynamodb).toBeUndefined()
       expect(typeof result.Records[0].dynamodb.ApproximateCreationDateTime).toBe('number')
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/dynamodb/streams/records'),
-        expect.objectContaining({ method: 'POST' })
+        expect.stringContaining('/dynamodb-streams/streams/stream-arn/shards/shard-1/records'),
+        expect.objectContaining({ method: 'GET' })
       )
     })
 
@@ -964,20 +963,20 @@ describe('DynamoDB Standalone Functions', () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({
         Records: [{ eventID: '1' }],
       }))
-      const result = await getRecords('shard-iterator-bbbb')
+      const result = await getRecords('stream-arn', 'shard-1', 'shard-iterator-bbbb')
       expect(result.Records).toHaveLength(1)
       expect(result.Records[0].eventID).toBe('1')
     })
 
     it('should handle empty records', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({ Records: [] }))
-      const result = await getRecords('shard-iterator-cccc')
+      const result = await getRecords('stream-arn', 'shard-1', 'shard-iterator-cccc')
       expect(result.Records).toEqual([])
     })
 
     it('should use default limit', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({ Records: [] }))
-      await getRecords('shard-iterator')
+      await getRecords('stream-arn', 'shard-1', 'shard-iterator')
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(callBody.Limit).toBe(100)
     })
@@ -993,14 +992,14 @@ describe('DynamoDB Standalone Functions', () => {
           },
         ],
       }))
-      const result = await getRecords('shard-iterator-num')
+      const result = await getRecords('stream-arn', 'shard-1', 'shard-iterator-num')
       expect(result.Records).toHaveLength(1)
       expect(result.Records[0].dynamodb.ApproximateCreationDateTime).toBe(1704067200)
     })
 
     it('should throw APIError on DynamoDBStreams network failure', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Streams network error'))
-      await expect(getRecords('bad-iterator')).rejects.toThrow(APIError)
+      await expect(getRecords('stream-arn', 'shard-1', 'bad-iterator')).rejects.toThrow(APIError)
     })
   })
 })

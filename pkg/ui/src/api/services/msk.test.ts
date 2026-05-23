@@ -91,7 +91,7 @@ describe('MSK Service', () => {
       expect(result.BootstrapBrokerString).toBe('broker1:9092')
       const url = mockFetch.mock.calls[0][0]
       expect(url).toContain(encodeURIComponent('arn:msk:c1'))
-      expect(url).toContain('/brokers')
+      expect(url).toContain('/bootstrap-brokers')
       expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
   })
