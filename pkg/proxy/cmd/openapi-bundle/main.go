@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -12,97 +11,90 @@ import (
 const apiDir = "pkg/proxy/api"
 
 func main() {
-
 	entry := filepath.Join(apiDir, "openapi.yaml")
 	out := filepath.Join(apiDir, "openapi.bundled.yaml")
 
 	fmt.Println("Loading entry:", entry)
 	spec := loadYAML(entry)
 
-	paths := getMap(spec, "paths")
-	if paths == nil {
-		fmt.Fprintln(os.Stderr, "Error: no paths in spec")
+	// 1. Load all service files listed in `services:` list
+	fmt.Println("1. Loading service files...")
+	svcFilesRaw, ok := spec["services"]
+	if !ok {
+		fmt.Fprintln(os.Stderr, "Error: no 'services' list in spec")
+		os.Exit(1)
+	}
+	svcFiles, ok := svcFilesRaw.([]interface{})
+	if !ok {
+		fmt.Fprintln(os.Stderr, "Error: 'services' must be a list")
 		os.Exit(1)
 	}
 
-	// 1. Inline all path $refs
-	fmt.Println("1. Inlining path references...")
-	inlineCount := 0
-	for pathKey, pathVal := range paths {
-		pm, ok := pathVal.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		ref, ok := pm["$ref"].(string)
-		if !ok {
-			continue
-		}
-		resolved := resolveRef(ref, apiDir)
-		if resolved != nil {
-			paths[pathKey] = resolved
-			inlineCount++
-		} else {
-			fmt.Printf("  WARNING: could not resolve %s -> %s\n", pathKey, ref)
-		}
-	}
-	fmt.Printf("  Inlined %d path refs\n", inlineCount)
-
-	// 2. Collect all component schemas and parameters
-	fmt.Println("2. Collecting component schemas...")
+	allPaths := map[string]interface{}{}
 	allSchemas := map[string]interface{}{}
 	allParams := map[string]interface{}{}
 
-	// 2a. Common components first
+	for _, svcRaw := range svcFiles {
+		svcFile, ok := svcRaw.(string)
+		if !ok {
+			continue
+		}
+		svcPath := filepath.Join(apiDir, svcFile)
+		fmt.Printf("  Loading %s\n", svcFile)
+		svc := loadYAML(svcPath)
+
+		// Merge paths
+		svcPaths := getMap(svc, "paths")
+		for k, v := range svcPaths {
+			if _, exists := allPaths[k]; !exists {
+				allPaths[k] = v
+			}
+		}
+
+		// Merge schemas
+		svcSchemas := getMap(svc, "components", "schemas")
+		for k, v := range svcSchemas {
+			if _, exists := allSchemas[k]; !exists {
+				allSchemas[k] = v
+			}
+		}
+
+		// Merge parameters
+		svcParams := getMap(svc, "components", "parameters")
+		for k, v := range svcParams {
+			if _, exists := allParams[k]; !exists {
+				allParams[k] = v
+			}
+		}
+	}
+
+	// 2. Load common components
+	fmt.Println("2. Loading common components...")
 	commonPath := filepath.Join(apiDir, "common", "_components.yaml")
 	if _, err := os.Stat(commonPath); err == nil {
 		common := loadYAML(commonPath)
 		cs := getMap(common, "components", "schemas")
 		for k, v := range cs {
-			allSchemas[k] = v
+			if _, exists := allSchemas[k]; !exists {
+				allSchemas[k] = v
+			}
 		}
 	}
 
-	// 2b. Common parameters
+	// Common parameters
 	paramsPath := filepath.Join(apiDir, "common", "_parameters.yaml")
 	if _, err := os.Stat(paramsPath); err == nil {
 		cp := loadYAML(paramsPath)
 		pm := getMap(cp, "components", "parameters")
 		for k, v := range pm {
-			allParams[k] = v
-		}
-	}
-
-	// 2c. All service file components
-	svcDir := filepath.Join(apiDir, "services")
-	entries, err := os.ReadDir(svcDir)
-	if err == nil {
-		for _, e := range entries {
-			if e.IsDir() || !strings.HasSuffix(e.Name(), ".yaml") {
-				continue
-			}
-			svcPath := filepath.Join(svcDir, e.Name())
-			svc := loadYAML(svcPath)
-			svcSchemas := getMap(svc, "components", "schemas")
-			for k, v := range svcSchemas {
-				if _, exists := allSchemas[k]; !exists {
-					allSchemas[k] = v
-				}
-			}
-			svcParams := getMap(svc, "components", "parameters")
-			for k, v := range svcParams {
-				if _, exists := allParams[k]; !exists {
-					allParams[k] = v
-				}
+			if _, exists := allParams[k]; !exists {
+				allParams[k] = v
 			}
 		}
 	}
 
-	// 3. Walk inlined paths for any remaining $ref to ensure all referenced schemas are collected
-	fmt.Println("3. Walking for cross-references...")
-	collectRefs(paths, allSchemas, allParams, apiDir)
-
-	// 4. Assemble bundled spec
-	fmt.Println("4. Assembling bundled spec...")
+	// 3. Assemble bundled spec
+	fmt.Println("3. Assembling bundled spec...")
 	bundled := map[string]interface{}{
 		"openapi": "3.0.0",
 		"info":    spec["info"],
@@ -115,7 +107,7 @@ func main() {
 		bundled["tags"] = v
 	}
 
-	bundled["paths"] = paths
+	bundled["paths"] = allPaths
 
 	components := map[string]interface{}{}
 	if len(allSchemas) > 0 {
@@ -131,7 +123,7 @@ func main() {
 		bundled["components"] = components
 	}
 
-	// 5. Write output
+	// 4. Write output
 	outf, err := os.Create(out)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating output: %v\n", err)
@@ -197,80 +189,4 @@ func getMap(m map[string]interface{}, keys ...string) map[string]interface{} {
 		}
 	}
 	return current
-}
-
-// resolveRef resolves a $ref string like "services/s3.yaml#/paths/~1s3~1buckets"
-// relative to baseDir. Returns the resolved data or nil on failure.
-func resolveRef(ref string, baseDir string) interface{} {
-	parts := strings.SplitN(ref, "#", 2)
-	if len(parts) != 2 {
-		return nil
-	}
-	filePart, pointer := parts[0], parts[1]
-
-	var data map[string]interface{}
-	if filePart == "" {
-		return nil
-	}
-	fullPath := filepath.Join(baseDir, filePart)
-	data = loadYAML(fullPath)
-
-	// Navigate the JSON pointer
-	ptr := strings.TrimPrefix(pointer, "/")
-	if ptr == "" {
-		return data
-	}
-	segments := strings.Split(ptr, "/")
-	current := interface{}(data)
-	for _, seg := range segments {
-		// Decode ~1 -> /, ~0 -> ~
-		seg = strings.ReplaceAll(seg, "~1", "/")
-		seg = strings.ReplaceAll(seg, "~0", "~")
-
-		switch v := current.(type) {
-		case map[string]interface{}:
-			if val, ok := v[seg]; ok {
-				current = val
-			} else {
-				return nil
-			}
-		default:
-			return nil
-		}
-	}
-	return current
-}
-
-// collectRefs walks data looking for $ref to components/schemas or /parameters
-// and collects any not already in the maps. Recursively resolves to find nested refs.
-func collectRefs(data interface{}, schemas map[string]interface{}, params map[string]interface{}, baseDir string) {
-	switch v := data.(type) {
-	case map[string]interface{}:
-		if ref, ok := v["$ref"].(string); ok {
-			if strings.Contains(ref, "/components/schemas/") {
-				name := ref[strings.LastIndex(ref, "/")+1:]
-				if _, exists := schemas[name]; !exists {
-					if resolved := resolveRef(ref, baseDir); resolved != nil {
-						schemas[name] = resolved
-						collectRefs(resolved, schemas, params, baseDir)
-					}
-				}
-			}
-			if strings.Contains(ref, "/components/parameters/") {
-				name := ref[strings.LastIndex(ref, "/")+1:]
-				if _, exists := params[name]; !exists {
-					if resolved := resolveRef(ref, baseDir); resolved != nil {
-						params[name] = resolved
-					}
-				}
-			}
-		}
-		for _, val := range v {
-			collectRefs(val, schemas, params, baseDir)
-		}
-	case []interface{}:
-		for _, item := range v {
-			collectRefs(item, schemas, params, baseDir)
-		}
-	}
 }

@@ -50,13 +50,15 @@ func (h *ProxyHandler) listStreams(w http.ResponseWriter, r *http.Request) {
 			ExclusiveStartStreamName string `json:"ExclusiveStartStreamName"`
 			Limit                    int32  `json:"Limit"`
 		}
-		if err := parseBody(bodyBytes, &body); err == nil {
-			if body.ExclusiveStartStreamName != "" {
-				exclusiveStartStreamName = body.ExclusiveStartStreamName
-			}
-			if body.Limit > 0 {
-				limit = body.Limit
-			}
+		if err := parseBody(bodyBytes, &body); err != nil {
+			sendError(w, http.StatusBadRequest, "Invalid request body", err)
+			return
+		}
+		if body.ExclusiveStartStreamName != "" {
+			exclusiveStartStreamName = body.ExclusiveStartStreamName
+		}
+		if body.Limit > 0 {
+			limit = body.Limit
 		}
 	}
 

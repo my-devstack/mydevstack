@@ -6924,15 +6924,24 @@ components:
       type: object
     Message:
       properties:
+        Attributes:
+          additionalProperties:
+            type: string
+          type: object
         Body:
-          $ref: '#/components/schemas/Body'
-          description: Email body
-        Subject:
-          $ref: '#/components/schemas/Content'
-          description: Email subject line
-      required:
-        - Subject
-        - Body
+          type: string
+        MD5OfBody:
+          type: string
+        MD5OfMessageAttributes:
+          type: string
+        MessageAttributes:
+          additionalProperties:
+            $ref: '#/components/schemas/MessageAttributeValue'
+          type: object
+        MessageId:
+          type: string
+        ReceiptHandle:
+          type: string
       type: object
     MessageAttributeValue:
       properties:
@@ -10725,10 +10734,8 @@ components:
     Tag:
       properties:
         Key:
-          description: Tag key
           type: string
         Value:
-          description: Tag value
           type: string
       required:
         - Key
