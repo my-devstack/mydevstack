@@ -13598,10 +13598,11 @@ paths:
       tags:
         - DynamoDB Streams
   /dynamodb-streams/streams/{streamArn}/shards/{shardId}/iterator:
-    get:
+    post:
       description: |
         Returns a shard iterator for reading records from a DynamoDB
-        stream shard.
+        stream shard. Uses POST (not GET) because the Fetch API
+        does not allow request body on GET requests.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: getShardIterator
       parameters:
@@ -13636,10 +13637,11 @@ paths:
       tags:
         - DynamoDB Streams
   /dynamodb-streams/streams/{streamArn}/shards/{shardId}/records:
-    get:
+    post:
       description: |
         Returns records from a DynamoDB stream shard using a shard
-        iterator.
+        iterator. Uses POST (not GET) because the Fetch API
+        does not allow request body on GET requests.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: getRecords
       parameters:
@@ -13897,6 +13899,43 @@ paths:
       tags:
         - DynamoDB
   /dynamodb/tables/{tableName}/items:
+    delete:
+      description: |
+        Deletes a single item from a DynamoDB table by its key.
+        Key is sent in the request body (preferred over URL-encoded path param).
+        Uses custom AttributeValue conversion for the Key field.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: deleteItem
+      parameters:
+        - $ref: ../common/_parameters.yaml#/components/parameters/TableNamePath
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteItemRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteItemOutput'
+          description: Item deleted
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete item (key in body)
+      tags:
+        - DynamoDB
     post:
       description: |
         Creates or replaces an item in a DynamoDB table.

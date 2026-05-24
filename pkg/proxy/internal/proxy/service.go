@@ -37,15 +37,17 @@ type ProxyService struct {
 	cloudwatchlogs  ports.CloudWatchLogsPort
 	sesv2           ports.SESv2Port
 	mu              sync.RWMutex
+	ctx             context.Context
 }
 
-func NewProxyService(cfg *configloader.Config) ports.ProxyService {
+func NewProxyService(cfg *configloader.Config, ctx context.Context) ports.ProxyService {
 	// Default region is us-east-1 if not set
 	region := "us-east-1"
 
 	return &ProxyService{
 		cfg:    cfg,
 		region: region,
+		ctx:    ctx,
 	}
 }
 
@@ -73,7 +75,7 @@ func (s *ProxyService) SetRegion(region string) error {
 }
 
 func (s *ProxyService) SetServices() error {
-	awsCfg, err := awsconfig.LoadDefaultConfig(context.Background(),
+	awsCfg, err := awsconfig.LoadDefaultConfig(s.ctx,
 		awsconfig.WithRegion(s.region),
 		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
 			s.cfg.AWS.AccessKey,

@@ -13,8 +13,8 @@ func (h *ProxyHandler) registerDynamoDBStreamsRoutes(r chi.Router) {
 	r.Route("/dynamodb-streams", func(r chi.Router) {
 		r.Get("/streams", h.listStreamsStreams)
 		r.Get("/streams/{streamArn}", h.describeStreamStreams)
-		r.Get("/streams/{streamArn}/shards/{shardId}/iterator", h.getShardIteratorStreams)
-		r.Get("/streams/{streamArn}/shards/{shardId}/records", h.getRecordsStreams)
+		r.Post("/streams/{streamArn}/shards/{shardId}/iterator", h.getShardIteratorStreams)
+		r.Post("/streams/{streamArn}/shards/{shardId}/records", h.getRecordsStreams)
 	})
 }
 

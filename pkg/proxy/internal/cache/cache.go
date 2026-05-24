@@ -28,11 +28,12 @@ func (c *Cache) Set(key string, value string, ttl time.Duration) {
 		value:     value,
 		expiresAt: time.Now().Add(ttl),
 	}
+	c.cleanupLocked()
 }
 
 func (c *Cache) Get(key string) (string, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	entry, exists := c.data[key]
 	if !exists {
@@ -40,6 +41,7 @@ func (c *Cache) Get(key string) (string, bool) {
 	}
 
 	if time.Now().After(entry.expiresAt) {
+		delete(c.data, key)
 		return "", false
 	}
 
@@ -67,4 +69,26 @@ func (c *Cache) GetOrSet(key string, value string, ttl time.Duration) (string, b
 	}
 
 	return value, false
+}
+
+func (c *Cache) Len() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return len(c.data)
+}
+
+func (c *Cache) Cleanup() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cleanupLocked()
+}
+
+// cleanupLocked removes expired entries. Caller must hold c.mu.Lock().
+func (c *Cache) cleanupLocked() {
+	now := time.Now()
+	for key, entry := range c.data {
+		if now.After(entry.expiresAt) {
+			delete(c.data, key)
+		}
+	}
 }

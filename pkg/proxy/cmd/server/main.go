@@ -20,7 +20,7 @@ func main() {
 	defer stopFn()
 	wg, ctx := errgroup.WithContext(ctx)
 
-	cfg, err := loadConfig()
+	cfg, err := loadConfig(ctx)
 	if err != nil {
 		log.Printf("Warning: Could not load config from files, using defaults: %v", err)
 		cfg = defaultConfig()
@@ -87,8 +87,8 @@ func main() {
 	log.Print("application stopped")
 }
 
-func loadConfig() (*configloader.Config, error) {
-	return configloader.LoadConfig(context.Background())
+func loadConfig(ctx context.Context) (*configloader.Config, error) {
+	return configloader.LoadConfig(ctx)
 }
 
 // deprecated: will be removed in favor of loading from config files. This is only used as a fallback if config loading fails, and is not intended to be used directly in tests.

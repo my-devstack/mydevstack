@@ -25,12 +25,6 @@ async function restFetch<T = any>(
     options.body = JSON.stringify(body)
   }
 
-  // DynamoDB Streams backend uses GET with body (unconventional but required)
-  if (body !== undefined && method === 'GET') {
-    options.body = JSON.stringify(body)
-    options.headers = { 'Content-Type': 'application/json' }
-  }
-
   try {
     const response = await fetch(url, options)
     if (!response.ok) {
@@ -279,7 +273,7 @@ export class DynamoDBService {
 
     const keyToSend = isDynamoDBFormat(keyToDelete) ? keyToDelete : marshall(keyToDelete)
 
-    return await restFetch('POST', `/dynamodb/tables/${encodeURIComponent(tableName)}/items/delete`, {
+    return await restFetch('DELETE', `/dynamodb/tables/${encodeURIComponent(tableName)}/items`, {
       Key: keyToSend,
       ...deleteOptions,
     })
@@ -579,13 +573,13 @@ export const describeStream = async (streamArn: string): Promise<any> => {
 }
 
 export const getShardIterator = async (streamArn: string, shardId: string, iteratorType?: string): Promise<any> => {
-  return restFetch('GET', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}/shards/${encodeURIComponent(shardId)}/iterator`, {
+  return restFetch('POST', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}/shards/${encodeURIComponent(shardId)}/iterator`, {
     ShardIteratorType: iteratorType || 'TRIM_HORIZON',
   }, 'DynamoDBStreams')
 }
 
 export const getRecords = async (streamArn: string, shardId: string, shardIterator: string, limit?: number): Promise<any> => {
-  const response = await restFetch('GET', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}/shards/${encodeURIComponent(shardId)}/records`, {
+  const response = await restFetch('POST', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}/shards/${encodeURIComponent(shardId)}/records`, {
     ShardIterator: shardIterator,
     Limit: limit || 100,
   }, 'DynamoDBStreams')

@@ -6,4 +6,6 @@ import "time"
 type CachePort interface {
 	Get(key string) (string, bool)
 	Set(key, value string, ttl time.Duration)
+	Len() int
+	Cleanup()
 }

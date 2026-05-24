@@ -66,12 +66,13 @@ paths:
                 $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
 
   /dynamodb-streams/streams/{streamArn}/shards/{shardId}/iterator:
-    get:
+    post:
       tags: [DynamoDB Streams]
       summary: Get shard iterator
       description: |
         Returns a shard iterator for reading records from a DynamoDB
-        stream shard.
+        stream shard. Uses POST (not GET) because the Fetch API
+        does not allow request body on GET requests.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: getShardIterator
       parameters:
@@ -104,12 +105,13 @@ paths:
                 $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
 
   /dynamodb-streams/streams/{streamArn}/shards/{shardId}/records:
-    get:
+    post:
       tags: [DynamoDB Streams]
       summary: Get records
       description: |
         Returns records from a DynamoDB stream shard using a shard
-        iterator.
+        iterator. Uses POST (not GET) because the Fetch API
+        does not allow request body on GET requests.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: getRecords
       parameters:

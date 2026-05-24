@@ -25,7 +25,7 @@ type Container struct {
 }
 
 func NewContainer(ctx context.Context, wg *errgroup.Group, cfg *configloader.Config) (*Container, error) {
-	svc := proxy.NewProxyService(cfg)
+	svc := proxy.NewProxyService(cfg, ctx)
 	// Initialize adapters with default region
 	if err := svc.SetServices(); err != nil {
 		return nil, err

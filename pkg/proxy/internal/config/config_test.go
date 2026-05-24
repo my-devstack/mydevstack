@@ -12,9 +12,9 @@ func TestConfig_SetDefaults(t *testing.T) {
 	defaults := cfg.SetDefaults()
 
 	tests := []struct {
-		name     string
-		key     string
-		want    interface{}
+		name string
+		key  string
+		want interface{}
 	}{
 		{"port", "port", "8081"},
 		{"aws_endpoint", "aws.endpoint", "http://localhost:4566"},
@@ -142,9 +142,9 @@ func TestLoadConfig_WithDefaults(t *testing.T) {
 func TestConfig_StructFields(t *testing.T) {
 	cfg := &Config{
 		Port:              "8080",
-		ServicePattern:   "custom",
-		Emulator:         "moto",
-		GitHubRepo:       "https://github.com/test/repo",
+		ServicePattern:    "custom",
+		Emulator:          "moto",
+		GitHubRepo:        "https://github.com/test/repo",
 		VersionCheckHours: 12,
 		AWS: AWSProxyConfig{
 			Endpoint:  "http://test:4566",
@@ -230,7 +230,7 @@ version_check_hours: 12
 	_ = os.Setenv("CONFIG_FILE", configFile)
 	defer clearConfigEnv()
 
-	cfg, err := LoadConfig(context.TODO())
+	cfg, err := LoadConfig(context.Background())
 	if err != nil {
 		t.Fatalf("LoadConfig() error = %v", err)
 	}
@@ -268,7 +268,7 @@ func TestLoadConfig_EmptyConfigFileError(t *testing.T) {
 	_ = os.Setenv("CONFIG_FILE", "")
 	defer clearConfigEnv()
 
-	_, err := LoadConfig(context.TODO())
+	_, err := LoadConfig(context.Background())
 	if err == nil {
 		t.Error("LoadConfig() expected error with empty CONFIG_FILE, got nil")
 	}

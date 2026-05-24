@@ -26,6 +26,7 @@ func (h *ProxyHandler) registerDynamoDBRoutes(r chi.Router) {
 		r.Post("/tables/{tableName}/items", h.putItem)
 		r.Get("/tables/{tableName}/items/{key}", h.getItem)
 		r.Delete("/tables/{tableName}/items/{key}", h.deleteItem)
+		r.Delete("/tables/{tableName}/items", h.deleteItem)
 		r.Put("/tables/{tableName}/items/{key}", h.updateItem)
 		r.Post("/tables/{tableName}/query", h.query)
 		r.Post("/tables/{tableName}/scan", h.scan)

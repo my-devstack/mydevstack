@@ -197,6 +197,43 @@ paths:
               schema:
                 $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
 
+    delete:
+      tags: [DynamoDB]
+      summary: Delete item (key in body)
+      description: |
+        Deletes a single item from a DynamoDB table by its key.
+        Key is sent in the request body (preferred over URL-encoded path param).
+        Uses custom AttributeValue conversion for the Key field.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: deleteItem
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteItemRequest'
+      responses:
+        "200":
+          description: Item deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteItemOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
   /dynamodb/tables/{tableName}/items/{key}:
     get:
       tags: [DynamoDB]

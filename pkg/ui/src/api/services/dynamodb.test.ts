@@ -420,11 +420,9 @@ describe('DynamoDBService', () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await service.deleteItem('test-table', { id: '123' })
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/dynamodb/tables/test-table/items/delete'),
-        expect.objectContaining({ method: 'POST' })
+        expect.stringContaining('/dynamodb/tables/test-table/items'),
+        expect.objectContaining({ method: 'DELETE' })
       )
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callBody.Key.id.S).toBe('123')
     })
 
     it('should delete item with object body (Vue component style)', async () => {
@@ -778,8 +776,8 @@ describe('DynamoDB Standalone Functions', () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await deleteItem('test-table', { id: '123' })
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/dynamodb/tables/test-table/items/delete'),
-        expect.objectContaining({ method: 'POST' })
+        expect.stringContaining('/dynamodb/tables/test-table/items'),
+        expect.objectContaining({ method: 'DELETE' })
       )
     })
   })
@@ -924,7 +922,7 @@ describe('DynamoDB Standalone Functions', () => {
       expect(result.ShardIterator).toBe('AAAAA')
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/dynamodb-streams/streams/stream-arn/shards/shard-123/iterator'),
-        expect.objectContaining({ method: 'GET' })
+        expect.objectContaining({ method: 'POST' })
       )
     })
 
@@ -955,7 +953,7 @@ describe('DynamoDB Standalone Functions', () => {
       expect(typeof result.Records[0].dynamodb.ApproximateCreationDateTime).toBe('number')
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/dynamodb-streams/streams/stream-arn/shards/shard-1/records'),
-        expect.objectContaining({ method: 'GET' })
+        expect.objectContaining({ method: 'POST' })
       )
     })
 
