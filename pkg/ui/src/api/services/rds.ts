@@ -1,6 +1,7 @@
 /**
  * RDS Service API Client
  * HTTP client for RDS via Go proxy
+ * Uses REST-style endpoints
  * @module api/services/rds
  */
 
@@ -8,36 +9,35 @@ import { PROXY_BACKEND } from '@/config'
 import { APIError } from '../client'
 import type { RDSInstance, CreateDBInstanceInput, DescribeDBEngineVersionsOutput } from '../types/aws'
 
-async function rdsRequest(action: string, body: object = {}): Promise<any> {
+async function request<T = any>(url: string, options: RequestInit = {}): Promise<T> {
   const endpoint = PROXY_BACKEND.replace(/\/$/, '')
-  const url = `${endpoint}/rds/`
+  const fullUrl = `${endpoint}${url}`
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
+    const response = await fetch(fullUrl, {
+      ...options,
       headers: {
         'Content-Type': 'application/json',
-        'X-Amz-Target': `rds.${action}`,
+        ...(options.headers as Record<string, string>),
       },
-      body: JSON.stringify(body),
     })
 
     if (!response.ok) {
       const errorText = await response.text()
-      throw new APIError(`RDS ${action} failed: ${errorText}`, response.status, 'rds')
+      throw new APIError(`RDS request failed: ${errorText}`, response.status, 'rds')
     }
 
     return response.json()
   } catch (error) {
     if (error instanceof APIError) throw error
-    console.error(`RDS ${action} error:`, error)
-    throw new APIError(`Failed to ${action}`, 500, 'rds')
+    console.error('RDS request error:', error)
+    throw new APIError('Failed to call RDS service', 500, 'rds')
   }
 }
 
 export class RDSService {
   async describeDBInstances(): Promise<RDSInstance[]> {
-    const response = await rdsRequest('DescribeDBInstances', {})
+    const response = await request<{ DBInstances?: any[] }>('/rds/db-instances', { method: 'GET' })
     return (response.DBInstances || []).map((instance: any) => ({
       DBInstanceIdentifier: instance.DBInstanceIdentifier || '',
       DBInstanceClass: instance.DBInstanceClass || '',
@@ -60,7 +60,10 @@ export class RDSService {
   }
 
   async createDBInstance(input: CreateDBInstanceInput): Promise<RDSInstance> {
-    const response = await rdsRequest('CreateDBInstance', input)
+    const response = await request<{ DBInstance: any }>('/rds/db-instances', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    })
     const instance = response.DBInstance
     return {
       DBInstanceIdentifier: instance.DBInstanceIdentifier || '',
@@ -84,31 +87,60 @@ export class RDSService {
   }
 
   async deleteDBInstance(dbInstanceIdentifier: string, options?: { skipFinalSnapshot?: boolean }): Promise<void> {
-    const params: any = { DBInstanceIdentifier: dbInstanceIdentifier }
+    const body: any = {}
     if (options?.skipFinalSnapshot) {
-      params.SkipFinalSnapshot = true
+      body.SkipFinalSnapshot = true
     }
-    return rdsRequest('DeleteDBInstance', params)
+    return request(`/rds/db-instances/${encodeURIComponent(dbInstanceIdentifier)}`, {
+      method: 'DELETE',
+      body: Object.keys(body).length > 0 ? JSON.stringify(body) : undefined,
+    })
   }
 
   async describeDBEngineVersions(
     engine: string,
     options?: { engineVersion?: string; maxRecords?: number }
   ): Promise<DescribeDBEngineVersionsOutput> {
-    const params: any = { Engine: engine, ...options }
-    return rdsRequest('DescribeDBEngineVersions', params)
+    const query = new URLSearchParams({ Engine: engine })
+    if (options?.engineVersion) query.set('EngineVersion', options.engineVersion)
+    if (options?.maxRecords !== undefined) query.set('MaxRecords', String(options.maxRecords))
+    return request(`/rds/engine-versions?${query.toString()}`, { method: 'GET' })
   }
 
   async modifyDBInstance(dbInstanceIdentifier: string, modifications: object): Promise<RDSInstance> {
-    const response = await rdsRequest('ModifyDBInstance', {
-      DBInstanceIdentifier: dbInstanceIdentifier,
-      ...modifications,
+    const response = await request<{ DBInstance: any }>(`/rds/db-instances/${encodeURIComponent(dbInstanceIdentifier)}`, {
+      method: 'PUT',
+      body: JSON.stringify(modifications),
     })
     return response.DBInstance
   }
 
   async rebootDBInstance(dbInstanceIdentifier: string): Promise<void> {
-    return rdsRequest('RebootDBInstance', { DBInstanceIdentifier: dbInstanceIdentifier })
+    return request(`/rds/db-instances/${encodeURIComponent(dbInstanceIdentifier)}/reboot`, { method: 'POST' })
+  }
+
+  async describeDBParameterGroups(): Promise<any> {
+    throw new APIError('RDS parameter groups not implemented by proxy backend', 501, 'rds')
+  }
+
+  async describeDBParameters(groupName: string): Promise<any> {
+    throw new APIError('RDS parameters not implemented by proxy backend', 501, 'rds')
+  }
+
+  async describeDBSubnetGroups(): Promise<any> {
+    throw new APIError('RDS subnet groups not implemented by proxy backend', 501, 'rds')
+  }
+
+  async listTagsForResource(resourceArn: string): Promise<any> {
+    throw new APIError('RDS tags not implemented by proxy backend', 501, 'rds')
+  }
+
+  async addTagsToResource(resourceArn: string, tags: Array<{ Key: string; Value: string }>): Promise<void> {
+    throw new APIError('RDS tags not implemented by proxy backend', 501, 'rds')
+  }
+
+  async removeTagsFromResource(resourceArn: string, tagKeys: string[]): Promise<void> {
+    throw new APIError('RDS tags not implemented by proxy backend', 501, 'rds')
   }
 }
 
@@ -123,5 +155,13 @@ export const describeDBEngineVersions = (engine: string, options?: Parameters<RD
 export const modifyDBInstance = (identifier: string, modifications: object) =>
   rdsService.modifyDBInstance(identifier, modifications)
 export const rebootDBInstance = (identifier: string) => rdsService.rebootDBInstance(identifier)
+export const describeDBParameterGroups = () => rdsService.describeDBParameterGroups()
+export const describeDBParameters = (groupName: string) => rdsService.describeDBParameters(groupName)
+export const describeDBSubnetGroups = () => rdsService.describeDBSubnetGroups()
+export const listTagsForResource = (arn: string) => rdsService.listTagsForResource(arn)
+export const addTagsToResource = (arn: string, tags: Array<{ Key: string; Value: string }>) =>
+  rdsService.addTagsToResource(arn, tags)
+export const removeTagsFromResource = (arn: string, tagKeys: string[]) =>
+  rdsService.removeTagsFromResource(arn, tagKeys)
 
 export default rdsService

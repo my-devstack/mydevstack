@@ -10,26 +10,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 )
 
-// handleRDS uses raw HTTP calls to work with Floci and ministack which expects query protocol (form-encoded)
-// while SDK v2 sends JSON.
-
-func (h *ProxyHandler) handleRDS(c *gin.Context) {
-	xAmzTarget := c.GetHeader("X-Amz-Target")
-	bodyBytes := readBody(c)
+// rdsOperation performs a raw HTTP form-encoded RDS operation.
+func (h *ProxyHandler) rdsOperation(w http.ResponseWriter, r *http.Request, operation string) {
+	bodyBytes := readBody(r)
 	baseEndpoint := h.Svc.Config().AWS.Endpoint
 
-	// Extract operation name from X-Amz-Target (e.g., "rds.DescribeDBInstances" -> "DescribeDBInstances")
-	operation := strings.Replace(xAmzTarget, "rds.", "", 1)
-
-	// Convert JSON body to form-encoded for MiniStack/Floci
 	formData := url.Values{}
 	formData.Add("Action", operation)
 	formData.Add("Version", "2014-10-31")
 
-	// Parse JSON body and add to form data
 	if len(bodyBytes) > 0 {
 		var bodyMap map[string]interface{}
 		if err := json.Unmarshal(bodyBytes, &bodyMap); err == nil {
@@ -41,10 +33,9 @@ func (h *ProxyHandler) handleRDS(c *gin.Context) {
 		}
 	}
 
-	// Make form-encoded request
 	resp, err := makeFormEncodedRequest(baseEndpoint, formData.Encode())
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to call RDS", err)
+		sendError(w, http.StatusInternalServerError, "Failed to call RDS", err)
 		return
 	}
 	defer func() {
@@ -53,22 +44,43 @@ func (h *ProxyHandler) handleRDS(c *gin.Context) {
 		}
 	}()
 
-	// Read response
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to read response", err)
+		sendError(w, http.StatusInternalServerError, "Failed to read response", err)
 		return
 	}
 
-	// Parse XML response to JSON
 	result, err := parseRDSXMLResponse(string(respBody), operation)
 	if err != nil {
 		log.Printf("[RDS] Failed to parse XML response: %v", err)
-		c.Data(resp.StatusCode, "application/json", respBody)
+		writeData(w, resp.StatusCode, "application/json", respBody)
 		return
 	}
 
-	c.JSON(resp.StatusCode, result)
+	writeJSON(w, resp.StatusCode, result)
+}
+
+func (h *ProxyHandler) registerRDSRoutes(r chi.Router) {
+	r.Route("/rds", func(r chi.Router) {
+		r.Get("/db-instances", func(w http.ResponseWriter, r *http.Request) {
+			h.rdsOperation(w, r, "DescribeDBInstances")
+		})
+		r.Post("/db-instances", func(w http.ResponseWriter, r *http.Request) {
+			h.rdsOperation(w, r, "CreateDBInstance")
+		})
+		r.Delete("/db-instances/{id}", func(w http.ResponseWriter, r *http.Request) {
+			h.rdsOperation(w, r, "DeleteDBInstance")
+		})
+		r.Put("/db-instances/{id}", func(w http.ResponseWriter, r *http.Request) {
+			h.rdsOperation(w, r, "ModifyDBInstance")
+		})
+		r.Post("/db-instances/{id}/reboot", func(w http.ResponseWriter, r *http.Request) {
+			h.rdsOperation(w, r, "RebootDBInstance")
+		})
+		r.Get("/engine-versions", func(w http.ResponseWriter, r *http.Request) {
+			h.rdsOperation(w, r, "DescribeDBEngineVersions")
+		})
+	})
 }
 
 func makeFormEncodedRequest(endpoint, formData string) (*http.Response, error) {

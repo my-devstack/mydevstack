@@ -392,7 +392,7 @@ describe('useKinesis', () => {
       await getRecordsForShard(shard)
 
       expect(kinesisApi.getShardIterator).toHaveBeenCalledWith('test-stream', 'shard-1', 'TRIM_HORIZON')
-      expect(kinesisApi.getRecords).toHaveBeenCalledWith('iterator-123', { Limit: 100 })
+      expect(kinesisApi.getRecords).toHaveBeenCalledWith('test-stream', 'shard-1', 'iterator-123', { Limit: 100 })
       expect(records.value).toHaveLength(2)
       expect(records.value[0].SequenceNumber).toBe('1')
       expect(recordsLoading.value).toBe(false)

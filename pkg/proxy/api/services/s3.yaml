@@ -1,0 +1,723 @@
+openapi: 3.0.0
+info:
+  title: "S3"
+  version: "1.0.0"
+
+paths:
+  /s3/buckets:
+    get:
+      tags: [S3]
+      summary: List buckets
+      description: |
+        Returns a list of all buckets owned by the authenticated sender.
+        Accepts optional query parameters for pagination and filtering.
+        No request body accepted.
+      operationId: listBuckets
+      parameters:
+        - name: bucketRegion
+          in: query
+          required: false
+          schema: { type: string }
+          description: Limit to buckets in a specific AWS Region
+        - name: prefix
+          in: query
+          required: false
+          schema: { type: string }
+          description: Limit to bucket names beginning with this prefix
+        - name: continuationToken
+          in: query
+          required: false
+          schema: { type: string }
+          description: Continuation token for paginated results
+        - name: maxBuckets
+          in: query
+          required: false
+          schema: { type: integer, maximum: 10000 }
+          description: Maximum number of buckets to return
+      responses:
+        "200":
+          description: List of buckets
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3ListBucketsOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [S3]
+      summary: Create bucket
+      description: |
+        Creates a new S3 bucket. Bucket names must be globally unique.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createBucket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/S3CreateBucketInput'
+      responses:
+        "200":
+          description: Bucket created
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3CreateBucketOutput'
+        "400":
+          description: Invalid request (e.g., bucket already exists, invalid name)
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /s3/buckets/{bucket}:
+    delete:
+      tags: [S3]
+      summary: Delete bucket
+      description: |
+        Deletes the specified S3 bucket. The bucket must be empty
+        (all objects and versions must be deleted first).
+      operationId: deleteBucket
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+        - name: expectedBucketOwner
+          in: query
+          required: false
+          schema: { type: string }
+          description: The account ID of the expected bucket owner
+      responses:
+        "200":
+          description: Bucket deleted
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3DeleteBucketOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    head:
+      tags: [S3]
+      summary: Check bucket existence
+      description: |
+        Checks if a bucket exists and the caller has permission to access it.
+        Returns 200 with {"status":"OK"} if accessible.
+      operationId: headBucket
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      responses:
+        "200":
+          description: Bucket exists and is accessible
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3BucketStatusResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /s3/buckets/{bucket}/objects:
+    get:
+      tags: [S3]
+      summary: List objects in bucket
+      description: |
+        Returns a list of objects in the specified bucket with optional
+        filtering by prefix, delimiter, pagination, and encoding.
+        Accepts query parameters and optional request body.
+      operationId: listObjectsV2
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/PrefixQuery'
+        - $ref: '../common/_parameters.yaml#/components/parameters/DelimiterQuery'
+        - $ref: '../common/_parameters.yaml#/components/parameters/MaxKeysQuery'
+        - $ref: '../common/_parameters.yaml#/components/parameters/ContinuationTokenQuery'
+        - $ref: '../common/_parameters.yaml#/components/parameters/StartAfterQuery'
+        - $ref: '../common/_parameters.yaml#/components/parameters/EncodingTypeQuery'
+      responses:
+        "200":
+          description: List of objects
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3ListObjectsV2Output'
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [S3]
+      summary: Upload object
+      description: |
+        Creates or overwrites an object in a bucket.
+        Accepts JSON with Body as string, ContentType, and optional metadata.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putObject
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/S3PutObjectInputJSON'
+      responses:
+        "200":
+          description: Object uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3PutObjectOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /s3/buckets/{bucket}/objects/{key}:
+    get:
+      tags: [S3]
+      summary: Get object
+      description: |
+        Retrieves an object from S3. The response body contains the raw object
+        data with the appropriate Content-Type header from the object metadata.
+      operationId: getObject
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/KeyPath'
+      responses:
+        "200":
+          description: Object content (raw binary)
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [S3]
+      summary: Delete object
+      description: |
+        Removes an object from a bucket. Supports versioning-aware deletion
+        via the versionId query parameter.
+      operationId: deleteObject
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/KeyPath'
+        - name: versionId
+          in: query
+          required: false
+          schema: { type: string }
+          description: Version ID of the object to delete (for versioned buckets)
+      responses:
+        "200":
+          description: Object deleted
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3DeleteObjectOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    head:
+      tags: [S3]
+      summary: Head object
+      description: |
+        Retrieves metadata from an object without returning the object itself.
+        Returns headers with object metadata like Content-Type, ETag, Last-Modified.
+      operationId: headObject
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/KeyPath'
+        - name: versionId
+          in: query
+          required: false
+          schema: { type: string }
+          description: Version ID of the object
+      responses:
+        "200":
+          description: Object metadata
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3HeadObjectOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /s3/buckets/{bucket}/presign-get:
+    post:
+      tags: [S3]
+      summary: Generate pre-signed GET URL
+      description: |
+        Generates a pre-signed URL for reading an S3 object.
+        Expires defaults to 3600 seconds if not specified.
+      operationId: presignGetObject
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/PresignInput'
+      responses:
+        "200":
+          description: Pre-signed URL generated
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/PresignedUrlResponse'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /s3/buckets/{bucket}/presign-put:
+    post:
+      tags: [S3]
+      summary: Generate pre-signed PUT URL
+      description: |
+        Generates a pre-signed URL for writing an S3 object.
+        Expires defaults to 3600 seconds if not specified.
+      operationId: presignPutObject
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/PresignInput'
+      responses:
+        "200":
+          description: Pre-signed URL generated
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/PresignedUrlResponse'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /s3/buckets/{bucket}/versioning:
+    get:
+      tags: [S3]
+      summary: Get bucket versioning
+      description: |
+        Returns the versioning state of a bucket. Returns empty Status
+        if versioning is not configured (no error response).
+      operationId: getBucketVersioning
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      responses:
+        "200":
+          description: Versioning configuration
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3GetBucketVersioningOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [S3]
+      summary: Set bucket versioning
+      description: |
+        Sets the versioning state of an existing bucket.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putBucketVersioning
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/S3PutBucketVersioningInput'
+      responses:
+        "200":
+          description: Versioning configuration updated
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3PutBucketVersioningOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /s3/buckets/{bucket}/encryption:
+    get:
+      tags: [S3]
+      summary: Get bucket encryption
+      description: |
+        Returns the default encryption configuration for a bucket.
+        Returns null config on error (silent fallback).
+      operationId: getBucketEncryption
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      responses:
+        "200":
+          description: Encryption configuration
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3GetBucketEncryptionOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [S3]
+      summary: Set bucket encryption
+      description: |
+        Sets the default encryption configuration for a bucket.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putBucketEncryption
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/S3PutBucketEncryptionInput'
+      responses:
+        "200":
+          description: Encryption configuration updated
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3PutBucketEncryptionOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /s3/buckets/{bucket}/tagging:
+    get:
+      tags: [S3]
+      summary: Get bucket tags
+      description: |
+        Returns the tag set for a bucket. Returns empty TagSet
+        if no tags are configured (silent fallback).
+      operationId: getBucketTagging
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      responses:
+        "200":
+          description: Tag set
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3GetBucketTaggingOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [S3]
+      summary: Set bucket tags
+      description: |
+        Sets the tag set for a bucket. Replaces all existing tags.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putBucketTagging
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/S3PutBucketTaggingInput'
+      responses:
+        "200":
+          description: Tags updated
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3PutBucketTaggingOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /s3/buckets/{bucket}/policy:
+    get:
+      tags: [S3]
+      summary: Get bucket policy
+      description: |
+        Returns the policy for a bucket as a JSON string.
+        Returns an empty object if no policy is configured.
+      operationId: getBucketPolicy
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      responses:
+        "200":
+          description: Bucket policy
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3GetBucketPolicyOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [S3]
+      summary: Set bucket policy
+      description: |
+        Applies a policy to a bucket. The Policy field must be a valid
+        JSON policy document as a string.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putBucketPolicy
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/S3PutBucketPolicyInput'
+      responses:
+        "200":
+          description: Policy updated
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3PutBucketPolicyOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /s3/buckets/{bucket}/public-access-block:
+    get:
+      tags: [S3]
+      summary: Get public access block
+      description: |
+        Returns the PublicAccessBlock configuration for a bucket.
+      operationId: getPublicAccessBlock
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      responses:
+        "200":
+          description: Public access block configuration
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3GetPublicAccessBlockOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [S3]
+      summary: Set public access block
+      description: |
+        Sets the PublicAccessBlock configuration for a bucket.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putPublicAccessBlock
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/S3PutPublicAccessBlockInput'
+      responses:
+        "200":
+          description: Public access block configuration updated
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3PutPublicAccessBlockOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /s3/buckets/{bucket}/notification:
+    get:
+      tags: [S3]
+      summary: Get bucket notification configuration
+      description: |
+        Returns the notification configuration for a bucket,
+        including topic, queue, and Lambda function event configurations.
+      operationId: getBucketNotificationConfiguration
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      responses:
+        "200":
+          description: Notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3GetBucketNotificationConfigurationOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [S3]
+      summary: Set bucket notification configuration
+      description: |
+        Sets the notification configuration for a bucket.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putBucketNotificationConfiguration
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/S3PutBucketNotificationConfigurationInput'
+      responses:
+        "200":
+          description: Notification configuration updated
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3PutBucketNotificationConfigurationOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'

@@ -1,38 +1,12 @@
 /**
  * IAM Service API
- * Simple HTTP client for IAM via Go proxy
+ * REST HTTP client for IAM via Go proxy
  */
 
 import { PROXY_BACKEND } from '@/config'
 import { APIError } from '../client'
 
-async function iamRequest(action: string, body: object = {}): Promise<any> {
-  const endpoint = PROXY_BACKEND.replace(/\/$/, '')
-
-  const url = `${endpoint}/iam/`
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Amz-Target': `iam.${action}`,
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new APIError(`IAM ${action} failed: ${errorText}`, response.status, 'iam')
-    }
-
-    return response.json()
-  } catch (error) {
-    if (error instanceof APIError) throw error
-    console.error(`IAM ${action} error:`, error)
-    throw new APIError(`Failed to ${action}`, 500, 'iam')
-  }
-}
+const api = PROXY_BACKEND.replace(/\/$/, '')
 
 // Types (matching the existing type definitions)
 export interface IAMUser {
@@ -80,24 +54,36 @@ export async function createUser(params: {
   PermissionsBoundary?: string
   Tags?: Array<{ Key: string; Value: string }>
 }): Promise<IAMUser> {
-  return iamRequest('CreateUser', params)
+  const res = await fetch(`${api}/iam/users`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  })
+  if (!res.ok) throw new APIError(`Create user failed`, res.status, 'iam')
+  return res.json()
 }
 
 export async function getUser(UserName?: string): Promise<IAMUser> {
-  return iamRequest('GetUser', { UserName })
+  if (!UserName) throw new APIError('UserName is required for getUser', 400, 'iam')
+  const res = await fetch(`${api}/iam/users/${encodeURIComponent(UserName)}`)
+  if (!res.ok) throw new APIError(`Get user failed`, res.status, 'iam')
+  return res.json()
 }
 
 export async function listUsers(): Promise<{ Users: IAMUser[]; IsTruncated: boolean; Marker?: string }> {
-  const response = await iamRequest('ListUsers', {})
+  const res = await fetch(`${api}/iam/users`)
+  if (!res.ok) throw new APIError(`List users failed`, res.status, 'iam')
+  const data = await res.json()
   return {
-    Users: response.Users || [],
-    IsTruncated: response.IsTruncated || false,
-    Marker: response.Marker,
+    Users: data.Users || [],
+    IsTruncated: data.IsTruncated || false,
+    Marker: data.Marker,
   }
 }
 
 export async function deleteUser(UserName: string): Promise<void> {
-  return iamRequest('DeleteUser', { UserName })
+  const res = await fetch(`${api}/iam/users/${encodeURIComponent(UserName)}`, { method: 'DELETE' })
+  if (!res.ok) throw new APIError(`Delete user failed`, res.status, 'iam')
 }
 
 // Role operations
@@ -109,24 +95,35 @@ export async function createRole(params: {
   PermissionsBoundary?: string
   Tags?: Array<{ Key: string; Value: string }>
 }): Promise<IAMRole> {
-  return iamRequest('CreateRole', params)
+  const res = await fetch(`${api}/iam/roles`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  })
+  if (!res.ok) throw new APIError(`Create role failed`, res.status, 'iam')
+  return res.json()
 }
 
 export async function getRole(RoleName: string): Promise<IAMRole> {
-  return iamRequest('GetRole', { RoleName })
+  const res = await fetch(`${api}/iam/roles/${encodeURIComponent(RoleName)}`)
+  if (!res.ok) throw new APIError(`Get role failed`, res.status, 'iam')
+  return res.json()
 }
 
 export async function listRoles(): Promise<{ Roles: IAMRole[]; IsTruncated: boolean; Marker?: string }> {
-  const response = await iamRequest('ListRoles', {})
+  const res = await fetch(`${api}/iam/roles`)
+  if (!res.ok) throw new APIError(`List roles failed`, res.status, 'iam')
+  const data = await res.json()
   return {
-    Roles: response.Roles || [],
-    IsTruncated: response.IsTruncated || false,
-    Marker: response.Marker,
+    Roles: data.Roles || [],
+    IsTruncated: data.IsTruncated || false,
+    Marker: data.Marker,
   }
 }
 
 export async function deleteRole(RoleName: string): Promise<void> {
-  return iamRequest('DeleteRole', { RoleName })
+  const res = await fetch(`${api}/iam/roles/${encodeURIComponent(RoleName)}`, { method: 'DELETE' })
+  if (!res.ok) throw new APIError(`Delete role failed`, res.status, 'iam')
 }
 
 // Policy operations
@@ -135,132 +132,209 @@ export async function listPolicies(param1?: string | { Scope?: string; OnlyAttac
   IsTruncated: boolean
   Marker?: string
 }> {
-  const body: any = {}
-  
+  const params = new URLSearchParams()
+
   // Handle both calling conventions: listPolicies('All') or listPolicies({ Scope: 'All' })
   if (typeof param1 === 'string') {
-    body.Scope = param1
-    if (param2 !== undefined) body.OnlyAttached = param2
+    params.set('Scope', param1)
+    if (param2 !== undefined) params.set('OnlyAttached', String(param2))
   } else if (param1 && typeof param1 === 'object') {
-    if (param1.Scope) body.Scope = param1.Scope
-    if (param1.OnlyAttached !== undefined) body.OnlyAttached = param1.OnlyAttached
+    if (param1.Scope) params.set('Scope', param1.Scope)
+    if (param1.OnlyAttached !== undefined) params.set('OnlyAttached', String(param1.OnlyAttached))
   }
-  
-  const response = await iamRequest('ListPolicies', body)
-  // Map Arn to PolicyArn to match the interface, handle both lowercase and uppercase
-  const policies = (response.Policies || response.policies || []).map((p: any) => ({
+
+  const qs = params.toString()
+  const url = qs ? `${api}/iam/policies?${qs}` : `${api}/iam/policies`
+  const res = await fetch(url)
+  if (!res.ok) throw new APIError(`List policies failed`, res.status, 'iam')
+
+  const data = await res.json()
+  const policies = (data.Policies || data.policies || []).map((p: any) => ({
     ...p,
     PolicyArn: p.Arn || p.PolicyArn,
   }))
   return {
     Policies: policies,
-    IsTruncated: response.IsTruncated || response.isTruncated || false,
-    Marker: response.Marker || response.marker,
+    IsTruncated: data.IsTruncated || data.isTruncated || false,
+    Marker: data.Marker || data.marker,
   }
 }
 
 export async function getPolicy(PolicyArn: string): Promise<any> {
-  return iamRequest('GetPolicy', { PolicyArn })
+  const res = await fetch(`${api}/iam/policies/get`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ PolicyArn }),
+  })
+  if (!res.ok) throw new APIError(`Get policy failed`, res.status, 'iam')
+  return res.json()
+}
+
+export async function createPolicy(input: CreatePolicyInput): Promise<any> {
+  const res = await fetch(`${api}/iam/policies`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  if (!res.ok) throw new APIError(`Create policy failed`, res.status, 'iam')
+  return res.json()
+}
+
+export async function deletePolicy(PolicyArn: string): Promise<void> {
+  const res = await fetch(`${api}/iam/policies/delete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ PolicyArn }),
+  })
+  if (!res.ok) throw new APIError(`Delete policy failed`, res.status, 'iam')
 }
 
 // Access Key operations
 export async function createAccessKey(UserName: string): Promise<any> {
-  return iamRequest('CreateAccessKey', { UserName })
+  const res = await fetch(`${api}/iam/access-keys`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ UserName }),
+  })
+  if (!res.ok) throw new APIError(`Create access key failed`, res.status, 'iam')
+  return res.json()
 }
 
 export async function listAccessKeys(UserName?: string): Promise<any> {
-  return iamRequest('ListAccessKeys', { UserName })
+  const url = UserName
+    ? `${api}/iam/access-keys?UserName=${encodeURIComponent(UserName)}`
+    : `${api}/iam/access-keys`
+  const res = await fetch(url)
+  if (!res.ok) throw new APIError(`List access keys failed`, res.status, 'iam')
+  return res.json()
 }
 
 export async function deleteAccessKey(AccessKeyId: string, UserName?: string): Promise<void> {
-  return iamRequest('DeleteAccessKey', { AccessKeyId, UserName })
+  const res = await fetch(`${api}/iam/access-keys/${encodeURIComponent(AccessKeyId)}`, { method: 'DELETE' })
+  if (!res.ok) throw new APIError(`Delete access key failed`, res.status, 'iam')
 }
 
 export async function updateAccessKeyStatus(AccessKeyId: string, Status: 'Active' | 'Inactive', UserName?: string): Promise<void> {
-  return iamRequest('UpdateAccessKeyStatus', { AccessKeyId, Status, UserName })
+  const res = await fetch(`${api}/iam/access-keys/${encodeURIComponent(AccessKeyId)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ Status, UserName }),
+  })
+  if (!res.ok) throw new APIError(`Update access key status failed`, res.status, 'iam')
 }
 
 // Role policy operations
 export async function attachRolePolicy(RoleName: string, PolicyArn: string): Promise<void> {
-  return iamRequest('AttachRolePolicy', { RoleName, PolicyArn })
+  const res = await fetch(`${api}/iam/roles/${encodeURIComponent(RoleName)}/policies`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ PolicyArn }),
+  })
+  if (!res.ok) throw new APIError(`Attach role policy failed`, res.status, 'iam')
 }
 
 export async function detachRolePolicy(RoleName: string, PolicyArn: string): Promise<void> {
-  return iamRequest('DetachRolePolicy', { RoleName, PolicyArn })
+  const res = await fetch(`${api}/iam/roles/${encodeURIComponent(RoleName)}/detach-policy`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ PolicyArn }),
+  })
+  if (!res.ok) throw new APIError(`Detach role policy failed`, res.status, 'iam')
 }
 
 export async function listAttachedRolePolicies(RoleName: string): Promise<any> {
-  return iamRequest('ListAttachedRolePolicies', { RoleName })
+  const res = await fetch(`${api}/iam/roles/${encodeURIComponent(RoleName)}/policies`)
+  if (!res.ok) throw new APIError(`List attached role policies failed`, res.status, 'iam')
+  return res.json()
 }
 
 // Group operations
 export async function createGroup(GroupName: string, Path?: string): Promise<IAMGroup> {
-  return iamRequest('CreateGroup', { GroupName, Path })
+  const res = await fetch(`${api}/iam/groups`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ GroupName, Path }),
+  })
+  if (!res.ok) throw new APIError(`Create group failed`, res.status, 'iam')
+  return res.json()
 }
 
 export async function getGroup(GroupName: string): Promise<{ Group: IAMGroup; Users?: IAMUser[]; IsTruncated: boolean }> {
-  return iamRequest('GetGroup', { GroupName })
+  const res = await fetch(`${api}/iam/groups/${encodeURIComponent(GroupName)}`)
+  if (!res.ok) throw new APIError(`Get group failed`, res.status, 'iam')
+  return res.json()
 }
 
 export async function listGroups(): Promise<{ Groups: IAMGroup[]; IsTruncated: boolean }> {
-  const response = await iamRequest('ListGroups', {})
+  const res = await fetch(`${api}/iam/groups`)
+  if (!res.ok) throw new APIError(`List groups failed`, res.status, 'iam')
+  const data = await res.json()
   return {
-    Groups: response.Groups || [],
-    IsTruncated: response.IsTruncated || false,
+    Groups: data.Groups || [],
+    IsTruncated: data.IsTruncated || false,
   }
 }
 
 export async function deleteGroup(GroupName: string): Promise<void> {
-  return iamRequest('DeleteGroup', { GroupName })
+  const res = await fetch(`${api}/iam/groups/${encodeURIComponent(GroupName)}`, { method: 'DELETE' })
+  if (!res.ok) throw new APIError(`Delete group failed`, res.status, 'iam')
 }
 
 export async function addUserToGroup(GroupName: string, UserName: string): Promise<void> {
-  return iamRequest('AddUserToGroup', { GroupName, UserName })
+  const res = await fetch(`${api}/iam/groups/${encodeURIComponent(GroupName)}/users`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ UserName }),
+  })
+  if (!res.ok) throw new APIError(`Add user to group failed`, res.status, 'iam')
 }
 
 export async function removeUserFromGroup(GroupName: string, UserName: string): Promise<void> {
-  return iamRequest('RemoveUserFromGroup', { GroupName, UserName })
+  const res = await fetch(`${api}/iam/groups/${encodeURIComponent(GroupName)}/users/${encodeURIComponent(UserName)}`, { method: 'DELETE' })
+  if (!res.ok) throw new APIError(`Remove user from group failed`, res.status, 'iam')
 }
 
 export async function listGroupsForUser(UserName: string): Promise<{ Groups: IAMGroup[]; IsTruncated: boolean }> {
-  const response = await iamRequest('ListGroupsForUser', { UserName })
+  const res = await fetch(`${api}/iam/users/${encodeURIComponent(UserName)}/groups`)
+  if (!res.ok) throw new APIError(`List groups for user failed`, res.status, 'iam')
+  const data = await res.json()
   return {
-    Groups: response.Groups || [],
-    IsTruncated: response.IsTruncated || false,
+    Groups: data.Groups || [],
+    IsTruncated: data.IsTruncated || false,
   }
 }
 
 export async function listUsersForGroup(GroupName: string): Promise<{ Users: any[]; IsTruncated: boolean }> {
-  const result = await iamRequest('GetGroup', { GroupName })
+  const res = await fetch(`${api}/iam/groups/${encodeURIComponent(GroupName)}/users`)
+  if (!res.ok) throw new APIError(`List users for group failed`, res.status, 'iam')
+  const data = await res.json()
   return {
-    Users: result.Users || [],
-    IsTruncated: result.IsTruncated || false,
+    Users: data.Users || [],
+    IsTruncated: data.IsTruncated || false,
   }
 }
 
 // Inline policy operations
 export async function listUserPolicies(UserName: string): Promise<any> {
-  return iamRequest('ListUserPolicies', { UserName })
+  const res = await fetch(`${api}/iam/users/${encodeURIComponent(UserName)}/policies`)
+  if (!res.ok) throw new APIError(`List user policies failed`, res.status, 'iam')
+  return res.json()
 }
 
 export async function listRolePolicies(RoleName: string): Promise<any> {
-  return iamRequest('ListRolePolicies', { RoleName })
+  const res = await fetch(`${api}/iam/roles/${encodeURIComponent(RoleName)}/inline-policies`)
+  if (!res.ok) throw new APIError(`List role policies failed`, res.status, 'iam')
+  return res.json()
 }
 
 export async function getRolePolicy(RoleName: string, PolicyName: string): Promise<any> {
-  return iamRequest('GetRolePolicy', { RoleName, PolicyName })
-}
-
-export async function deletePolicy(PolicyArn: string): Promise<void> {
-  return iamRequest('DeletePolicy', { PolicyArn })
+  const res = await fetch(`${api}/iam/roles/${encodeURIComponent(RoleName)}/policies/${encodeURIComponent(PolicyName)}`)
+  if (!res.ok) throw new APIError(`Get role policy failed`, res.status, 'iam')
+  return res.json()
 }
 
 export interface CreatePolicyInput {
   PolicyName: string
   PolicyDocument: string
   Description?: string
-}
-
-export async function createPolicy(input: CreatePolicyInput): Promise<any> {
-  return iamRequest('CreatePolicy', input)
 }

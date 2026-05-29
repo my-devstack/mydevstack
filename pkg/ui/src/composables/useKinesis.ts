@@ -248,7 +248,12 @@ export function useKinesis() {
       shardIterators.value.set(shard.ShardId, iteratorResult.ShardIterator)
 
       // Get records
-      const recordsResult = await kinesisApi.getRecords(iteratorResult.ShardIterator, { Limit: 100 })
+      const recordsResult = await kinesisApi.getRecords(
+        selectedStream.value.StreamName,
+        shard.ShardId,
+        iteratorResult.ShardIterator,
+        { Limit: 100 },
+      )
 
       records.value = recordsResult.Records.map((r: any) => ({
         SequenceNumber: r.SequenceNumber,

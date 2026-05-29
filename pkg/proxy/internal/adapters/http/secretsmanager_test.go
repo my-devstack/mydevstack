@@ -16,7 +16,8 @@ func TestSecretsManagerHandler(t *testing.T) {
 
 	type smCase struct {
 		name       string
-		target     string
+		method     string
+		path       string
 		body       string
 		setupMock  func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService)
 		wantStatus int
@@ -24,159 +25,150 @@ func TestSecretsManagerHandler(t *testing.T) {
 
 	cases := []smCase{
 		// ListSecrets
-		{name: "ListSecrets/success", target: "ListSecrets", body: "{}",
+		{name: "ListSecrets/success", method: "GET", path: "/secrets-manager/secrets", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().ListSecrets(mock.Anything, mock.Anything).Return(&secretsmanager.ListSecretsOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "ListSecrets/error", target: "ListSecrets", body: "{}",
+		{name: "ListSecrets/error", method: "GET", path: "/secrets-manager/secrets", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().ListSecrets(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "ListSecrets/parse-error", target: "ListSecrets", body: "{invalid}",
+		{name: "ListSecrets/parse-error", method: "GET", path: "/secrets-manager/secrets", body: "{invalid}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// CreateSecret
-		{name: "CreateSecret/success", target: "CreateSecret", body: "{}",
+		{name: "CreateSecret/success", method: "POST", path: "/secrets-manager/secrets", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().CreateSecret(mock.Anything, mock.Anything).Return(&secretsmanager.CreateSecretOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "CreateSecret/error", target: "CreateSecret", body: "{}",
+		{name: "CreateSecret/error", method: "POST", path: "/secrets-manager/secrets", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().CreateSecret(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "CreateSecret/parse-error", target: "CreateSecret", body: "{invalid}",
+		{name: "CreateSecret/parse-error", method: "POST", path: "/secrets-manager/secrets", body: "{invalid}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// GetSecretValue
-		{name: "GetSecretValue/success", target: "GetSecretValue", body: "{}",
+		{name: "GetSecretValue/success", method: "GET", path: "/secrets-manager/secrets/testsecret/value", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().GetSecretValue(mock.Anything, mock.Anything).Return(&secretsmanager.GetSecretValueOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "GetSecretValue/error", target: "GetSecretValue", body: "{}",
+		{name: "GetSecretValue/error", method: "GET", path: "/secrets-manager/secrets/testsecret/value", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().GetSecretValue(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "GetSecretValue/parse-error", target: "GetSecretValue", body: "{invalid}",
-			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
 
 		// PutSecretValue
-		{name: "PutSecretValue/success", target: "PutSecretValue", body: "{}",
+		{name: "PutSecretValue/success", method: "PUT", path: "/secrets-manager/secrets/testsecret/value", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().PutSecretValue(mock.Anything, mock.Anything).Return(&secretsmanager.PutSecretValueOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "PutSecretValue/error", target: "PutSecretValue", body: "{}",
+		{name: "PutSecretValue/error", method: "PUT", path: "/secrets-manager/secrets/testsecret/value", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().PutSecretValue(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "PutSecretValue/parse-error", target: "PutSecretValue", body: "{invalid}",
+		{name: "PutSecretValue/parse-error", method: "PUT", path: "/secrets-manager/secrets/testsecret/value", body: "{invalid}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// DeleteSecret
-		{name: "DeleteSecret/success", target: "DeleteSecret", body: "{}",
+		{name: "DeleteSecret/success", method: "DELETE", path: "/secrets-manager/secrets/testsecret", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().DeleteSecret(mock.Anything, mock.Anything).Return(&secretsmanager.DeleteSecretOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "DeleteSecret/error", target: "DeleteSecret", body: "{}",
+		{name: "DeleteSecret/error", method: "DELETE", path: "/secrets-manager/secrets/testsecret", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().DeleteSecret(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "DeleteSecret/parse-error", target: "DeleteSecret", body: "{invalid}",
+		{name: "DeleteSecret/parse-error", method: "DELETE", path: "/secrets-manager/secrets/testsecret", body: "{invalid}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// DescribeSecret
-		{name: "DescribeSecret/success", target: "DescribeSecret", body: "{}",
+		{name: "DescribeSecret/success", method: "GET", path: "/secrets-manager/secrets/testsecret", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().DescribeSecret(mock.Anything, mock.Anything).Return(&secretsmanager.DescribeSecretOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "DescribeSecret/error", target: "DescribeSecret", body: "{}",
+		{name: "DescribeSecret/error", method: "GET", path: "/secrets-manager/secrets/testsecret", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().DescribeSecret(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "DescribeSecret/parse-error", target: "DescribeSecret", body: "{invalid}",
-			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
 
 		// UpdateSecret
-		{name: "UpdateSecret/success", target: "UpdateSecret", body: "{}",
+		{name: "UpdateSecret/success", method: "PUT", path: "/secrets-manager/secrets/testsecret", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().UpdateSecret(mock.Anything, mock.Anything).Return(&secretsmanager.UpdateSecretOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "UpdateSecret/error", target: "UpdateSecret", body: "{}",
+		{name: "UpdateSecret/error", method: "PUT", path: "/secrets-manager/secrets/testsecret", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().UpdateSecret(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "UpdateSecret/parse-error", target: "UpdateSecret", body: "{invalid}",
+		{name: "UpdateSecret/parse-error", method: "PUT", path: "/secrets-manager/secrets/testsecret", body: "{invalid}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// RestoreSecret
-		{name: "RestoreSecret/success", target: "RestoreSecret", body: "{}",
+		{name: "RestoreSecret/success", method: "POST", path: "/secrets-manager/secrets/testsecret/restore", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().RestoreSecret(mock.Anything, mock.Anything).Return(&secretsmanager.RestoreSecretOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "RestoreSecret/error", target: "RestoreSecret", body: "{}",
+		{name: "RestoreSecret/error", method: "POST", path: "/secrets-manager/secrets/testsecret/restore", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().RestoreSecret(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "RestoreSecret/parse-error", target: "RestoreSecret", body: "{invalid}",
-			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
 
 		// RotateSecret
-		{name: "RotateSecret/success", target: "RotateSecret", body: "{}",
+		{name: "RotateSecret/success", method: "POST", path: "/secrets-manager/secrets/testsecret/rotate", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().RotateSecret(mock.Anything, mock.Anything).Return(&secretsmanager.RotateSecretOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "RotateSecret/error", target: "RotateSecret", body: "{}",
+		{name: "RotateSecret/error", method: "POST", path: "/secrets-manager/secrets/testsecret/rotate", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().RotateSecret(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "RotateSecret/parse-error", target: "RotateSecret", body: "{invalid}",
+		{name: "RotateSecret/parse-error", method: "POST", path: "/secrets-manager/secrets/testsecret/rotate", body: "{invalid}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// GetRandomPassword
-		{name: "GetRandomPassword/success", target: "GetRandomPassword", body: "{}",
+		{name: "GetRandomPassword/success", method: "POST", path: "/secrets-manager/random-password", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().GetRandomPassword(mock.Anything, mock.Anything).Return(&secretsmanager.GetRandomPasswordOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "GetRandomPassword/error", target: "GetRandomPassword", body: "{}",
+		{name: "GetRandomPassword/error", method: "POST", path: "/secrets-manager/random-password", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SecretsManager().Return(mp)
 				mp.EXPECT().GetRandomPassword(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "GetRandomPassword/parse-error", target: "GetRandomPassword", body: "{invalid}",
+		{name: "GetRandomPassword/parse-error", method: "POST", path: "/secrets-manager/random-password", body: "{invalid}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// Unknown Secrets Manager action
-		{name: "unknown action", target: "UnknownSecretsManagerAction", body: "{}",
+		{name: "unknown action", method: "GET", path: "/secrets-manager/unknown", body: "{}",
 			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
+			}, wantStatus: http.StatusNotFound},
 	}
 
 	for _, tc := range cases {
@@ -191,8 +183,8 @@ func TestSecretsManagerHandler(t *testing.T) {
 			handler := createHandler(svc, versionSvc)
 			r := setupTestRouter(handler)
 
-			w := performRequest(r, "POST", "/secretsmanager/", tc.target, []byte(tc.body))
-			assert.Equal(t, tc.wantStatus, w.Code, "target=%q body=%q response=%s", tc.target, tc.body, w.Body.String())
+			w := performRequest(r, tc.method, tc.path, []byte(tc.body))
+			assert.Equal(t, tc.wantStatus, w.Code, "method=%q path=%q body=%q response=%s", tc.method, tc.path, tc.body, w.Body.String())
 		})
 	}
 }

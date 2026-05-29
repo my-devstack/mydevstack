@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/application"
@@ -20,10 +19,9 @@ func main() {
 	defer stopFn()
 	wg, ctx := errgroup.WithContext(ctx)
 
-	cfg, err := loadConfig()
+	cfg, err := configloader.LoadConfig(ctx)
 	if err != nil {
-		log.Printf("Warning: Could not load config from files, using defaults: %v", err)
-		cfg = defaultConfig()
+		log.Fatalf("Warning: Could not load config from files, using defaults: %v", err)
 	}
 
 	// set up the dependency injection container and initialize all services
@@ -85,38 +83,4 @@ func main() {
 		log.Fatalf("application stopped with error: %v", err)
 	}
 	log.Print("application stopped")
-}
-
-func loadConfig() (*configloader.Config, error) {
-	return configloader.LoadConfig(context.Background())
-}
-
-// deprecated: will be removed in favor of loading from config files. This is only used as a fallback if config loading fails, and is not intended to be used directly in tests.
-func defaultConfig() *configloader.Config {
-	githubRepo := getEnv("GITHUB_REPO", "https://github.com/my-devstack/mydevstack")
-	versionCheckHours := 24
-	if v := os.Getenv("VERSION_CHECK_HOURS"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil {
-			versionCheckHours = n
-		}
-	}
-
-	return &configloader.Config{
-		Port: getEnv("PROXY_PORT", "8081"),
-		AWS: configloader.AWSProxyConfig{
-			Endpoint:  getEnv("AWS_ENDPOINT", "http://localhost:4566"),
-			AccessKey: getEnv("AWS_ACCESS_KEY", "test"),
-			SecretKey: getEnv("AWS_SECRET_KEY", "test"),
-		},
-		ServicePattern:    getEnv("SERVICE_PATTERN", "root"),
-		GitHubRepo:        githubRepo,
-		VersionCheckHours: versionCheckHours,
-	}
-}
-
-func getEnv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
 }

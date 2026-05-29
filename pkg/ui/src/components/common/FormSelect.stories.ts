@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import FormSelect from './FormSelect.vue';
 import type { Option } from './FormSelect.vue';
 

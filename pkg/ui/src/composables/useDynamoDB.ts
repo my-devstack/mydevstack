@@ -84,8 +84,8 @@ export function useDynamoDB() {
       { AttributeName: form.partitionKeyName, AttributeType: form.partitionKeyType },
     ]
 
-    const keySchema = [
-      { AttributeName: form.partitionKeyName, KeyType: 'HASH' as const },
+    const keySchema: Array<{ AttributeName: string; KeyType: 'HASH' | 'RANGE' }> = [
+      { AttributeName: form.partitionKeyName, KeyType: 'HASH' },
     ]
 
     if (form.hasSortKey && form.sortKeyName.trim()) {
@@ -131,12 +131,12 @@ export function useDynamoDB() {
   }
 
   async function putItem(tableName: string, item: Record<string, any>) {
-    await dbPutItem({ TableName: tableName, Item: item })
+    await dbPutItem(tableName, item)
     toast.success('Item added')
   }
 
   async function deleteItem(tableName: string, key: Record<string, any>) {
-    await dbDeleteItem({ TableName: tableName, Key: key })
+    await dbDeleteItem(tableName, key)
     toast.success('Item deleted')
   }
 
@@ -148,7 +148,7 @@ export function useDynamoDB() {
       ExpressionAttributeNames?: Record<string, string>
     }
   ) {
-    return await query({ TableName: tableName, ...params })
+    return await query(tableName, params)
   }
 
   async function scanTable(
@@ -162,7 +162,7 @@ export function useDynamoDB() {
       ExclusiveStartKey?: Record<string, any>
     }
   ) {
-    return await scan({ TableName: tableName, ...params })
+    return await scan(tableName, params)
   }
 
   function getKeyTypeLabel(type: string): string {
@@ -225,9 +225,9 @@ export function useDynamoDB() {
     }
   }
 
-  async function getRecordsFromShard(shardIterator: string) {
+  async function getRecordsFromShard(streamArn: string, shardId: string, shardIterator: string) {
     try {
-      const records = await getRecords(shardIterator)
+      const records = await getRecords(streamArn, shardId, shardIterator)
       return records.Records || []
     } catch (e: any) {
       toast.error('Failed to get records')
@@ -253,11 +253,11 @@ export function useDynamoDB() {
     scanLoading.value = true
     scanError.value = null
     try {
-      const result = await scan({
-        TableName: tableName,
+      const result = await scan(tableName, {
         FilterExpression: options?.filter,
         ExpressionAttributeValues: options?.values,
         ExpressionAttributeNames: options?.names,
+        ProjectionExpression: undefined,
         Limit: options?.limit,
         ExclusiveStartKey: options?.startKey,
       })
@@ -287,11 +287,12 @@ export function useDynamoDB() {
     scanLoading.value = true
     scanError.value = null
     try {
-      const result = await query({
-        TableName: tableName,
+      const result = await query(tableName, {
         KeyConditionExpression: options.keyCondition,
         ExpressionAttributeValues: options.values,
         ExpressionAttributeNames: options.names,
+        ProjectionExpression: undefined,
+        ScanIndexForward: undefined,
         Limit: options.limit,
         ExclusiveStartKey: options.startKey,
       })

@@ -2,11 +2,15 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
 )
 
@@ -14,13 +18,40 @@ type SQSAdapter struct {
 	client ports.SQSClientPort
 }
 
-func NewSQSAdapter(awsCfg aws.Config, endpoint string) ports.SQSPort {
+func NewSQSAdapter(awsCfg aws.Config, endpoint string, emulator string) ports.SQSPort {
 	httpClient := &http.Client{Timeout: 30 * time.Second}
 	client := sqs.NewFromConfig(awsCfg, func(o *sqs.Options) {
 		o.BaseEndpoint = aws.String(endpoint)
 		o.HTTPClient = httpClient
+		// Only use fixed endpoint resolver when emulator is explicitly set to
+		// something other than "aws" (e.g., "floci", "localstack").
+		// Local mocks expect all SQS actions at a single root endpoint, not at
+		// the queue URL host.
+		if strings.ToLower(emulator) != "aws" {
+			o.EndpointResolverV2 = &fixedEndpointResolver{endpoint: endpoint}
+		}
 	})
 	return &SQSAdapter{client: client}
+}
+
+// fixedEndpointResolver forces all SQS requests to the configured endpoint,
+// ignoring any QueueUrl-based routing that the SDK would normally use.
+type fixedEndpointResolver struct {
+	endpoint string
+}
+
+func (f *fixedEndpointResolver) ResolveEndpoint(ctx context.Context, params sqs.EndpointParameters) (smithyendpoints.Endpoint, error) {
+	return smithyendpoints.Endpoint{
+		URI: mustParseURI(f.endpoint),
+	}, nil
+}
+
+func mustParseURI(s string) url.URL {
+	u, err := url.Parse(s)
+	if err != nil {
+		panic(fmt.Sprintf("failed to parse endpoint URL %q: %v", s, err))
+	}
+	return *u
 }
 
 func (a *SQSAdapter) ListQueues(ctx context.Context, input *sqs.ListQueuesInput) (*sqs.ListQueuesOutput, error) {

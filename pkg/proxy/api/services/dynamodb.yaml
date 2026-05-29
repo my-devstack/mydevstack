@@ -1,0 +1,1362 @@
+openapi: 3.0.0
+info:
+  title: "DynamoDB"
+  version: "1.0.0"
+
+paths:
+  /dynamodb/tables:
+    post:
+      tags: [DynamoDB]
+      summary: Create table
+      description: |
+        Creates a new DynamoDB table. Requires AttributeDefinitions,
+        TableName, and KeySchema. Accepts both camelCase and TitleCase JSON keys.
+      operationId: createTable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTableInput'
+      responses:
+        "200":
+          description: Table created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTableOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [DynamoDB]
+      summary: List tables
+      description: |
+        Returns a list of all DynamoDB tables associated with the account.
+        Supports pagination via ExclusiveStartTableName and Limit parameters.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listTables
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListTablesInput'
+      responses:
+        "200":
+          description: List of tables
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTablesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /dynamodb/tables/{tableName}:
+    get:
+      tags: [DynamoDB]
+      summary: Describe table
+      description: |
+        Returns information about the table, including the current status,
+        schema, and metadata.
+      operationId: describeTable
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
+      responses:
+        "200":
+          description: Table details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeTableOutput'
+        "400":
+          description: Invalid table name format
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [DynamoDB]
+      summary: Update table
+      description: |
+        Modifies the settings (e.g., provisioned throughput, stream spec,
+        SSE) of an existing table. Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateTable
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTableInput'
+      responses:
+        "200":
+          description: Table updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateTableOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [DynamoDB]
+      summary: Delete table
+      description: |
+        Deletes an entire DynamoDB table and all of its items.
+      operationId: deleteTable
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
+      responses:
+        "200":
+          description: Table deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteTableOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /dynamodb/tables/{tableName}/items:
+    post:
+      tags: [DynamoDB]
+      summary: Put item
+      description: |
+        Creates or replaces an item in a DynamoDB table.
+        Uses custom AttributeValue conversion supporting both explicit DynamoDB
+        format ({"S": "value"}) and simplified JSON format.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putItem
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutItemRequest'
+      responses:
+        "200":
+          description: Item stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PutItemOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [DynamoDB]
+      summary: Delete item (key in body)
+      description: |
+        Deletes a single item from a DynamoDB table by its key.
+        Key is sent in the request body (preferred over URL-encoded path param).
+        Uses custom AttributeValue conversion for the Key field.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: deleteItem
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteItemRequest'
+      responses:
+        "200":
+          description: Item deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteItemOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /dynamodb/tables/{tableName}/items/{key}:
+    get:
+      tags: [DynamoDB]
+      summary: Get item
+      description: |
+        Retrieves a single item from a DynamoDB table by its key.
+        Uses custom AttributeValue conversion for the Key field.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getItem
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
+        - name: key
+          in: path
+          required: true
+          schema: { type: string }
+          description: URL-encoded primary key value (deprecated; use body Key field instead)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetItemRequest'
+      responses:
+        "200":
+          description: Item retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetItemOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [DynamoDB]
+      summary: Delete item
+      description: |
+        Deletes a single item from a DynamoDB table by its key.
+        Uses custom AttributeValue conversion for the Key field.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: deleteItem
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
+        - name: key
+          in: path
+          required: true
+          schema: { type: string }
+          description: URL-encoded primary key value (deprecated; use body Key field instead)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteItemRequest'
+      responses:
+        "200":
+          description: Item deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteItemOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [DynamoDB]
+      summary: Update item
+      description: |
+        Edits an existing item's attributes in a DynamoDB table.
+        Uses custom AttributeValue conversion for the Key field.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateItem
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
+        - name: key
+          in: path
+          required: true
+          schema: { type: string }
+          description: URL-encoded primary key value (deprecated; use body Key field instead)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateItemRequest'
+      responses:
+        "200":
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateItemOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /dynamodb/tables/{tableName}/query:
+    post:
+      tags: [DynamoDB]
+      summary: Query table
+      description: |
+        Queries a DynamoDB table using key conditions.
+        Uses custom AttributeValue conversion for ExclusiveStartKey.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: queryTable
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+      responses:
+        "200":
+          description: Query results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /dynamodb/tables/{tableName}/scan:
+    post:
+      tags: [DynamoDB]
+      summary: Scan table
+      description: |
+        Scans an entire DynamoDB table or a subset of items.
+        Uses custom AttributeValue conversion for ExclusiveStartKey.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: scanTable
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScanRequest'
+      responses:
+        "200":
+          description: Scan results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /dynamodb/batch-write-item:
+    post:
+      tags: [DynamoDB]
+      summary: Batch write item
+      description: |
+        Performs multiple PutItem and/or DeleteItem operations on multiple
+        tables in a single API call. Accepts both camelCase and TitleCase JSON keys.
+      operationId: batchWriteItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchWriteItemInput'
+      responses:
+        "200":
+          description: Batch write results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchWriteItemOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /dynamodb/batch-get-item:
+    post:
+      tags: [DynamoDB]
+      summary: Batch get item
+      description: |
+        Retrieves multiple items from one or more tables in a single API call.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: batchGetItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchGetItemInput'
+      responses:
+        "200":
+          description: Batch get results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchGetItemOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /dynamodb/tables/{tableName}/ttl:
+    get:
+      tags: [DynamoDB]
+      summary: Describe Time To Live
+      description: |
+        Returns the Time To Live (TTL) configuration for the specified table.
+      operationId: describeTimeToLive
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
+      responses:
+        "200":
+          description: TTL configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeTimeToLiveOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [DynamoDB]
+      summary: Update Time To Live
+      description: |
+        Enables or disables Time To Live (TTL) for the specified table.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateTimeToLive
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTimeToLiveInput'
+      responses:
+        "200":
+          description: TTL updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateTimeToLiveOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # AttributeValue — core recursive type for DynamoDB items
+    # Supports both explicit DynamoDB format and simplified JSON
+    # ============================================================
+    AttributeValue:
+      description: Represents a DynamoDB AttributeValue. Supports explicit format ({"S":"value"}) and simplified (scalar values converted automatically).
+      oneOf:
+        - type: object
+          properties:
+            S:
+              type: string
+          description: String attribute
+        - type: object
+          properties:
+            N:
+              type: string
+          description: Number attribute (stored as string)
+        - type: object
+          properties:
+            B:
+              type: string
+              format: byte
+          description: Binary attribute
+        - type: object
+          properties:
+            BOOL:
+              type: boolean
+          description: Boolean attribute
+        - type: object
+          properties:
+            NULL:
+              type: boolean
+          description: Null attribute
+        - type: object
+          properties:
+            M:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/AttributeValue'
+          description: Map attribute
+        - type: object
+          properties:
+            L:
+              type: array
+              items:
+                $ref: '#/components/schemas/AttributeValue'
+          description: List attribute
+        - type: object
+          properties:
+            SS:
+              type: array
+              items: { type: string }
+          description: String set attribute
+        - type: object
+          properties:
+            NS:
+              type: array
+              items: { type: string }
+          description: Number set attribute
+        - type: object
+          properties:
+            BS:
+              type: array
+              items: { type: string, format: byte }
+          description: Binary set attribute
+
+    # ============================================================
+    # Sub-types used by table operations
+    # ============================================================
+    ScalarAttributeType:
+      type: string
+      enum: [S, N, B]
+      description: Attribute type — S (string), N (number), B (binary)
+
+    KeyType:
+      type: string
+      enum: [HASH, RANGE]
+      description: Key type — HASH (partition key) or RANGE (sort key)
+
+    AttributeDefinition:
+      type: object
+      required: [AttributeName, AttributeType]
+      properties:
+        AttributeName:
+          type: string
+          description: Name of the attribute
+        AttributeType:
+          $ref: '#/components/schemas/ScalarAttributeType'
+
+    KeySchemaElement:
+      type: object
+      required: [AttributeName, KeyType]
+      properties:
+        AttributeName:
+          type: string
+          description: Name of the key attribute
+        KeyType:
+          $ref: '#/components/schemas/KeyType'
+
+    ProvisionedThroughput:
+      type: object
+      required: [ReadCapacityUnits, WriteCapacityUnits]
+      properties:
+        ReadCapacityUnits:
+          type: integer
+          format: int64
+          description: Maximum number of strongly consistent reads per second
+        WriteCapacityUnits:
+          type: integer
+          format: int64
+          description: Maximum number of writes per second
+
+    BillingMode:
+      type: string
+      enum: [PROVISIONED, PAY_PER_REQUEST]
+      description: Controls how you are charged for read/write throughput
+
+    TableClass:
+      type: string
+      enum: [STANDARD, STANDARD_INFREQUENT_ACCESS]
+      description: The table class of the table
+
+    StreamSpecification:
+      type: object
+      properties:
+        StreamEnabled:
+          type: boolean
+        StreamViewType:
+          type: string
+          enum: [NEW_IMAGE, OLD_IMAGE, NEW_AND_OLD_IMAGES, KEYS_ONLY]
+
+    SSESpecification:
+      type: object
+      properties:
+        Enabled:
+          type: boolean
+        SSEType:
+          type: string
+          enum: [AES256, KMS]
+        KMSMasterKeyId:
+          type: string
+
+    Tag:
+      type: object
+      required: [Key, Value]
+      properties:
+        Key:
+          type: string
+        Value:
+          type: string
+
+    Projection:
+      type: object
+      properties:
+        ProjectionType:
+          type: string
+          enum: [ALL, KEYS_ONLY, INCLUDE]
+        NonKeyAttributes:
+          type: array
+          items: { type: string }
+
+    GlobalSecondaryIndex:
+      type: object
+      required: [IndexName, KeySchema, Projection]
+      properties:
+        IndexName:
+          type: string
+        KeySchema:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeySchemaElement'
+        Projection:
+          $ref: '#/components/schemas/Projection'
+        ProvisionedThroughput:
+          $ref: '#/components/schemas/ProvisionedThroughput'
+
+    LocalSecondaryIndex:
+      type: object
+      required: [IndexName, KeySchema, Projection]
+      properties:
+        IndexName:
+          type: string
+        KeySchema:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeySchemaElement'
+        Projection:
+          $ref: '#/components/schemas/Projection'
+
+    # ============================================================
+    # Table description (response type)
+    # ============================================================
+    TableDescription:
+      type: object
+      properties:
+        AttributeDefinitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttributeDefinition'
+        TableName:
+          type: string
+        KeySchema:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeySchemaElement'
+        TableStatus:
+          type: string
+          enum: [CREATING, UPDATING, DELETING, ACTIVE, INACCESSIBLE_ENCRYPTION_CREDENTIALS, ARCHIVING, ARCHIVED]
+        CreationDateTime:
+          type: string
+          format: date-time
+        ProvisionedThroughput:
+          $ref: '#/components/schemas/ProvisionedThroughput'
+        TableSizeBytes:
+          type: integer
+          format: int64
+        ItemCount:
+          type: integer
+          format: int64
+        TableArn:
+          type: string
+        TableId:
+          type: string
+        TableClassSummary:
+          type: object
+          properties:
+            TableClass:
+              $ref: '#/components/schemas/TableClass'
+        BillingModeSummary:
+          type: object
+          properties:
+            BillingMode:
+              $ref: '#/components/schemas/BillingMode'
+            LastUpdateToPayPerRequestDateTime:
+              type: string
+              format: date-time
+        LocalSecondaryIndexes:
+          type: array
+          items:
+            type: object
+            properties:
+              IndexName:
+                type: string
+              KeySchema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KeySchemaElement'
+              Projection:
+                $ref: '#/components/schemas/Projection'
+              IndexSizeBytes:
+                type: integer
+                format: int64
+              ItemCount:
+                type: integer
+                format: int64
+              IndexArn:
+                type: string
+        GlobalSecondaryIndexes:
+          type: array
+          items:
+            type: object
+            properties:
+              IndexName:
+                type: string
+              KeySchema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KeySchemaElement'
+              Projection:
+                $ref: '#/components/schemas/Projection'
+              IndexStatus:
+                type: string
+                enum: [CREATING, UPDATING, DELETING, ACTIVE]
+              ProvisionedThroughput:
+                $ref: '#/components/schemas/ProvisionedThroughput'
+              IndexSizeBytes:
+                type: integer
+                format: int64
+              ItemCount:
+                type: integer
+                format: int64
+              IndexArn:
+                type: string
+        StreamSpecification:
+          $ref: '#/components/schemas/StreamSpecification'
+        LatestStreamArn:
+          type: string
+        LatestStreamLabel:
+          type: string
+        SSEDescription:
+          type: object
+          properties:
+            Status:
+              type: string
+              enum: [ENABLING, ENABLED, DISABLING, DISABLED, UPDATING]
+            SSEType:
+              type: string
+              enum: [AES256, KMS]
+            KMSMasterKeyArn:
+              type: string
+        DeletionProtectionEnabled:
+          type: boolean
+        OnDemandThroughput:
+          type: object
+          properties:
+            MaxReadRequestUnits:
+              type: integer
+              format: int64
+            MaxWriteRequestUnits:
+              type: integer
+              format: int64
+        MultiRegionConsistency:
+          type: string
+          enum: [EVENTUAL, STRONG]
+
+    # ============================================================
+    # Input / Output types for table operations
+    # ============================================================
+    CreateTableInput:
+      type: object
+      required: [AttributeDefinitions, TableName, KeySchema]
+      properties:
+        AttributeDefinitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttributeDefinition'
+        TableName:
+          type: string
+        KeySchema:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeySchemaElement'
+        LocalSecondaryIndexes:
+          type: array
+          items:
+            $ref: '#/components/schemas/LocalSecondaryIndex'
+        GlobalSecondaryIndexes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GlobalSecondaryIndex'
+        BillingMode:
+          $ref: '#/components/schemas/BillingMode'
+        ProvisionedThroughput:
+          $ref: '#/components/schemas/ProvisionedThroughput'
+        StreamSpecification:
+          $ref: '#/components/schemas/StreamSpecification'
+        SSESpecification:
+          $ref: '#/components/schemas/SSESpecification'
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        TableClass:
+          $ref: '#/components/schemas/TableClass'
+        DeletionProtectionEnabled:
+          type: boolean
+        ResourcePolicy:
+          type: string
+
+    CreateTableOutput:
+      type: object
+      properties:
+        TableDescription:
+          $ref: '#/components/schemas/TableDescription'
+
+    ListTablesInput:
+      type: object
+      properties:
+        ExclusiveStartTableName:
+          type: string
+        Limit:
+          type: integer
+          format: int32
+          description: Maximum number of tables to return
+
+    ListTablesOutput:
+      type: object
+      properties:
+        TableNames:
+          type: array
+          items: { type: string }
+        LastEvaluatedTableName:
+          type: string
+
+    DescribeTableOutput:
+      type: object
+      properties:
+        Table:
+          $ref: '#/components/schemas/TableDescription'
+
+    UpdateTableInput:
+      type: object
+      properties:
+        AttributeDefinitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttributeDefinition'
+        BillingMode:
+          $ref: '#/components/schemas/BillingMode'
+        GlobalSecondaryIndexes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GlobalSecondaryIndex'
+        ProvisionedThroughput:
+          $ref: '#/components/schemas/ProvisionedThroughput'
+        StreamSpecification:
+          $ref: '#/components/schemas/StreamSpecification'
+        SSESpecification:
+          $ref: '#/components/schemas/SSESpecification'
+        TableClass:
+          $ref: '#/components/schemas/TableClass'
+        DeletionProtectionEnabled:
+          type: boolean
+
+    UpdateTableOutput:
+      type: object
+      properties:
+        TableDescription:
+          $ref: '#/components/schemas/TableDescription'
+
+    DeleteTableOutput:
+      type: object
+      properties:
+        TableDescription:
+          $ref: '#/components/schemas/TableDescription'
+
+    # ============================================================
+    # Custom request types for item operations (endpoints 6-11)
+    # These use the AttributeValue wrapper for Key/Item fields
+    # ============================================================
+    PutItemRequest:
+      type: object
+      description: Request body for PutItem. Item is a map of AttributeValues.
+      properties:
+        Item:
+          type: object
+          description: A map of attribute name to AttributeValue
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeValue'
+        ConditionExpression:
+          type: string
+        ReturnValues:
+          type: string
+          enum: [NONE, ALL_OLD, UPDATED_OLD, ALL_NEW, UPDATED_NEW]
+
+    PutItemOutput:
+      type: object
+      properties:
+        Attributes:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeValue'
+        ConsumedCapacity:
+          $ref: '#/components/schemas/ConsumedCapacity'
+        ItemCollectionMetrics:
+          $ref: '#/components/schemas/ItemCollectionMetrics'
+
+    GetItemRequest:
+      type: object
+      description: Request body for GetItem. Key is a map of AttributeValues.
+      properties:
+        Key:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeValue'
+        ConsistentRead:
+          type: boolean
+        ProjectionExpression:
+          type: string
+
+    GetItemOutput:
+      type: object
+      properties:
+        Item:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeValue'
+        ConsumedCapacity:
+          $ref: '#/components/schemas/ConsumedCapacity'
+
+    DeleteItemRequest:
+      type: object
+      description: Request body for DeleteItem. Key is a map of AttributeValues.
+      properties:
+        Key:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeValue'
+        ConditionExpression:
+          type: string
+        ReturnValues:
+          type: string
+          enum: [NONE, ALL_OLD, UPDATED_OLD, ALL_NEW, UPDATED_NEW]
+
+    DeleteItemOutput:
+      type: object
+      properties:
+        Attributes:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeValue'
+        ConsumedCapacity:
+          $ref: '#/components/schemas/ConsumedCapacity'
+        ItemCollectionMetrics:
+          $ref: '#/components/schemas/ItemCollectionMetrics'
+
+    UpdateItemRequest:
+      type: object
+      description: Request body for UpdateItem. Key is a map of AttributeValues.
+      properties:
+        Key:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeValue'
+        UpdateExpression:
+          type: string
+        ConditionExpression:
+          type: string
+        ReturnValues:
+          type: string
+          enum: [NONE, ALL_OLD, UPDATED_OLD, ALL_NEW, UPDATED_NEW]
+
+    UpdateItemOutput:
+      type: object
+      properties:
+        Attributes:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeValue'
+        ConsumedCapacity:
+          $ref: '#/components/schemas/ConsumedCapacity'
+        ItemCollectionMetrics:
+          $ref: '#/components/schemas/ItemCollectionMetrics'
+
+    QueryRequest:
+      type: object
+      description: Request body for Query.
+      properties:
+        KeyConditionExpression:
+          type: string
+        FilterExpression:
+          type: string
+        ProjectionExpression:
+          type: string
+        Limit:
+          type: integer
+          format: int32
+        ScanIndexForward:
+          type: boolean
+          description: true = ascending, false = descending
+        ExclusiveStartKey:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeValue'
+
+    QueryOutput:
+      type: object
+      properties:
+        Items:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/AttributeValue'
+        Count:
+          type: integer
+          format: int32
+        ScannedCount:
+          type: integer
+          format: int32
+        LastEvaluatedKey:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeValue'
+        ConsumedCapacity:
+          $ref: '#/components/schemas/ConsumedCapacity'
+
+    ScanRequest:
+      type: object
+      description: Request body for Scan.
+      properties:
+        Limit:
+          type: integer
+          format: int32
+        FilterExpression:
+          type: string
+        ProjectionExpression:
+          type: string
+        ExclusiveStartKey:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeValue'
+
+    ScanOutput:
+      type: object
+      properties:
+        Items:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/AttributeValue'
+        Count:
+          type: integer
+          format: int32
+        ScannedCount:
+          type: integer
+          format: int32
+        LastEvaluatedKey:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeValue'
+        ConsumedCapacity:
+          $ref: '#/components/schemas/ConsumedCapacity'
+
+    # ============================================================
+    # Batch operations
+    # ============================================================
+    WriteRequest:
+      type: object
+      properties:
+        PutRequest:
+          type: object
+          properties:
+            Item:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/AttributeValue'
+        DeleteRequest:
+          type: object
+          properties:
+            Key:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/AttributeValue'
+
+    BatchWriteItemInput:
+      type: object
+      properties:
+        RequestItems:
+          type: object
+          description: Map of table name to write requests
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/WriteRequest'
+        ReturnConsumedCapacity:
+          type: string
+          enum: [INDEXES, TOTAL, NONE]
+        ReturnItemCollectionMetrics:
+          type: string
+          enum: [SIZE, NONE]
+
+    BatchWriteItemOutput:
+      type: object
+      properties:
+        UnprocessedItems:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/WriteRequest'
+        ConsumedCapacity:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumedCapacity'
+        ItemCollectionMetrics:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/ItemCollectionMetrics'
+
+    KeysAndAttributes:
+      type: object
+      properties:
+        Keys:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/AttributeValue'
+        AttributesToGet:
+          type: array
+          items: { type: string }
+        ConsistentRead:
+          type: boolean
+        ProjectionExpression:
+          type: string
+
+    BatchGetItemInput:
+      type: object
+      properties:
+        RequestItems:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/KeysAndAttributes'
+        ReturnConsumedCapacity:
+          type: string
+          enum: [INDEXES, TOTAL, NONE]
+
+    BatchGetItemOutput:
+      type: object
+      properties:
+        Responses:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/AttributeValue'
+        UnprocessedKeys:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/KeysAndAttributes'
+        ConsumedCapacity:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumedCapacity'
+
+    # ============================================================
+    # TTL operations
+    # ============================================================
+    TimeToLiveSpecification:
+      type: object
+      required: [Enabled, AttributeName]
+      properties:
+        Enabled:
+          type: boolean
+        AttributeName:
+          type: string
+
+    UpdateTimeToLiveInput:
+      type: object
+      required: [TimeToLiveSpecification]
+      properties:
+        TimeToLiveSpecification:
+          $ref: '#/components/schemas/TimeToLiveSpecification'
+
+    UpdateTimeToLiveOutput:
+      type: object
+      properties:
+        TimeToLiveSpecification:
+          $ref: '#/components/schemas/TimeToLiveSpecification'
+
+    DescribeTimeToLiveOutput:
+      type: object
+      properties:
+        TimeToLiveDescription:
+          type: object
+          properties:
+            TimeToLiveStatus:
+              type: string
+              enum: [ENABLING, DISABLING, ENABLED, DISABLED]
+            AttributeName:
+              type: string
+
+    # ============================================================
+    # Shared utility types
+    # ============================================================
+    ConsumedCapacity:
+      type: object
+      properties:
+        TableName:
+          type: string
+        CapacityUnits:
+          type: number
+          format: double
+        ReadCapacityUnits:
+          type: number
+          format: double
+        WriteCapacityUnits:
+          type: number
+          format: double
+        Table:
+          type: object
+          properties:
+            ReadCapacityUnits:
+              type: number
+              format: double
+            WriteCapacityUnits:
+              type: number
+              format: double
+            CapacityUnits:
+              type: number
+              format: double
+
+    ItemCollectionMetrics:
+      type: object
+      properties:
+        ItemCollectionKey:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeValue'
+        SizeEstimateRangeGB:
+          type: array
+          items:
+            type: number
+            format: double

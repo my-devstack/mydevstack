@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"context"
 	"testing"
 
 	configloader "github.com/my-devstack/mydevstack/pkg/proxy/internal/config"
@@ -14,7 +15,7 @@ func TestNewProxyService(t *testing.T) {
 		},
 	}
 
-	svc := NewProxyService(cfg)
+	svc := NewProxyService(cfg, context.Background())
 
 	if svc == nil {
 		t.Fatal("NewProxyService returned nil")
@@ -34,7 +35,7 @@ func TestProxyService_Config(t *testing.T) {
 		},
 	}
 
-	svc := NewProxyService(cfg)
+	svc := NewProxyService(cfg, context.Background())
 
 	returnedCfg := svc.Config()
 	if returnedCfg != cfg {
@@ -44,7 +45,7 @@ func TestProxyService_Config(t *testing.T) {
 
 func TestProxyService_Region(t *testing.T) {
 	cfg := &configloader.Config{}
-	svc := NewProxyService(cfg)
+	svc := NewProxyService(cfg, context.Background())
 
 	region := svc.Region()
 	if region != "us-east-1" {
@@ -60,7 +61,7 @@ func TestProxyService_SetRegion(t *testing.T) {
 			Endpoint:  "http://localhost:4566",
 		},
 	}
-	svc := NewProxyService(cfg)
+	svc := NewProxyService(cfg, context.Background())
 
 	// SetRegion should trigger SetServices which requires valid AWS credentials
 	// For testing purposes, we just verify it doesn't panic with invalid credentials
@@ -72,7 +73,7 @@ func TestProxyService_SetRegion(t *testing.T) {
 
 func TestProxyService_ServiceGetters(t *testing.T) {
 	cfg := &configloader.Config{}
-	svc := NewProxyService(cfg)
+	svc := NewProxyService(cfg, context.Background())
 
 	// All service getters should return nil before SetServices is called
 	if svc.S3() != nil {

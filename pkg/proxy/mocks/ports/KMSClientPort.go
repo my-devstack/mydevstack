@@ -370,6 +370,172 @@ func (_c *KMSClientPort_DescribeKey_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// DisableKey provides a mock function for the type KMSClientPort
+func (_mock *KMSClientPort) DisableKey(ctx context.Context, input *kms.DisableKeyInput, opts ...func(*kms.Options)) (*kms.DisableKeyOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for DisableKey")
+	}
+
+	var r0 *kms.DisableKeyOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *kms.DisableKeyInput, ...func(*kms.Options)) (*kms.DisableKeyOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *kms.DisableKeyInput, ...func(*kms.Options)) *kms.DisableKeyOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*kms.DisableKeyOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *kms.DisableKeyInput, ...func(*kms.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// KMSClientPort_DisableKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisableKey'
+type KMSClientPort_DisableKey_Call struct {
+	*mock.Call
+}
+
+// DisableKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *kms.DisableKeyInput
+//   - opts ...func(*kms.Options)
+func (_e *KMSClientPort_Expecter) DisableKey(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_DisableKey_Call {
+	return &KMSClientPort_DisableKey_Call{Call: _e.mock.On("DisableKey",
+		append([]interface{}{ctx, input}, opts...)...)}
+}
+
+func (_c *KMSClientPort_DisableKey_Call) Run(run func(ctx context.Context, input *kms.DisableKeyInput, opts ...func(*kms.Options))) *KMSClientPort_DisableKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *kms.DisableKeyInput
+		if args[1] != nil {
+			arg1 = args[1].(*kms.DisableKeyInput)
+		}
+		var arg2 []func(*kms.Options)
+		var variadicArgs []func(*kms.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*kms.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *KMSClientPort_DisableKey_Call) Return(disableKeyOutput *kms.DisableKeyOutput, err error) *KMSClientPort_DisableKey_Call {
+	_c.Call.Return(disableKeyOutput, err)
+	return _c
+}
+
+func (_c *KMSClientPort_DisableKey_Call) RunAndReturn(run func(ctx context.Context, input *kms.DisableKeyInput, opts ...func(*kms.Options)) (*kms.DisableKeyOutput, error)) *KMSClientPort_DisableKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// EnableKey provides a mock function for the type KMSClientPort
+func (_mock *KMSClientPort) EnableKey(ctx context.Context, input *kms.EnableKeyInput, opts ...func(*kms.Options)) (*kms.EnableKeyOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnableKey")
+	}
+
+	var r0 *kms.EnableKeyOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *kms.EnableKeyInput, ...func(*kms.Options)) (*kms.EnableKeyOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *kms.EnableKeyInput, ...func(*kms.Options)) *kms.EnableKeyOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*kms.EnableKeyOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *kms.EnableKeyInput, ...func(*kms.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// KMSClientPort_EnableKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnableKey'
+type KMSClientPort_EnableKey_Call struct {
+	*mock.Call
+}
+
+// EnableKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *kms.EnableKeyInput
+//   - opts ...func(*kms.Options)
+func (_e *KMSClientPort_Expecter) EnableKey(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_EnableKey_Call {
+	return &KMSClientPort_EnableKey_Call{Call: _e.mock.On("EnableKey",
+		append([]interface{}{ctx, input}, opts...)...)}
+}
+
+func (_c *KMSClientPort_EnableKey_Call) Run(run func(ctx context.Context, input *kms.EnableKeyInput, opts ...func(*kms.Options))) *KMSClientPort_EnableKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *kms.EnableKeyInput
+		if args[1] != nil {
+			arg1 = args[1].(*kms.EnableKeyInput)
+		}
+		var arg2 []func(*kms.Options)
+		var variadicArgs []func(*kms.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*kms.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *KMSClientPort_EnableKey_Call) Return(enableKeyOutput *kms.EnableKeyOutput, err error) *KMSClientPort_EnableKey_Call {
+	_c.Call.Return(enableKeyOutput, err)
+	return _c
+}
+
+func (_c *KMSClientPort_EnableKey_Call) RunAndReturn(run func(ctx context.Context, input *kms.EnableKeyInput, opts ...func(*kms.Options)) (*kms.EnableKeyOutput, error)) *KMSClientPort_EnableKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Encrypt provides a mock function for the type KMSClientPort
 func (_mock *KMSClientPort) Encrypt(ctx context.Context, input *kms.EncryptInput, opts ...func(*kms.Options)) (*kms.EncryptOutput, error) {
 	var tmpRet mock.Arguments
@@ -619,6 +785,89 @@ func (_c *KMSClientPort_GenerateRandom_Call) RunAndReturn(run func(ctx context.C
 	return _c
 }
 
+// GetKeyPolicy provides a mock function for the type KMSClientPort
+func (_mock *KMSClientPort) GetKeyPolicy(ctx context.Context, input *kms.GetKeyPolicyInput, opts ...func(*kms.Options)) (*kms.GetKeyPolicyOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetKeyPolicy")
+	}
+
+	var r0 *kms.GetKeyPolicyOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *kms.GetKeyPolicyInput, ...func(*kms.Options)) (*kms.GetKeyPolicyOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *kms.GetKeyPolicyInput, ...func(*kms.Options)) *kms.GetKeyPolicyOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*kms.GetKeyPolicyOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *kms.GetKeyPolicyInput, ...func(*kms.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// KMSClientPort_GetKeyPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetKeyPolicy'
+type KMSClientPort_GetKeyPolicy_Call struct {
+	*mock.Call
+}
+
+// GetKeyPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *kms.GetKeyPolicyInput
+//   - opts ...func(*kms.Options)
+func (_e *KMSClientPort_Expecter) GetKeyPolicy(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_GetKeyPolicy_Call {
+	return &KMSClientPort_GetKeyPolicy_Call{Call: _e.mock.On("GetKeyPolicy",
+		append([]interface{}{ctx, input}, opts...)...)}
+}
+
+func (_c *KMSClientPort_GetKeyPolicy_Call) Run(run func(ctx context.Context, input *kms.GetKeyPolicyInput, opts ...func(*kms.Options))) *KMSClientPort_GetKeyPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *kms.GetKeyPolicyInput
+		if args[1] != nil {
+			arg1 = args[1].(*kms.GetKeyPolicyInput)
+		}
+		var arg2 []func(*kms.Options)
+		var variadicArgs []func(*kms.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*kms.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *KMSClientPort_GetKeyPolicy_Call) Return(getKeyPolicyOutput *kms.GetKeyPolicyOutput, err error) *KMSClientPort_GetKeyPolicy_Call {
+	_c.Call.Return(getKeyPolicyOutput, err)
+	return _c
+}
+
+func (_c *KMSClientPort_GetKeyPolicy_Call) RunAndReturn(run func(ctx context.Context, input *kms.GetKeyPolicyInput, opts ...func(*kms.Options)) (*kms.GetKeyPolicyOutput, error)) *KMSClientPort_GetKeyPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListKeys provides a mock function for the type KMSClientPort
 func (_mock *KMSClientPort) ListKeys(ctx context.Context, input *kms.ListKeysInput, opts ...func(*kms.Options)) (*kms.ListKeysOutput, error) {
 	var tmpRet mock.Arguments
@@ -698,6 +947,89 @@ func (_c *KMSClientPort_ListKeys_Call) Return(listKeysOutput *kms.ListKeysOutput
 }
 
 func (_c *KMSClientPort_ListKeys_Call) RunAndReturn(run func(ctx context.Context, input *kms.ListKeysInput, opts ...func(*kms.Options)) (*kms.ListKeysOutput, error)) *KMSClientPort_ListKeys_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ScheduleKeyDeletion provides a mock function for the type KMSClientPort
+func (_mock *KMSClientPort) ScheduleKeyDeletion(ctx context.Context, input *kms.ScheduleKeyDeletionInput, opts ...func(*kms.Options)) (*kms.ScheduleKeyDeletionOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for ScheduleKeyDeletion")
+	}
+
+	var r0 *kms.ScheduleKeyDeletionOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *kms.ScheduleKeyDeletionInput, ...func(*kms.Options)) (*kms.ScheduleKeyDeletionOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *kms.ScheduleKeyDeletionInput, ...func(*kms.Options)) *kms.ScheduleKeyDeletionOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*kms.ScheduleKeyDeletionOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *kms.ScheduleKeyDeletionInput, ...func(*kms.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// KMSClientPort_ScheduleKeyDeletion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ScheduleKeyDeletion'
+type KMSClientPort_ScheduleKeyDeletion_Call struct {
+	*mock.Call
+}
+
+// ScheduleKeyDeletion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *kms.ScheduleKeyDeletionInput
+//   - opts ...func(*kms.Options)
+func (_e *KMSClientPort_Expecter) ScheduleKeyDeletion(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_ScheduleKeyDeletion_Call {
+	return &KMSClientPort_ScheduleKeyDeletion_Call{Call: _e.mock.On("ScheduleKeyDeletion",
+		append([]interface{}{ctx, input}, opts...)...)}
+}
+
+func (_c *KMSClientPort_ScheduleKeyDeletion_Call) Run(run func(ctx context.Context, input *kms.ScheduleKeyDeletionInput, opts ...func(*kms.Options))) *KMSClientPort_ScheduleKeyDeletion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *kms.ScheduleKeyDeletionInput
+		if args[1] != nil {
+			arg1 = args[1].(*kms.ScheduleKeyDeletionInput)
+		}
+		var arg2 []func(*kms.Options)
+		var variadicArgs []func(*kms.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*kms.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *KMSClientPort_ScheduleKeyDeletion_Call) Return(scheduleKeyDeletionOutput *kms.ScheduleKeyDeletionOutput, err error) *KMSClientPort_ScheduleKeyDeletion_Call {
+	_c.Call.Return(scheduleKeyDeletionOutput, err)
+	return _c
+}
+
+func (_c *KMSClientPort_ScheduleKeyDeletion_Call) RunAndReturn(run func(ctx context.Context, input *kms.ScheduleKeyDeletionInput, opts ...func(*kms.Options)) (*kms.ScheduleKeyDeletionOutput, error)) *KMSClientPort_ScheduleKeyDeletion_Call {
 	_c.Call.Return(run)
 	return _c
 }

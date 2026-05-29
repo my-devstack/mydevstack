@@ -186,6 +186,10 @@ type KMSClientPort interface {
 	Decrypt(ctx context.Context, input *kms.DecryptInput, opts ...func(*kms.Options)) (*kms.DecryptOutput, error)
 	GenerateDataKey(ctx context.Context, input *kms.GenerateDataKeyInput, opts ...func(*kms.Options)) (*kms.GenerateDataKeyOutput, error)
 	GenerateRandom(ctx context.Context, input *kms.GenerateRandomInput, opts ...func(*kms.Options)) (*kms.GenerateRandomOutput, error)
+	GetKeyPolicy(ctx context.Context, input *kms.GetKeyPolicyInput, opts ...func(*kms.Options)) (*kms.GetKeyPolicyOutput, error)
+	EnableKey(ctx context.Context, input *kms.EnableKeyInput, opts ...func(*kms.Options)) (*kms.EnableKeyOutput, error)
+	DisableKey(ctx context.Context, input *kms.DisableKeyInput, opts ...func(*kms.Options)) (*kms.DisableKeyOutput, error)
+	ScheduleKeyDeletion(ctx context.Context, input *kms.ScheduleKeyDeletionInput, opts ...func(*kms.Options)) (*kms.ScheduleKeyDeletionOutput, error)
 }
 
 // LambdaClientPort defines the interface for the AWS Lambda client

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -28,28 +27,6 @@ func setupMSKTest(t *testing.T) (*mockports.ProxyService, *mockports.MSKPort, *P
 	return svc, mp, handler
 }
 
-func performMSKRequest(handler *ProxyHandler, target string, body []byte) *httptest.ResponseRecorder {
-	r := setupTestRouter(handler)
-	return performRequest(r, "POST", "/kafka/", target, body)
-}
-
-// ---------------------------------------------------------------------------
-// Unknown action – returns 404
-// ---------------------------------------------------------------------------
-
-func TestMSK_UnknownAction(t *testing.T) {
-	t.Parallel()
-	_, _, handler := setupMSKTest(t)
-
-	w := performMSKRequest(handler, "UnknownMSKAction", []byte(`{}`))
-	assert.Equal(t, http.StatusNotFound, w.Code)
-
-	var resp map[string]interface{}
-	err := json.Unmarshal(w.Body.Bytes(), &resp)
-	assert.NoError(t, err)
-	assert.Contains(t, resp["error"], "MSK operation not supported")
-}
-
 // ---------------------------------------------------------------------------
 // ListClustersV2
 // ---------------------------------------------------------------------------
@@ -68,7 +45,8 @@ func TestMSK_ListClustersV2_Success(t *testing.T) {
 	}
 	mp.EXPECT().ListClustersV2(mock.Anything, mock.Anything).Return(expected, nil)
 
-	w := performMSKRequest(handler, "ListClustersV2", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/msk/clusters", []byte(`{}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp kafka.ListClustersV2Output
@@ -84,7 +62,8 @@ func TestMSK_ListClustersV2_Error(t *testing.T) {
 
 	mp.EXPECT().ListClustersV2(mock.Anything, mock.Anything).Return(nil, errors.New("list clusters error"))
 
-	w := performMSKRequest(handler, "ListClustersV2", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/msk/clusters", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var resp map[string]interface{}
@@ -107,7 +86,8 @@ func TestMSK_DescribeClusterV2_Success(t *testing.T) {
 		},
 	}, nil)
 
-	w := performMSKRequest(handler, "DescribeClusterV2", []byte(`{"ClusterArn":"arn:aws:kafka:us-east-1:123:cluster/test"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/msk/clusters/testarn", []byte(`{"ClusterArn":"arn:aws:kafka:us-east-1:123:cluster/test"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp kafka.DescribeClusterV2Output
@@ -122,7 +102,8 @@ func TestMSK_DescribeClusterV2_Error(t *testing.T) {
 
 	mp.EXPECT().DescribeClusterV2(mock.Anything, mock.Anything).Return(nil, errors.New("describe cluster error"))
 
-	w := performMSKRequest(handler, "DescribeClusterV2", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/msk/clusters/testarn", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var resp map[string]interface{}
@@ -143,7 +124,8 @@ func TestMSK_CreateClusterV2_Success(t *testing.T) {
 		ClusterArn: aws.String("arn:aws:kafka:us-east-1:123:cluster/new-cluster"),
 	}, nil)
 
-	w := performMSKRequest(handler, "CreateClusterV2", []byte(`{"ClusterName":"new-cluster"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/msk/clusters", []byte(`{"ClusterName":"new-cluster"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp kafka.CreateClusterV2Output
@@ -158,7 +140,8 @@ func TestMSK_CreateClusterV2_Error(t *testing.T) {
 
 	mp.EXPECT().CreateClusterV2(mock.Anything, mock.Anything).Return(nil, errors.New("create cluster error"))
 
-	w := performMSKRequest(handler, "CreateClusterV2", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/msk/clusters", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var resp map[string]interface{}
@@ -179,7 +162,8 @@ func TestMSK_DeleteCluster_Success(t *testing.T) {
 		ClusterArn: aws.String("arn:aws:kafka:us-east-1:123:cluster/test"),
 	}, nil)
 
-	w := performMSKRequest(handler, "DeleteCluster", []byte(`{"ClusterArn":"arn:aws:kafka:us-east-1:123:cluster/test"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "DELETE", "/msk/clusters/testarn", []byte(`{"ClusterArn":"arn:aws:kafka:us-east-1:123:cluster/test"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp kafka.DeleteClusterOutput
@@ -194,7 +178,8 @@ func TestMSK_DeleteCluster_Error(t *testing.T) {
 
 	mp.EXPECT().DeleteCluster(mock.Anything, mock.Anything).Return(nil, errors.New("delete cluster error"))
 
-	w := performMSKRequest(handler, "DeleteCluster", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "DELETE", "/msk/clusters/testarn", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var resp map[string]interface{}
@@ -215,7 +200,8 @@ func TestMSK_GetBootstrapBrokers_Success(t *testing.T) {
 		BootstrapBrokerString: aws.String("b-1.test.kafka.us-east-1.amazonaws.com:9092"),
 	}, nil)
 
-	w := performMSKRequest(handler, "GetBootstrapBrokers", []byte(`{"ClusterArn":"arn:aws:kafka:us-east-1:123:cluster/test"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/msk/clusters/testarn/bootstrap-brokers", []byte(`{"ClusterArn":"arn:aws:kafka:us-east-1:123:cluster/test"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp kafka.GetBootstrapBrokersOutput
@@ -230,7 +216,8 @@ func TestMSK_GetBootstrapBrokers_Error(t *testing.T) {
 
 	mp.EXPECT().GetBootstrapBrokers(mock.Anything, mock.Anything).Return(nil, errors.New("get bootstrap brokers error"))
 
-	w := performMSKRequest(handler, "GetBootstrapBrokers", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/msk/clusters/testarn/bootstrap-brokers", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var resp map[string]interface{}
@@ -246,19 +233,28 @@ func TestMSK_GetBootstrapBrokers_Error(t *testing.T) {
 func TestMSK_ParseError(t *testing.T) {
 	t.Parallel()
 
-	actions := []string{
-		"ListClustersV2", "DescribeClusterV2", "CreateClusterV2",
-		"DeleteCluster", "GetBootstrapBrokers",
+	// Only include actions whose handlers call parseBody.
+	// DescribeClusterV2, DeleteCluster, GetBootstrapBrokers use URL params.
+	type parseCase struct {
+		name   string
+		method string
+		path   string
+	}
+
+	actions := []parseCase{
+		{name: "ListClustersV2", method: "GET", path: "/msk/clusters"},
+		{name: "CreateClusterV2", method: "POST", path: "/msk/clusters"},
 	}
 
 	for _, action := range actions {
 		action := action
-		t.Run(action, func(t *testing.T) {
+		t.Run(action.name, func(t *testing.T) {
 			t.Parallel()
 			_, _, handler := setupMSKTest(t)
 
-			w := performMSKRequest(handler, action, []byte(`{bad json`))
-			assert.Equal(t, http.StatusBadRequest, w.Code, "action=%s body=%s", action, w.Body.String())
+			r := setupTestRouter(handler)
+			w := performRequest(r, action.method, action.path, []byte(`{bad json`))
+			assert.Equal(t, http.StatusBadRequest, w.Code, "action=%s body=%s", action.name, w.Body.String())
 
 			var resp map[string]interface{}
 			err := json.Unmarshal(w.Body.Bytes(), &resp)

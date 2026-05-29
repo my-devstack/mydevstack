@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import APIGatewayViewDetailsModal from './APIGatewayViewDetailsModal.vue';
 
 const meta: Meta<typeof APIGatewayViewDetailsModal> = {

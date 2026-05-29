@@ -1,37 +1,42 @@
 /**
  * DynamoDB Service API Client
- * Simple HTTP client for DynamoDB via Go proxy
+ * REST-style HTTP client for DynamoDB via Go proxy
  * @module api/services/dynamodb
  */
 
 import { PROXY_BACKEND } from '@/config'
 import { APIError } from '../client'
 
-async function dynamoDBRequest(action: string, body: object = {}): Promise<any> {
+async function restFetch<T = any>(
+  method: string,
+  path: string,
+  body?: Record<string, any>,
+  errorLabel = 'DynamoDB'
+): Promise<T> {
   const endpoint = PROXY_BACKEND.replace(/\/$/, '')
+  const url = `${endpoint}${path}`
 
-  const url = `${endpoint}/dynamodb/`
+  const options: RequestInit = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  }
+
+  if (body !== undefined && method !== 'GET') {
+    options.body = JSON.stringify(body)
+  }
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Amz-Target': `dynamodb.${action}`,
-      },
-      body: JSON.stringify(body),
-    })
-
+    const response = await fetch(url, options)
     if (!response.ok) {
       const errorText = await response.text()
-      throw new APIError(`DynamoDB ${action} failed: ${errorText}`, response.status, 'dynamodb')
+      throw new APIError(`${errorLabel} request failed: ${errorText}`, response.status, 'dynamodb')
     }
-
-    return response.json()
+    const text = await response.text()
+    return text ? JSON.parse(text) : (null as T)
   } catch (error) {
     if (error instanceof APIError) throw error
-    console.error(`DynamoDB ${action} error:`, error)
-    throw new APIError(`Failed to ${action}`, 500, 'dynamodb')
+    console.error(`${errorLabel} request error:`, error)
+    throw new APIError(`${errorLabel} request failed`, 500, 'dynamodb')
   }
 }
 
@@ -104,22 +109,30 @@ export class DynamoDBService {
     GlobalSecondaryIndexes?: any[]
     StreamSpecification?: { StreamEnabled: boolean; StreamViewType?: any }
   }): Promise<any> {
-    return await dynamoDBRequest('CreateTable', request)
+    return await restFetch('POST', '/dynamodb/tables', request)
   }
 
   async deleteTable(tableName: string): Promise<void> {
-    return await dynamoDBRequest('DeleteTable', { TableName: tableName })
+    return await restFetch('DELETE', `/dynamodb/tables/${encodeURIComponent(tableName)}`)
   }
 
   async describeTable(tableName: string): Promise<any> {
-    return await dynamoDBRequest('DescribeTable', { TableName: tableName })
+    return await restFetch('GET', `/dynamodb/tables/${encodeURIComponent(tableName)}`)
   }
 
   async listTables(options?: {
     ExclusiveStartTableName?: string
     Limit?: number
   }): Promise<{ TableNames: string[]; LastEvaluatedTableName?: string }> {
-    const response = await dynamoDBRequest('ListTables', options || {})
+    let path = '/dynamodb/tables'
+    if (options) {
+      const params = new URLSearchParams()
+      if (options.ExclusiveStartTableName) params.set('ExclusiveStartTableName', options.ExclusiveStartTableName)
+      if (options.Limit !== undefined) params.set('Limit', String(options.Limit))
+      const qs = params.toString()
+      if (qs) path += `?${qs}`
+    }
+    const response = await restFetch<{ TableNames?: string[]; LastEvaluatedTableName?: string }>('GET', path)
     return {
       TableNames: response.TableNames || [],
       LastEvaluatedTableName: response.LastEvaluatedTableName,
@@ -136,7 +149,7 @@ export class DynamoDBService {
       StreamSpecification?: { StreamEnabled: boolean; StreamViewType?: any }
     }
   ): Promise<any> {
-    return await dynamoDBRequest('UpdateTable', { TableName: tableName, ...updates })
+    return await restFetch('PUT', `/dynamodb/tables/${encodeURIComponent(tableName)}`, updates)
   }
 
   async putItem(
@@ -148,7 +161,7 @@ export class DynamoDBService {
     let tableName: string
     let itemToStore: Record<string, any>
     let putOptions: Record<string, any>
-    
+
     if (typeof tableNameOrBody === 'object') {
       const body = tableNameOrBody as Record<string, any>
       tableName = body.TableName
@@ -161,22 +174,21 @@ export class DynamoDBService {
       itemToStore = item || {}
       putOptions = options || {}
     }
-    
+
     // Check if item is already in DynamoDB attribute format (e.g., {"id": {"S": "value"}})
     // If it is, don't marshall it again
     const isDynamoDBFormat = (obj: Record<string, any>): boolean => {
       if (!obj) return false
       const firstValue = Object.values(obj)[0]
-      return firstValue && typeof firstValue === 'object' && 
-        ('S' in firstValue || 'N' in firstValue || 'B' in firstValue || 
-         'BOOL' in firstValue || 'NULL' in firstValue || 'L' in firstValue || 
+      return firstValue && typeof firstValue === 'object' &&
+        ('S' in firstValue || 'N' in firstValue || 'B' in firstValue ||
+         'BOOL' in firstValue || 'NULL' in firstValue || 'L' in firstValue ||
          'M' in firstValue || 'SS' in firstValue || 'NS' in firstValue)
     }
-    
+
     const itemToSend = isDynamoDBFormat(itemToStore) ? itemToStore : marshall(itemToStore)
-    
-    return await dynamoDBRequest('PutItem', {
-      TableName: tableName,
+
+    return await restFetch('POST', `/dynamodb/tables/${encodeURIComponent(tableName)}/items`, {
       Item: itemToSend,
       ...putOptions,
     })
@@ -191,7 +203,7 @@ export class DynamoDBService {
     let tableName: string
     let keyToFetch: Record<string, any>
     let getOptions: Record<string, any>
-    
+
     if (typeof tableNameOrBody === 'object') {
       const body = tableNameOrBody as Record<string, any>
       tableName = body.TableName
@@ -204,12 +216,15 @@ export class DynamoDBService {
       keyToFetch = key || {}
       getOptions = options || {}
     }
-    
-    const response = await dynamoDBRequest('GetItem', {
-      TableName: tableName,
-      Key: marshall(keyToFetch),
-      ...getOptions,
-    })
+
+    const response = await restFetch<{ Item?: Record<string, any> }>(
+      'POST',
+      `/dynamodb/tables/${encodeURIComponent(tableName)}/items/get`,
+      {
+        Key: marshall(keyToFetch),
+        ...getOptions,
+      }
+    )
     return {
       Item: response.Item ? unmarshall(response.Item) : undefined,
     }
@@ -224,7 +239,7 @@ export class DynamoDBService {
     let tableName: string
     let keyToDelete: Record<string, any>
     let deleteOptions: Record<string, any>
-    
+
     if (typeof tableNameOrBody === 'object') {
       const body = tableNameOrBody as Record<string, any>
       tableName = body.TableName
@@ -237,7 +252,7 @@ export class DynamoDBService {
       keyToDelete = key || {}
       deleteOptions = options || {}
     }
-    
+
     // Check if key is already in DynamoDB attribute format (e.g., {"id": {"S": "value"}} or {"id": {"M": {"Value": ...}}})
     // If it is, don't marshall it again
     const isDynamoDBFormat = (obj: Record<string, any>): boolean => {
@@ -255,11 +270,10 @@ export class DynamoDBService {
       }
       return false
     }
-    
+
     const keyToSend = isDynamoDBFormat(keyToDelete) ? keyToDelete : marshall(keyToDelete)
-    
-    return await dynamoDBRequest('DeleteItem', {
-      TableName: tableName,
+
+    return await restFetch('DELETE', `/dynamodb/tables/${encodeURIComponent(tableName)}/items`, {
       Key: keyToSend,
       ...deleteOptions,
     })
@@ -278,8 +292,7 @@ export class DynamoDBService {
       ReturnValues?: 'NONE' | 'ALL_OLD' | 'ALL_NEW' | 'UPDATED_OLD' | 'UPDATED_NEW'
     }
   ): Promise<any> {
-    return await dynamoDBRequest('UpdateItem', {
-      TableName: tableName,
+    return await restFetch('PUT', `/dynamodb/tables/${encodeURIComponent(tableName)}/items`, {
       Key: marshall(key),
       ...updates,
       ...options,
@@ -293,7 +306,7 @@ export class DynamoDBService {
     // Handle case where first argument is an object (from Vue component)
     let tableName: string
     let queryParams: Record<string, any>
-    
+
     if (typeof tableNameOrBody === 'object') {
       const body = tableNameOrBody as Record<string, any>
       tableName = body.TableName
@@ -303,11 +316,12 @@ export class DynamoDBService {
       tableName = tableNameOrBody
       queryParams = params || {}
     }
-    
-    const response = await dynamoDBRequest('Query', {
-      TableName: tableName,
-      ...queryParams,
-    })
+
+    const response = await restFetch<{ Items?: Record<string, any>[]; Count?: number; ScannedCount?: number; LastEvaluatedKey?: Record<string, any> }>(
+      'POST',
+      `/dynamodb/tables/${encodeURIComponent(tableName)}/query`,
+      queryParams
+    )
     return {
       Items: (response.Items || []).map((item: any) => unmarshall(item)),
       Count: response.Count || 0,
@@ -323,7 +337,7 @@ export class DynamoDBService {
     // Handle case where first argument is an object (from Vue component)
     let tableName: string
     let scanParams: Record<string, any>
-    
+
     if (typeof tableNameOrBody === 'object') {
       const body = tableNameOrBody as Record<string, any>
       tableName = body.TableName
@@ -333,11 +347,12 @@ export class DynamoDBService {
       tableName = tableNameOrBody
       scanParams = params || {}
     }
-    
-    const response = await dynamoDBRequest('Scan', {
-      TableName: tableName,
-      ...scanParams,
-    })
+
+    const response = await restFetch<{ Items?: Record<string, any>[]; Count?: number; ScannedCount?: number; LastEvaluatedKey?: Record<string, any> }>(
+      'POST',
+      `/dynamodb/tables/${encodeURIComponent(tableName)}/scan`,
+      scanParams
+    )
     return {
       Items: (response.Items || []).map((item: any) => unmarshall(item)),
       Count: response.Count || 0,
@@ -353,11 +368,14 @@ export class DynamoDBService {
       startKey?: Record<string, any>
     }
   ): Promise<{ items: Record<string, any>[]; lastKey: Record<string, any> | null }> {
-    const response = await dynamoDBRequest('Scan', {
-      TableName: tableName,
-      Limit: options?.limit,
-      ExclusiveStartKey: options?.startKey ? marshall(options.startKey) : undefined,
-    })
+    const response = await restFetch<{ Items?: Record<string, any>[]; LastEvaluatedKey?: Record<string, any> }>(
+      'POST',
+      `/dynamodb/tables/${encodeURIComponent(tableName)}/scan`,
+      {
+        Limit: options?.limit,
+        ExclusiveStartKey: options?.startKey ? marshall(options.startKey) : undefined,
+      }
+    )
     return {
       items: (response.Items || []).map((item: any) => unmarshall(item)),
       lastKey: response.LastEvaluatedKey ? unmarshall(response.LastEvaluatedKey) : null,
@@ -371,7 +389,7 @@ export class DynamoDBService {
       PutRequest?: { Item: Record<string, any> }
     }>
   ): Promise<any> {
-    return await dynamoDBRequest('BatchWriteItem', {
+    return await restFetch('POST', '/dynamodb/batch-write-item', {
       RequestItems: {
         [tableName]: items.map((item) => ({
           DeleteRequest: item.DeleteRequest ? { Key: marshall(item.DeleteRequest.Key) } : undefined,
@@ -389,26 +407,29 @@ export class DynamoDBService {
       ExpressionAttributeNames?: Record<string, string>
     }
   ): Promise<{ Responses?: Record<string, any>[] }> {
-    const response = await dynamoDBRequest('BatchGetItem', {
-      RequestItems: {
-        [tableName]: {
-          Keys: keys.map((key) => marshall(key)),
-          ...options,
+    const response = await restFetch<{ Responses?: Record<string, Record<string, any>[]> }>(
+      'POST',
+      '/dynamodb/batch-get-item',
+      {
+        RequestItems: {
+          [tableName]: {
+            Keys: keys.map((key) => marshall(key)),
+            ...options,
+          },
         },
-      },
-    })
+      }
+    )
     return {
       Responses: response.Responses?.[tableName]?.map((item: any) => unmarshall(item)),
     }
   }
 
   async getTimeToLive(tableName: string): Promise<any> {
-    return await dynamoDBRequest('DescribeTimeToLive', { TableName: tableName })
+    return await restFetch('GET', `/dynamodb/tables/${encodeURIComponent(tableName)}/ttl`)
   }
 
   async updateTimeToLive(tableName: string, enabled: boolean, attributeName: string): Promise<any> {
-    return await dynamoDBRequest('UpdateTimeToLive', {
-      TableName: tableName,
+    return await restFetch('PUT', `/dynamodb/tables/${encodeURIComponent(tableName)}/ttl`, {
       TimeToLiveSpecification: {
         Enabled: enabled,
         AttributeName: attributeName,
@@ -534,64 +555,35 @@ export const updateTimeToLive = (tableName: string, enabled: boolean, attributeN
 export const getStreamSpecification = (tableName: string) =>
   dynamodbService.getStreamSpecification(tableName)
 
-async function dynamoDBStreamsRequest(action: string, body: object = {}): Promise<any> {
-  const endpoint = PROXY_BACKEND.replace(/\/$/, '')
-
-  const url = `${endpoint}/dynamodbstreams/`
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Amz-Target': `DynamoDBStreams_20120810.${action}`,
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new APIError(`DynamoDBStreams ${action} failed: ${errorText}`, response.status, 'dynamodbstreams')
-    }
-
-    return response.json()
-  } catch (error) {
-    if (error instanceof APIError) throw error
-    console.error(`DynamoDBStreams ${action} error:`, error)
-    throw new APIError(`Failed to ${action}`, 500, 'dynamodbstreams')
-  }
-}
-
 // DynamoDB Streams exports
 export const listStreams = async (tableName: string): Promise<{ Streams: any[] }> => {
   if (!tableName) {
     return { Streams: [] }
   }
-  return dynamoDBStreamsRequest('ListStreams', { TableName: tableName })
+  return restFetch('GET', `/dynamodb-streams/streams?tableName=${encodeURIComponent(tableName)}`, undefined, 'DynamoDBStreams')
 }
 
 // List all streams without table filter - returns orphaned streams when tables deleted
 export const listAllStreams = async (): Promise<{ Streams: any[] }> => {
-  return dynamoDBStreamsRequest('ListStreams', {})
+  return restFetch('GET', '/dynamodb-streams/streams', undefined, 'DynamoDBStreams')
 }
 
 export const describeStream = async (streamArn: string): Promise<any> => {
-  return dynamoDBStreamsRequest('DescribeStream', { StreamArn: streamArn })
+  return restFetch('GET', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}`, undefined, 'DynamoDBStreams')
 }
 
 export const getShardIterator = async (streamArn: string, shardId: string, iteratorType?: string): Promise<any> => {
-  return dynamoDBStreamsRequest('GetShardIterator', {
-    StreamArn: streamArn,
-    ShardId: shardId,
+  return restFetch('POST', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}/shards/${encodeURIComponent(shardId)}/iterator`, {
     ShardIteratorType: iteratorType || 'TRIM_HORIZON',
-  })
+  }, 'DynamoDBStreams')
 }
 
-export const getRecords = async (shardIterator: string, limit?: number): Promise<any> => {
-  const response = await dynamoDBStreamsRequest('GetRecords', {
+export const getRecords = async (streamArn: string, shardId: string, shardIterator: string, limit?: number): Promise<any> => {
+  const response = await restFetch('POST', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}/shards/${encodeURIComponent(shardId)}/records`, {
     ShardIterator: shardIterator,
     Limit: limit || 100,
-  })
+  }, 'DynamoDBStreams')
+
   // Normalize response: convert DynamoDBStreams format to expected format
   // API returns: { Records: [{ Dynamodb: {...} }] }
   // Code expects: { Records: [{ dynamodb: {...} ] }

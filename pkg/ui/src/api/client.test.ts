@@ -5,12 +5,7 @@ describe('API Client', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.stubGlobal('fetch', vi.fn())
-    vi.stubGlobal('DOMParser', vi.fn().mockImplementation(() => ({
-      parseFromString: vi.fn().mockReturnValue({
-        querySelector: vi.fn().mockReturnValue(null),
-        documentElement: {}
-      })
-    })))
+
   })
 
   describe('APIError', () => {
@@ -42,17 +37,4 @@ describe('API Client', () => {
     })
   })
 
-  describe('parseXML', () => {
-    it('should import parseXML function', async () => {
-      const { parseXML } = await import('@/api/client')
-      expect(parseXML).toBeDefined()
-      expect(typeof parseXML).toBe('function')
-    })
-
-    it('should call DOMParser to parse XML', async () => {
-      const { parseXML } = await import('@/api/client')
-      const result = parseXML('<test></test>')
-      expect(DOMParser).toHaveBeenCalled()
-    })
-  })
 })

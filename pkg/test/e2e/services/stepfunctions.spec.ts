@@ -28,6 +28,7 @@ async function createStateMachine(page: any, machineName: string) {
   await page.getByLabel('Definition').fill('{"StartAt": "HelloWorld", "States": {"HelloWorld": {"Type": "Pass", "End": true}}}')
   await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
   await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+  await page.reload({ waitUntil: 'networkidle' })
 }
 
 test.describe('Step Functions', () => {

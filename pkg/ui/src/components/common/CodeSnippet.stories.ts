@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import CodeSnippet from './CodeSnippet.vue';
 import type { Snippet } from './CodeSnippet.vue';
 

@@ -44,6 +44,13 @@ describe('CloudFormation Service', () => {
     expect(result).toEqual([])
   })
 
+  it('listStacks sends GET to /cloudformation/stacks', async () => {
+    mockFetch.mockResolvedValue(mockResponse({ StackSummaries: [] }))
+    await listStacks()
+    expect(mockFetch.mock.calls[0][0]).toContain('/cloudformation/stacks')
+    expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+  })
+
   it('createStack returns StackId', async () => {
     mockFetch.mockResolvedValue(mockResponse({ StackId: 'arn:stack:new' }))
     const result = await createStack({ StackName: 'new-stack', TemplateBody: '{}' })
@@ -52,11 +59,25 @@ describe('CloudFormation Service', () => {
     expect(callBody.StackName).toBe('new-stack')
   })
 
-  it('deleteStack calls with StackName', async () => {
+  it('createStack sends POST to /cloudformation/stacks', async () => {
+    mockFetch.mockResolvedValue(mockResponse({ StackId: 'arn:stack:new' }))
+    await createStack({ StackName: 'new-stack', TemplateBody: '{}' })
+    expect(mockFetch.mock.calls[0][0]).toContain('/cloudformation/stacks')
+    expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+  })
+
+  it('deleteStack sends DELETE to /cloudformation/stacks/{stackName}', async () => {
     mockFetch.mockResolvedValue(mockResponse({}))
     await deleteStack({ StackName: 'my-stack' })
-    const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-    expect(callBody.StackName).toBe('my-stack')
+    expect(mockFetch.mock.calls[0][0]).toContain('/cloudformation/stacks/my-stack')
+    expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
+    expect(mockFetch.mock.calls[0][1].body).toBeUndefined()
+  })
+
+  it('deleteStack encodes stack name in URL', async () => {
+    mockFetch.mockResolvedValue(mockResponse({}))
+    await deleteStack({ StackName: 'my stack' })
+    expect(mockFetch.mock.calls[0][0]).toContain('/cloudformation/stacks/my%20stack')
   })
 
   it('getStackDetails returns mapped stack from Stacks array', async () => {
@@ -66,6 +87,14 @@ describe('CloudFormation Service', () => {
     const result = await getStackDetails({ StackName: 'my-stack' })
     expect(result.StackName).toBe('my-stack')
     expect(result.StackStatus).toBe('CREATE_COMPLETE')
+  })
+
+  it('getStackDetails sends GET to /cloudformation/stacks/{stackName}', async () => {
+    mockFetch.mockResolvedValue(mockResponse({ Stacks: [{ StackName: 'my-stack' }] }))
+    await getStackDetails({ StackName: 'my-stack' })
+    expect(mockFetch.mock.calls[0][0]).toContain('/cloudformation/stacks/my-stack')
+    expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    expect(mockFetch.mock.calls[0][1].body).toBeUndefined()
   })
 
   it('getStackDetails throws APIError when stack not found', async () => {
@@ -85,6 +114,14 @@ describe('CloudFormation Service', () => {
     expect(result).toBe('')
   })
 
+  it('getStackTemplate sends GET to /cloudformation/stacks/{stackName}/template', async () => {
+    mockFetch.mockResolvedValue(mockResponse({ TemplateBody: '' }))
+    await getStackTemplate('my-stack')
+    expect(mockFetch.mock.calls[0][0]).toContain('/cloudformation/stacks/my-stack/template')
+    expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    expect(mockFetch.mock.calls[0][1].body).toBeUndefined()
+  })
+
   it('listStackResources returns mapped resources', async () => {
     mockFetch.mockResolvedValue(mockResponse({
       StackResourceSummaries: [{ LogicalResourceId: 'log1', ResourceType: 'AWS::S3::Bucket', ResourceStatus: 'CREATE_COMPLETE' }],
@@ -100,6 +137,13 @@ describe('CloudFormation Service', () => {
     expect(result).toEqual([])
   })
 
+  it('listStackResources sends GET to /cloudformation/stacks/{stackName}/resources', async () => {
+    mockFetch.mockResolvedValue(mockResponse({ StackResourceSummaries: [] }))
+    await listStackResources({ StackName: 'my-stack' })
+    expect(mockFetch.mock.calls[0][0]).toContain('/cloudformation/stacks/my-stack/resources')
+    expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+  })
+
   describe('Error handling', () => {
     it('throws APIError on server error', async () => {
       mockFetch.mockResolvedValue(mockResponse('Error', 500))
@@ -112,11 +156,17 @@ describe('CloudFormation Service', () => {
     })
   })
 
-  describe('X-Amz-Target header', () => {
-    it('sets correct target header', async () => {
+  describe('encodeURIComponent for path params', () => {
+    it('encodes stack names with special characters', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
-      await listStacks()
-      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('cloudformation.ListStacks')
+      await deleteStack({ StackName: 'test/stack' })
+      expect(mockFetch.mock.calls[0][0]).toContain('/cloudformation/stacks/test%2Fstack')
+    })
+
+    it('encodes stack names in template URL', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ TemplateBody: '' }))
+      await getStackTemplate('my stack')
+      expect(mockFetch.mock.calls[0][0]).toContain('/cloudformation/stacks/my%20stack/template')
     })
   })
 })

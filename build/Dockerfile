@@ -1,4 +1,3 @@
-# check=skip=SecretsUsedInArgOrEnv
 # Stage 1: Build the Go backend proxy
 FROM --platform=$BUILDPLATFORM golang:alpine AS builder-proxy
 
@@ -52,23 +51,13 @@ COPY ./build/nginx.conf /etc/nginx/nginx.conf
 RUN mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx/tmp /var/run  /etc/mydevstack/config && \
     chown -R appuser:appuser /var/cache/nginx /var/log/nginx /var/lib/nginx /var/run /etc/nginx /etc/mydevstack/config
 
-COPY ./pkg/proxy/config.yaml.example   /etc/mydevstack/config/config.yaml
-
 # Switch to non-root user
 USER appuser
 
 # Expose ports
 EXPOSE 3000 8081
 
-ENV CONFIG_FILE=/etc/mydevstack/config/config.yaml
 ENV GIN_MODE=release
-
-# Environment variables with defaults
-ENV PROXY_PORT=8081
-ENV AWS_ENDPOINT=http://localhost:4566
-ENV AWS_ACCESS_KEY=test
-ENV AWS_SECRET_KEY=test
-ENV EMULATOR=
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

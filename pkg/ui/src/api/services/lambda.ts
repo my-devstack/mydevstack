@@ -1,43 +1,60 @@
 /**
  * Lambda Service API Client
- * Simple HTTP client for Lambda via Go proxy
+ * REST client for Lambda via Go proxy
  * @module api/services/lambda
  */
 
 import { PROXY_BACKEND } from '@/config'
 import { APIError } from '../client'
 
-async function lambdaRequest(action: string, body: object = {}): Promise<any> {
-  const endpoint = PROXY_BACKEND.replace(/\/$/, '')
+export class LambdaService {
+  private baseUrl: string
 
-  const url = `${endpoint}/lambda/`
+  constructor() {
+    this.baseUrl = PROXY_BACKEND.replace(/\/$/, '')
+  }
 
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Amz-Target': action,
-      },
-      body: JSON.stringify(body),
-    })
+  private async request(method: string, path: string, options?: { body?: unknown; query?: Record<string, string | undefined> }): Promise<any> {
+    let url = `${this.baseUrl}${path}`
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new APIError(`Lambda ${action} failed: ${errorText}`, response.status, 'lambda')
+    if (options?.query) {
+      const params = new URLSearchParams()
+      for (const [key, value] of Object.entries(options.query)) {
+        if (value !== undefined) {
+          params.set(key, value)
+        }
+      }
+      const qs = params.toString()
+      if (qs) url += `?${qs}`
     }
 
-    return response.json()
-  } catch (error) {
-    if (error instanceof APIError) throw error
-    console.error(`Lambda ${action} error:`, error)
-    throw new APIError(`Failed to ${action}`, 500, 'lambda')
-  }
-}
+    const fetchOptions: RequestInit = { method }
 
-export class LambdaService {
+    if (options?.body !== undefined) {
+      fetchOptions.headers = { 'Content-Type': 'application/json' }
+      fetchOptions.body = JSON.stringify(options.body)
+    }
+
+    try {
+      const response = await fetch(url, fetchOptions)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new APIError(`Lambda ${method} ${path} failed: ${errorText}`, response.status, 'lambda')
+      }
+
+      const text = await response.text()
+      if (!text) return {}
+      return JSON.parse(text)
+    } catch (error) {
+      if (error instanceof APIError) throw error
+      console.error(`Lambda ${method} ${path} error:`, error)
+      throw new APIError(`Failed to ${method} ${path}`, 500, 'lambda')
+    }
+  }
+
   async listFunctions(): Promise<any> {
-    const response = await lambdaRequest('AWSLambda20140331.ListFunctions', {})
+    const response = await this.request('GET', '/lambda/functions')
     return {
       functions: response.Functions || [],
       ...response,
@@ -64,20 +81,19 @@ export class LambdaService {
       }
       code.ZipFile = btoa(binary)
     }
-    return lambdaRequest('AWSLambda20140331.CreateFunction', params)
+    return this.request('POST', '/lambda/functions', { body: params })
   }
 
   async getFunction(FunctionName: string): Promise<any> {
-    return lambdaRequest('AWSLambda20140331.GetFunction', { FunctionName })
+    return this.request('GET', `/lambda/functions/${encodeURIComponent(FunctionName)}`)
   }
 
   async deleteFunction(FunctionName: string): Promise<any> {
-    return lambdaRequest('AWSLambda20140331.DeleteFunction', { FunctionName })
+    return this.request('DELETE', `/lambda/functions/${encodeURIComponent(FunctionName)}`)
   }
 
   async invoke(FunctionName: string, payload?: string, options?: { invocationType?: string }): Promise<any> {
-    const endpoint = PROXY_BACKEND.replace(/\/$/, '')
-    const url = `${endpoint}/lambda/`
+    const url = `${this.baseUrl}/lambda/functions/${encodeURIComponent(FunctionName)}/invocations`
 
     let payloadBase64 = ''
     if (payload) {
@@ -90,27 +106,20 @@ export class LambdaService {
       payloadBase64 = btoa(binary)
     }
 
-    const body: any = { FunctionName }
-    if (payloadBase64) {
-      body.Payload = payloadBase64
-    }
-    if (options?.invocationType) {
-      body.InvocationType = options.invocationType
-    }
+    const body: Record<string, string> = {}
+    if (payloadBase64) body.Payload = payloadBase64
+    if (options?.invocationType) body.InvocationType = options.invocationType
 
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Amz-Target': 'AWSLambda20140331.Invoke',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
 
       const text = await response.text()
       const result: any = { payload: text }
-      
+
       try {
         const data = JSON.parse(text)
         if (data.Payload) {
@@ -132,7 +141,7 @@ export class LambdaService {
       } catch {
         // Response is not JSON
       }
-      
+
       return {
         statusCode: response.status,
         payload: result.payload,
@@ -149,7 +158,7 @@ export class LambdaService {
     Timeout?: number
     Environment?: { Variables?: Record<string, string> }
   }): Promise<any> {
-    return lambdaRequest('AWSLambda20140331.UpdateFunctionConfiguration', params)
+    return this.request('PUT', `/lambda/functions/${encodeURIComponent(params.FunctionName)}`, { body: params })
   }
 
   async updateFunctionCode(params: {
@@ -158,16 +167,22 @@ export class LambdaService {
     S3Bucket?: string
     S3Key?: string
   }): Promise<any> {
-    return lambdaRequest('AWSLambda20140331.UpdateFunctionCode', params)
+    return this.request('PUT', `/lambda/functions/${encodeURIComponent(params.FunctionName)}/code`, { body: params })
   }
 
   async getFunctionConfiguration(FunctionName: string): Promise<any> {
-    return lambdaRequest('AWSLambda20140331.GetFunctionConfiguration', { FunctionName })
+    return this.request('GET', `/lambda/functions/${encodeURIComponent(FunctionName)}/configuration`)
   }
 
   async listEventSourceMappings(params?: { FunctionName?: string; MaxItems?: number }): Promise<any> {
-    const body = params ? { FunctionName: params.FunctionName, MaxItems: params.MaxItems } : {}
-    return lambdaRequest('AWSLambda20140331.ListEventSourceMappings', body)
+    return this.request('GET', '/lambda/event-source-mappings', {
+      query: params
+        ? {
+            FunctionName: params.FunctionName,
+            MaxItems: params.MaxItems !== undefined ? String(params.MaxItems) : undefined,
+          }
+        : undefined,
+    })
   }
 
   async createEventSourceMapping(params: {
@@ -181,15 +196,15 @@ export class LambdaService {
       OnFailure?: { Destination: string }
     }
   }): Promise<any> {
-    return lambdaRequest('AWSLambda20140331.CreateEventSourceMapping', params)
+    return this.request('POST', '/lambda/event-source-mappings', { body: params })
   }
 
   async getEventSourceMapping(UUID: string): Promise<any> {
-    return lambdaRequest('AWSLambda20140331.GetEventSourceMapping', { UUID })
+    return this.request('GET', `/lambda/event-source-mappings/${encodeURIComponent(UUID)}`)
   }
 
   async deleteEventSourceMapping(UUID: string): Promise<any> {
-    return lambdaRequest('AWSLambda20140331.DeleteEventSourceMapping', { UUID })
+    return this.request('DELETE', `/lambda/event-source-mappings/${encodeURIComponent(UUID)}`)
   }
 }
 

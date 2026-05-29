@@ -14,6 +14,7 @@ function mockResponse(data: any, status = 200) {
   }
 }
 
+import { PROXY_BACKEND } from '@/config'
 import {
   getParameter,
   getParameters,
@@ -27,95 +28,105 @@ import {
   removeTagsFromResource,
 } from './ssm'
 
-describe('SSM Service', () => {
+const base = PROXY_BACKEND.replace(/\/$/, '')
+
+describe('SSM Service (REST)', () => {
   beforeEach(() => {
     mockFetch.mockReset()
   })
 
   describe('getParameter', () => {
-    it('returns parameter', async () => {
+    it('GET /ssm/parameters/{name}', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Parameter: { Name: 'my-param', Value: 'my-value', Type: 'String' } }))
       const result = await getParameter('my-param')
       expect(result.Parameter.Value).toBe('my-value')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.Name).toBe('my-param')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/parameters/my-param`)
+      expect(mockFetch.mock.calls[0][1]?.method).toBeUndefined() // GET
     })
 
-    it('sends WithDecryption option', async () => {
+    it('adds WithDecryption query param', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Parameter: {} }))
       await getParameter('my-param', { WithDecryption: true })
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.WithDecryption).toBe(true)
+      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/parameters/my-param?WithDecryption=true`)
     })
   })
 
   describe('getParameters', () => {
-    it('sends Names array', async () => {
+    it('POST /ssm/parameters/batch with Names array', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Parameters: [] }))
       await getParameters(['param1', 'param2'])
+      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/parameters/batch`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Names).toEqual(['param1', 'param2'])
     })
   })
 
   describe('getParametersByPath', () => {
-    it('sends Path and options', async () => {
+    it('GET /ssm/parameters-by-path/{path} with query params', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Parameters: [] }))
       await getParametersByPath('/myapp/', { Recursive: true })
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.Path).toBe('/myapp/')
-      expect(body.Recursive).toBe(true)
+      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/parameters-by-path/%2Fmyapp%2F?Recursive=true`)
+    })
+
+    it('handles path without options', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ Parameters: [] }))
+      await getParametersByPath('/myapp/')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/parameters-by-path/%2Fmyapp%2F`)
     })
   })
 
   describe('putParameter', () => {
-    it('sends parameter config', async () => {
+    it('POST /ssm/parameters with config', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Version: 1 }))
       const result = await putParameter({ Name: 'my-param', Value: 'my-value', Type: 'String' })
       expect(result.Version).toBe(1)
+      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/parameters`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Type).toBe('String')
     })
   })
 
   describe('deleteParameter', () => {
-    it('sends Name', async () => {
+    it('DELETE /ssm/parameters/{name}', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await deleteParameter('my-param')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.Name).toBe('my-param')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/parameters/my-param`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
     })
   })
 
   describe('describeParameters', () => {
-    it('returns parameters', async () => {
+    it('GET /ssm/parameters', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Parameters: [{ Name: 'p1' }] }))
       const result = await describeParameters()
       expect(result.Parameters).toHaveLength(1)
-    })
-
-    it('sends options', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Parameters: [] }))
-      await describeParameters({ MaxResults: 10 })
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.MaxResults).toBe(10)
+      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/parameters`)
+      expect(mockFetch.mock.calls[0][1]?.method).toBeUndefined() // GET
     })
   })
 
   describe('getParameterHistory', () => {
-    it('returns history', async () => {
+    it('GET /ssm/parameters/{name}/history', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Parameters: [] }))
       await getParameterHistory('my-param', { MaxResults: 5 })
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.Name).toBe('my-param')
-      expect(body.MaxResults).toBe(5)
+      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/parameters/my-param/history?MaxResults=5`)
+    })
+
+    it('handles name without options', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ Parameters: [] }))
+      await getParameterHistory('my-param')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/parameters/my-param/history`)
     })
   })
 
   describe('listTagsForResource', () => {
-    it('sends resource info', async () => {
+    it('POST /ssm/tags/list', async () => {
       mockFetch.mockResolvedValue(mockResponse({ TagList: [] }))
       await listTagsForResource('Parameter', 'my-param')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/tags/list`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.ResourceType).toBe('Parameter')
       expect(body.ResourceId).toBe('my-param')
@@ -123,9 +134,11 @@ describe('SSM Service', () => {
   })
 
   describe('addTagsToResource', () => {
-    it('sends tags as array', async () => {
+    it('POST /ssm/tags', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await addTagsToResource('Parameter', 'my-param', { Env: 'dev', Team: 'myteam' })
+      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/tags`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Tags).toHaveLength(2)
       expect(body.Tags[0].Key).toBe('Env')
@@ -133,31 +146,40 @@ describe('SSM Service', () => {
   })
 
   describe('removeTagsFromResource', () => {
-    it('sends TagKeys array', async () => {
+    it('POST /ssm/tags/delete', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await removeTagsFromResource('Parameter', 'my-param', ['Env', 'Team'])
+      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/tags/delete`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.TagKeys).toEqual(['Env', 'Team'])
     })
   })
 
   describe('Error handling', () => {
-    it('throws APIError on server error', async () => {
-      mockFetch.mockResolvedValue(mockResponse('Error', 500))
-      await expect(getParameter('test')).rejects.toThrow(/SSM GetParameter failed/)
-    })
+    const methods: [string, () => Promise<any>][] = [
+      ['getParameter', () => getParameter('test-param')],
+      ['getParameters', () => getParameters(['p1'])],
+      ['getParametersByPath', () => getParametersByPath('/test')],
+      ['putParameter', () => putParameter({ Name: 't', Value: 'v', Type: 'String' })],
+      ['deleteParameter', () => deleteParameter('test-param')],
+      ['describeParameters', () => describeParameters()],
+      ['getParameterHistory', () => getParameterHistory('test-param')],
+      ['listTagsForResource', () => listTagsForResource('Parameter', 'my-param')],
+      ['addTagsToResource', () => addTagsToResource('Parameter', 'my-param', { Env: 'dev' })],
+      ['removeTagsFromResource', () => removeTagsFromResource('Parameter', 'my-param', ['Env'])],
+    ]
 
-    it('throws APIError with 500 on network error', async () => {
+    for (const [name, fn] of methods) {
+      it(`throws APIError on server error - ${name}`, async () => {
+        mockFetch.mockResolvedValue(mockResponse('Error', 500))
+        await expect(fn()).rejects.toThrow(/failed/)
+      })
+    }
+
+    it('propagates network error as-is', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'))
-      await expect(getParameter('test')).rejects.toThrow(/Failed to/)
-    })
-  })
-
-  describe('X-Amz-Target header', () => {
-    it('uses ssm prefix', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Parameter: {} }))
-      await getParameter('test')
-      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('ssm.GetParameter')
+      await expect(getParameter('test')).rejects.toThrow('Network error')
     })
   })
 })

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { APIError } from '../client'
 
 const mockFetch = vi.fn()
 globalThis.fetch = mockFetch
@@ -21,6 +22,12 @@ import {
   describeDBEngineVersions,
   modifyDBInstance,
   rebootDBInstance,
+  describeDBParameterGroups,
+  describeDBParameters,
+  describeDBSubnetGroups,
+  listTagsForResource,
+  addTagsToResource,
+  removeTagsFromResource,
 } from './rds'
 
 describe('RDS Service', () => {
@@ -58,6 +65,14 @@ describe('RDS Service', () => {
       const result = await describeDBInstances()
       expect(result).toEqual([])
     })
+
+    it('uses GET /rds/db-instances', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await describeDBInstances()
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/rds/db-instances')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
   })
 
   describe('createDBInstance', () => {
@@ -77,17 +92,28 @@ describe('RDS Service', () => {
       } as any)
       expect(result.DBInstanceIdentifier).toBe('new-db')
     })
+
+    it('uses POST /rds/db-instances with body', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ DBInstance: { DBInstanceIdentifier: 'new-db' } }))
+      await createDBInstance({ DBInstanceIdentifier: 'new-db', DBInstanceClass: 'db.t3.micro', Engine: 'mysql' } as any)
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/rds/db-instances')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.DBInstanceIdentifier).toBe('new-db')
+    })
   })
 
   describe('deleteDBInstance', () => {
-    it('sends identifier', async () => {
+    it('encodes identifier in URL', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await deleteDBInstance('db1')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.DBInstanceIdentifier).toBe('db1')
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/rds/db-instances/db1')
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
     })
 
-    it('sends SkipFinalSnapshot when option set', async () => {
+    it('sends SkipFinalSnapshot in body when option set', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await deleteDBInstance('db1', { skipFinalSnapshot: true })
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
@@ -96,52 +122,99 @@ describe('RDS Service', () => {
   })
 
   describe('describeDBEngineVersions', () => {
-    it('sends engine and options', async () => {
+    it('sends engine and options as query params', async () => {
       mockFetch.mockResolvedValue(mockResponse({ DBEngineVersions: [] }))
       await describeDBEngineVersions('mysql', { engineVersion: '8.0' })
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.Engine).toBe('mysql')
-      expect(body.engineVersion).toBe('8.0')
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/rds/engine-versions')
+      expect(url).toContain('Engine=mysql')
+      expect(url).toContain('EngineVersion=8.0')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
   })
 
   describe('modifyDBInstance', () => {
-    it('sends identifier and modifications', async () => {
+    it('sends identifier in URL and modifications in body', async () => {
       mockFetch.mockResolvedValue(mockResponse({ DBInstance: { DBInstanceIdentifier: 'db1' } }))
       const result = await modifyDBInstance('db1', { DBInstanceClass: 'db.t3.large' })
       expect(result.DBInstanceIdentifier).toBe('db1')
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/rds/db-instances/db1')
+      expect(mockFetch.mock.calls[0][1].method).toBe('PUT')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.DBInstanceIdentifier).toBe('db1')
       expect(body.DBInstanceClass).toBe('db.t3.large')
     })
   })
 
   describe('rebootDBInstance', () => {
-    it('sends identifier', async () => {
+    it('posts to reboot endpoint', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await rebootDBInstance('db1')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.DBInstanceIdentifier).toBe('db1')
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/rds/db-instances/db1/reboot')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+    })
+  })
+
+  describe('describeDBParameterGroups', () => {
+    it('throws APIError (not implemented by backend)', async () => {
+      await expect(describeDBParameterGroups()).rejects.toThrow(APIError)
+    })
+  })
+
+  describe('describeDBParameters', () => {
+    it('throws APIError (not implemented by backend)', async () => {
+      await expect(describeDBParameters('my-group')).rejects.toThrow(APIError)
+    })
+  })
+
+  describe('describeDBSubnetGroups', () => {
+    it('throws APIError (not implemented by backend)', async () => {
+      await expect(describeDBSubnetGroups()).rejects.toThrow(APIError)
+    })
+  })
+
+  describe('listTagsForResource', () => {
+    it('throws APIError (not implemented by backend)', async () => {
+      await expect(listTagsForResource('arn:aws:rds:db1')).rejects.toThrow(APIError)
+    })
+  })
+
+  describe('addTagsToResource', () => {
+    it('throws APIError (not implemented by backend)', async () => {
+      await expect(addTagsToResource('arn:aws:rds:db1', [{ Key: 'Env', Value: 'prod' }])).rejects.toThrow(APIError)
+    })
+  })
+
+  describe('removeTagsFromResource', () => {
+    it('throws APIError (not implemented by backend)', async () => {
+      await expect(removeTagsFromResource('arn:aws:rds:db1', ['Env'])).rejects.toThrow(APIError)
     })
   })
 
   describe('Error handling', () => {
     it('throws APIError on server error', async () => {
       mockFetch.mockResolvedValue(mockResponse('Error', 500))
-      await expect(describeDBInstances()).rejects.toThrow(/RDS DescribeDBInstances failed/)
+      await expect(describeDBInstances()).rejects.toThrow(/RDS request failed/)
     })
 
     it('throws APIError with 500 on network error', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'))
-      await expect(describeDBInstances()).rejects.toThrow(/Failed to/)
+      await expect(describeDBInstances()).rejects.toThrow(/Failed to call RDS service/)
     })
   })
 
-  describe('X-Amz-Target header', () => {
-    it('uses rds prefix', async () => {
+  describe('Headers', () => {
+    it('uses application/json content type', async () => {
       mockFetch.mockResolvedValue(mockResponse({ DBInstances: [] }))
       await describeDBInstances()
-      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('rds.DescribeDBInstances')
+      expect(mockFetch.mock.calls[0][1].headers['Content-Type']).toBe('application/json')
+    })
+
+    it('does not send X-Amz-Target', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ DBInstances: [] }))
+      await describeDBInstances()
+      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBeUndefined()
     })
   })
 })

@@ -63,6 +63,34 @@ test.describe('SNS', () => {
     const found = await findTopicOnPage(page, topicName)
     expect(found).toBe(true)
   })
+
+  test('list subscriptions by topic via API', async ({ page }) => {
+    // Direct API test: create a topic and list subscriptions by its ARN
+    const topicName = `test-api-sub-${Date.now()}`
+
+    // Create topic via API
+    const createRes = await page.request.post('http://127.0.0.1:8081/sns/topics', {
+      data: { Name: topicName },
+    })
+    expect(createRes.ok()).toBeTruthy()
+    const createData = await createRes.json()
+    const topicArn = createData.TopicArn
+    expect(topicArn).toBeTruthy()
+
+    // List subscriptions by topic (the endpoint that was failing)
+    const listRes = await page.request.get(
+      `http://127.0.0.1:8081/sns/subscriptions/by-topic/${encodeURIComponent(topicArn)}`
+    )
+    expect(listRes.ok()).toBeTruthy()
+    const listData = await listRes.json()
+    expect(listData.Subscriptions).toBeDefined()
+
+    // Clean up
+    const delRes = await page.request.delete(
+      `http://127.0.0.1:8081/sns/topics/${encodeURIComponent(topicArn)}`
+    )
+    expect(delRes.ok()).toBeTruthy()
+  })
 })
 
 test.describe('Pagination', () => {

@@ -20,23 +20,11 @@ import {
   listKeys,
   encrypt,
   decrypt,
-  generateDataKey,
-  sign,
-  verify,
   scheduleKeyDeletion,
   deleteKey,
-  cancelKeyDeletion,
-  getKeyRotationStatus,
-  enableKeyRotation,
-  disableKeyRotation,
   enableKey,
   disableKey,
   getKeyPolicy,
-  listKeyPolicies,
-  putKeyPolicy,
-  listAliases,
-  deleteAlias,
-  generateRandom,
 } from './kms'
 
 describe('KMS Service', () => {
@@ -49,6 +37,8 @@ describe('KMS Service', () => {
       mockFetch.mockResolvedValue(mockResponse({ KeyMetadata: { KeyId: 'key1' } }))
       const result = await createKey({ Description: 'test key' })
       expect(result.KeyMetadata.KeyId).toBe('key1')
+      expect(mockFetch.mock.calls[0][0]).toContain('/kms/keys')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
     })
 
     it('throws custom error on Unknown action response text', async () => {
@@ -68,12 +58,19 @@ describe('KMS Service', () => {
   })
 
   describe('describeKey', () => {
-    it('sends KeyId', async () => {
+    it('uses keyId in URL path', async () => {
       mockFetch.mockResolvedValue(mockResponse({ KeyMetadata: { KeyId: 'key1' } }))
       const result = await describeKey('key1')
       expect(result.KeyMetadata.KeyId).toBe('key1')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.KeyId).toBe('key1')
+      expect(mockFetch.mock.calls[0][0]).toContain('/kms/keys/key1')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
+
+    it('encodes special characters in keyId', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await describeKey('key/id+123')
+      const url = mockFetch.mock.calls[0][0] as string
+      expect(url).toContain('/kms/keys/key%2Fid%2B123')
     })
   })
 
@@ -83,6 +80,8 @@ describe('KMS Service', () => {
       const result = await listKeys()
       expect(result.Keys).toHaveLength(1)
       expect(result.Truncated).toBe(false)
+      expect(mockFetch.mock.calls[0][0]).toContain('/kms/keys')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
 
     it('handles empty keys', async () => {
@@ -100,6 +99,8 @@ describe('KMS Service', () => {
       expect(result.KeyId).toBe('key1')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.Plaintext).toBe(btoa('secret'))
+      expect(mockFetch.mock.calls[0][0]).toContain('/kms/encrypt')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
     })
 
     it('throws custom error on NotImplemented response text', async () => {
@@ -133,38 +134,15 @@ describe('KMS Service', () => {
     })
   })
 
-  describe('generateDataKey', () => {
-    it('sends KeyId', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ KeyId: 'key1', Plaintext: 'plain', CiphertextBlob: 'cipher' }))
-      await generateDataKey('key1', { KeySpec: 'AES_256' })
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.KeyId).toBe('key1')
-    })
-  })
-
-  describe('sign', () => {
-    it('sends base64 message', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Signature: 'sig1' }))
-      await sign('key1', 'msg', 'RSASSA_PSS_SHA_256')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.Message).toBe(btoa('msg'))
-    })
-  })
-
-  describe('verify', () => {
-    it('returns validation result', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ KeyId: 'key1', SignatureValid: true }))
-      const result = await verify('key1', 'msg', 'sig', 'RSASSA_PSS_SHA_256')
-      expect(result.SignatureValid).toBe(true)
-    })
-  })
-
   describe('scheduleKeyDeletion', () => {
-    it('sends deletion params', async () => {
+    it('sends PendingWindowInDays in body and keyId in URL', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await scheduleKeyDeletion('key1', 7)
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.PendingWindowInDays).toBe(7)
+      expect(body.KeyId).toBeUndefined()
+      expect(mockFetch.mock.calls[0][0]).toContain('/kms/keys/key1/schedule-deletion')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
     })
   })
 
@@ -174,112 +152,36 @@ describe('KMS Service', () => {
       await deleteKey('key1')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.PendingWindowInDays).toBe(1)
-    })
-  })
-
-  describe('cancelKeyDeletion', () => {
-    it('sends KeyId', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
-      await cancelKeyDeletion('key1')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.KeyId).toBe('key1')
-    })
-  })
-
-  describe('getKeyRotationStatus', () => {
-    it('returns rotation status', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ KeyRotationEnabled: true }))
-      const result = await getKeyRotationStatus('key1')
-      expect(result.KeyRotationEnabled).toBe(true)
-    })
-  })
-
-  describe('enableKeyRotation', () => {
-    it('enables rotation', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
-      await enableKeyRotation('key1')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.KeyId).toBe('key1')
-    })
-  })
-
-  describe('disableKeyRotation', () => {
-    it('disables rotation', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
-      await disableKeyRotation('key1')
-      expect(mockFetch).toHaveBeenCalledTimes(1)
+      expect(body.KeyId).toBeUndefined()
+      expect(mockFetch.mock.calls[0][0]).toContain('/kms/keys/key1/schedule-deletion')
     })
   })
 
   describe('enableKey', () => {
-    it('enables key', async () => {
+    it('uses keyId in URL path', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await enableKey('key1')
-      expect(mockFetch).toHaveBeenCalledTimes(1)
+      expect(mockFetch.mock.calls[0][0]).toContain('/kms/keys/key1/enable')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
     })
   })
 
   describe('disableKey', () => {
-    it('disables key', async () => {
+    it('uses keyId in URL path', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await disableKey('key1')
-      expect(mockFetch).toHaveBeenCalledTimes(1)
+      expect(mockFetch.mock.calls[0][0]).toContain('/kms/keys/key1/disable')
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
     })
   })
 
   describe('getKeyPolicy', () => {
-    it('returns key policy', async () => {
+    it('returns key policy from correct URL', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Policy: '{}' }))
       const result = await getKeyPolicy('key1')
       expect(result.Policy).toBe('{}')
-    })
-  })
-
-  describe('listKeyPolicies', () => {
-    it('lists policies', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ PolicyNames: ['default'] }))
-      const result = await listKeyPolicies('key1')
-      expect(result.PolicyNames).toContain('default')
-    })
-  })
-
-  describe('putKeyPolicy', () => {
-    it('puts policy', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
-      await putKeyPolicy('key1', '{}', 'default')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.Policy).toBe('{}')
-    })
-  })
-
-  describe('listAliases', () => {
-    it('lists aliases', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Aliases: [{ AliasName: 'alias/my-key' }] }))
-      const result = await listAliases()
-      expect(result.Aliases).toHaveLength(1)
-    })
-  })
-
-  describe('deleteAlias', () => {
-    it('sends AliasName', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
-      await deleteAlias('alias/my-key')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.AliasName).toBe('alias/my-key')
-    })
-  })
-
-  describe('generateRandom', () => {
-    it('returns Plaintext', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Plaintext: 'random123' }))
-      const result = await generateRandom({ NumberOfBytes: 32 })
-      expect(result.Plaintext).toBe('random123')
-    })
-
-    it('returns empty Plaintext when missing', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
-      const result = await generateRandom()
-      expect(result.Plaintext).toBe('')
+      expect(mockFetch.mock.calls[0][0]).toContain('/kms/keys/key1/policy')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
   })
 
@@ -292,14 +194,6 @@ describe('KMS Service', () => {
     it('throws APIError with 500 on network error', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'))
       await expect(listKeys()).rejects.toThrow(/Failed to ListKeys/)
-    })
-  })
-
-  describe('X-Amz-Target header', () => {
-    it('uses kms prefix', async () => {
-      mockFetch.mockResolvedValue(mockResponse({ Keys: [] }))
-      await listKeys()
-      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('kms.ListKeys')
     })
   })
 })

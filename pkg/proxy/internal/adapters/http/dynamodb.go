@@ -1,7 +1,6 @@
 package httphandlers
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -13,139 +12,121 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 )
 
-func (h *ProxyHandler) handleDynamoDB(c *gin.Context) {
-	xAmzTarget := c.GetHeader("X-Amz-Target")
-	bodyBytes := readBody(c)
-	ctx := h.ctx
+func (h *ProxyHandler) registerDynamoDBRoutes(r chi.Router) {
+	r.Route("/dynamodb", func(r chi.Router) {
+		r.Post("/tables", h.createTable)
+		r.Get("/tables", h.listTables)
+		r.Get("/tables/{tableName}", h.describeTable)
+		r.Put("/tables/{tableName}", h.updateTable)
+		r.Delete("/tables/{tableName}", h.deleteTable)
 
-	switch {
-	case strings.Contains(xAmzTarget, "ListTables"):
-		h.listTables(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateTable"):
-		h.createTable(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DescribeTable"):
-		h.describeTable(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteTable"):
-		h.deleteTable(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "UpdateTable"):
-		h.updateTable(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutItem"):
-		h.putItem(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetItem"):
-		h.getItem(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteItem"):
-		h.deleteItem(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "UpdateItem"):
-		h.updateItem(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "Query"):
-		h.query(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "Scan"):
-		h.scan(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "BatchWriteItem"):
-		h.batchWriteItem(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "BatchGetItem"):
-		h.batchGetItem(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DescribeTimeToLive"):
-		h.describeTimeToLive(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "UpdateTimeToLive"):
-		h.updateTimeToLive(ctx, c, bodyBytes)
-	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown DynamoDB action: " + xAmzTarget})
-	}
+		r.Post("/tables/{tableName}/items", h.putItem)
+		r.Get("/tables/{tableName}/items/{key}", h.getItem)
+		r.Delete("/tables/{tableName}/items/{key}", h.deleteItem)
+		r.Delete("/tables/{tableName}/items", h.deleteItem)
+		r.Put("/tables/{tableName}/items/{key}", h.updateItem)
+		r.Post("/tables/{tableName}/query", h.query)
+		r.Post("/tables/{tableName}/scan", h.scan)
+
+		r.Post("/batch-write-item", h.batchWriteItem)
+		r.Post("/batch-get-item", h.batchGetItem)
+
+		r.Get("/tables/{tableName}/ttl", h.describeTimeToLive)
+		r.Put("/tables/{tableName}/ttl", h.updateTimeToLive)
+	})
 }
 
-func (h *ProxyHandler) listTables(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) listTables(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &dynamodb.ListTablesInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.DynamoDB().ListTables(ctx, input)
+	result, err := h.Svc.DynamoDB().ListTables(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to list tables", err)
+		sendError(w, http.StatusInternalServerError, "Failed to list tables", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createTable(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createTable(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &dynamodb.CreateTableInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.DynamoDB().CreateTable(ctx, input)
+	result, err := h.Svc.DynamoDB().CreateTable(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create table", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create table", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) describeTable(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &dynamodb.DescribeTableInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) describeTable(w http.ResponseWriter, r *http.Request) {
+	input := &dynamodb.DescribeTableInput{
+		TableName: aws.String(chi.URLParam(r, "tableName")),
 	}
-	result, err := h.Svc.DynamoDB().DescribeTable(ctx, input)
+	result, err := h.Svc.DynamoDB().DescribeTable(h.ctx, input)
 	if err != nil {
 		errMsg := err.Error()
 		if strings.Contains(errMsg, "InvalidParameterValue") && strings.Contains(errMsg, "TableName") {
-			sendError(c, http.StatusBadRequest, "Invalid table name format", err)
+			sendError(w, http.StatusBadRequest, "Invalid table name format", err)
 		} else {
-			sendError(c, http.StatusInternalServerError, "Failed to describe table", err)
+			sendError(w, http.StatusInternalServerError, "Failed to describe table", err)
 		}
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteTable(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &dynamodb.DeleteTableInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteTable(w http.ResponseWriter, r *http.Request) {
+	input := &dynamodb.DeleteTableInput{
+		TableName: aws.String(chi.URLParam(r, "tableName")),
 	}
-	result, err := h.Svc.DynamoDB().DeleteTable(ctx, input)
+	result, err := h.Svc.DynamoDB().DeleteTable(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete table", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete table", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateTable(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateTable(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &dynamodb.UpdateTableInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.DynamoDB().UpdateTable(ctx, input)
+	input.TableName = aws.String(chi.URLParam(r, "tableName"))
+	result, err := h.Svc.DynamoDB().UpdateTable(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update table", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update table", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putItem(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) putItem(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	// Parse the body into a generic map first
 	var rawBody map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &rawBody); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	input := &dynamodb.PutItemInput{}
 
-	// Extract TableName
-	if tableName, ok := rawBody["TableName"].(string); ok {
-		input.TableName = aws.String(tableName)
-	}
+	// TableName from URL
+	input.TableName = aws.String(chi.URLParam(r, "tableName"))
 
 	// Extract and unmarshal Item
 	if itemData, ok := rawBody["Item"].(map[string]interface{}); ok {
@@ -167,12 +148,12 @@ func (h *ProxyHandler) putItem(ctx context.Context, c *gin.Context, bodyBytes []
 		input.ReturnValues = types.ReturnValue(val)
 	}
 
-	result, err := h.Svc.DynamoDB().PutItem(ctx, input)
+	result, err := h.Svc.DynamoDB().PutItem(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to put item", err)
+		sendError(w, http.StatusInternalServerError, "Failed to put item", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
 // convertToAttributeValue converts a JSON value to a DynamoDB AttributeValue
@@ -263,20 +244,19 @@ func convertToAttributeValue(value interface{}) types.AttributeValue {
 	}
 }
 
-func (h *ProxyHandler) getItem(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) getItem(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	// Parse the body into a generic map first
 	var rawBody map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &rawBody); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	input := &dynamodb.GetItemInput{}
 
-	// Extract TableName
-	if tableName, ok := rawBody["TableName"].(string); ok {
-		input.TableName = aws.String(tableName)
-	}
+	// TableName from URL
+	input.TableName = aws.String(chi.URLParam(r, "tableName"))
 
 	// Extract and unmarshal Key
 	if keyData, ok := rawBody["Key"].(map[string]interface{}); ok {
@@ -298,28 +278,27 @@ func (h *ProxyHandler) getItem(ctx context.Context, c *gin.Context, bodyBytes []
 		input.ProjectionExpression = aws.String(val)
 	}
 
-	result, err := h.Svc.DynamoDB().GetItem(ctx, input)
+	result, err := h.Svc.DynamoDB().GetItem(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get item", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get item", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteItem(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) deleteItem(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	// Parse the body into a generic map first
 	var rawBody map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &rawBody); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	input := &dynamodb.DeleteItemInput{}
 
-	// Extract TableName
-	if tableName, ok := rawBody["TableName"].(string); ok {
-		input.TableName = aws.String(tableName)
-	}
+	// TableName from URL
+	input.TableName = aws.String(chi.URLParam(r, "tableName"))
 
 	// Extract and unmarshal Key
 	if keyData, ok := rawBody["Key"].(map[string]interface{}); ok {
@@ -341,30 +320,29 @@ func (h *ProxyHandler) deleteItem(ctx context.Context, c *gin.Context, bodyBytes
 		input.ReturnValues = types.ReturnValue(val)
 	}
 
-	result, err := h.Svc.DynamoDB().DeleteItem(ctx, input)
+	result, err := h.Svc.DynamoDB().DeleteItem(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete item", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete item", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateItem(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateItem(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	log.Printf("UpdateItem request body: %s", string(bodyBytes))
 
 	// Parse the body into a generic map first
 	var rawBody map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &rawBody); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	input := &dynamodb.UpdateItemInput{}
 
-	// Extract TableName
-	if tableName, ok := rawBody["TableName"].(string); ok {
-		input.TableName = aws.String(tableName)
-	}
+	// TableName from URL
+	input.TableName = aws.String(chi.URLParam(r, "tableName"))
 
 	// Extract and unmarshal Key
 	if keyData, ok := rawBody["Key"].(map[string]interface{}); ok {
@@ -389,28 +367,27 @@ func (h *ProxyHandler) updateItem(ctx context.Context, c *gin.Context, bodyBytes
 		input.ReturnValues = types.ReturnValue(val)
 	}
 
-	result, err := h.Svc.DynamoDB().UpdateItem(ctx, input)
+	result, err := h.Svc.DynamoDB().UpdateItem(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update item", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update item", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) query(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) query(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	// Parse the body into a generic map first
 	var rawBody map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &rawBody); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	input := &dynamodb.QueryInput{}
 
-	// Extract TableName
-	if tableName, ok := rawBody["TableName"].(string); ok {
-		input.TableName = aws.String(tableName)
-	}
+	// TableName from URL
+	input.TableName = aws.String(chi.URLParam(r, "tableName"))
 
 	// Extract optional fields
 	if val, ok := rawBody["KeyConditionExpression"].(string); ok {
@@ -432,28 +409,27 @@ func (h *ProxyHandler) query(ctx context.Context, c *gin.Context, bodyBytes []by
 		input.ExclusiveStartKey = convertMapToAttributeValue(val)
 	}
 
-	result, err := h.Svc.DynamoDB().Query(ctx, input)
+	result, err := h.Svc.DynamoDB().Query(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to query", err)
+		sendError(w, http.StatusInternalServerError, "Failed to query", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) scan(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) scan(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	// Parse the body into a generic map first
 	var rawBody map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &rawBody); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	input := &dynamodb.ScanInput{}
 
-	// Extract TableName
-	if tableName, ok := rawBody["TableName"].(string); ok {
-		input.TableName = aws.String(tableName)
-	}
+	// TableName from URL
+	input.TableName = aws.String(chi.URLParam(r, "tableName"))
 
 	// Extract optional fields
 	if val, ok := rawBody["Limit"].(float64); ok {
@@ -469,12 +445,12 @@ func (h *ProxyHandler) scan(ctx context.Context, c *gin.Context, bodyBytes []byt
 		input.ExclusiveStartKey = convertMapToAttributeValue(val)
 	}
 
-	result, err := h.Svc.DynamoDB().Scan(ctx, input)
+	result, err := h.Svc.DynamoDB().Scan(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to scan", err)
+		sendError(w, http.StatusInternalServerError, "Failed to scan", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
 // convertMapToAttributeValue converts a map to DynamoDB AttributeValue map
@@ -489,58 +465,60 @@ func convertMapToAttributeValue(data map[string]interface{}) map[string]types.At
 	return result
 }
 
-func (h *ProxyHandler) batchWriteItem(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) batchWriteItem(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &dynamodb.BatchWriteItemInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.DynamoDB().BatchWriteItem(ctx, input)
+	result, err := h.Svc.DynamoDB().BatchWriteItem(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to batch write", err)
+		sendError(w, http.StatusInternalServerError, "Failed to batch write", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) batchGetItem(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) batchGetItem(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &dynamodb.BatchGetItemInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.DynamoDB().BatchGetItem(ctx, input)
+	result, err := h.Svc.DynamoDB().BatchGetItem(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to batch get", err)
+		sendError(w, http.StatusInternalServerError, "Failed to batch get", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) describeTimeToLive(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &dynamodb.DescribeTimeToLiveInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) describeTimeToLive(w http.ResponseWriter, r *http.Request) {
+	input := &dynamodb.DescribeTimeToLiveInput{
+		TableName: aws.String(chi.URLParam(r, "tableName")),
 	}
-	result, err := h.Svc.DynamoDB().DescribeTimeToLive(ctx, input)
+	result, err := h.Svc.DynamoDB().DescribeTimeToLive(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to describe TTL", err)
+		sendError(w, http.StatusInternalServerError, "Failed to describe TTL", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateTimeToLive(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateTimeToLive(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &dynamodb.UpdateTimeToLiveInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.DynamoDB().UpdateTimeToLive(ctx, input)
+	input.TableName = aws.String(chi.URLParam(r, "tableName"))
+	result, err := h.Svc.DynamoDB().UpdateTimeToLive(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update TTL", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update TTL", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }

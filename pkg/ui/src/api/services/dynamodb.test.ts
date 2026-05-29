@@ -211,10 +211,9 @@ describe('DynamoDBService', () => {
       const result = await service.listTables()
       expect(result.TableNames).toEqual(['table1', 'table2'])
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/dynamodb/'),
+        expect.stringContaining('/dynamodb/tables'),
         expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({ 'X-Amz-Target': 'dynamodb.ListTables' }),
+          method: 'GET',
         })
       )
     })
@@ -232,6 +231,10 @@ describe('DynamoDBService', () => {
       }))
       const result = await service.listTables({ Limit: 1, ExclusiveStartTableName: 'table2' })
       expect(result.LastEvaluatedTableName).toBe('table3')
+      // Verify query params
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('ExclusiveStartTableName=table2')
+      expect(url).toContain('Limit=1')
     })
 
     it('should throw APIError on failure', async () => {
@@ -257,6 +260,13 @@ describe('DynamoDBService', () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({ TableDescription: { TableName: 'test-table', TableStatus: 'CREATING' } }))
       const result = await service.createTable(tableRequest)
       expect(result.TableDescription.TableName).toBe('test-table')
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables'),
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.not.objectContaining({ 'X-Amz-Target': expect.anything() }),
+        })
+      )
     })
 
     it('should throw APIError on failure', async () => {
@@ -273,6 +283,12 @@ describe('DynamoDBService', () => {
       const result = await service.describeTable('test-table')
       expect(result.Table.TableName).toBe('test-table')
       expect(result.Table.ItemCount).toBe(100)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table'),
+        expect.objectContaining({
+          method: 'GET',
+        })
+      )
     })
 
     it('should throw APIError on non-existent table', async () => {
@@ -286,9 +302,9 @@ describe('DynamoDBService', () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await service.deleteTable('test-table')
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/dynamodb/'),
+        expect.stringContaining('/dynamodb/tables/test-table'),
         expect.objectContaining({
-          body: expect.stringContaining('"TableName":"test-table"'),
+          method: 'DELETE',
         })
       )
     })
@@ -307,6 +323,12 @@ describe('DynamoDBService', () => {
         ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
       })
       expect(result.TableDescription.TableName).toBe('test-table')
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table'),
+        expect.objectContaining({
+          method: 'PUT',
+        })
+      )
     })
 
     it('should update table with stream specification', async () => {
@@ -323,9 +345,15 @@ describe('DynamoDBService', () => {
     it('should put item with string args', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await service.putItem('test-table', { id: '123', name: 'test' })
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/items'),
+        expect.objectContaining({
+          method: 'POST',
+        })
+      )
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callBody.TableName).toBe('test-table')
       expect(callBody.Item.id.S).toBe('123')
+      expect(callBody.Item.name.S).toBe('test')
     })
 
     it('should put item with object body (Vue component style)', async () => {
@@ -335,7 +363,6 @@ describe('DynamoDBService', () => {
         Item: { id: '456', name: 'vue-item' },
       })
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callBody.TableName).toBe('test-table')
       expect(callBody.Item.id.S).toBe('456')
     })
 
@@ -365,6 +392,10 @@ describe('DynamoDBService', () => {
       expect(result.Item).toBeDefined()
       expect(result.Item!.id).toBe('123')
       expect(result.Item!.name).toBe('test')
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/items/get'),
+        expect.objectContaining({ method: 'POST' })
+      )
     })
 
     it('should get item with object body (Vue component style)', async () => {
@@ -388,9 +419,10 @@ describe('DynamoDBService', () => {
     it('should delete item with string args', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await service.deleteItem('test-table', { id: '123' })
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callBody.TableName).toBe('test-table')
-      expect(callBody.Key.id.S).toBe('123')
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/items'),
+        expect.objectContaining({ method: 'DELETE' })
+      )
     })
 
     it('should delete item with object body (Vue component style)', async () => {
@@ -400,7 +432,7 @@ describe('DynamoDBService', () => {
         Key: { id: '456' },
       })
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callBody.TableName).toBe('test-table')
+      expect(callBody.Key.id.S).toBe('456')
     })
 
     it('should preserve already-marshalled key for delete', async () => {
@@ -430,6 +462,10 @@ describe('DynamoDBService', () => {
         { ReturnValues: 'ALL_NEW' }
       )
       expect(result.Attributes.updated).toEqual({ BOOL: true })
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/items'),
+        expect.objectContaining({ method: 'PUT' })
+      )
     })
   })
 
@@ -448,6 +484,10 @@ describe('DynamoDBService', () => {
       expect(result.Items[0].id).toBe('123')
       expect(result.Count).toBe(1)
       expect(result.ScannedCount).toBe(10)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/query'),
+        expect.objectContaining({ method: 'POST' })
+      )
     })
 
     it('should query with object body (Vue component style)', async () => {
@@ -489,6 +529,10 @@ describe('DynamoDBService', () => {
       const result = await service.scan('test-table', { FilterExpression: 'attribute_exists(id)' })
       expect(result.Items).toHaveLength(2)
       expect(result.Count).toBe(2)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/scan'),
+        expect.objectContaining({ method: 'POST' })
+      )
     })
 
     it('should scan with object body (Vue component style)', async () => {
@@ -516,6 +560,10 @@ describe('DynamoDBService', () => {
       expect(result.items).toHaveLength(2)
       expect(result.items[0].id).toBe('1')
       expect(result.lastKey).toBeNull()
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/scan'),
+        expect.objectContaining({ method: 'POST' })
+      )
     })
 
     it('should pass limit and startKey', async () => {
@@ -545,6 +593,10 @@ describe('DynamoDBService', () => {
         { DeleteRequest: { Key: { id: '2' } } },
       ])
       expect(result.UnprocessedItems).toEqual({})
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/batch-write-item'),
+        expect.objectContaining({ method: 'POST' })
+      )
     })
   })
 
@@ -558,6 +610,10 @@ describe('DynamoDBService', () => {
       const result = await service.batchGetItem('test-table', [{ id: '1' }, { id: '2' }])
       expect(result.Responses).toHaveLength(2)
       expect(result.Responses![0].id).toBe('1')
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/batch-get-item'),
+        expect.objectContaining({ method: 'POST' })
+      )
     })
 
     it('should handle empty responses', async () => {
@@ -577,6 +633,10 @@ describe('DynamoDBService', () => {
       }))
       const result = await service.getTimeToLive('test-table')
       expect(result.TimeToLiveDescription.TimeToLiveStatus).toBe('ENABLED')
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/ttl'),
+        expect.objectContaining({ method: 'GET' })
+      )
     })
   })
 
@@ -584,6 +644,10 @@ describe('DynamoDBService', () => {
     it('should enable TTL', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await service.updateTimeToLive('test-table', true, 'ttl')
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/ttl'),
+        expect.objectContaining({ method: 'PUT' })
+      )
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(callBody.TimeToLiveSpecification.Enabled).toBe(true)
       expect(callBody.TimeToLiveSpecification.AttributeName).toBe('ttl')
@@ -646,7 +710,10 @@ describe('DynamoDB Standalone Functions', () => {
     it('should delete table', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await deleteTable('test-table')
-      expect(mockFetch).toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table'),
+        expect.objectContaining({ method: 'DELETE' })
+      )
     })
   })
 
@@ -663,6 +730,10 @@ describe('DynamoDB Standalone Functions', () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({ TableNames: ['t1', 't2'] }))
       const result = await listTables()
       expect(result.TableNames).toHaveLength(2)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables'),
+        expect.objectContaining({ method: 'GET' })
+      )
     })
   })
 
@@ -670,7 +741,10 @@ describe('DynamoDB Standalone Functions', () => {
     it('should update table', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await updateTable('test-table', { BillingMode: 'PROVISIONED' })
-      expect(mockFetch).toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table'),
+        expect.objectContaining({ method: 'PUT' })
+      )
     })
   })
 
@@ -678,7 +752,10 @@ describe('DynamoDB Standalone Functions', () => {
     it('should put item', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await putItem('test-table', { id: '123' })
-      expect(mockFetch).toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/items'),
+        expect.objectContaining({ method: 'POST' })
+      )
     })
   })
 
@@ -687,6 +764,10 @@ describe('DynamoDB Standalone Functions', () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({ Item: { id: { S: '123' } } }))
       const result = await getItem('test-table', { id: '123' })
       expect(result.Item?.id).toBe('123')
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/items/get'),
+        expect.objectContaining({ method: 'POST' })
+      )
     })
   })
 
@@ -694,7 +775,10 @@ describe('DynamoDB Standalone Functions', () => {
     it('should delete item', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await deleteItem('test-table', { id: '123' })
-      expect(mockFetch).toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/items'),
+        expect.objectContaining({ method: 'DELETE' })
+      )
     })
   })
 
@@ -702,7 +786,10 @@ describe('DynamoDB Standalone Functions', () => {
     it('should update item', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await updateItem('test-table', { id: '123' }, { UpdateExpression: 'SET #n = :v' })
-      expect(mockFetch).toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/items'),
+        expect.objectContaining({ method: 'PUT' })
+      )
     })
   })
 
@@ -734,7 +821,10 @@ describe('DynamoDB Standalone Functions', () => {
     it('should batch write', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await batchWriteItem('test-table', [{ PutRequest: { Item: { id: '1' } } }])
-      expect(mockFetch).toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/batch-write-item'),
+        expect.objectContaining({ method: 'POST' })
+      )
     })
   })
 
@@ -742,7 +832,10 @@ describe('DynamoDB Standalone Functions', () => {
     it('should batch get', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await batchGetItem('test-table', [{ id: '1' }])
-      expect(mockFetch).toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/batch-get-item'),
+        expect.objectContaining({ method: 'POST' })
+      )
     })
   })
 
@@ -750,7 +843,10 @@ describe('DynamoDB Standalone Functions', () => {
     it('should get TTL', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await getTimeToLive('test-table')
-      expect(mockFetch).toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/ttl'),
+        expect.objectContaining({ method: 'GET' })
+      )
     })
   })
 
@@ -758,7 +854,10 @@ describe('DynamoDB Standalone Functions', () => {
     it('should update TTL', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({}))
       await updateTimeToLive('test-table', true, 'ttl')
-      expect(mockFetch).toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb/tables/test-table/ttl'),
+        expect.objectContaining({ method: 'PUT' })
+      )
     })
   })
 
@@ -775,6 +874,10 @@ describe('DynamoDB Standalone Functions', () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({ Streams: [{ StreamArn: 'arn:aws:dynamodb:us-east-1:123:table/test-table/stream/2024-01-01' }] }))
       const result = await listStreams('test-table')
       expect(result.Streams).toHaveLength(1)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb-streams/streams?tableName=test-table'),
+        expect.objectContaining({ method: 'GET' })
+      )
     })
 
     it('should return empty array for empty table name', async () => {
@@ -788,6 +891,10 @@ describe('DynamoDB Standalone Functions', () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({ Streams: [] }))
       const result = await listAllStreams()
       expect(result.Streams).toEqual([])
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb-streams/streams'),
+        expect.objectContaining({ method: 'GET' })
+      )
     })
   })
 
@@ -800,6 +907,10 @@ describe('DynamoDB Standalone Functions', () => {
       }))
       const result = await describeStream('arn:aws:dynamodb:...')
       expect(result.StreamDescription.StreamArn).toBeDefined()
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb-streams/streams/'),
+        expect.objectContaining({ method: 'GET' })
+      )
     })
   })
 
@@ -809,6 +920,10 @@ describe('DynamoDB Standalone Functions', () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse(mockShardIterator))
       const result = await getShardIterator('stream-arn', 'shard-123')
       expect(result.ShardIterator).toBe('AAAAA')
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb-streams/streams/stream-arn/shards/shard-123/iterator'),
+        expect.objectContaining({ method: 'POST' })
+      )
     })
 
     it('should use provided iterator type', async () => {
@@ -831,31 +946,35 @@ describe('DynamoDB Standalone Functions', () => {
           },
         ],
       }))
-      const result = await getRecords('shard-iterator-aaaa')
+      const result = await getRecords('stream-arn', 'shard-1', 'shard-iterator-aaaa')
       expect(result.Records).toHaveLength(1)
       expect(result.Records[0].dynamodb).toBeDefined()
       expect(result.Records[0].Dynamodb).toBeUndefined()
       expect(typeof result.Records[0].dynamodb.ApproximateCreationDateTime).toBe('number')
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/dynamodb-streams/streams/stream-arn/shards/shard-1/records'),
+        expect.objectContaining({ method: 'POST' })
+      )
     })
 
     it('should handle records without Dynamodb field', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({
         Records: [{ eventID: '1' }],
       }))
-      const result = await getRecords('shard-iterator-bbbb')
+      const result = await getRecords('stream-arn', 'shard-1', 'shard-iterator-bbbb')
       expect(result.Records).toHaveLength(1)
       expect(result.Records[0].eventID).toBe('1')
     })
 
     it('should handle empty records', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({ Records: [] }))
-      const result = await getRecords('shard-iterator-cccc')
+      const result = await getRecords('stream-arn', 'shard-1', 'shard-iterator-cccc')
       expect(result.Records).toEqual([])
     })
 
     it('should use default limit', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({ Records: [] }))
-      await getRecords('shard-iterator')
+      await getRecords('stream-arn', 'shard-1', 'shard-iterator')
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(callBody.Limit).toBe(100)
     })
@@ -871,14 +990,14 @@ describe('DynamoDB Standalone Functions', () => {
           },
         ],
       }))
-      const result = await getRecords('shard-iterator-num')
+      const result = await getRecords('stream-arn', 'shard-1', 'shard-iterator-num')
       expect(result.Records).toHaveLength(1)
       expect(result.Records[0].dynamodb.ApproximateCreationDateTime).toBe(1704067200)
     })
 
     it('should throw APIError on DynamoDBStreams network failure', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Streams network error'))
-      await expect(getRecords('bad-iterator')).rejects.toThrow(APIError)
+      await expect(getRecords('stream-arn', 'shard-1', 'bad-iterator')).rejects.toThrow(APIError)
     })
   })
 })

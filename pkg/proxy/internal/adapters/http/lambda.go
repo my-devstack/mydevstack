@@ -1,115 +1,98 @@
 package httphandlers
 
 import (
-	"context"
 	"encoding/base64"
 	"net/http"
-	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 )
 
-func (h *ProxyHandler) handleLambda(c *gin.Context) {
-	xAmzTarget := c.GetHeader("X-Amz-Target")
-	bodyBytes := readBody(c)
-	ctx := h.ctx
+func (h *ProxyHandler) registerLambdaRoutes(r chi.Router) {
+	r.Route("/lambda", func(r chi.Router) {
+		r.Get("/functions", h.listFunctions)
+		r.Post("/functions", h.createFunction)
+		r.Get("/functions/{functionName}", h.getFunction)
+		r.Put("/functions/{functionName}", h.updateFunctionConfiguration)
+		r.Put("/functions/{functionName}/code", h.updateFunctionCode)
+		r.Delete("/functions/{functionName}", h.deleteFunction)
+		r.Post("/functions/{functionName}/invocations", h.invokeFunction)
+		r.Get("/functions/{functionName}/configuration", h.getFunctionConfiguration)
 
-	switch {
-	case strings.Contains(xAmzTarget, "ListFunctions"):
-		h.listFunctions(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateFunction"):
-		h.createFunction(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetFunction"):
-		h.getFunction(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteFunction"):
-		h.deleteFunction(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "Invoke"):
-		h.invokeFunction(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "UpdateFunctionConfiguration"):
-		h.updateFunctionConfiguration(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "UpdateFunctionCode"):
-		h.updateFunctionCode(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetFunctionConfiguration"):
-		h.getFunctionConfiguration(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "ListEventSourceMappings"):
-		h.listEventSourceMappings(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateEventSourceMapping"):
-		h.createEventSourceMapping(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetEventSourceMapping"):
-		h.getEventSourceMapping(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteEventSourceMapping"):
-		h.deleteEventSourceMapping(ctx, c, bodyBytes)
-	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown Lambda action: " + xAmzTarget})
-	}
+		r.Get("/event-source-mappings", h.listEventSourceMappings)
+		r.Post("/event-source-mappings", h.createEventSourceMapping)
+		r.Get("/event-source-mappings/{uuid}", h.getEventSourceMapping)
+		r.Delete("/event-source-mappings/{uuid}", h.deleteEventSourceMapping)
+	})
 }
 
-func (h *ProxyHandler) listFunctions(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) listFunctions(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &lambda.ListFunctionsInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Lambda().ListFunctions(ctx, input)
+	result, err := h.Svc.Lambda().ListFunctions(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to list functions", err)
+		sendError(w, http.StatusInternalServerError, "Failed to list functions", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createFunction(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createFunction(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &lambda.CreateFunctionInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Lambda().CreateFunction(ctx, input)
+	result, err := h.Svc.Lambda().CreateFunction(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create function", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create function", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getFunction(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &lambda.GetFunctionInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getFunction(w http.ResponseWriter, r *http.Request) {
+	input := &lambda.GetFunctionInput{
+		FunctionName: aws.String(urlParam(r, "functionName")),
 	}
-	result, err := h.Svc.Lambda().GetFunction(ctx, input)
+	result, err := h.Svc.Lambda().GetFunction(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get function", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get function", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteFunction(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &lambda.DeleteFunctionInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteFunction(w http.ResponseWriter, r *http.Request) {
+	input := &lambda.DeleteFunctionInput{
+		FunctionName: aws.String(urlParam(r, "functionName")),
 	}
-	result, err := h.Svc.Lambda().DeleteFunction(ctx, input)
+	result, err := h.Svc.Lambda().DeleteFunction(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete function", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete function", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) invokeFunction(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &lambda.InvokeInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+func (h *ProxyHandler) invokeFunction(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	input := &lambda.InvokeInput{
+		FunctionName: aws.String(urlParam(r, "functionName")),
+	}
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Lambda().Invoke(ctx, input)
+	result, err := h.Svc.Lambda().Invoke(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to invoke function", err)
+		sendError(w, http.StatusInternalServerError, "Failed to invoke function", err)
 		return
 	}
 
@@ -118,110 +101,110 @@ func (h *ProxyHandler) invokeFunction(ctx context.Context, c *gin.Context, bodyB
 	}
 	if result.FunctionError != nil {
 		response["FunctionError"] = *result.FunctionError
-		c.Header("X-Amz-Function-Error", *result.FunctionError)
+		w.Header().Set("X-Amz-Function-Error", *result.FunctionError)
 	}
 	if len(result.Payload) > 0 {
 		encoded := base64.StdEncoding.EncodeToString(result.Payload)
 		response["Payload"] = encoded
 	}
-	c.Header("Content-Type", "application/json")
-	c.JSON(http.StatusOK, response)
+	w.Header().Set("Content-Type", "application/json")
+	writeJSON(w, http.StatusOK, response)
 }
 
-func (h *ProxyHandler) updateFunctionConfiguration(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateFunctionConfiguration(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &lambda.UpdateFunctionConfigurationInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Lambda().UpdateFunctionConfiguration(ctx, input)
+	input.FunctionName = aws.String(urlParam(r, "functionName"))
+	result, err := h.Svc.Lambda().UpdateFunctionConfiguration(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update function configuration", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update function configuration", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateFunctionCode(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateFunctionCode(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &lambda.UpdateFunctionCodeInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Lambda().UpdateFunctionCode(ctx, input)
+	input.FunctionName = aws.String(urlParam(r, "functionName"))
+	result, err := h.Svc.Lambda().UpdateFunctionCode(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update function code", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update function code", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getFunctionConfiguration(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &lambda.GetFunctionConfigurationInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getFunctionConfiguration(w http.ResponseWriter, r *http.Request) {
+	input := &lambda.GetFunctionConfigurationInput{
+		FunctionName: aws.String(urlParam(r, "functionName")),
 	}
-	result, err := h.Svc.Lambda().GetFunctionConfiguration(ctx, input)
+	result, err := h.Svc.Lambda().GetFunctionConfiguration(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get function configuration", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get function configuration", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) listEventSourceMappings(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) listEventSourceMappings(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &lambda.ListEventSourceMappingsInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Lambda().ListEventSourceMappings(ctx, input)
+	result, err := h.Svc.Lambda().ListEventSourceMappings(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to list event source mappings", err)
+		sendError(w, http.StatusInternalServerError, "Failed to list event source mappings", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createEventSourceMapping(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createEventSourceMapping(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &lambda.CreateEventSourceMappingInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.Lambda().CreateEventSourceMapping(ctx, input)
+	result, err := h.Svc.Lambda().CreateEventSourceMapping(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create event source mapping", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create event source mapping", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getEventSourceMapping(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &lambda.GetEventSourceMappingInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getEventSourceMapping(w http.ResponseWriter, r *http.Request) {
+	input := &lambda.GetEventSourceMappingInput{
+		UUID: aws.String(chi.URLParam(r, "uuid")),
 	}
-	result, err := h.Svc.Lambda().GetEventSourceMapping(ctx, input)
+	result, err := h.Svc.Lambda().GetEventSourceMapping(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get event source mapping", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get event source mapping", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteEventSourceMapping(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &lambda.DeleteEventSourceMappingInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteEventSourceMapping(w http.ResponseWriter, r *http.Request) {
+	input := &lambda.DeleteEventSourceMappingInput{
+		UUID: aws.String(chi.URLParam(r, "uuid")),
 	}
-	result, err := h.Svc.Lambda().DeleteEventSourceMapping(ctx, input)
+	result, err := h.Svc.Lambda().DeleteEventSourceMapping(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete event source mapping", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete event source mapping", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }

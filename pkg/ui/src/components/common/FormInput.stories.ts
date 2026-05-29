@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import FormInput from './FormInput.vue';
 
 const meta: Meta<typeof FormInput> = {

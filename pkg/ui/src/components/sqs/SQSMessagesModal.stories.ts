@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import SQSMessagesModal from './SQSMessagesModal.vue';
 
 const meta: Meta<typeof SQSMessagesModal> = {

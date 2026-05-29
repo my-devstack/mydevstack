@@ -1,35 +1,42 @@
 /**
  * API Gateway Service API Client
- * Simple HTTP client for API Gateway via Go proxy
+ * REST client for API Gateway via Go proxy
  * @module api/services/api-gateway
  */
 
 import { PROXY_BACKEND } from '@/config'
+
+// APIError is imported for consistent error handling across services
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { APIError } from '../client'
 
-async function apiGatewayRequest(action: string, body: object = {}, targetPrefix: string = 'APIGateway'): Promise<any> {
+async function restRequest<T = any>(method: string, path: string, body?: object): Promise<T> {
   const endpoint = PROXY_BACKEND.replace(/\/$/, '')
-  const url = `${endpoint}/apigateway/`
+  const url = `${endpoint}/apigateway${path}`
+
+  const options: RequestInit = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }
+
+  if (body !== undefined) {
+    options.body = JSON.stringify(body)
+  }
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Amz-Target': `${targetPrefix}.${action}`,
-      },
-      body: JSON.stringify(body),
-    })
+    const response = await fetch(url, options)
 
     if (!response.ok) {
       const errorText = await response.clone().text()
       if (response.status === 404) {
-        return { error: errorText, notFound: true }
+        return { error: errorText, notFound: true } as any
       }
       if (response.status >= 500) {
         throw new Error(errorText || `HTTP ${response.status}`)
       }
-      return { Items: [], items: [], error: errorText }
+      return { Items: [], items: [], error: errorText } as any
     }
 
     return response.json()
@@ -38,15 +45,10 @@ async function apiGatewayRequest(action: string, body: object = {}, targetPrefix
   }
 }
 
-// HTTP API v2 requests use ApiGatewayV2 prefix (already uppercase)
-async function apiGatewayV2Request(action: string, body: object = {}): Promise<any> {
-  return apiGatewayRequest(action, body, 'ApiGatewayV2')
-}
-
 export class APIGatewayService {
   // REST API operations
   async getRestApis(options?: { position?: string; limit?: number }): Promise<any> {
-    const response = await apiGatewayRequest('GetRestApis', options || {})
+    const response = await restRequest('GET', '/rest-apis', options)
     // Normalize case: AWS SDK returns Items, Id (capitalized)
     if (response && response.Items) {
       response.items = response.Items.map((item: any) => ({
@@ -64,15 +66,15 @@ export class APIGatewayService {
     Version?: string
     BinaryMediaTypes?: string[]
   }): Promise<any> {
-    return apiGatewayRequest('CreateRestApi', { name, ...options })
+    return restRequest('POST', '/rest-apis', { name, ...options })
   }
 
   async deleteRestApi(restApiId: string): Promise<any> {
-    return apiGatewayRequest('DeleteRestApi', { restApiId })
+    return restRequest('DELETE', `/rest-apis/${encodeURIComponent(restApiId)}`)
   }
 
   async getRestApi(restApiId: string): Promise<any> {
-    const result = await apiGatewayRequest('GetRestApi', { restApiId })
+    const result = await restRequest('GET', `/rest-apis/${encodeURIComponent(restApiId)}`)
     // Normalize case: AWS SDK returns Name, Id (capitalized), but we want name, id (lowercase)
     if (result) {
       result.id = result.id || result.Id
@@ -86,11 +88,11 @@ export class APIGatewayService {
     name?: string
     description?: string
   }): Promise<any> {
-    return apiGatewayRequest('UpdateRestApi', { restApiId, ...options })
+    return restRequest('PUT', `/rest-apis/${encodeURIComponent(restApiId)}`, options)
   }
 
   async getResources(restApiId: string): Promise<any> {
-    const response = await apiGatewayRequest('GetResources', { restApiId })
+    const response = await restRequest('GET', `/rest-apis/${encodeURIComponent(restApiId)}/resources`)
     // Normalize - AWS SDK uses capitalized keys (Id, Path, PathPart)
     if (response && response.Items && Array.isArray(response.Items)) {
       response.items = response.Items.map((item: any) => ({
@@ -107,35 +109,30 @@ export class APIGatewayService {
   }
 
   async getResource(restApiId: string, resourceId: string): Promise<any> {
-    return apiGatewayRequest('GetResource', { restApiId, resourceId })
+    return restRequest('GET', `/rest-apis/${encodeURIComponent(restApiId)}/resources/${encodeURIComponent(resourceId)}`)
   }
 
   async createResource(restApiId: string, parentId: string, pathPart: string): Promise<any> {
-    return apiGatewayRequest('CreateResource', { restApiId, parentId, pathPart })
+    return restRequest('POST', `/rest-apis/${encodeURIComponent(restApiId)}/resources`, { parentId, pathPart })
   }
 
   async deleteResource(restApiId: string, resourceId: string): Promise<any> {
-    return apiGatewayRequest('DeleteResource', { restApiId, resourceId })
+    return restRequest('DELETE', `/rest-apis/${encodeURIComponent(restApiId)}/resources/${encodeURIComponent(resourceId)}`)
   }
 
   async putMethod(restApiId: string, resourceId: string, httpMethod: string, options?: {
     authorizationType?: string
     apiKeyRequired?: boolean
   }): Promise<any> {
-    return apiGatewayRequest('PutMethod', {
-      restApiId,
-      resourceId,
-      httpMethod: httpMethod.toUpperCase(),
-      ...options,
-    })
+    return restRequest('PUT', `/rest-apis/${encodeURIComponent(restApiId)}/resources/${encodeURIComponent(resourceId)}/methods/${encodeURIComponent(httpMethod.toUpperCase())}`, options)
   }
 
   async getMethod(restApiId: string, resourceId: string, httpMethod: string): Promise<any> {
-    return apiGatewayRequest('GetMethod', { restApiId, resourceId, httpMethod: httpMethod.toUpperCase() })
+    return restRequest('GET', `/rest-apis/${encodeURIComponent(restApiId)}/resources/${encodeURIComponent(resourceId)}/methods/${encodeURIComponent(httpMethod.toUpperCase())}`)
   }
 
   async deleteMethod(restApiId: string, resourceId: string, httpMethod: string): Promise<any> {
-    return apiGatewayRequest('DeleteMethod', { restApiId, resourceId, httpMethod: httpMethod.toUpperCase() })
+    return restRequest('DELETE', `/rest-apis/${encodeURIComponent(restApiId)}/resources/${encodeURIComponent(resourceId)}/methods/${encodeURIComponent(httpMethod.toUpperCase())}`)
   }
 
   // Create method (wrapper around PutMethod)
@@ -151,22 +148,19 @@ export class APIGatewayService {
     uri?: string
     integrationHttpMethod?: string
   }): Promise<any> {
-    return apiGatewayRequest('PutIntegration', {
-      restApiId,
-      resourceId,
-      httpMethod: httpMethod.toUpperCase(),
-      integrationHttpMethod: options?.integrationHttpMethod?.toUpperCase(),
-      type: options?.type,
-      uri: options?.uri,
-    })
+    const body: any = {}
+    if (options?.type) body.type = options.type
+    if (options?.uri) body.uri = options.uri
+    if (options?.integrationHttpMethod) body.integrationHttpMethod = options.integrationHttpMethod.toUpperCase()
+    return restRequest('PUT', `/rest-apis/${encodeURIComponent(restApiId)}/resources/${encodeURIComponent(resourceId)}/methods/${encodeURIComponent(httpMethod.toUpperCase())}/integrations`, body)
   }
 
   async getIntegration(restApiId: string, resourceId: string, httpMethod: string): Promise<any> {
-    return apiGatewayRequest('GetIntegration', { restApiId, resourceId, httpMethod: httpMethod.toUpperCase() })
+    return restRequest('GET', `/rest-apis/${encodeURIComponent(restApiId)}/resources/${encodeURIComponent(resourceId)}/methods/${encodeURIComponent(httpMethod.toUpperCase())}/integrations`)
   }
 
   async deleteIntegration(restApiId: string, resourceId: string, httpMethod: string): Promise<any> {
-    return apiGatewayRequest('DeleteIntegration', { restApiId, resourceId, httpMethod: httpMethod.toUpperCase() })
+    return restRequest('DELETE', `/rest-apis/${encodeURIComponent(restApiId)}/resources/${encodeURIComponent(resourceId)}/methods/${encodeURIComponent(httpMethod.toUpperCase())}/integrations`)
   }
 
   async createDeployment(restApiId: string, options?: {
@@ -174,24 +168,37 @@ export class APIGatewayService {
     stageDescription?: string
     description?: string
   }): Promise<any> {
-    return apiGatewayRequest('CreateDeployment', { restApiId, ...options })
+    return restRequest('POST', `/rest-apis/${encodeURIComponent(restApiId)}/deployments`, options)
   }
 
   async deleteDeployment(restApiId: string, deploymentId: string): Promise<any> {
-    return apiGatewayRequest('DeleteDeployment', { restApiId, deploymentId })
+    return restRequest('DELETE', `/rest-apis/${encodeURIComponent(restApiId)}/deployments/${encodeURIComponent(deploymentId)}`)
+  }
+
+  async getDeployments(apiId: string): Promise<any> {
+    const response = await restRequest('GET', `/rest-apis/${encodeURIComponent(apiId)}/deployments`)
+    // Normalize case
+    if (response) {
+      const sourceItems = response.items || response.Items || []
+      response.items = sourceItems.map((item: any) => ({
+        id: item.Id || item.id,
+        description: item.Description || item.description,
+        createdDate: item.CreatedDate || item.createdDate,
+      }))
+    }
+    return response
   }
 
   async createStage(restApiId: string, deploymentId: string, stageName: string, stageDescription?: string): Promise<any> {
-    return apiGatewayRequest('CreateStage', { 
-      RestApiId: restApiId, 
-      DeploymentId: deploymentId, 
-      StageName: stageName,
-      Description: stageDescription || '',
+    return restRequest('POST', `/rest-apis/${encodeURIComponent(restApiId)}/stages`, {
+      deploymentId,
+      stageName,
+      description: stageDescription || '',
     })
   }
 
   async getStages(restApiId: string): Promise<any> {
-    const response = await apiGatewayRequest('GetStages', { RestApiId: restApiId })
+    const response = await restRequest('GET', `/rest-apis/${encodeURIComponent(restApiId)}/stages`)
     // Normalize case: REST API uses "item" (singular) not "items" (plural)
     if (response) {
       const sourceItems = response.item || response.Item || []
@@ -214,16 +221,16 @@ export class APIGatewayService {
     path: string
     value?: string
   }>): Promise<any> {
-    return apiGatewayRequest('UpdateStage', { RestApiId: restApiId, StageName: stageName, PatchOperations: patchOperations })
+    return restRequest('PUT', `/rest-apis/${encodeURIComponent(restApiId)}/stages/${encodeURIComponent(stageName)}`, { patchOperations })
   }
 
   async deleteStage(restApiId: string, stageName: string): Promise<any> {
-    return apiGatewayRequest('DeleteStage', { RestApiId: restApiId, StageName: stageName })
+    return restRequest('DELETE', `/rest-apis/${encodeURIComponent(restApiId)}/stages/${encodeURIComponent(stageName)}`)
   }
 
   // HTTP API v2 operations
   async getApis(options?: any): Promise<any> {
-    const response = await apiGatewayV2Request('GetApis', options || {})
+    const response = await restRequest('GET', '/apis', options)
     // Normalize case: AWS SDK returns Items (capitalized)
     if (response && response.Items) {
       response.items = response.Items.map((item: any) => ({
@@ -239,23 +246,23 @@ export class APIGatewayService {
   }
 
   async createApi(options?: any): Promise<any> {
-    return apiGatewayV2Request('CreateApi', { 
-      Name: options?.name || options?.Name || '', 
+    return restRequest('POST', '/apis', {
+      Name: options?.name || options?.Name || '',
       ProtocolType: options?.ProtocolType || options?.protocolType || 'HTTP',
       Description: options?.Description || options?.description || '',
     })
   }
 
   async deleteApi(apiId: string): Promise<any> {
-    return apiGatewayV2Request('DeleteApi', { apiId })
+    return restRequest('DELETE', `/apis/${encodeURIComponent(apiId)}`)
   }
 
   async getApi(apiId: string): Promise<any> {
-    return apiGatewayV2Request('GetApi', { apiId })
+    return restRequest('GET', `/apis/${encodeURIComponent(apiId)}`)
   }
 
   async getRoutes(apiId: string): Promise<any> {
-    const response = await apiGatewayV2Request('GetRoutes', { ApiId: apiId })
+    const response = await restRequest('GET', `/apis/${encodeURIComponent(apiId)}/routes`)
     // Normalize case: AWS SDK returns Items (capitalized)
     if (response && response.Items) {
       response.items = response.Items.map((item: any) => ({
@@ -269,28 +276,23 @@ export class APIGatewayService {
 
   async createRoute(apiId: string, options?: any): Promise<any> {
     // Map frontend field names to AWS SDK field names (capitalized)
-    const sdkOptions: any = {
-      ApiId: apiId,
-    }
-    
+    const sdkOptions: any = {}
+
     if (options?.routeKey) sdkOptions.RouteKey = options.routeKey
-    if (options?.routeKey) sdkOptions.RouteKey = options.routeKey
+    if (options?.routeKey) sdkOptions.RouteKey = options.routeKey // intentional duplicate?
     if (options?.authorizationType) sdkOptions.AuthorizationType = options.authorizationType
     if (options?.authorizerId) sdkOptions.AuthorizerId = options.authorizerId
     if (options?.target) sdkOptions.Target = options.target
     if (options?.apiKeyRequired !== undefined) sdkOptions.ApiKeyRequired = options.apiKeyRequired
     if (options?.modelSelectionExpression) sdkOptions.ModelSelectionExpression = options.modelSelectionExpression
     if (options?.operationName) sdkOptions.OperationName = options.operationName
-    
-    return apiGatewayV2Request('CreateRoute', sdkOptions)
+
+    return restRequest('POST', `/apis/${encodeURIComponent(apiId)}/routes`, sdkOptions)
   }
 
   async updateRoute(apiId: string, routeId: string, options?: any): Promise<any> {
-    const sdkOptions: any = {
-      ApiId: apiId,
-      RouteId: routeId,
-    }
-    
+    const sdkOptions: any = {}
+
     if (options?.routeKey) sdkOptions.RouteKey = options.routeKey
     if (options?.authorizationType !== undefined) sdkOptions.AuthorizationType = options.authorizationType
     if (options?.authorizerId !== undefined) sdkOptions.AuthorizerId = options.authorizerId
@@ -298,17 +300,17 @@ export class APIGatewayService {
     if (options?.apiKeyRequired !== undefined) sdkOptions.ApiKeyRequired = options.apiKeyRequired
     if (options?.modelSelectionExpression !== undefined) sdkOptions.ModelSelectionExpression = options.modelSelectionExpression
     if (options?.operationName !== undefined) sdkOptions.OperationName = options.operationName
-    
-    return apiGatewayV2Request('UpdateRoute', sdkOptions)
+
+    return restRequest('PUT', `/apis/${encodeURIComponent(apiId)}/routes/${encodeURIComponent(routeId)}`, sdkOptions)
   }
 
   async deleteRoute(apiId: string, routeId: string): Promise<any> {
-    return apiGatewayV2Request('DeleteRoute', { ApiId: apiId, RouteId: routeId })
+    return restRequest('DELETE', `/apis/${encodeURIComponent(apiId)}/routes/${encodeURIComponent(routeId)}`)
   }
 
   async getIntegrations(apiId: string): Promise<any> {
-    const response = await apiGatewayV2Request('GetIntegrations', { ApiId: apiId })
-    
+    const response = await restRequest('GET', `/apis/${encodeURIComponent(apiId)}/integrations`)
+
     // Normalize case: AWS SDK returns Items (capitalized), LocalStack might return items (lowercase)
     if (response) {
       const sourceItems = response.Items || response.items || []
@@ -330,10 +332,8 @@ export class APIGatewayService {
 
   async createIntegration(apiId: string, options?: any): Promise<any> {
     // Map frontend field names to AWS SDK field names (capitalized)
-    const sdkOptions: any = {
-      ApiId: apiId,
-    }
-    
+    const sdkOptions: any = {}
+
     if (options?.integrationType) sdkOptions.IntegrationType = options.integrationType
     if (options?.integrationUri) sdkOptions.IntegrationUri = options.integrationUri
     if (options?.integrationMethod) sdkOptions.IntegrationMethod = options.integrationMethod
@@ -348,16 +348,13 @@ export class APIGatewayService {
     if (options?.contentHandlingStrategy) sdkOptions.ContentHandlingStrategy = options.contentHandlingStrategy
     if (options?.templateSelectionExpression) sdkOptions.TemplateSelectionExpression = options.templateSelectionExpression
     if (options?.requestTemplates) sdkOptions.RequestTemplates = options.requestTemplates
-    
-    return apiGatewayV2Request('CreateIntegration', sdkOptions)
+
+    return restRequest('POST', `/apis/${encodeURIComponent(apiId)}/integrations`, sdkOptions)
   }
 
   async updateIntegration(apiId: string, integrationId: string, options?: any): Promise<any> {
-    const sdkOptions: any = {
-      ApiId: apiId,
-      IntegrationId: integrationId,
-    }
-    
+    const sdkOptions: any = {}
+
     if (options?.integrationType !== undefined) sdkOptions.IntegrationType = options.integrationType
     if (options?.integrationUri !== undefined) sdkOptions.IntegrationUri = options.integrationUri
     if (options?.integrationMethod !== undefined) sdkOptions.IntegrationMethod = options.integrationMethod
@@ -371,33 +368,17 @@ export class APIGatewayService {
     if (options?.passthroughBehavior !== undefined) sdkOptions.PassthroughBehavior = options.passthroughBehavior
     if (options?.contentHandlingStrategy !== undefined) sdkOptions.ContentHandlingStrategy = options.contentHandlingStrategy
     if (options?.templateSelectionExpression !== undefined) sdkOptions.TemplateSelectionExpression = options.templateSelectionExpression
-    
-    return apiGatewayV2Request('UpdateIntegration', sdkOptions)
+
+    return restRequest('PUT', `/apis/${encodeURIComponent(apiId)}/integrations/${encodeURIComponent(integrationId)}`, sdkOptions)
   }
 
   async deleteIntegrationV2(apiId: string, integrationId: string): Promise<any> {
-    // Note: This uses the v2 API endpoint (ApiGatewayV2) - uses capitalized field names
-    return apiGatewayV2Request('DeleteIntegration', { ApiId: apiId, IntegrationId: integrationId })
-  }
-
-  // Deployments (REST API v1)
-  async getDeployments(apiId: string): Promise<any> {
-    const response = await apiGatewayRequest('GetDeployments', { RestApiId: apiId })
-    // Normalize case
-    if (response) {
-      const sourceItems = response.items || response.Items || []
-      response.items = sourceItems.map((item: any) => ({
-        id: item.Id || item.id,
-        description: item.Description || item.description,
-        createdDate: item.CreatedDate || item.createdDate,
-      }))
-    }
-    return response
+    return restRequest('DELETE', `/apis/${encodeURIComponent(apiId)}/integrations/${encodeURIComponent(integrationId)}`)
   }
 
   // HTTP API v2 Stages
   async getStagesV2(apiId: string): Promise<any> {
-    const response = await apiGatewayV2Request('GetStages', { ApiId: apiId })
+    const response = await restRequest('GET', `/apis/${encodeURIComponent(apiId)}/stages`)
     // Normalize case
     if (response) {
       const sourceItems = response.items || response.Items || []
@@ -413,15 +394,13 @@ export class APIGatewayService {
   }
 
   async getStageV2(apiId: string, stageName: string): Promise<any> {
-    return apiGatewayV2Request('GetStage', { ApiId: apiId, StageName: stageName })
+    return restRequest('GET', `/apis/${encodeURIComponent(apiId)}/stages/${encodeURIComponent(stageName)}`)
   }
 
   async createStageV2(apiId: string, options?: any): Promise<any> {
     // Map frontend field names to AWS SDK field names (capitalized)
-    const sdkOptions: any = {
-      ApiId: apiId,
-    }
-    
+    const sdkOptions: any = {}
+
     if (options?.stageName) sdkOptions.StageName = options.stageName
     if (options?.description) sdkOptions.Description = options.description
     if (options?.stageVariables) sdkOptions.StageVariables = options.stageVariables
@@ -429,33 +408,34 @@ export class APIGatewayService {
     if (options?.defaultRouteSettings) sdkOptions.DefaultRouteSettings = options.defaultRouteSettings
     if (options?.accessLogSettings) sdkOptions.AccessLogSettings = options.accessLogSettings
     if (options?.tags) sdkOptions.Tags = options.tags
-    
-    return apiGatewayV2Request('CreateStage', sdkOptions)
+
+    return restRequest('POST', `/apis/${encodeURIComponent(apiId)}/stages`, sdkOptions)
   }
 
   async updateStageV2(apiId: string, stageName: string, options?: any): Promise<any> {
-    const sdkOptions: any = {
-      ApiId: apiId,
-      StageName: stageName,
-    }
-    
+    const sdkOptions: any = {}
+
     if (options?.description !== undefined) sdkOptions.Description = options.description
     if (options?.stageVariables !== undefined) sdkOptions.StageVariables = options.stageVariables
     if (options?.autoDeploy !== undefined) sdkOptions.AutoDeploy = options.autoDeploy
     if (options?.defaultRouteSettings !== undefined) sdkOptions.DefaultRouteSettings = options.defaultRouteSettings
     if (options?.accessLogSettings !== undefined) sdkOptions.AccessLogSettings = options.accessLogSettings
-    
-    return apiGatewayV2Request('UpdateStage', sdkOptions)
+
+    return restRequest('PUT', `/apis/${encodeURIComponent(apiId)}/stages/${encodeURIComponent(stageName)}`, sdkOptions)
   }
 
   async deleteStageV2(apiId: string, stageName: string): Promise<any> {
-    return apiGatewayV2Request('DeleteStage', { ApiId: apiId, StageName: stageName })
+    return restRequest('DELETE', `/apis/${encodeURIComponent(apiId)}/stages/${encodeURIComponent(stageName)}`)
   }
 
-  async getInvokeUrl(apiId: string, stageName: string, targetPrefix: string = 'APIGateway', protocolType?: string): Promise<any> {
+  async getInvokeUrl(apiId: string, stageName: string): Promise<any> {
+    return restRequest('POST', `/rest-apis/${encodeURIComponent(apiId)}/invoke-url`, { apiId, stageName })
+  }
+
+  async getInvokeUrlV2(apiId: string, stageName: string, protocolType?: string): Promise<any> {
     const body: any = { apiId, stageName }
     if (protocolType) { body.protocolType = protocolType }
-    return apiGatewayRequest('GetInvokeUrl', body, targetPrefix)
+    return restRequest('POST', `/apis/${encodeURIComponent(apiId)}/invoke-url`, body)
   }
 }
 
@@ -543,9 +523,9 @@ export const deleteStage = (apiId: string, stageName: string) =>
   apiGatewayService.deleteStage(apiId, stageName)
 
 // Get Invoke URL
-export const getRestApiInvokeUrl = (apiId: string, stageName: string, protocolType?: string) =>
-  apiGatewayService.getInvokeUrl(apiId, stageName, 'APIGateway', protocolType)
+export const getRestApiInvokeUrl = (apiId: string, stageName: string, _protocolType?: string) =>
+  apiGatewayService.getInvokeUrl(apiId, stageName)
 export const getHttpApiInvokeUrl = (apiId: string, stageName: string, protocolType?: string) =>
-  apiGatewayService.getInvokeUrl(apiId, stageName, 'ApiGatewayV2', protocolType)
+  apiGatewayService.getInvokeUrlV2(apiId, stageName, protocolType)
 
 export default apiGatewayService

@@ -30,5 +30,9 @@
     "env.d.ts",
     "playwright.config.ts"
   ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.stories.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

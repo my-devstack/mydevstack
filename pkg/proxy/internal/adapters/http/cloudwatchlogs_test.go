@@ -16,37 +16,38 @@ func TestCloudWatchLogsActions(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		target    string
+		method    string
+		path      string
 		setupMock func(mp *mockports.CloudWatchLogsPort)
 	}{
-		{name: "DescribeLogGroups", target: "DescribeLogGroups", setupMock: func(mp *mockports.CloudWatchLogsPort) {
+		{name: "DescribeLogGroups", method: "GET", path: "/cloudwatch-logs/log-groups", setupMock: func(mp *mockports.CloudWatchLogsPort) {
 			mp.EXPECT().DescribeLogGroups(mock.Anything, mock.Anything).Return(&cloudwatchlogs.DescribeLogGroupsOutput{}, nil)
 		}},
-		{name: "CreateLogGroup", target: "CreateLogGroup", setupMock: func(mp *mockports.CloudWatchLogsPort) {
+		{name: "CreateLogGroup", method: "POST", path: "/cloudwatch-logs/log-groups", setupMock: func(mp *mockports.CloudWatchLogsPort) {
 			mp.EXPECT().CreateLogGroup(mock.Anything, mock.Anything).Return(&cloudwatchlogs.CreateLogGroupOutput{}, nil)
 		}},
-		{name: "DeleteLogGroup", target: "DeleteLogGroup", setupMock: func(mp *mockports.CloudWatchLogsPort) {
+		{name: "DeleteLogGroup", method: "DELETE", path: "/cloudwatch-logs/log-groups/testgroup", setupMock: func(mp *mockports.CloudWatchLogsPort) {
 			mp.EXPECT().DeleteLogGroup(mock.Anything, mock.Anything).Return(&cloudwatchlogs.DeleteLogGroupOutput{}, nil)
 		}},
-		{name: "DescribeLogStreams", target: "DescribeLogStreams", setupMock: func(mp *mockports.CloudWatchLogsPort) {
+		{name: "DescribeLogStreams", method: "GET", path: "/cloudwatch-logs/log-groups/testgroup/log-streams", setupMock: func(mp *mockports.CloudWatchLogsPort) {
 			mp.EXPECT().DescribeLogStreams(mock.Anything, mock.Anything).Return(&cloudwatchlogs.DescribeLogStreamsOutput{}, nil)
 		}},
-		{name: "CreateLogStream", target: "CreateLogStream", setupMock: func(mp *mockports.CloudWatchLogsPort) {
+		{name: "CreateLogStream", method: "POST", path: "/cloudwatch-logs/log-groups/testgroup/log-streams", setupMock: func(mp *mockports.CloudWatchLogsPort) {
 			mp.EXPECT().CreateLogStream(mock.Anything, mock.Anything).Return(&cloudwatchlogs.CreateLogStreamOutput{}, nil)
 		}},
-		{name: "PutLogEvents", target: "PutLogEvents", setupMock: func(mp *mockports.CloudWatchLogsPort) {
+		{name: "PutLogEvents", method: "POST", path: "/cloudwatch-logs/log-groups/testgroup/log-streams/teststream/events", setupMock: func(mp *mockports.CloudWatchLogsPort) {
 			mp.EXPECT().PutLogEvents(mock.Anything, mock.Anything).Return(&cloudwatchlogs.PutLogEventsOutput{}, nil)
 		}},
-		{name: "GetLogEvents", target: "GetLogEvents", setupMock: func(mp *mockports.CloudWatchLogsPort) {
+		{name: "GetLogEvents", method: "GET", path: "/cloudwatch-logs/log-groups/testgroup/log-streams/teststream/events", setupMock: func(mp *mockports.CloudWatchLogsPort) {
 			mp.EXPECT().GetLogEvents(mock.Anything, mock.Anything).Return(&cloudwatchlogs.GetLogEventsOutput{}, nil)
 		}},
-		{name: "PutMetricFilter", target: "PutMetricFilter", setupMock: func(mp *mockports.CloudWatchLogsPort) {
+		{name: "PutMetricFilter", method: "POST", path: "/cloudwatch-logs/metric-filters", setupMock: func(mp *mockports.CloudWatchLogsPort) {
 			mp.EXPECT().PutMetricFilter(mock.Anything, mock.Anything).Return(&cloudwatchlogs.PutMetricFilterOutput{}, nil)
 		}},
-		{name: "DescribeMetricFilters", target: "DescribeMetricFilters", setupMock: func(mp *mockports.CloudWatchLogsPort) {
+		{name: "DescribeMetricFilters", method: "GET", path: "/cloudwatch-logs/metric-filters", setupMock: func(mp *mockports.CloudWatchLogsPort) {
 			mp.EXPECT().DescribeMetricFilters(mock.Anything, mock.Anything).Return(&cloudwatchlogs.DescribeMetricFiltersOutput{}, nil)
 		}},
-		{name: "PutRetentionPolicy", target: "PutRetentionPolicy", setupMock: func(mp *mockports.CloudWatchLogsPort) {
+		{name: "PutRetentionPolicy", method: "PUT", path: "/cloudwatch-logs/log-groups/testgroup/retention", setupMock: func(mp *mockports.CloudWatchLogsPort) {
 			mp.EXPECT().PutRetentionPolicy(mock.Anything, mock.Anything).Return(&cloudwatchlogs.PutRetentionPolicyOutput{}, nil)
 		}},
 	}
@@ -61,7 +62,7 @@ func TestCloudWatchLogsActions(t *testing.T) {
 			svc.EXPECT().CloudWatchLogs().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/cloudwatchlogs/", tt.target, []byte("{}"))
+			w := performRequest(r, tt.method, tt.path, []byte("{}"))
 			assert.Equal(t, http.StatusOK, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -74,7 +75,7 @@ func TestCloudWatchLogs_InvalidBody(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/cloudwatchlogs/", "DescribeLogGroups", []byte(`{bad`))
+	w := performRequest(r, "GET", "/cloudwatch-logs/log-groups", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -88,7 +89,7 @@ func TestCloudWatchLogs_ServiceError(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/cloudwatchlogs/", "DescribeLogGroups", []byte("{}"))
+	w := performRequest(r, "GET", "/cloudwatch-logs/log-groups", []byte("{}"))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -99,8 +100,8 @@ func TestCloudWatchLogs_UnknownAction(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/cloudwatchlogs/", "UnknownCWLogsAction", []byte("{}"))
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	w := performRequest(r, "GET", "/cloudwatch-logs/unknown", []byte("{}"))
+	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
 // ---------------------------------------------------------------------------
@@ -112,59 +113,60 @@ func TestCloudWatchLogs_ServiceErrors(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		target    string
+		method    string
+		path      string
 		setupMock func(mp *mockports.CloudWatchLogsPort)
 	}{
 		{
-			name: "CreateLogGroup", target: "CreateLogGroup",
+			name: "CreateLogGroup", method: "POST", path: "/cloudwatch-logs/log-groups",
 			setupMock: func(mp *mockports.CloudWatchLogsPort) {
 				mp.EXPECT().CreateLogGroup(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "DeleteLogGroup", target: "DeleteLogGroup",
+			name: "DeleteLogGroup", method: "DELETE", path: "/cloudwatch-logs/log-groups/testgroup",
 			setupMock: func(mp *mockports.CloudWatchLogsPort) {
 				mp.EXPECT().DeleteLogGroup(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "DescribeLogStreams", target: "DescribeLogStreams",
+			name: "DescribeLogStreams", method: "GET", path: "/cloudwatch-logs/log-groups/testgroup/log-streams",
 			setupMock: func(mp *mockports.CloudWatchLogsPort) {
 				mp.EXPECT().DescribeLogStreams(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "CreateLogStream", target: "CreateLogStream",
+			name: "CreateLogStream", method: "POST", path: "/cloudwatch-logs/log-groups/testgroup/log-streams",
 			setupMock: func(mp *mockports.CloudWatchLogsPort) {
 				mp.EXPECT().CreateLogStream(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "PutLogEvents", target: "PutLogEvents",
+			name: "PutLogEvents", method: "POST", path: "/cloudwatch-logs/log-groups/testgroup/log-streams/teststream/events",
 			setupMock: func(mp *mockports.CloudWatchLogsPort) {
 				mp.EXPECT().PutLogEvents(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "GetLogEvents", target: "GetLogEvents",
+			name: "GetLogEvents", method: "GET", path: "/cloudwatch-logs/log-groups/testgroup/log-streams/teststream/events",
 			setupMock: func(mp *mockports.CloudWatchLogsPort) {
 				mp.EXPECT().GetLogEvents(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "PutMetricFilter", target: "PutMetricFilter",
+			name: "PutMetricFilter", method: "POST", path: "/cloudwatch-logs/metric-filters",
 			setupMock: func(mp *mockports.CloudWatchLogsPort) {
 				mp.EXPECT().PutMetricFilter(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "DescribeMetricFilters", target: "DescribeMetricFilters",
+			name: "DescribeMetricFilters", method: "GET", path: "/cloudwatch-logs/metric-filters",
 			setupMock: func(mp *mockports.CloudWatchLogsPort) {
 				mp.EXPECT().DescribeMetricFilters(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "PutRetentionPolicy", target: "PutRetentionPolicy",
+			name: "PutRetentionPolicy", method: "PUT", path: "/cloudwatch-logs/log-groups/testgroup/retention",
 			setupMock: func(mp *mockports.CloudWatchLogsPort) {
 				mp.EXPECT().PutRetentionPolicy(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
@@ -181,7 +183,7 @@ func TestCloudWatchLogs_ServiceErrors(t *testing.T) {
 			svc.EXPECT().CloudWatchLogs().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/cloudwatchlogs/", tt.target, []byte("{}"))
+			w := performRequest(r, tt.method, tt.path, []byte("{}"))
 			assert.Equal(t, http.StatusInternalServerError, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -194,21 +196,31 @@ func TestCloudWatchLogs_ServiceErrors(t *testing.T) {
 func TestCloudWatchLogs_ParseErrors(t *testing.T) {
 	t.Parallel()
 
-	targets := []string{
-		"DescribeLogGroups", "CreateLogGroup", "DeleteLogGroup",
-		"DescribeLogStreams", "CreateLogStream", "PutLogEvents", "GetLogEvents",
-		"PutMetricFilter", "DescribeMetricFilters", "PutRetentionPolicy",
+	tests := []struct {
+		name   string
+		method string
+		path   string
+	}{
+		{name: "DescribeLogGroups", method: "GET", path: "/cloudwatch-logs/log-groups"},
+		{name: "CreateLogGroup", method: "POST", path: "/cloudwatch-logs/log-groups"},
+		{name: "DescribeLogStreams", method: "GET", path: "/cloudwatch-logs/log-groups/testgroup/log-streams"},
+		{name: "CreateLogStream", method: "POST", path: "/cloudwatch-logs/log-groups/testgroup/log-streams"},
+		{name: "PutLogEvents", method: "POST", path: "/cloudwatch-logs/log-groups/testgroup/log-streams/teststream/events"},
+		{name: "GetLogEvents", method: "GET", path: "/cloudwatch-logs/log-groups/testgroup/log-streams/teststream/events"},
+		{name: "PutMetricFilter", method: "POST", path: "/cloudwatch-logs/metric-filters"},
+		{name: "DescribeMetricFilters", method: "GET", path: "/cloudwatch-logs/metric-filters"},
+		{name: "PutRetentionPolicy", method: "PUT", path: "/cloudwatch-logs/log-groups/testgroup/retention"},
 	}
 
-	for _, target := range targets {
-		target := target
-		t.Run(target, func(t *testing.T) {
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			svc := createMockSvc(t, nil)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/cloudwatchlogs/", target, []byte(`{bad`))
-			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s body=%s", target, w.Body.String())
+			w := performRequest(r, tt.method, tt.path, []byte(`{bad`))
+			assert.Equal(t, http.StatusBadRequest, w.Code, "method=%s path=%s body=%s", tt.method, tt.path, w.Body.String())
 		})
 	}
 }

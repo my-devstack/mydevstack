@@ -9,9 +9,6 @@ services:
       - "8081:8081"
     environment:
       AWS_ENDPOINT: http://floci:4566
-      AWS_ACCESS_KEY_ID: test
-      AWS_SECRET_ACCESS_KEY: test
-      PROXY_PORT: 8081
       EMULATOR: FLOCI
     # volumes:
       # Optional: override nginx config

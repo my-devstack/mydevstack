@@ -1,0 +1,1076 @@
+openapi: 3.0.0
+info:
+  title: "SES v2"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # Email Identities
+  # ============================================================
+  /sesv2/email-identities:
+    get:
+      tags: [SES]
+      summary: List email identities
+      description: |
+        Returns a list of all email identities (email addresses and domains)
+        for the current AWS account. Supports pagination.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listEmailIdentities
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListEmailIdentitiesInput'
+      responses:
+        "200":
+          description: List of email identities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEmailIdentitiesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [SES]
+      summary: Create email identity
+      description: |
+        Creates a new email identity (email address or domain) for use with SES.
+        Requires EmailIdentity. Accepts both camelCase and TitleCase JSON keys.
+      operationId: createEmailIdentity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEmailIdentityInput'
+      responses:
+        "200":
+          description: Email identity created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateEmailIdentityOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sesv2/email-identities/{emailIdentity}:
+    get:
+      tags: [SES]
+      summary: Get email identity
+      description: |
+        Returns details about a specific email identity, including verification
+        status, DKIM attributes, and Mail-From settings.
+      operationId: getEmailIdentity
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/EmailIdentityPath'
+      responses:
+        "200":
+          description: Email identity details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetEmailIdentityOutput'
+        "404":
+          description: Email identity not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [SES]
+      summary: Delete email identity
+      description: |
+        Deletes an email identity (email address or domain) from SES.
+      operationId: deleteEmailIdentity
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/EmailIdentityPath'
+      responses:
+        "200":
+          description: Email identity deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteEmailIdentityOutput'
+        "404":
+          description: Email identity not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Email Send
+  # ============================================================
+  /sesv2/email/send:
+    post:
+      tags: [SES]
+      summary: Send email
+      description: |
+        Sends an email message. Requires Destination and Content.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: sendEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendEmailInput'
+      responses:
+        "200":
+          description: Email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendEmailOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Email Templates
+  # ============================================================
+  /sesv2/email-templates:
+    get:
+      tags: [SES]
+      summary: List email templates
+      description: |
+        Returns a list of email templates. Supports pagination.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listEmailTemplates
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListEmailTemplatesInput'
+      responses:
+        "200":
+          description: List of email templates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEmailTemplatesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [SES]
+      summary: Create email template
+      description: |
+        Creates a new email template with the specified content.
+        Requires TemplateName and TemplateContent.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createEmailTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEmailTemplateInput'
+      responses:
+        "200":
+          description: Email template created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateEmailTemplateOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sesv2/email-templates/{templateName}:
+    get:
+      tags: [SES]
+      summary: Get email template
+      description: |
+        Returns details about a specific email template.
+      operationId: getEmailTemplate
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TemplateNamePath'
+      responses:
+        "200":
+          description: Email template details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetEmailTemplateOutput'
+        "404":
+          description: Email template not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [SES]
+      summary: Update email template
+      description: |
+        Updates the content of an existing email template.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateEmailTemplate
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TemplateNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEmailTemplateInput'
+      responses:
+        "200":
+          description: Email template updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateEmailTemplateOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [SES]
+      summary: Delete email template
+      description: |
+        Deletes an email template.
+      operationId: deleteEmailTemplate
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TemplateNamePath'
+      responses:
+        "200":
+          description: Email template deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteEmailTemplateOutput'
+        "404":
+          description: Email template not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Bulk Email
+  # ============================================================
+  /sesv2/email/bulk:
+    post:
+      tags: [SES]
+      summary: Send bulk email
+      description: |
+        Sends a templated email to multiple destinations. Requires
+        DefaultContent and BulkEmailEntries. Accepts both camelCase
+        and TitleCase JSON keys.
+      operationId: sendBulkEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendBulkEmailInput'
+      responses:
+        "200":
+          description: Bulk email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendBulkEmailOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Custom Verification Email Templates
+  # ============================================================
+  /sesv2/custom-verification-email-templates:
+    get:
+      tags: [SES]
+      summary: List custom verification email templates
+      operationId: listCustomVerificationEmailTemplates
+      responses:
+        "200":
+          description: List of custom verification email templates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCustomVerificationEmailTemplatesOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /sesv2/custom-verification-email-templates/{templateName}:
+    get:
+      tags: [SES]
+      summary: Get custom verification email template
+      operationId: getCustomVerificationEmailTemplate
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/TemplateNamePath'
+      responses:
+        "200":
+          description: Custom verification email template details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCustomVerificationEmailTemplateOutput'
+        "404":
+          description: Template not found
+        "500":
+          description: Internal server error
+
+  # ============================================================
+  # Dedicated IP Pools
+  # ============================================================
+  /sesv2/dedicated-ip-pools:
+    get:
+      tags: [SES]
+      summary: List dedicated IP pools
+      operationId: listDedicatedIpPools
+      responses:
+        "200":
+          description: List of dedicated IP pools
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDedicatedIpPoolsOutput'
+
+  /sesv2/dedicated-ip-pools/{poolName}:
+    get:
+      tags: [SES]
+      summary: Get dedicated IP pool
+      operationId: getDedicatedIpPool
+      parameters:
+        - name: poolName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dedicated IP pool details
+
+  /sesv2/dedicated-ip-pools/{poolName}/warmup:
+    get:
+      tags: [SES]
+      summary: Get dedicated IP pool warmup attributes
+      operationId: getDedicatedIpPoolWarmupAttributes
+      parameters:
+        - name: poolName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Warmup attributes
+
+  # ============================================================
+  # Suppressed Destinations
+  # ============================================================
+  /sesv2/suppressed-destinations:
+    get:
+      tags: [SES]
+      summary: List suppressed destinations
+      operationId: listSuppressedDestinations
+      responses:
+        "200":
+          description: List of suppressed destinations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSuppressedDestinationsOutput'
+
+components:
+  schemas:
+    # ============================================================
+    # Core types
+    # ============================================================
+    IdentityInfo:
+      type: object
+      properties:
+        IdentityType:
+          type: string
+          enum: [EMAIL_ADDRESS, DOMAIN, MANAGED_DOMAIN]
+          description: Type of identity
+        IdentityName:
+          type: string
+          description: Email address or domain name
+        SendingEnabled:
+          type: boolean
+          description: Whether sending is enabled for this identity
+        VerificationStatus:
+          type: string
+          enum: [PENDING, SUCCESS, FAILED, TEMPORARY_FAILURE, NOT_STARTED]
+          description: Verification status
+
+    DkimAttributes:
+      type: object
+      properties:
+        SigningEnabled:
+          type: boolean
+          description: Whether DKIM signing is enabled
+        Status:
+          type: string
+          enum: [PENDING, SUCCESS, FAILED, TEMPORARY_FAILURE, NOT_STARTED]
+          description: DKIM verification status
+        Tokens:
+          type: array
+          items:
+            type: string
+          description: DKIM tokens for DNS CNAME records
+        SigningAttributesOrigin:
+          type: string
+          enum: [AWS_SES, EXTERNAL]
+          description: Origin of DKIM signing attributes
+        NextSigningKeyLength:
+          type: string
+          enum: [RSA_1024_BIT, RSA_2048_BIT]
+          description: Length of the next signing key
+        CurrentKeyLength:
+          type: string
+          enum: [RSA_1024_BIT, RSA_2048_BIT]
+          description: Length of the current signing key
+        LastKeyGenerationTimestamp:
+          type: string
+          format: date-time
+          description: Timestamp of last key generation
+
+    MailFromAttributes:
+      type: object
+      properties:
+        MailFromDomain:
+          type: string
+          description: Custom MAIL FROM domain
+        MailFromDomainStatus:
+          type: string
+          enum: [PENDING, SUCCESS, FAILED, TEMPORARY_FAILURE]
+          description: Status of MAIL FROM domain configuration
+        BehaviorOnMxFailure:
+          type: string
+          enum: [USE_DEFAULT_VALUE, REJECT_MESSAGE]
+          description: Behavior when MX record check fails
+
+    Content:
+      type: object
+      required: [Data]
+      properties:
+        Data:
+          type: string
+          description: The content data (plain text or HTML)
+        Charset:
+          type: string
+          description: Character set (e.g., UTF-8)
+
+    Body:
+      type: object
+      properties:
+        Text:
+          $ref: '#/components/schemas/Content'
+          description: Plain text body
+        Html:
+          $ref: '#/components/schemas/Content'
+          description: HTML body
+
+    Message:
+      type: object
+      required: [Subject, Body]
+      properties:
+        Subject:
+          $ref: '#/components/schemas/Content'
+          description: Email subject line
+        Body:
+          $ref: '#/components/schemas/Body'
+          description: Email body
+
+    EmailContent:
+      type: object
+      properties:
+        Simple:
+          $ref: '#/components/schemas/Message'
+          description: Simple message with subject and body
+        Raw:
+          type: object
+          properties:
+            Data:
+              type: string
+              format: base64
+              description: Raw MIME message (base64-encoded)
+        Template:
+          type: object
+          properties:
+            TemplateName:
+              type: string
+              description: Name of the email template
+            TemplateArn:
+              type: string
+              description: ARN of the email template
+            TemplateData:
+              type: string
+              description: JSON string of template replacement values
+
+    Destination:
+      type: object
+      properties:
+        ToAddresses:
+          type: array
+          items:
+            type: string
+          description: Recipient email addresses (To)
+        CcAddresses:
+          type: array
+          items:
+            type: string
+          description: Recipient email addresses (CC)
+        BccAddresses:
+          type: array
+          items:
+            type: string
+          description: Recipient email addresses (BCC)
+
+    MessageTag:
+      type: object
+      required: [Name, Value]
+      properties:
+        Name:
+          type: string
+          description: Tag name
+        Value:
+          type: string
+          description: Tag value
+
+    TemplateMetadata:
+      type: object
+      properties:
+        TemplateName:
+          type: string
+          description: Name of the template
+        CreatedTimestamp:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        LastUpdatedTimestamp:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    EmailTemplateContent:
+      type: object
+      properties:
+        Subject:
+          type: string
+          description: Subject line of the template
+        Text:
+          type: string
+          description: Plain text content of the template
+        Html:
+          type: string
+          description: HTML content of the template
+
+    BulkEmailEntry:
+      type: object
+      required: [Destination]
+      properties:
+        Destination:
+          $ref: '#/components/schemas/Destination'
+          description: Destination for the bulk email entry
+        ReplacementEmailContent:
+          type: object
+          properties:
+            ReplacementTemplate:
+              type: object
+              properties:
+                ReplacementTemplateData:
+                  type: string
+                  description: JSON string of replacement template values
+        ReplacementTags:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageTag'
+          description: Replacement tags for this recipient
+
+    BulkEmailEntryResult:
+      type: object
+      properties:
+        Status:
+          type: string
+          enum: [SUCCESS, MESSAGE_REJECTED, MAIL_FROM_DOMAIN_NOT_VERIFIED, CONFIGURATION_SET_NOT_FOUND, TEMPLATE_NOT_FOUND, ACCOUNT_SUSPENDED, ACCOUNT_THROTTLED, ACCOUNT_DAILY_QUOTA_EXCEEDED, INVALID_SENDING_POOL_NAME, ACCOUNT_SENDING_PAUSED, CONFIGURATION_SET_SENDING_PAUSED, INVALID_PARAMETER, TRANSIENT_FAILURE, FAILED]
+          description: Status of the bulk email entry
+        Error:
+          type: string
+          description: Error message if the entry failed
+        MessageId:
+          type: string
+          description: Message ID if the entry was successful
+
+    # ============================================================
+    # ListEmailIdentities
+    # ============================================================
+    ListEmailIdentitiesInput:
+      type: object
+      properties:
+        NextToken:
+          type: string
+          description: Pagination token
+        PageSize:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000
+          description: Number of results per page
+
+    ListEmailIdentitiesOutput:
+      type: object
+      properties:
+        EmailIdentities:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdentityInfo'
+          description: List of email identities
+        NextToken:
+          type: string
+          description: Pagination token
+
+    # ============================================================
+    # CreateEmailIdentity
+    # ============================================================
+    CreateEmailIdentityInput:
+      type: object
+      required: [EmailIdentity]
+      properties:
+        EmailIdentity:
+          type: string
+          description: Email address or domain to verify
+        Tags:
+          type: array
+          items:
+            type: object
+            required: [Key, Value]
+            properties:
+              Key:
+                type: string
+              Value:
+                type: string
+          description: Tags to associate with the identity
+        DkimSigningAttributes:
+          type: object
+          properties:
+            DomainSigningSelector:
+              type: string
+              description: DKIM signing selector
+            DomainSigningPrivateKey:
+              type: string
+              description: DKIM signing private key (base64-encoded)
+            NextSigningKeyLength:
+              type: string
+              enum: [RSA_1024_BIT, RSA_2048_BIT]
+              description: Length of the next signing key
+            DomainSigningAttributesOrigin:
+              type: string
+              enum: [AWS_SES, EXTERNAL]
+              description: Origin of DKIM signing attributes
+        ConfigurationSetName:
+          type: string
+          description: Configuration set to associate
+
+    CreateEmailIdentityOutput:
+      type: object
+      properties:
+        IdentityType:
+          type: string
+          enum: [EMAIL_ADDRESS, DOMAIN, MANAGED_DOMAIN]
+          description: Type of identity
+        VerifiedForSendingStatus:
+          type: boolean
+          description: Whether the identity is verified for sending
+        DkimAttributes:
+          $ref: '#/components/schemas/DkimAttributes'
+          description: DKIM attributes for the identity
+
+    # ============================================================
+    # GetEmailIdentity
+    # ============================================================
+    GetEmailIdentityOutput:
+      type: object
+      properties:
+        IdentityType:
+          type: string
+          enum: [EMAIL_ADDRESS, DOMAIN, MANAGED_DOMAIN]
+        IdentityName:
+          type: string
+        FeedbackForwardingStatus:
+          type: boolean
+          description: Whether feedback forwarding is enabled
+        VerifiedForSendingStatus:
+          type: boolean
+        DkimAttributes:
+          $ref: '#/components/schemas/DkimAttributes'
+        MailFromAttributes:
+          $ref: '#/components/schemas/MailFromAttributes'
+        Policies:
+          type: object
+          additionalProperties:
+            type: string
+          description: Custom policies
+        Tags:
+          type: array
+          items:
+            type: object
+            properties:
+              Key:
+                type: string
+              Value:
+                type: string
+        ConfigurationSetName:
+          type: string
+        VerificationStatus:
+          type: string
+          enum: [PENDING, SUCCESS, FAILED, TEMPORARY_FAILURE, NOT_STARTED]
+
+    # ============================================================
+    # DeleteEmailIdentity
+    # ============================================================
+    DeleteEmailIdentityOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # SendEmail
+    # ============================================================
+    SendEmailInput:
+      type: object
+      required: [Destination, Content]
+      properties:
+        FromEmailAddress:
+          type: string
+          description: Sender email address
+        Destination:
+          $ref: '#/components/schemas/Destination'
+          description: Recipient destination
+        Content:
+          $ref: '#/components/schemas/EmailContent'
+          description: Email content
+        ReplyToAddresses:
+          type: array
+          items:
+            type: string
+          description: Reply-to email addresses
+        FeedbackForwardingEmailAddress:
+          type: string
+          description: Feedback forwarding email address
+        FeedbackForwardingEmailAddressIdentityArn:
+          type: string
+          description: ARN of the feedback forwarding identity
+        EmailTags:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageTag'
+          description: Tags for the email
+        ConfigurationSetName:
+          type: string
+          description: Configuration set name
+        ListManagementOptions:
+          type: object
+          properties:
+            ContactListName:
+              type: string
+              description: Contact list name
+            TopicName:
+              type: string
+              description: Topic name
+
+    SendEmailOutput:
+      type: object
+      properties:
+        MessageId:
+          type: string
+          description: Unique message ID
+
+    # ============================================================
+    # ListEmailTemplates
+    # ============================================================
+    ListEmailTemplatesInput:
+      type: object
+      properties:
+        NextToken:
+          type: string
+        PageSize:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000
+
+    ListEmailTemplatesOutput:
+      type: object
+      properties:
+        TemplatesMetadata:
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateMetadata'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # CreateEmailTemplate
+    # ============================================================
+    CreateEmailTemplateInput:
+      type: object
+      required: [TemplateName, TemplateContent]
+      properties:
+        TemplateName:
+          type: string
+          description: Name of the template
+        TemplateContent:
+          $ref: '#/components/schemas/EmailTemplateContent'
+
+    CreateEmailTemplateOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # GetEmailTemplate
+    # ============================================================
+    GetEmailTemplateOutput:
+      type: object
+      properties:
+        TemplateName:
+          type: string
+        TemplateContent:
+          $ref: '#/components/schemas/EmailTemplateContent'
+
+    # ============================================================
+    # UpdateEmailTemplate
+    # ============================================================
+    UpdateEmailTemplateInput:
+      type: object
+      required: [TemplateName, TemplateContent]
+      properties:
+        TemplateName:
+          type: string
+        TemplateContent:
+          $ref: '#/components/schemas/EmailTemplateContent'
+
+    UpdateEmailTemplateOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # DeleteEmailTemplate
+    # ============================================================
+    DeleteEmailTemplateOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # SendBulkEmail
+    # ============================================================
+    SendBulkEmailInput:
+      type: object
+      required: [DefaultContent, BulkEmailEntries]
+      properties:
+        FromEmailAddress:
+          type: string
+        DefaultContent:
+          type: object
+          required: [Template]
+          properties:
+            Template:
+              type: object
+              required: [TemplateName]
+              properties:
+                TemplateName:
+                  type: string
+                TemplateArn:
+                  type: string
+                TemplateData:
+                  type: string
+        BulkEmailEntries:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkEmailEntry'
+          minItems: 1
+        ConfigurationSetName:
+          type: string
+        DefaultEmailTags:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageTag'
+        FeedbackForwardingEmailAddress:
+          type: string
+        FeedbackForwardingEmailAddressIdentityArn:
+          type: string
+        ReplyToAddresses:
+          type: array
+          items:
+            type: string
+
+    SendBulkEmailOutput:
+      type: object
+      properties:
+        BulkEmailEntryResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkEmailEntryResult'
+
+    # ============================================================
+    # Custom Verification Email Templates
+    # ============================================================
+    ListCustomVerificationEmailTemplatesOutput:
+      type: object
+      properties:
+        CustomVerificationEmailTemplates:
+          type: array
+          items:
+            type: object
+            properties:
+              TemplateName:
+                type: string
+              FromEmailAddress:
+                type: string
+              TemplateSubject:
+                type: string
+              SuccessRedirectionURL:
+                type: string
+              FailureRedirectionURL:
+                type: string
+
+    GetCustomVerificationEmailTemplateOutput:
+      type: object
+      properties:
+        TemplateName:
+          type: string
+        FromEmailAddress:
+          type: string
+        TemplateSubject:
+          type: string
+        TemplateContent:
+          type: string
+        SuccessRedirectionURL:
+          type: string
+        FailureRedirectionURL:
+          type: string
+
+    # ============================================================
+    # Dedicated IP Pools
+    # ============================================================
+    ListDedicatedIpPoolsOutput:
+      type: object
+      properties:
+        DedicatedIpPools:
+          type: array
+          items:
+            type: object
+            properties:
+              PoolName:
+                type: string
+
+    # ============================================================
+    # Suppressed Destinations
+    # ============================================================
+    ListSuppressedDestinationsOutput:
+      type: object
+      properties:
+        SuppressedDestinationSummaries:
+          type: array
+          items:
+            type: object
+            properties:
+              EmailAddress:
+                type: string
+              Reason:
+                type: string
+              LastUpdateTime:
+                type: string

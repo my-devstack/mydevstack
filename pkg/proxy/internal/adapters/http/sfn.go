@@ -1,181 +1,222 @@
 package httphandlers
 
 import (
-	"context"
 	"net/http"
-	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 )
 
-func (h *ProxyHandler) handleStepFunctions(c *gin.Context) {
-	xAmzTarget := c.GetHeader("X-Amz-Target")
-	bodyBytes := readBody(c)
-	ctx := h.ctx
+func (h *ProxyHandler) registerStepFunctionsRoutes(r chi.Router) {
+	r.Route("/step-functions", func(r chi.Router) {
+		r.Get("/state-machines", h.listStateMachines)
+		r.Post("/state-machines", h.createStateMachine)
+		r.Get("/state-machines/{stateMachineArn}", h.describeStateMachine)
+		r.Put("/state-machines/{stateMachineArn}", h.updateStateMachine)
+		r.Delete("/state-machines/{stateMachineArn}", h.deleteStateMachine)
 
-	switch {
-	case strings.HasSuffix(xAmzTarget, "ListStateMachines"):
-		h.listStateMachines(ctx, c, bodyBytes)
-	case strings.HasSuffix(xAmzTarget, "CreateStateMachine"):
-		h.createStateMachine(ctx, c, bodyBytes)
-	case strings.HasSuffix(xAmzTarget, "DescribeStateMachine"):
-		h.describeStateMachine(ctx, c, bodyBytes)
-	case strings.HasSuffix(xAmzTarget, "UpdateStateMachine"):
-		h.updateStateMachine(ctx, c, bodyBytes)
-	case strings.HasSuffix(xAmzTarget, "DeleteStateMachine"):
-		h.deleteStateMachine(ctx, c, bodyBytes)
-	case strings.HasSuffix(xAmzTarget, "StartExecution"):
-		h.startExecution(ctx, c, bodyBytes)
-	case strings.HasSuffix(xAmzTarget, "ListExecutions"):
-		h.listExecutions(ctx, c, bodyBytes)
-	case strings.HasSuffix(xAmzTarget, "StopExecution"):
-		h.stopExecution(ctx, c, bodyBytes)
-	case strings.HasSuffix(xAmzTarget, "DescribeExecution"):
-		h.describeExecution(ctx, c, bodyBytes)
-	case strings.HasSuffix(xAmzTarget, "GetExecutionHistory"):
-		h.getExecutionHistory(ctx, c, bodyBytes)
-	default:
-		sendError(c, http.StatusBadRequest, "Unsupported Step Functions action", nil)
-	}
+		r.Post("/state-machines/{stateMachineArn}/executions", h.startExecution)
+		r.Get("/state-machines/{stateMachineArn}/executions", h.listExecutions)
+		r.Get("/executions/{executionArn}", h.describeExecution)
+		r.Get("/executions/{executionArn}/history", h.getExecutionHistory)
+		r.Post("/executions/{executionArn}/stop", h.stopExecution)
+
+
+	})
 }
 
-func (h *ProxyHandler) listStateMachines(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) listStateMachines(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &sfn.ListStateMachinesInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.StepFunctions().ListStateMachines(ctx, input)
+	result, err := h.Svc.StepFunctions().ListStateMachines(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to list state machines", err)
+		sendError(w, http.StatusInternalServerError, "Failed to list state machines", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createStateMachine(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createStateMachine(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &sfn.CreateStateMachineInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.StepFunctions().CreateStateMachine(ctx, input)
+	result, err := h.Svc.StepFunctions().CreateStateMachine(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create state machine", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create state machine", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) describeStateMachine(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &sfn.DescribeStateMachineInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) describeStateMachine(w http.ResponseWriter, r *http.Request) {
+	input := &sfn.DescribeStateMachineInput{
+		StateMachineArn: aws.String(urlParam(r, "stateMachineArn")),
 	}
-	result, err := h.Svc.StepFunctions().DescribeStateMachine(ctx, input)
+	result, err := h.Svc.StepFunctions().DescribeStateMachine(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to describe state machine", err)
+		sendErrorWithStatus(w, "Failed to describe state machine", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateStateMachine(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateStateMachine(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &sfn.UpdateStateMachineInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.StepFunctions().UpdateStateMachine(ctx, input)
+	input.StateMachineArn = aws.String(urlParam(r, "stateMachineArn"))
+	result, err := h.Svc.StepFunctions().UpdateStateMachine(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update state machine", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update state machine", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteStateMachine(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &sfn.DeleteStateMachineInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteStateMachine(w http.ResponseWriter, r *http.Request) {
+	input := &sfn.DeleteStateMachineInput{
+		StateMachineArn: aws.String(urlParam(r, "stateMachineArn")),
 	}
-	result, err := h.Svc.StepFunctions().DeleteStateMachine(ctx, input)
+	result, err := h.Svc.StepFunctions().DeleteStateMachine(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete state machine", err)
+		sendErrorWithStatus(w, "Failed to delete state machine", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) startExecution(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &sfn.StartExecutionInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+func (h *ProxyHandler) startExecution(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	var body struct {
+		Input string `json:"Input"`
+		Name  string `json:"Name"`
+	}
+	if err := parseBody(bodyBytes, &body); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.StepFunctions().StartExecution(ctx, input)
+	input := &sfn.StartExecutionInput{
+		StateMachineArn: aws.String(urlParam(r, "stateMachineArn")),
+	}
+	if body.Input != "" {
+		input.Input = aws.String(body.Input)
+	}
+	if body.Name != "" {
+		input.Name = aws.String(body.Name)
+	}
+	result, err := h.Svc.StepFunctions().StartExecution(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to start execution", err)
+		sendError(w, http.StatusInternalServerError, "Failed to start execution", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) listExecutions(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &sfn.ListExecutionsInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+func (h *ProxyHandler) listExecutions(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	var body struct {
+		MaxResults int32  `json:"MaxResults"`
+		NextToken  string `json:"NextToken"`
+	}
+	if err := parseBody(bodyBytes, &body); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.StepFunctions().ListExecutions(ctx, input)
+	input := &sfn.ListExecutionsInput{
+		StateMachineArn: aws.String(urlParam(r, "stateMachineArn")),
+	}
+	if body.MaxResults > 0 {
+		input.MaxResults = body.MaxResults
+	}
+	if body.NextToken != "" {
+		input.NextToken = aws.String(body.NextToken)
+	}
+	result, err := h.Svc.StepFunctions().ListExecutions(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to list executions", err)
+		sendError(w, http.StatusInternalServerError, "Failed to list executions", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) stopExecution(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &sfn.StopExecutionInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+func (h *ProxyHandler) stopExecution(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	var body struct {
+		Cause string `json:"Cause"`
+		Error string `json:"Error"`
+	}
+	if err := parseBody(bodyBytes, &body); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.StepFunctions().StopExecution(ctx, input)
+	input := &sfn.StopExecutionInput{
+		ExecutionArn: aws.String(urlParam(r, "executionArn")),
+	}
+	if body.Cause != "" {
+		input.Cause = aws.String(body.Cause)
+	}
+	if body.Error != "" {
+		input.Error = aws.String(body.Error)
+	}
+	result, err := h.Svc.StepFunctions().StopExecution(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to stop execution", err)
+		sendError(w, http.StatusInternalServerError, "Failed to stop execution", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) describeExecution(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &sfn.DescribeExecutionInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) describeExecution(w http.ResponseWriter, r *http.Request) {
+	input := &sfn.DescribeExecutionInput{
+		ExecutionArn: aws.String(urlParam(r, "executionArn")),
 	}
-	result, err := h.Svc.StepFunctions().DescribeExecution(ctx, input)
+	result, err := h.Svc.StepFunctions().DescribeExecution(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to describe execution", err)
+		sendErrorWithStatus(w, "Failed to describe execution", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getExecutionHistory(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &sfn.GetExecutionHistoryInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+func (h *ProxyHandler) getExecutionHistory(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	var body struct {
+		MaxResults  int32  `json:"MaxResults"`
+		NextToken   string `json:"NextToken"`
+		ReverseOrder bool  `json:"ReverseOrder"`
+	}
+	if err := parseBody(bodyBytes, &body); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.StepFunctions().GetExecutionHistory(ctx, input)
+	input := &sfn.GetExecutionHistoryInput{
+		ExecutionArn: aws.String(urlParam(r, "executionArn")),
+	}
+	if body.MaxResults > 0 {
+		input.MaxResults = body.MaxResults
+	}
+	if body.NextToken != "" {
+		input.NextToken = aws.String(body.NextToken)
+	}
+	if body.ReverseOrder {
+		input.ReverseOrder = true
+	}
+	result, err := h.Svc.StepFunctions().GetExecutionHistory(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get execution history", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get execution history", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
+

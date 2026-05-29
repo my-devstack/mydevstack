@@ -1,0 +1,567 @@
+openapi: 3.0.0
+info:
+  title: "CloudFormation"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # Stacks
+  # ============================================================
+  /cloudformation/stacks:
+    get:
+      tags: [CloudFormation]
+      summary: List stacks
+      description: |
+        Returns a list of CloudFormation stacks with optional filtering
+        by status. Accepts both camelCase and TitleCase JSON keys.
+      operationId: listStacks
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListStacksInput'
+      responses:
+        "200":
+          description: List of stacks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListStacksOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [CloudFormation]
+      summary: Create stack
+      description: |
+        Creates a CloudFormation stack from a template. Requires StackName.
+        Provide either TemplateBody or TemplateURL.
+        Returns 201 on success. Accepts both camelCase and TitleCase JSON keys.
+      operationId: createStack
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStackInput'
+      responses:
+        "201":
+          description: Stack creation initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateStackOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cloudformation/stacks/{stackName}:
+    get:
+      tags: [CloudFormation]
+      summary: Describe stack
+      description: |
+        Returns detailed information about a CloudFormation stack,
+        including status, parameters, outputs, and capabilities.
+      operationId: describeStacks
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StackNamePath'
+      responses:
+        "200":
+          description: Stack details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeStacksOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [CloudFormation]
+      summary: Delete stack
+      description: |
+        Deletes a CloudFormation stack and all its resources.
+      operationId: deleteStack
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StackNamePath'
+      responses:
+        "200":
+          description: Stack deletion initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteStackOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cloudformation/stacks/{stackName}/template:
+    get:
+      tags: [CloudFormation]
+      summary: Get stack template
+      description: |
+        Returns the template body for a CloudFormation stack.
+      operationId: getTemplate
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StackNamePath'
+      responses:
+        "200":
+          description: Stack template
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetTemplateOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cloudformation/stacks/{stackName}/resources:
+    get:
+      tags: [CloudFormation]
+      summary: List stack resources
+      description: |
+        Returns a list of resources for a CloudFormation stack.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listStackResources
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StackNamePath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListStackResourcesInput'
+      responses:
+        "200":
+          description: List of stack resources
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListStackResourcesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Core types
+    # ============================================================
+    StackSummary:
+      type: object
+      properties:
+        StackId:
+          type: string
+          description: Unique stack identifier (ARN)
+        StackName:
+          type: string
+          description: Stack name
+        TemplateDescription:
+          type: string
+          description: Template description
+        CreationTime:
+          type: string
+          format: date-time
+          description: Stack creation timestamp
+        LastUpdatedTime:
+          type: string
+          format: date-time
+          description: Stack last update timestamp
+        DeletionTime:
+          type: string
+          format: date-time
+          description: Stack deletion timestamp
+        StackStatus:
+          type: string
+          enum: [CREATE_IN_PROGRESS, CREATE_FAILED, CREATE_COMPLETE, ROLLBACK_IN_PROGRESS, ROLLBACK_FAILED, ROLLBACK_COMPLETE, DELETE_IN_PROGRESS, DELETE_FAILED, DELETE_COMPLETE, UPDATE_IN_PROGRESS, UPDATE_FAILED, UPDATE_COMPLETE, UPDATE_ROLLBACK_IN_PROGRESS, UPDATE_ROLLBACK_FAILED, UPDATE_ROLLBACK_COMPLETE, REVIEW_IN_PROGRESS, IMPORT_IN_PROGRESS, IMPORT_COMPLETE, IMPORT_ROLLBACK_IN_PROGRESS, IMPORT_ROLLBACK_FAILED, IMPORT_ROLLBACK_COMPLETE]
+          description: Current stack status
+        StackStatusReason:
+          type: string
+          description: Reason for current stack status
+        ParentId:
+          type: string
+          description: Parent stack ID (for nested stacks)
+        RootId:
+          type: string
+          description: Root stack ID (for nested stacks)
+        DriftInformation:
+          type: object
+          properties:
+            StackDriftStatus:
+              type: string
+              enum: [DRIFTED, IN_SYNC, UNKNOWN, NOT_CHECKED]
+              description: Drift detection status
+
+    Stack:
+      type: object
+      properties:
+        StackId:
+          type: string
+        StackName:
+          type: string
+        ChangeSetId:
+          type: string
+        Description:
+          type: string
+        Parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/StackParameter'
+        CreationTime:
+          type: string
+          format: date-time
+        LastUpdatedTime:
+          type: string
+          format: date-time
+        DeletionTime:
+          type: string
+          format: date-time
+        StackStatus:
+          type: string
+          enum: [CREATE_IN_PROGRESS, CREATE_FAILED, CREATE_COMPLETE, ROLLBACK_IN_PROGRESS, ROLLBACK_FAILED, ROLLBACK_COMPLETE, DELETE_IN_PROGRESS, DELETE_FAILED, DELETE_COMPLETE, UPDATE_IN_PROGRESS, UPDATE_FAILED, UPDATE_COMPLETE, UPDATE_ROLLBACK_IN_PROGRESS, UPDATE_ROLLBACK_FAILED, UPDATE_ROLLBACK_COMPLETE, REVIEW_IN_PROGRESS, IMPORT_IN_PROGRESS, IMPORT_COMPLETE, IMPORT_ROLLBACK_IN_PROGRESS, IMPORT_ROLLBACK_FAILED, IMPORT_ROLLBACK_COMPLETE]
+        Capabilities:
+          type: array
+          items:
+            type: string
+            enum: [CAPABILITY_IAM, CAPABILITY_NAMED_IAM, CAPABILITY_AUTO_EXPAND]
+        Outputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/StackOutput'
+        RoleARN:
+          type: string
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        NotificationARNs:
+          type: array
+          items:
+            type: string
+        TimeoutInMinutes:
+          type: integer
+          format: int32
+        EnableTerminationProtection:
+          type: boolean
+        ParentId:
+          type: string
+        RootId:
+          type: string
+        DriftInformation:
+          type: object
+          properties:
+            StackDriftStatus:
+              type: string
+              enum: [DRIFTED, IN_SYNC, UNKNOWN, NOT_CHECKED]
+            LastCheckTimestamp:
+              type: string
+              format: date-time
+        RetainExceptOnCreate:
+          type: boolean
+        StackStatusReason:
+          type: string
+
+    StackParameter:
+      type: object
+      properties:
+        ParameterKey:
+          type: string
+        ParameterValue:
+          type: string
+        UsePreviousValue:
+          type: boolean
+        ResolvedValue:
+          type: string
+
+    StackOutput:
+      type: object
+      properties:
+        OutputKey:
+          type: string
+        OutputValue:
+          type: string
+        Description:
+          type: string
+        ExportName:
+          type: string
+
+    StackResource:
+      type: object
+      properties:
+        StackId:
+          type: string
+        StackName:
+          type: string
+        LogicalResourceId:
+          type: string
+        PhysicalResourceId:
+          type: string
+        ResourceType:
+          type: string
+        Timestamp:
+          type: string
+          format: date-time
+        ResourceStatus:
+          type: string
+          enum: [CREATE_IN_PROGRESS, CREATE_FAILED, CREATE_COMPLETE, DELETE_IN_PROGRESS, DELETE_FAILED, DELETE_COMPLETE, DELETE_SKIPPED, UPDATE_IN_PROGRESS, UPDATE_FAILED, UPDATE_COMPLETE, IMPORT_FAILED, IMPORT_COMPLETE, IMPORT_IN_PROGRESS, IMPORT_ROLLBACK_IN_PROGRESS, IMPORT_ROLLBACK_FAILED, IMPORT_ROLLBACK_COMPLETE]
+        ResourceStatusReason:
+          type: string
+        Description:
+          type: string
+        DriftInformation:
+          type: object
+          properties:
+            StackResourceDriftStatus:
+              type: string
+              enum: [IN_SYNC, MODIFIED, DELETED, NOT_CHECKED]
+            LastDriftDetectionTimestamp:
+              type: string
+              format: date-time
+        ModuleInfo:
+          type: object
+          properties:
+            TypeHierarchy:
+              type: string
+            LogicalIdHierarchy:
+              type: string
+
+    StackResourceSummary:
+      type: object
+      properties:
+        LogicalResourceId:
+          type: string
+        PhysicalResourceId:
+          type: string
+        ResourceType:
+          type: string
+        LastUpdatedTimestamp:
+          type: string
+          format: date-time
+        ResourceStatus:
+          type: string
+          enum: [CREATE_IN_PROGRESS, CREATE_FAILED, CREATE_COMPLETE, DELETE_IN_PROGRESS, DELETE_FAILED, DELETE_COMPLETE, DELETE_SKIPPED, UPDATE_IN_PROGRESS, UPDATE_FAILED, UPDATE_COMPLETE, IMPORT_FAILED, IMPORT_COMPLETE, IMPORT_IN_PROGRESS, IMPORT_ROLLBACK_IN_PROGRESS, IMPORT_ROLLBACK_FAILED, IMPORT_ROLLBACK_COMPLETE]
+        ResourceStatusReason:
+          type: string
+        DriftInformation:
+          type: object
+          properties:
+            StackResourceDriftStatus:
+              type: string
+              enum: [IN_SYNC, MODIFIED, DELETED, NOT_CHECKED]
+            LastDriftDetectionTimestamp:
+              type: string
+              format: date-time
+        ModuleInfo:
+          type: object
+          properties:
+            TypeHierarchy:
+              type: string
+            LogicalIdHierarchy:
+              type: string
+
+    Tag:
+      type: object
+      required: [Key, Value]
+      properties:
+        Key:
+          type: string
+          description: Tag key
+        Value:
+          type: string
+          description: Tag value
+
+    RollbackConfiguration:
+      type: object
+      properties:
+        RollbackTriggers:
+          type: array
+          items:
+            type: object
+            properties:
+              Arn:
+                type: string
+              Type:
+                type: string
+        MonitoringTimeInMinutes:
+          type: integer
+          format: int32
+
+
+    # ============================================================
+    # ListStacks
+    # ============================================================
+    ListStacksInput:
+      type: object
+      properties:
+        NextToken:
+          type: string
+        StackStatusFilter:
+          type: array
+          items:
+            type: string
+            enum: [CREATE_IN_PROGRESS, CREATE_FAILED, CREATE_COMPLETE, ROLLBACK_IN_PROGRESS, ROLLBACK_FAILED, ROLLBACK_COMPLETE, DELETE_IN_PROGRESS, DELETE_FAILED, DELETE_COMPLETE, UPDATE_IN_PROGRESS, UPDATE_FAILED, UPDATE_COMPLETE, UPDATE_ROLLBACK_IN_PROGRESS, UPDATE_ROLLBACK_FAILED, UPDATE_ROLLBACK_COMPLETE, REVIEW_IN_PROGRESS, IMPORT_IN_PROGRESS, IMPORT_COMPLETE, IMPORT_ROLLBACK_IN_PROGRESS, IMPORT_ROLLBACK_FAILED, IMPORT_ROLLBACK_COMPLETE]
+
+    ListStacksOutput:
+      type: object
+      properties:
+        StackSummaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/StackSummary'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # CreateStack
+    # ============================================================
+    CreateStackInput:
+      type: object
+      required: [StackName]
+      properties:
+        StackName:
+          type: string
+        TemplateBody:
+          type: string
+          description: Template body (JSON or YAML string)
+        TemplateURL:
+          type: string
+          format: uri
+          description: URL of the template in S3
+        Parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/StackParameter'
+        Capabilities:
+          type: array
+          items:
+            type: string
+            enum: [CAPABILITY_IAM, CAPABILITY_NAMED_IAM, CAPABILITY_AUTO_EXPAND]
+        ResourceTypes:
+          type: array
+          items:
+            type: string
+        RoleARN:
+          type: string
+        OnFailure:
+          type: string
+          enum: [DO_NOTHING, ROLLBACK, DELETE]
+        StackPolicyBody:
+          type: string
+        StackPolicyURL:
+          type: string
+          format: uri
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        ClientRequestToken:
+          type: string
+        EnableTerminationProtection:
+          type: boolean
+        NotificationARNs:
+          type: array
+          items:
+            type: string
+        RollbackConfiguration:
+          $ref: '#/components/schemas/RollbackConfiguration'
+        TimeoutInMinutes:
+          type: integer
+          format: int32
+
+    CreateStackOutput:
+      type: object
+      properties:
+        StackId:
+          type: string
+          description: Unique stack identifier (ARN)
+
+    # ============================================================
+    # DescribeStacks
+    # ============================================================
+    DescribeStacksOutput:
+      type: object
+      properties:
+        Stacks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Stack'
+        NextToken:
+          type: string
+
+    DeleteStackOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # GetTemplate
+    # ============================================================
+    GetTemplateOutput:
+      type: object
+      properties:
+        TemplateBody:
+          type: string
+          description: The template body (JSON or YAML string)
+        StagesAvailable:
+          type: array
+          items:
+            type: string
+            enum: [Original, Processed]
+
+    # ============================================================
+    # ListStackResources
+    # ============================================================
+    ListStackResourcesInput:
+      type: object
+      properties:
+        StackName:
+          type: string
+        NextToken:
+          type: string
+
+    ListStackResourcesOutput:
+      type: object
+      properties:
+        StackResourceSummaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/StackResourceSummary'
+        NextToken:
+          type: string

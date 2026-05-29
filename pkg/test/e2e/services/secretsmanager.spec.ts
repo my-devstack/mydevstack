@@ -160,10 +160,11 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
     await page.getByRole('button', { name: 'Edit Value' }).click()
     await page.waitForLoadState('networkidle')
 
-    // Verify edit modal appears — use heading role
-    const editHeading = page.getByRole('heading', { name: `Edit: ${secretName}` })
-    await expect(editHeading).toBeVisible({ timeout: 5000 })
-    const editDialog = editHeading.locator('..')
+    // Verify edit modal appears — use dialog role for robust parent
+    const editDialog = page.getByRole('dialog')
+    await expect(editDialog).toBeVisible({ timeout: 10000 })
+    // Confirm it's the right dialog by checking heading inside
+    await expect(editDialog.getByRole('heading', { name: `Edit: ${secretName}` })).toBeVisible({ timeout: 5000 })
 
     // Modify the value in the textarea
     const textarea = editDialog.locator('textarea')
@@ -171,11 +172,11 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
     await textarea.fill(newValue)
 
     // Click Save Changes
-    await editDialog.getByRole('button', { name: 'Save Changes' }).first().click()
+    await editDialog.getByRole('button', { name: 'Save Changes' }).click()
     await page.waitForLoadState('networkidle')
 
     // Wait for modal to close
-    await expect(editHeading).not.toBeVisible({ timeout: 15000 })
+    await expect(editDialog).not.toBeVisible({ timeout: 15000 })
 
     // Reload and verify new value — re-query secretDiv after reload (stale ref fix)
     await page.reload({ waitUntil: 'networkidle' })
@@ -242,10 +243,16 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
     // Reload to see both
     await page.reload({ waitUntil: 'networkidle' })
 
-    // Find first secret (search across pages due to pagination)
-    const found1 = await findSecretOnPage(page, secretName1)
-    expect(found1).toBe(true)
+    // Set per-page to 50 so both secrets visible on one page
+    const showLabel = page.getByText('Show:')
+    if (await showLabel.isVisible().catch(() => false)) {
+      await showLabel.locator('..').locator('select').selectOption('50')
+      await page.waitForLoadState('networkidle')
+    }
+
+    // Find first secret
     const secretDiv1 = page.locator('div.cursor-pointer').filter({ hasText: secretName1 })
+    await expect(secretDiv1).toBeVisible({ timeout: 10000 })
 
     // Click first secret div to expand
     await secretDiv1.click()
@@ -257,10 +264,9 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
     // Verify first secret expanded — "Edit Value" button visible
     await expect(page.getByRole('button', { name: 'Edit Value' })).toBeVisible()
 
-    // Find second secret (may be on different page)
-    const found2 = await findSecretOnPage(page, secretName2)
-    expect(found2).toBe(true)
+    // Find second secret (same page since we set per-page to 50)
     const secretDiv2 = page.locator('div.cursor-pointer').filter({ hasText: secretName2 })
+    await expect(secretDiv2).toBeVisible({ timeout: 10000 })
 
     // Click second secret div to expand (should collapse first)
     await secretDiv2.click()
@@ -268,8 +274,8 @@ test.describe('Secrets Manager E2E Tests - Accordion UI', () => {
     // Wait for accordion content to update
     await page.waitForLoadState('networkidle')
 
-    // Verify second secret expanded — still have "Edit Value" button (new accordion)
-    await expect(page.getByRole('button', { name: 'Edit Value' })).toBeVisible()
+    // Verify second secret expanded — "Edit Value" button should still be visible (new accordion)
+    await expect(page.getByRole('button', { name: 'Edit Value' })).toBeVisible({ timeout: 10000 })
 
     // Clean up
     await deleteSecret(page, secretName1)

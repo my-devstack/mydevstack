@@ -1,0 +1,751 @@
+openapi: 3.0.0
+info:
+  title: "SSM"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # Parameters
+  # ============================================================
+  /ssm/parameters:
+    get:
+      tags: [SSM]
+      summary: Describe parameters
+      description: |
+        Returns a list of SSM parameters with optional filtering.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: describeParameters
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DescribeParametersInput'
+      responses:
+        "200":
+          description: List of parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeParametersOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [SSM]
+      summary: Put parameter
+      description: |
+        Creates or updates an SSM parameter. Requires Name, Value, and Type.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putParameter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutParameterInput'
+      responses:
+        "200":
+          description: Parameter created or updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PutParameterOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ssm/parameters/{parameterName}:
+    get:
+      tags: [SSM]
+      summary: Get parameter
+      description: |
+        Returns the value of an SSM parameter by name.
+      operationId: getParameter
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ParameterNamePath'
+      responses:
+        "200":
+          description: Parameter value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetParameterOutput'
+        "404":
+          description: Parameter not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [SSM]
+      summary: Delete parameter
+      description: |
+        Deletes an SSM parameter by name.
+      operationId: deleteParameter
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ParameterNamePath'
+      responses:
+        "200":
+          description: Parameter deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteParameterOutput'
+        "404":
+          description: Parameter not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ssm/parameters/{parameterName}/history:
+    get:
+      tags: [SSM]
+      summary: Get parameter history
+      description: |
+        Returns the history of an SSM parameter, including previous versions.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getParameterHistory
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ParameterNamePath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/WithDecryptionQuery'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetParameterHistoryInput'
+      responses:
+        "200":
+          description: Parameter history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetParameterHistoryOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "404":
+          description: Parameter not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ssm/parameters/batch:
+    post:
+      tags: [SSM]
+      summary: Get parameters (batch)
+      description: |
+        Returns the values of multiple SSM parameters by name.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getParameters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetParametersInput'
+      responses:
+        "200":
+          description: Parameter values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetParametersOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ssm/parameters-by-path/{path}:
+    get:
+      tags: [SSM]
+      summary: Get parameters by path
+      description: |
+        Returns parameters by hierarchical path. The path parameter is a
+        greedy match (e.g., /my-app/database/).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getParametersByPath
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema: { type: string }
+          description: Full SSM parameter path (greedy match)
+          example: /my-app/database/
+        - name: Recursive
+          in: query
+          required: false
+          schema: { type: boolean }
+          description: Recursively list parameters under this path
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetParametersByPathInput'
+      responses:
+        "200":
+          description: Parameters by path
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetParametersByPathOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Tags
+  # ============================================================
+  /ssm/tags:
+    post:
+      tags: [SSM]
+      summary: Add tags to resource
+      description: |
+        Adds or overwrites tags on an SSM resource.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: addTagsToResource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddTagsToResourceInput'
+      responses:
+        "200":
+          description: Tags added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddTagsToResourceOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ssm/tags/list:
+    post:
+      tags: [SSM]
+      summary: List tags for resource
+      description: |
+        Returns all tags on an SSM resource.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listTagsForResource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListTagsForResourceInput'
+      responses:
+        "200":
+          description: Tags listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTagsForResourceOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ssm/tags/delete:
+    post:
+      tags: [SSM]
+      summary: Remove tags from resource
+      description: |
+        Removes tags from an SSM resource.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: removeTagsFromResource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveTagsFromResourceInput'
+      responses:
+        "200":
+          description: Tags removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoveTagsFromResourceOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Core types
+    # ============================================================
+    Parameter:
+      type: object
+      properties:
+        Name:
+          type: string
+        Type:
+          type: string
+          enum: [String, StringList, SecureString]
+        Value:
+          type: string
+        Version:
+          type: integer
+          format: int64
+        LastModifiedDate:
+          type: number
+          description: Last modified timestamp (Unix epoch)
+        ARN:
+          type: string
+        DataType:
+          type: string
+          enum: [text, aws:ec2:image]
+
+    ParameterMetadata:
+      type: object
+      properties:
+        Name:
+          type: string
+        Type:
+          type: string
+          enum: [String, StringList, SecureString]
+        KeyId:
+          type: string
+        LastModifiedDate:
+          type: number
+        LastModifiedUser:
+          type: string
+        Description:
+          type: string
+        AllowedPattern:
+          type: string
+        Version:
+          type: integer
+          format: int64
+        Tier:
+          type: string
+          enum: [Standard, Advanced, Intelligent-Tiering]
+        Policies:
+          type: array
+          items:
+            type: object
+            properties:
+              PolicyText:
+                type: string
+              PolicyType:
+                type: string
+              PolicyStatus:
+                type: string
+        DataType:
+          type: string
+          enum: [text, aws:ec2:image]
+
+    ParameterHistory:
+      type: object
+      properties:
+        Name:
+          type: string
+        Type:
+          type: string
+          enum: [String, StringList, SecureString]
+        KeyId:
+          type: string
+        LastModifiedDate:
+          type: number
+        LastModifiedUser:
+          type: string
+        Description:
+          type: string
+        AllowedPattern:
+          type: string
+        Version:
+          type: integer
+          format: int64
+        Tier:
+          type: string
+          enum: [Standard, Advanced, Intelligent-Tiering]
+        Policies:
+          type: array
+          items:
+            type: object
+            properties:
+              PolicyText:
+                type: string
+              PolicyType:
+                type: string
+              PolicyStatus:
+                type: string
+        DataType:
+          type: string
+          enum: [text, aws:ec2:image]
+        Labels:
+          type: array
+          items:
+            type: string
+        Value:
+          type: string
+
+    Tag:
+      type: object
+      required: [Key, Value]
+      properties:
+        Key:
+          type: string
+        Value:
+          type: string
+
+    # ============================================================
+    # DescribeParameters
+    # ============================================================
+    DescribeParametersInput:
+      type: object
+      properties:
+        ParameterFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParameterStringFilter'
+        MaxResults:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+        NextToken:
+          type: string
+
+    ParameterStringFilter:
+      type: object
+      required: [Key]
+      properties:
+        Key:
+          type: string
+          enum: [Name, Type, KeyId, Path, LabelTier, Description]
+        Option:
+          type: string
+          enum: [Equals, BeginsWith, BeginsWithStartsWith]
+        Values:
+          type: array
+          items:
+            type: string
+
+    DescribeParametersOutput:
+      type: object
+      properties:
+        Parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParameterMetadata'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # GetParameter
+    # ============================================================
+    GetParameterInput:
+      type: object
+      properties:
+        Name:
+          type: string
+        WithDecryption:
+          type: boolean
+
+    GetParameterOutput:
+      type: object
+      properties:
+        Parameter:
+          $ref: '#/components/schemas/Parameter'
+
+    # ============================================================
+    # PutParameter
+    # ============================================================
+    PutParameterInput:
+      type: object
+      required: [Name, Value, Type]
+      properties:
+        Name:
+          type: string
+        Value:
+          type: string
+        Type:
+          type: string
+          enum: [String, StringList, SecureString]
+        Description:
+          type: string
+        KeyId:
+          type: string
+        Overwrite:
+          type: boolean
+        AllowedPattern:
+          type: string
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        Tier:
+          type: string
+          enum: [Standard, Advanced, Intelligent-Tiering]
+          default: Standard
+        Policy:
+          type: string
+        DataType:
+          type: string
+          enum: [text, aws:ec2:image]
+
+    PutParameterOutput:
+      type: object
+      properties:
+        Version:
+          type: integer
+          format: int64
+        Tier:
+          type: string
+          enum: [Standard, Advanced, Intelligent-Tiering]
+
+    # ============================================================
+    # DeleteParameter
+    # ============================================================
+    DeleteParameterInput:
+      type: object
+      properties:
+        Name:
+          type: string
+
+    DeleteParameterOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # GetParameterHistory
+    # ============================================================
+    GetParameterHistoryInput:
+      type: object
+      properties:
+        Name:
+          type: string
+        WithDecryption:
+          type: boolean
+        MaxResults:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+        NextToken:
+          type: string
+
+    GetParameterHistoryOutput:
+      type: object
+      properties:
+        Parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParameterHistory'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # GetParameters
+    # ============================================================
+    GetParametersInput:
+      type: object
+      required: [Names]
+      properties:
+        Names:
+          type: array
+          items:
+            type: string
+        WithDecryption:
+          type: boolean
+
+    GetParametersOutput:
+      type: object
+      properties:
+        Parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Parameter'
+        InvalidParameters:
+          type: array
+          items:
+            type: string
+
+    # ============================================================
+    # GetParametersByPath
+    # ============================================================
+    GetParametersByPathInput:
+      type: object
+      properties:
+        Path:
+          type: string
+        Recursive:
+          type: boolean
+        ParameterFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParameterStringFilter'
+        MaxResults:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 10
+        NextToken:
+          type: string
+        WithDecryption:
+          type: boolean
+
+    GetParametersByPathOutput:
+      type: object
+      properties:
+        Parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Parameter'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # AddTagsToResource
+    # ============================================================
+    AddTagsToResourceInput:
+      type: object
+      required: [ResourceId, ResourceType, Tags]
+      properties:
+        ResourceId:
+          type: string
+        ResourceType:
+          type: string
+          enum: [Parameter, Document, ManagedInstance, MaintenanceWindow, PatchBaseline, OpsItem, Automation]
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+
+    AddTagsToResourceOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # ListTagsForResource
+    # ============================================================
+    ListTagsForResourceInput:
+      type: object
+      required: [ResourceId, ResourceType]
+      properties:
+        ResourceId:
+          type: string
+        ResourceType:
+          type: string
+          enum: [Parameter, Document, ManagedInstance, MaintenanceWindow, PatchBaseline, OpsItem, Automation]
+
+    ListTagsForResourceOutput:
+      type: object
+      properties:
+        TagList:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+
+    # ============================================================
+    # RemoveTagsFromResource
+    # ============================================================
+    RemoveTagsFromResourceInput:
+      type: object
+      required: [ResourceId, ResourceType, TagKeys]
+      properties:
+        ResourceId:
+          type: string
+        ResourceType:
+          type: string
+          enum: [Parameter, Document, ManagedInstance, MaintenanceWindow, PatchBaseline, OpsItem, Automation]
+        TagKeys:
+          type: array
+          items:
+            type: string
+
+    RemoveTagsFromResourceOutput:
+      type: object
+      properties: {}

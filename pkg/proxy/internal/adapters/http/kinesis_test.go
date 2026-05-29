@@ -1,7 +1,7 @@
 package httphandlers
 
 import (
-	"context"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
-	"github.com/gin-gonic/gin"
 	mockports "github.com/my-devstack/mydevstack/pkg/proxy/mocks/ports"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -28,28 +27,6 @@ func setupKinesisTest(t *testing.T) (*mockports.ProxyService, *mockports.Kinesis
 	return svc, mp, handler
 }
 
-func performKinesisRequest(handler *ProxyHandler, target string, body []byte) *httptest.ResponseRecorder {
-	r := setupTestRouter(handler)
-	return performRequest(r, "POST", "/kinesis/", target, body)
-}
-
-// ---------------------------------------------------------------------------
-// Unknown action – returns 404
-// ---------------------------------------------------------------------------
-
-func TestKinesis_UnknownAction(t *testing.T) {
-	t.Parallel()
-	_, _, handler := setupKinesisTest(t)
-
-	w := performKinesisRequest(handler, "UnknownKinesisAction", []byte(`{}`))
-	assert.Equal(t, http.StatusNotFound, w.Code)
-
-	var resp map[string]interface{}
-	err := json.Unmarshal(w.Body.Bytes(), &resp)
-	assert.NoError(t, err)
-	assert.Contains(t, resp["error"], "Kinesis operation not supported")
-}
-
 // ---------------------------------------------------------------------------
 // ListStreams
 // ---------------------------------------------------------------------------
@@ -59,7 +36,8 @@ func TestKinesis_ListStreams_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().ListStreams(mock.Anything, mock.Anything).Return(&kinesis.ListStreamsOutput{}, nil)
 
-	w := performKinesisRequest(handler, "ListStreams", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/kinesis/streams", []byte(`{}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -68,7 +46,8 @@ func TestKinesis_ListStreams_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().ListStreams(mock.Anything, mock.Anything).Return(nil, errors.New("list streams error"))
 
-	w := performKinesisRequest(handler, "ListStreams", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/kinesis/streams", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -84,7 +63,8 @@ func TestKinesis_CreateStream_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().CreateStream(mock.Anything, mock.Anything).Return(&kinesis.CreateStreamOutput{}, nil)
 
-	w := performKinesisRequest(handler, "CreateStream", []byte(`{"StreamName":"test-stream","ShardCount":1}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/kinesis/streams", []byte(`{"StreamName":"test-stream","ShardCount":1}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -93,7 +73,8 @@ func TestKinesis_CreateStream_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().CreateStream(mock.Anything, mock.Anything).Return(nil, errors.New("create stream error"))
 
-	w := performKinesisRequest(handler, "CreateStream", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/kinesis/streams", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -109,7 +90,8 @@ func TestKinesis_DeleteStream_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().DeleteStream(mock.Anything, mock.Anything).Return(&kinesis.DeleteStreamOutput{}, nil)
 
-	w := performKinesisRequest(handler, "DeleteStream", []byte(`{"StreamName":"test-stream"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "DELETE", "/kinesis/streams/teststream", []byte(`{"StreamName":"test-stream"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -118,7 +100,8 @@ func TestKinesis_DeleteStream_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().DeleteStream(mock.Anything, mock.Anything).Return(nil, errors.New("delete stream error"))
 
-	w := performKinesisRequest(handler, "DeleteStream", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "DELETE", "/kinesis/streams/teststream", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -134,7 +117,8 @@ func TestKinesis_DescribeStream_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().DescribeStream(mock.Anything, mock.Anything).Return(&kinesis.DescribeStreamOutput{}, nil)
 
-	w := performKinesisRequest(handler, "DescribeStream", []byte(`{"StreamName":"test-stream"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/kinesis/streams/teststream", []byte(`{"StreamName":"test-stream"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -143,7 +127,8 @@ func TestKinesis_DescribeStream_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().DescribeStream(mock.Anything, mock.Anything).Return(nil, errors.New("describe stream error"))
 
-	w := performKinesisRequest(handler, "DescribeStream", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/kinesis/streams/teststream", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -162,11 +147,9 @@ func TestKinesis_DescribeStreamSummary_Success(t *testing.T) {
 		&kinesis.DescribeStreamSummaryOutput{}, nil,
 	)
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.describeStreamSummary(context.Background(), c, []byte(`{"StreamName":"test-stream"}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.describeStreamSummary(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 }
@@ -176,11 +159,9 @@ func TestKinesis_DescribeStreamSummary_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().DescribeStreamSummary(mock.Anything, mock.Anything).Return(nil, errors.New("describe stream summary error"))
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.describeStreamSummary(context.Background(), c, []byte(`{}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.describeStreamSummary(w, req)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
@@ -197,7 +178,8 @@ func TestKinesis_ListShards_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().ListShards(mock.Anything, mock.Anything).Return(&kinesis.ListShardsOutput{}, nil)
 
-	w := performKinesisRequest(handler, "ListShards", []byte(`{"StreamName":"test-stream"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/kinesis/streams/teststream/shards", []byte(`{"StreamName":"test-stream"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -206,7 +188,8 @@ func TestKinesis_ListShards_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().ListShards(mock.Anything, mock.Anything).Return(nil, errors.New("list shards error"))
 
-	w := performKinesisRequest(handler, "ListShards", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/kinesis/streams/teststream/shards", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -222,7 +205,8 @@ func TestKinesis_GetShardIterator_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().GetShardIterator(mock.Anything, mock.Anything).Return(&kinesis.GetShardIteratorOutput{}, nil)
 
-	w := performKinesisRequest(handler, "GetShardIterator", []byte(`{"StreamName":"test-stream","ShardId":"shard-000000","ShardIteratorType":"TRIM_HORIZON"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/kinesis/streams/teststream/shards/testshard/iterator", []byte(`{"StreamName":"test-stream","ShardId":"shard-000000","ShardIteratorType":"TRIM_HORIZON"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -231,7 +215,8 @@ func TestKinesis_GetShardIterator_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().GetShardIterator(mock.Anything, mock.Anything).Return(nil, errors.New("get shard iterator error"))
 
-	w := performKinesisRequest(handler, "GetShardIterator", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/kinesis/streams/teststream/shards/testshard/iterator", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -247,7 +232,8 @@ func TestKinesis_GetRecords_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().GetRecords(mock.Anything, mock.Anything).Return(&kinesis.GetRecordsOutput{}, nil)
 
-	w := performKinesisRequest(handler, "GetRecords", []byte(`{"ShardIterator":"AAAA...iterator"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/kinesis/streams/teststream/shards/testshard/records", []byte(`{"ShardIterator":"AAAA...iterator"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -256,7 +242,8 @@ func TestKinesis_GetRecords_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().GetRecords(mock.Anything, mock.Anything).Return(nil, errors.New("get records error"))
 
-	w := performKinesisRequest(handler, "GetRecords", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/kinesis/streams/teststream/shards/testshard/records", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -272,7 +259,8 @@ func TestKinesis_PutRecord_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().PutRecord(mock.Anything, mock.Anything).Return(&kinesis.PutRecordOutput{}, nil)
 
-	w := performKinesisRequest(handler, "PutRecord", []byte(`{"StreamName":"test-stream","Data":"dGVzdA==","PartitionKey":"pk-1"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/kinesis/streams/teststream/records", []byte(`{"StreamName":"test-stream","Data":"dGVzdA==","PartitionKey":"pk-1"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -281,7 +269,8 @@ func TestKinesis_PutRecord_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().PutRecord(mock.Anything, mock.Anything).Return(nil, errors.New("put record error"))
 
-	w := performKinesisRequest(handler, "PutRecord", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/kinesis/streams/teststream/records", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -298,11 +287,9 @@ func TestKinesis_PutRecords_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().PutRecords(mock.Anything, mock.Anything).Return(&kinesis.PutRecordsOutput{}, nil)
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.putRecords(context.Background(), c, []byte(`{"StreamName":"test-stream","Records":[{"Data":"dGVzdA==","PartitionKey":"pk-1"}]}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.putRecords(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 }
@@ -312,11 +299,9 @@ func TestKinesis_PutRecords_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().PutRecords(mock.Anything, mock.Anything).Return(nil, errors.New("put records error"))
 
-	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("POST", "/", nil)
-	handler.putRecords(context.Background(), c, []byte(`{}`))
+	req := httptest.NewRequest("POST", "/", nil)
+	handler.putRecords(w, req)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
@@ -333,7 +318,8 @@ func TestKinesis_MergeShards_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().MergeShards(mock.Anything, mock.Anything).Return(&kinesis.MergeShardsOutput{}, nil)
 
-	w := performKinesisRequest(handler, "MergeShards", []byte(`{"StreamName":"test-stream","ShardToMerge":"shard-000000","AdjacentShardToMerge":"shard-000001"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/kinesis/streams/teststream/shards/testshard/merge", []byte(`{"StreamName":"test-stream","ShardToMerge":"shard-000000","AdjacentShardToMerge":"shard-000001"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -342,7 +328,8 @@ func TestKinesis_MergeShards_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().MergeShards(mock.Anything, mock.Anything).Return(nil, errors.New("merge shards error"))
 
-	w := performKinesisRequest(handler, "MergeShards", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/kinesis/streams/teststream/shards/testshard/merge", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -358,7 +345,8 @@ func TestKinesis_SplitShard_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().SplitShard(mock.Anything, mock.Anything).Return(&kinesis.SplitShardOutput{}, nil)
 
-	w := performKinesisRequest(handler, "SplitShard", []byte(`{"StreamName":"test-stream","ShardToSplit":"shard-000000","NewStartingHashKey":"0"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/kinesis/streams/teststream/shards/testshard/split", []byte(`{"StreamName":"test-stream","ShardToSplit":"shard-000000","NewStartingHashKey":"0"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -367,7 +355,8 @@ func TestKinesis_SplitShard_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().SplitShard(mock.Anything, mock.Anything).Return(nil, errors.New("split shard error"))
 
-	w := performKinesisRequest(handler, "SplitShard", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/kinesis/streams/teststream/shards/testshard/split", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -383,7 +372,8 @@ func TestKinesis_UpdateShardCount_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().UpdateShardCount(mock.Anything, mock.Anything).Return(&kinesis.UpdateShardCountOutput{}, nil)
 
-	w := performKinesisRequest(handler, "UpdateShardCount", []byte(`{"StreamName":"test-stream","TargetShardCount":2,"ScalingType":"UNIFORM_SCALING"}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "PUT", "/kinesis/streams/teststream", []byte(`{"StreamName":"test-stream","TargetShardCount":2,"ScalingType":"UNIFORM_SCALING"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -392,7 +382,8 @@ func TestKinesis_UpdateShardCount_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().UpdateShardCount(mock.Anything, mock.Anything).Return(nil, errors.New("update shard count error"))
 
-	w := performKinesisRequest(handler, "UpdateShardCount", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "PUT", "/kinesis/streams/teststream", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -408,7 +399,8 @@ func TestKinesis_EnableEnhancedMonitoring_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().EnableEnhancedMonitoring(mock.Anything, mock.Anything).Return(&kinesis.EnableEnhancedMonitoringOutput{}, nil)
 
-	w := performKinesisRequest(handler, "EnableEnhancedMonitoring", []byte(`{"StreamName":"test-stream","ShardLevelMetrics":["IncomingBytes"]}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/kinesis/streams/teststream/enhanced-monitoring", []byte(`{"StreamName":"test-stream","ShardLevelMetrics":["IncomingBytes"]}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -417,7 +409,8 @@ func TestKinesis_EnableEnhancedMonitoring_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().EnableEnhancedMonitoring(mock.Anything, mock.Anything).Return(nil, errors.New("enable enhanced monitoring error"))
 
-	w := performKinesisRequest(handler, "EnableEnhancedMonitoring", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "POST", "/kinesis/streams/teststream/enhanced-monitoring", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -433,7 +426,8 @@ func TestKinesis_DisableEnhancedMonitoring_Success(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().DisableEnhancedMonitoring(mock.Anything, mock.Anything).Return(&kinesis.DisableEnhancedMonitoringOutput{}, nil)
 
-	w := performKinesisRequest(handler, "DisableEnhancedMonitoring", []byte(`{"StreamName":"test-stream","ShardLevelMetrics":["IncomingBytes"]}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "DELETE", "/kinesis/streams/teststream/enhanced-monitoring", []byte(`{"StreamName":"test-stream","ShardLevelMetrics":["IncomingBytes"]}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -442,7 +436,8 @@ func TestKinesis_DisableEnhancedMonitoring_Error(t *testing.T) {
 	_, mp, handler := setupKinesisTest(t)
 	mp.EXPECT().DisableEnhancedMonitoring(mock.Anything, mock.Anything).Return(nil, errors.New("disable enhanced monitoring error"))
 
-	w := performKinesisRequest(handler, "DisableEnhancedMonitoring", []byte(`{}`))
+	r := setupTestRouter(handler)
+	w := performRequest(r, "DELETE", "/kinesis/streams/teststream/enhanced-monitoring", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -456,22 +451,36 @@ func TestKinesis_DisableEnhancedMonitoring_Error(t *testing.T) {
 func TestKinesis_ParseError(t *testing.T) {
 	t.Parallel()
 
-	actions := []string{
-		"ListStreams", "CreateStream", "DeleteStream",
-		"DescribeStream",
-		"ListShards", "GetShardIterator", "GetRecords",
-		"PutRecord",
-		"MergeShards", "SplitShard", "UpdateShardCount",
-		"EnableEnhancedMonitoring", "DisableEnhancedMonitoring",
+	// Only include actions whose handlers call parseBody.
+	// DeleteStream and DescribeStream handlers use URL params, not body parse.
+	type parseCase struct {
+		name   string
+		method string
+		path   string
+	}
+
+	actions := []parseCase{
+		{name: "ListStreams", method: "GET", path: "/kinesis/streams"},
+		{name: "CreateStream", method: "POST", path: "/kinesis/streams"},
+		{name: "ListShards", method: "GET", path: "/kinesis/streams/teststream/shards"},
+		{name: "GetShardIterator", method: "POST", path: "/kinesis/streams/teststream/shards/testshard/iterator"},
+		{name: "GetRecords", method: "GET", path: "/kinesis/streams/teststream/shards/testshard/records"},
+		{name: "PutRecord", method: "POST", path: "/kinesis/streams/teststream/records"},
+		{name: "MergeShards", method: "POST", path: "/kinesis/streams/teststream/shards/testshard/merge"},
+		{name: "SplitShard", method: "POST", path: "/kinesis/streams/teststream/shards/testshard/split"},
+		{name: "UpdateShardCount", method: "PUT", path: "/kinesis/streams/teststream"},
+		{name: "EnableEnhancedMonitoring", method: "POST", path: "/kinesis/streams/teststream/enhanced-monitoring"},
+		{name: "DisableEnhancedMonitoring", method: "DELETE", path: "/kinesis/streams/teststream/enhanced-monitoring"},
 	}
 
 	for _, action := range actions {
 		action := action
-		t.Run(action, func(t *testing.T) {
+		t.Run(action.name, func(t *testing.T) {
 			t.Parallel()
 			_, _, handler := setupKinesisTest(t)
-			w := performKinesisRequest(handler, action, []byte(`{bad json`))
-			assert.Equal(t, http.StatusBadRequest, w.Code, "action=%s body=%s", action, w.Body.String())
+			r := setupTestRouter(handler)
+			w := performRequest(r, action.method, action.path, []byte(`{bad json`))
+			assert.Equal(t, http.StatusBadRequest, w.Code, "action=%s body=%s", action.name, w.Body.String())
 			var resp map[string]interface{}
 			err := json.Unmarshal(w.Body.Bytes(), &resp)
 			assert.NoError(t, err)
@@ -489,20 +498,16 @@ func TestKinesis_ParseError_Direct(t *testing.T) {
 
 	type directCase struct {
 		name    string
-		handler func(*ProxyHandler, *gin.Context, []byte)
+		handler func(*ProxyHandler, http.ResponseWriter, *http.Request)
 	}
 
+	// Only include handlers that parse the request body.
+	// DescribeStreamSummary uses URL params only and is excluded.
 	cases := []directCase{
 		{
-			name: "DescribeStreamSummary",
-			handler: func(h *ProxyHandler, c *gin.Context, body []byte) {
-				h.describeStreamSummary(context.Background(), c, body)
-			},
-		},
-		{
 			name: "PutRecords",
-			handler: func(h *ProxyHandler, c *gin.Context, body []byte) {
-				h.putRecords(context.Background(), c, body)
+			handler: func(h *ProxyHandler, w http.ResponseWriter, r *http.Request) {
+				h.putRecords(w, r)
 			},
 		},
 	}
@@ -513,12 +518,10 @@ func TestKinesis_ParseError_Direct(t *testing.T) {
 			t.Parallel()
 			_, _, handler := setupKinesisTest(t)
 
-			gin.SetMode(gin.TestMode)
 			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
-			c.Request = httptest.NewRequest("POST", "/", nil)
+			req := httptest.NewRequest("POST", "/", bytes.NewReader([]byte(`{bad json`)))
 
-			tc.handler(handler, c, []byte(`{bad json`))
+			tc.handler(handler, w, req)
 
 			assert.Equal(t, http.StatusBadRequest, w.Code, "body=%s", w.Body.String())
 			var resp map[string]interface{}

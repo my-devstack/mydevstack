@@ -1,38 +1,13 @@
 /**
  * Secrets Manager Service API Client
- * Simple HTTP client for Secrets Manager via Go proxy
+ * REST HTTP client for Secrets Manager via Go proxy
  * @module api/services/secrets-manager
  */
 
 import { PROXY_BACKEND } from '@/config'
 import { APIError } from '../client'
 
-async function secretsRequest(action: string, body: object = {}): Promise<any> {
-  const endpoint = PROXY_BACKEND.replace(/\/$/, '')
-
-  const url = `${endpoint}/secretsmanager/`
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Amz-Target': `secretsmanager.${action}`,
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new APIError(`Secrets Manager ${action} failed: ${errorText}`, response.status, 'secrets-manager')
-    }
-
-    return response.json()
-  } catch (error) {
-    if (error instanceof APIError) throw error
-    throw new APIError(`Failed to ${action}`, 500, 'secrets-manager')
-  }
-}
+const api = PROXY_BACKEND.replace(/\/$/, '')
 
 export class SecretsManagerService {
   async createSecret(params: {
@@ -41,11 +16,19 @@ export class SecretsManagerService {
     SecretBinary?: string
     Description?: string
   }): Promise<any> {
-    return secretsRequest('CreateSecret', params)
+    const res = await fetch(`${api}/secrets-manager/secrets`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    })
+    if (!res.ok) throw new APIError(`Create secret failed`, res.status, 'secrets-manager')
+    return res.json()
   }
 
   async getSecretValue(SecretId: string): Promise<any> {
-    return secretsRequest('GetSecretValue', { SecretId })
+    const res = await fetch(`${api}/secrets-manager/secrets/${encodeURIComponent(SecretId)}/value`)
+    if (!res.ok) throw new APIError(`Get secret value failed`, res.status, 'secrets-manager')
+    return res.json()
   }
 
   async putSecretValue(params: {
@@ -53,14 +36,27 @@ export class SecretsManagerService {
     SecretString?: string
     SecretBinary?: string
   }): Promise<any> {
-    return secretsRequest('PutSecretValue', params)
+    const { SecretId, ...body } = params
+    const res = await fetch(`${api}/secrets-manager/secrets/${encodeURIComponent(SecretId)}/value`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) throw new APIError(`Put secret value failed`, res.status, 'secrets-manager')
+    return res.json()
   }
 
   async deleteSecret(SecretId: string, options?: {
     RecoveryWindowInDays?: number
     ForceDeleteWithoutRecovery?: boolean
   }): Promise<any> {
-    return secretsRequest('DeleteSecret', { SecretId, ...options })
+    const res = await fetch(`${api}/secrets-manager/secrets/${encodeURIComponent(SecretId)}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(options || {}),
+    })
+    if (!res.ok) throw new APIError(`Delete secret failed`, res.status, 'secrets-manager')
+    return res.json()
   }
 
   async updateSecret(params: {
@@ -68,27 +64,54 @@ export class SecretsManagerService {
     SecretString?: string
     Description?: string
   }): Promise<any> {
-    return secretsRequest('UpdateSecret', params)
+    const { SecretId, ...body } = params
+    const res = await fetch(`${api}/secrets-manager/secrets/${encodeURIComponent(SecretId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) throw new APIError(`Update secret failed`, res.status, 'secrets-manager')
+    return res.json()
   }
 
   async describeSecret(SecretId: string): Promise<any> {
-    return secretsRequest('DescribeSecret', { SecretId })
+    const res = await fetch(`${api}/secrets-manager/secrets/${encodeURIComponent(SecretId)}`)
+    if (!res.ok) throw new APIError(`Describe secret failed`, res.status, 'secrets-manager')
+    return res.json()
   }
 
   async listSecrets(options?: { MaxResults?: number }): Promise<any> {
-    return secretsRequest('ListSecrets', options || {})
+    const res = await fetch(`${api}/secrets-manager/secrets`)
+    if (!res.ok) throw new APIError(`List secrets failed`, res.status, 'secrets-manager')
+    return res.json()
   }
 
   async rotateSecret(SecretId: string): Promise<any> {
-    return secretsRequest('RotateSecret', { SecretId })
+    const res = await fetch(`${api}/secrets-manager/secrets/${encodeURIComponent(SecretId)}/rotate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) throw new APIError(`Rotate secret failed`, res.status, 'secrets-manager')
+    return res.json()
   }
 
   async restoreSecret(SecretId: string): Promise<any> {
-    return secretsRequest('RestoreSecret', { SecretId })
+    const res = await fetch(`${api}/secrets-manager/secrets/${encodeURIComponent(SecretId)}/restore`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) throw new APIError(`Restore secret failed`, res.status, 'secrets-manager')
+    return res.json()
   }
 
   async getRandomPassword(options?: { PasswordLength?: number }): Promise<any> {
-    return secretsRequest('GetRandomPassword', options || {})
+    const res = await fetch(`${api}/secrets-manager/random-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(options || {}),
+    })
+    if (!res.ok) throw new APIError(`Get random password failed`, res.status, 'secrets-manager')
+    return res.json()
   }
 }
 

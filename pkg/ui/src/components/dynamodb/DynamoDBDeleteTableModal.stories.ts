@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import DynamoDBDeleteTableModal from './DynamoDBDeleteTableModal.vue';
 
 const meta: Meta<typeof DynamoDBDeleteTableModal> = {

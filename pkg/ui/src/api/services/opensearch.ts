@@ -1,7 +1,7 @@
 /**
  * OpenSearch Service API Client
  * HTTP client for OpenSearch via Go proxy
- * Uses Domains API - compatible with Floci and LocalStack
+ * Uses REST-style endpoints - compatible with Floci and LocalStack
  * @module api/services/opensearch
  */
 
@@ -62,36 +62,35 @@ export interface CreateDomainInput {
   TagList?: { Key: string; Value: string }[]
 }
 
-async function opensearchRequest(action: string, body: object = {}): Promise<any> {
+async function request<T = any>(url: string, options: RequestInit = {}): Promise<T> {
   const endpoint = PROXY_BACKEND.replace(/\/$/, '')
-  const url = `${endpoint}/opensearch/`
+  const fullUrl = `${endpoint}${url}`
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
+    const response = await fetch(fullUrl, {
+      ...options,
       headers: {
         'Content-Type': 'application/json',
-        'X-Amz-Target': `opensearch.${action}`,
+        ...(options.headers as Record<string, string>),
       },
-      body: JSON.stringify(body),
     })
 
     if (!response.ok) {
       const errorText = await response.text()
-      throw new APIError(`OpenSearch ${action} failed: ${errorText}`, response.status, 'opensearch')
+      throw new APIError(`OpenSearch request failed: ${errorText}`, response.status, 'opensearch')
     }
 
     return response.json()
   } catch (error) {
     if (error instanceof APIError) throw error
-    console.error(`OpenSearch ${action} error:`, error)
-    throw new APIError(`Failed to ${action}`, 500, 'opensearch')
+    console.error('OpenSearch request error:', error)
+    throw new APIError('Failed to call OpenSearch service', 500, 'opensearch')
   }
 }
 
 export class OpenSearchService {
   async listDomainNames(): Promise<DomainInfo[]> {
-    const response = await opensearchRequest('ListDomainNames', {})
+    const response = await request<{ DomainNames?: any[] }>('/opensearch/domains', { method: 'GET' })
     // ListDomainNames returns EngineType, DescribeDomain returns EngineVersion
     // Map EngineType → EngineVersion for consistent frontend usage
     return (response.DomainNames || []).map((d: any) => ({
@@ -102,31 +101,40 @@ export class OpenSearchService {
   }
 
   async describeDomain(domainName: string): Promise<any> {
-    return opensearchRequest('DescribeDomain', { DomainName: domainName })
+    return request(`/opensearch/domains/${encodeURIComponent(domainName)}`, { method: 'GET' })
   }
 
   async createDomain(input: CreateDomainInput): Promise<any> {
-    return opensearchRequest('CreateDomain', input)
+    return request('/opensearch/domains', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    })
   }
 
   async deleteDomain(domainName: string): Promise<void> {
-    return opensearchRequest('DeleteDomain', { DomainName: domainName })
+    return request(`/opensearch/domains/${encodeURIComponent(domainName)}`, { method: 'DELETE' })
   }
 
   async getCompatibleVersions(): Promise<any> {
-    return opensearchRequest('GetCompatibleVersions', {})
+    return request('/opensearch/compatible-versions', { method: 'GET' })
   }
 
   async listTags(arn: string): Promise<any> {
-    return opensearchRequest('ListTags', { ARN: arn })
+    return request(`/opensearch/tags/${encodeURIComponent(arn)}`, { method: 'GET' })
   }
 
   async tagResource(arn: string, key: string, value: string): Promise<any> {
-    return opensearchRequest('TagResource', { ARN: arn, TagList: [{ Key: key, Value: value }] })
+    return request(`/opensearch/tags/${encodeURIComponent(arn)}`, {
+      method: 'POST',
+      body: JSON.stringify({ Key: key, Value: value }),
+    })
   }
 
   async untagResource(arn: string, key: string): Promise<any> {
-    return opensearchRequest('UntagResource', { ARN: arn, TagKeys: [key] })
+    return request(`/opensearch/tags/${encodeURIComponent(arn)}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ Key: key }),
+    })
   }
 }
 

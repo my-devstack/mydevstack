@@ -1,0 +1,311 @@
+components:
+  parameters:
+    BucketPath:
+      name: bucket
+      in: path
+      required: true
+      schema: { type: string }
+      description: S3 bucket name
+      example: my-bucket
+
+    KeyPath:
+      name: key
+      in: path
+      required: true
+      schema: { type: string }
+      description: S3 object key (URL-encoded)
+      example: path/to/file.txt
+
+    FunctionNamePath:
+      name: functionName
+      in: path
+      required: true
+      schema: { type: string }
+      description: Lambda function name
+      example: my-function
+
+    TableNamePath:
+      name: tableName
+      in: path
+      required: true
+      schema: { type: string }
+      description: DynamoDB table name
+      example: my-table
+
+    QueueNamePath:
+      name: queueName
+      in: path
+      required: true
+      schema: { type: string }
+      description: SQS queue name
+      example: my-queue
+
+    TopicArnPath:
+      name: topicArn
+      in: path
+      required: true
+      schema: { type: string }
+      description: SNS topic ARN
+      example: arn:aws:sns:us-east-1:123456789012:my-topic
+
+    UserNamePath:
+      name: userName
+      in: path
+      required: true
+      schema: { type: string }
+      description: IAM user name
+      example: jdoe
+
+    RoleNamePath:
+      name: roleName
+      in: path
+      required: true
+      schema: { type: string }
+      description: IAM role name
+      example: my-role
+
+    GroupNamePath:
+      name: groupName
+      in: path
+      required: true
+      schema: { type: string }
+      description: IAM group name
+      example: Admins
+
+    KeyIdPath:
+      name: keyId
+      in: path
+      required: true
+      schema: { type: string }
+      description: KMS key ID (UUID or alias)
+      example: 1234abcd-12ab-34cd-56ef-1234567890ab
+
+    SecretIdPath:
+      name: secretId
+      in: path
+      required: true
+      schema: { type: string }
+      description: Secrets Manager secret name or ARN
+      example: my-secret
+
+    StackNamePath:
+      name: stackName
+      in: path
+      required: true
+      schema: { type: string }
+      description: CloudFormation stack name
+      example: my-stack
+
+    StreamNamePath:
+      name: streamName
+      in: path
+      required: true
+      schema: { type: string }
+      description: Kinesis stream name
+      example: my-stream
+
+    LogGroupNamePath:
+      name: logGroupName
+      in: path
+      required: true
+      schema: { type: string }
+      description: CloudWatch Logs log group name (URL-encoded)
+      example: /aws/lambda/my-function
+
+    LogStreamNamePath:
+      name: logStreamName
+      in: path
+      required: true
+      schema: { type: string }
+      description: CloudWatch Logs log stream name (URL-encoded)
+      example: "2025/01/01/[$LATEST]abc123"
+
+    StateMachineArnPath:
+      name: stateMachineArn
+      in: path
+      required: true
+      schema: { type: string }
+      description: Step Functions state machine ARN
+      example: arn:aws:states:us-east-1:123456789012:stateMachine:my-sfn
+
+    ExecutionArnPath:
+      name: executionArn
+      in: path
+      required: true
+      schema: { type: string }
+      description: Step Functions execution ARN
+      example: arn:aws:states:us-east-1:123456789012:execution:my-sfn:exec-001
+
+    ClusterArnPath:
+      name: clusterArn
+      in: path
+      required: true
+      schema: { type: string }
+      description: MSK cluster ARN
+      example: arn:aws:kafka:us-east-1:123456789012:cluster/my-cluster/abc123
+
+    DomainNamePath:
+      name: domainName
+      in: path
+      required: true
+      schema: { type: string }
+      description: OpenSearch domain name
+      example: my-domain
+
+    EmailIdentityPath:
+      name: emailIdentity
+      in: path
+      required: true
+      schema: { type: string }
+      description: SES email identity (email address or domain)
+      example: admin@example.com
+
+    TemplateNamePath:
+      name: templateName
+      in: path
+      required: true
+      schema: { type: string }
+      description: SES email template name
+      example: welcome-email
+
+    RestApiIdPath:
+      name: restApiId
+      in: path
+      required: true
+      schema: { type: string }
+      description: API Gateway REST API ID
+      example: abc123
+
+    ApiIdPath:
+      name: apiId
+      in: path
+      required: true
+      schema: { type: string }
+      description: API Gateway HTTP API ID
+      example: abcdef
+
+    StreamArnPath:
+      name: streamArn
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^arn:aws:dynamodb:.*'
+      description: DynamoDB Streams stream ARN
+      example: arn:aws:dynamodb:us-east-1:123456789012:table/my-table/stream/2025-01-01T00:00:00.000
+
+    ShardIdPath:
+      name: shardId
+      in: path
+      required: true
+      schema: { type: string }
+      description: Kinesis/DynamoDB Streams shard ID
+      example: shardId-000000000000
+
+    ParameterNamePath:
+      name: parameterName
+      in: path
+      required: true
+      schema: { type: string }
+      description: SSM parameter name
+      example: /my-app/database/url
+
+    UuidPath:
+      name: uuid
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      description: Event source mapping UUID
+      example: a1b2c3d4-5678-90ab-cdef-EXAMPLE11111
+
+    # Query parameters
+
+    PrefixQuery:
+      name: prefix
+      in: query
+      required: false
+      schema: { type: string }
+      description: Filter results by key prefix
+
+    MaxKeysQuery:
+      name: maxKeys
+      in: query
+      required: false
+      schema: { type: integer, maximum: 1000 }
+      description: Maximum number of keys to return
+
+    WithDecryptionQuery:
+      name: WithDecryption
+      in: query
+      required: false
+      schema: { type: boolean }
+      description: Decrypt SecureString parameters
+
+    MaxNumberOfMessagesQuery:
+      name: MaxNumberOfMessages
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 10, default: 1 }
+      description: Maximum number of messages to return
+
+    WaitTimeSecondsQuery:
+      name: WaitTimeSeconds
+      in: query
+      required: false
+      schema: { type: integer, minimum: 0, maximum: 20, default: 0 }
+      description: Wait time for long polling
+
+    VisibilityTimeoutQuery:
+      name: VisibilityTimeout
+      in: query
+      required: false
+      schema: { type: integer, minimum: 0, maximum: 43200 }
+      description: Visibility timeout in seconds
+
+    AttributeNameQuery:
+      name: AttributeName
+      in: query
+      required: false
+      schema: { type: array, items: { type: string } }
+      description: Queue attribute names to retrieve
+      style: form
+      explode: true
+
+    PolicyNameQuery:
+      name: policyName
+      in: query
+      required: false
+      schema: { type: string, default: "default" }
+      description: KMS key policy name
+
+    DelimiterQuery:
+      name: delimiter
+      in: query
+      required: false
+      schema: { type: string }
+      description: Delimiter for grouping keys (e.g., /)
+
+    ContinuationTokenQuery:
+      name: continuationToken
+      in: query
+      required: false
+      schema: { type: string }
+      description: Token to continue a paginated list
+
+    StartAfterQuery:
+      name: startAfter
+      in: query
+      required: false
+      schema: { type: string }
+      description: Start listing after this key
+
+    EncodingTypeQuery:
+      name: encodingType
+      in: query
+      required: false
+      schema: { type: string, enum: [url] }
+      description: Encoding type for keys
+
+

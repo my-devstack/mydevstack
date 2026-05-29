@@ -130,20 +130,47 @@ test.describe('CloudFormation', () => {
   })
 
   test('delete stack flow', async ({ page }) => {
+    test.setTimeout(90000) // CF async operations need long timeout
+
     await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
 
-    // Find a test stack to delete
-    const stackName = 'test-stack'
-    const stackRow = page.locator('div.cursor-pointer').filter({ hasText: stackName }).first()
+    // Create a stack to delete
+    await page.getByText('+ Create Stack').first().click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText('Create New Stack')).toBeVisible()
 
-    const isVisible = await stackRow.isVisible().catch(() => false)
-    if (!isVisible) {
-      test.skip()
-      return
+    const stackName = 'test-delete-' + Date.now()
+    await page.getByPlaceholder('Enter stack name').fill(stackName)
+    await page.locator('textarea').fill(JSON.stringify({
+      AWSTemplateFormatVersion: '2010-09-09',
+      Resources: {},
+    }))
+
+    await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 20000 })
+    await page.waitForLoadState('networkidle')
+
+    // Search for the stack with pagination
+    const maxPages = 10
+    let stackRow = page.locator('div.cursor-pointer').filter({ hasText: stackName })
+    let found = await stackRow.isVisible().catch(() => false)
+
+    for (let i = 0; i < maxPages && !found; i++) {
+      if (i > 0) {
+        const nextBtn = page.getByRole('button', { name: 'Next' })
+        const isDisabled = await nextBtn.isDisabled().catch(() => true)
+        if (isDisabled) break
+        await nextBtn.click()
+        await page.waitForLoadState('networkidle')
+      }
+      stackRow = page.locator('div.cursor-pointer').filter({ hasText: stackName })
+      found = await stackRow.isVisible().catch(() => false)
     }
 
+    expect(found).toBe(true)
+    stackRow = page.locator('div.cursor-pointer').filter({ hasText: stackName }).first()
+
     // Click delete button (trash icon) within the row
-    // The delete button has aria-label="Delete"
     const deleteButton = stackRow.locator('button[aria-label="Delete"]')
     await deleteButton.click()
 

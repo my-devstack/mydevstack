@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import OpenSearchDeleteModal from './OpenSearchDeleteModal.vue';
 
 const meta: Meta<typeof OpenSearchDeleteModal> = {

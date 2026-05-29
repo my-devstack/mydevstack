@@ -1,0 +1,1617 @@
+openapi: 3.0.0
+info:
+  title: "IAM"
+  version: "1.0.0"
+
+paths:
+  # ---- Users ----
+  /iam/users:
+    get:
+      tags: [IAM]
+      summary: List users
+      description: |
+        Lists the IAM users that have the specified path prefix.
+        Supports pagination via Marker and MaxItems.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listUsers
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListUsersInput'
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUsersOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [IAM]
+      summary: Create user
+      description: |
+        Creates a new IAM user. The user name must be unique within the account.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserInput'
+      responses:
+        "200":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUserOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /iam/users/{userName}:
+    get:
+      tags: [IAM]
+      summary: Get user
+      description: |
+        Retrieves details about the specified IAM user, including
+        the user's path, unique ID, ARN, and creation date.
+      operationId: getUser
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/UserNamePath'
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUserOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [IAM]
+      summary: Delete user
+      description: |
+        Deletes the specified IAM user. The user must not belong to any groups
+        or have any access keys, signing certificates, or attached policies.
+      operationId: deleteUser
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/UserNamePath'
+      responses:
+        "200":
+          description: User deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteUserOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Access Keys ----
+  /iam/access-keys:
+    post:
+      tags: [IAM]
+      summary: Create access key
+      description: |
+        Creates a new AWS access key for the specified user or
+        the current user if no UserName is provided.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createAccessKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccessKeyInput'
+      responses:
+        "200":
+          description: Access key created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateAccessKeyOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [IAM]
+      summary: List access keys
+      description: |
+        Lists the access keys associated with the specified user or
+        the current user if no UserName is provided.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listAccessKeys
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListAccessKeysInput'
+      responses:
+        "200":
+          description: List of access keys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListAccessKeysOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /iam/access-keys/{accessKeyId}:
+    delete:
+      tags: [IAM]
+      summary: Delete access key
+      description: |
+        Deletes the specified access key. The key must not be in use.
+      operationId: deleteAccessKey
+      parameters:
+        - name: accessKeyId
+          in: path
+          required: true
+          schema: { type: string }
+          description: IAM access key ID
+          example: AKIAIOSFODNN7EXAMPLE
+      responses:
+        "200":
+          description: Access key deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteAccessKeyOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [IAM]
+      summary: Update access key status
+      description: |
+        Activates or deactivates the specified access key.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateAccessKeyStatus
+      parameters:
+        - name: accessKeyId
+          in: path
+          required: true
+          schema: { type: string }
+          description: IAM access key ID
+          example: AKIAIOSFODNN7EXAMPLE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccessKeyRequest'
+      responses:
+        "200":
+          description: Access key status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateAccessKeyOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Roles ----
+  /iam/roles:
+    get:
+      tags: [IAM]
+      summary: List roles
+      description: |
+        Lists the IAM roles that have the specified path prefix.
+        Supports pagination via Marker and MaxItems.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listRoles
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRolesInput'
+      responses:
+        "200":
+          description: List of roles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRolesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [IAM]
+      summary: Create role
+      description: |
+        Creates a new IAM role with the specified name and trust policy
+        that grants permissions to assume the role.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createRole
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoleInput'
+      responses:
+        "200":
+          description: Role created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRoleOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /iam/roles/{roleName}:
+    get:
+      tags: [IAM]
+      summary: Get role
+      description: |
+        Retrieves details about the specified IAM role, including
+        the role's trust policy, ARN, and creation date.
+      operationId: getRole
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RoleNamePath'
+      responses:
+        "200":
+          description: Role details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRoleOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [IAM]
+      summary: Delete role
+      description: |
+        Deletes the specified IAM role. The role must not have any policies
+        attached, inline policies, or instances assuming it.
+      operationId: deleteRole
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RoleNamePath'
+      responses:
+        "200":
+          description: Role deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteRoleOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Role Policies ----
+  /iam/roles/{roleName}/policies:
+    post:
+      tags: [IAM]
+      summary: Attach role policy
+      description: |
+        Attaches a managed policy to the specified IAM role.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: attachRolePolicy
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RoleNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttachRolePolicyRequest'
+      responses:
+        "200":
+          description: Policy attached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttachRolePolicyOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [IAM]
+      summary: List attached role policies
+      description: |
+        Lists all managed policies attached to the specified role.
+        Supports pagination via Marker and MaxItems.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listAttachedRolePolicies
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RoleNamePath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListAttachedRolePoliciesRequest'
+      responses:
+        "200":
+          description: List of attached policies
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListAttachedRolePoliciesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /iam/roles/{roleName}/detach-policy:
+    post:
+      tags: [IAM]
+      summary: Detach role policy
+      description: |
+        Detaches a managed policy from the specified IAM role.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: detachRolePolicy
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RoleNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DetachRolePolicyRequest'
+      responses:
+        "200":
+          description: Policy detached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetachRolePolicyOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /iam/roles/{roleName}/policies/{policyName}:
+    get:
+      tags: [IAM]
+      summary: Get role policy
+      description: |
+        Retrieves the specified inline policy document that is embedded
+        in the specified IAM role.
+      operationId: getRolePolicy
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RoleNamePath'
+        - name: policyName
+          in: path
+          required: true
+          schema: { type: string }
+          description: Name of the role policy
+      responses:
+        "200":
+          description: Role policy document
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRolePolicyOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /iam/roles/{roleName}/inline-policies:
+    get:
+      tags: [IAM]
+      summary: List role inline policies
+      description: |
+        Lists the names of inline policies embedded in the specified role.
+        Supports pagination via Marker and MaxItems.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listRolePolicies
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RoleNamePath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRolePoliciesRequest'
+      responses:
+        "200":
+          description: List of inline policy names
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRolePoliciesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Policies ----
+  /iam/policies:
+    get:
+      tags: [IAM]
+      summary: List policies
+      description: |
+        Lists all managed policies in the account.
+        Supports pagination via Marker and MaxItems.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listPolicies
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListPoliciesInput'
+      responses:
+        "200":
+          description: List of policies
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListPoliciesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [IAM]
+      summary: Create policy
+      description: |
+        Creates a new managed policy for your AWS account.
+        Requires PolicyName and PolicyDocument (JSON string).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createPolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePolicyInput'
+      responses:
+        "200":
+          description: Policy created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePolicyOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /iam/policies/get:
+    post:
+      tags: [IAM]
+      summary: Get policy
+      description: |
+        Retrieves information about the specified managed policy.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getPolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetPolicyRequest'
+      responses:
+        "200":
+          description: Policy details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPolicyOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /iam/policies/delete:
+    post:
+      tags: [IAM]
+      summary: Delete policy
+      description: |
+        Deletes the specified managed policy. The policy must not be
+        attached to any users, groups, or roles.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: deletePolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeletePolicyRequest'
+      responses:
+        "200":
+          description: Policy deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletePolicyOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Groups ----
+  /iam/groups:
+    post:
+      tags: [IAM]
+      summary: Create group
+      description: |
+        Creates a new IAM group with the specified name and path.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupInput'
+      responses:
+        "200":
+          description: Group created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateGroupOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [IAM]
+      summary: List groups
+      description: |
+        Lists the IAM groups that have the specified path prefix.
+        Supports pagination via Marker and MaxItems.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listGroups
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListGroupsInput'
+      responses:
+        "200":
+          description: List of groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListGroupsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /iam/groups/{groupName}:
+    get:
+      tags: [IAM]
+      summary: Get group
+      description: |
+        Retrieves details about the specified IAM group, including
+        the group's path, unique ID, ARN, and creation date.
+      operationId: getGroup
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/GroupNamePath'
+      responses:
+        "200":
+          description: Group details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetGroupOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [IAM]
+      summary: Delete group
+      description: |
+        Deletes the specified IAM group. The group must not contain
+        any users or have any attached policies.
+      operationId: deleteGroup
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/GroupNamePath'
+      responses:
+        "200":
+          description: Group deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteGroupOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Group Membership ----
+  /iam/groups/{groupName}/users:
+    post:
+      tags: [IAM]
+      summary: Add user to group
+      description: |
+        Adds the specified user to the specified group.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: addUserToGroup
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/GroupNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddUserToGroupRequest'
+      responses:
+        "200":
+          description: User added to group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddUserToGroupOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [IAM]
+      summary: List users for group
+      description: |
+        Lists the IAM users in the specified group.
+        Supports pagination via Marker and MaxItems.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listUsersForGroup
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/GroupNamePath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListUsersForGroupRequest'
+      responses:
+        "200":
+          description: List of users in group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUsersForGroupOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /iam/groups/{groupName}/users/{userName}:
+    delete:
+      tags: [IAM]
+      summary: Remove user from group
+      description: |
+        Removes the specified user from the specified group.
+      operationId: removeUserFromGroup
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/GroupNamePath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/UserNamePath'
+      responses:
+        "200":
+          description: User removed from group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoveUserFromGroupOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- User Groups & Policies ----
+  /iam/users/{userName}/groups:
+    get:
+      tags: [IAM]
+      summary: List groups for user
+      description: |
+        Lists the IAM groups that the specified user belongs to.
+        Supports pagination via Marker and MaxItems.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listGroupsForUser
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/UserNamePath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListGroupsForUserRequest'
+      responses:
+        "200":
+          description: List of groups for user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListGroupsForUserOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /iam/users/{userName}/policies:
+    get:
+      tags: [IAM]
+      summary: List user policies
+      description: |
+        Lists the inline policy names for the specified user.
+        Supports pagination via Marker and MaxItems.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listUserPolicies
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/UserNamePath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListUserPoliciesRequest'
+      responses:
+        "200":
+          description: List of inline policy names
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUserPoliciesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Core IAM types (User, Group, Role, Policy, AccessKey)
+    # ============================================================
+    IAMUser:
+      type: object
+      properties:
+        Path:
+          type: string
+        UserName:
+          type: string
+        UserId:
+          type: string
+        Arn:
+          type: string
+        CreateDate:
+          type: string
+          format: date-time
+        PasswordLastUsed:
+          type: string
+          format: date-time
+        PermissionsBoundary:
+          type: object
+          properties:
+            PermissionsBoundaryType:
+              type: string
+              enum: [PermissionsBoundaryPolicy]
+            PermissionsBoundaryArn:
+              type: string
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMTag'
+
+    IAMGroup:
+      type: object
+      properties:
+        Path:
+          type: string
+        GroupName:
+          type: string
+        GroupId:
+          type: string
+        Arn:
+          type: string
+        CreateDate:
+          type: string
+          format: date-time
+
+    IAMRole:
+      type: object
+      properties:
+        Path:
+          type: string
+        RoleName:
+          type: string
+        RoleId:
+          type: string
+        Arn:
+          type: string
+        CreateDate:
+          type: string
+          format: date-time
+        AssumeRolePolicyDocument:
+          type: string
+          description: The trust policy document (URL-encoded JSON)
+        Description:
+          type: string
+        MaxSessionDuration:
+          type: integer
+          format: int32
+        PermissionsBoundary:
+          type: object
+          properties:
+            PermissionsBoundaryType:
+              type: string
+              enum: [PermissionsBoundaryPolicy]
+            PermissionsBoundaryArn:
+              type: string
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMTag'
+        RoleLastUsed:
+          type: object
+          properties:
+            LastUsedDate:
+              type: string
+              format: date-time
+            Region:
+              type: string
+
+    IAMPolicy:
+      type: object
+      properties:
+        PolicyName:
+          type: string
+        PolicyId:
+          type: string
+        Arn:
+          type: string
+        Path:
+          type: string
+        DefaultVersionId:
+          type: string
+        AttachmentCount:
+          type: integer
+          format: int32
+        PermissionsBoundaryUsageCount:
+          type: integer
+          format: int32
+        IsAttachable:
+          type: boolean
+        Description:
+          type: string
+        CreateDate:
+          type: string
+          format: date-time
+        UpdateDate:
+          type: string
+          format: date-time
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMTag'
+
+    IAMAccessKey:
+      type: object
+      properties:
+        UserName:
+          type: string
+        AccessKeyId:
+          type: string
+        Status:
+          type: string
+          enum: [Active, Inactive]
+        SecretAccessKey:
+          type: string
+        CreateDate:
+          type: string
+          format: date-time
+
+    IAMTag:
+      type: object
+      required: [Key, Value]
+      properties:
+        Key:
+          type: string
+        Value:
+          type: string
+
+    AttachedPolicy:
+      type: object
+      properties:
+        PolicyName:
+          type: string
+        PolicyArn:
+          type: string
+
+    # ============================================================
+    # User operations
+    # ============================================================
+    ListUsersInput:
+      type: object
+      properties:
+        PathPrefix:
+          type: string
+        Marker:
+          type: string
+        MaxItems:
+          type: integer
+          format: int32
+
+    ListUsersOutput:
+      type: object
+      properties:
+        Users:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMUser'
+        IsTruncated:
+          type: boolean
+        Marker:
+          type: string
+
+    CreateUserInput:
+      type: object
+      required: [UserName]
+      properties:
+        Path:
+          type: string
+        UserName:
+          type: string
+        PermissionsBoundary:
+          type: string
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMTag'
+
+    CreateUserOutput:
+      type: object
+      properties:
+        User:
+          $ref: '#/components/schemas/IAMUser'
+
+    GetUserOutput:
+      type: object
+      properties:
+        User:
+          $ref: '#/components/schemas/IAMUser'
+
+    DeleteUserOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # Access key operations
+    # ============================================================
+    CreateAccessKeyInput:
+      type: object
+      properties:
+        UserName:
+          type: string
+
+    CreateAccessKeyOutput:
+      type: object
+      properties:
+        AccessKey:
+          $ref: '#/components/schemas/IAMAccessKey'
+
+    ListAccessKeysInput:
+      type: object
+      properties:
+        UserName:
+          type: string
+        Marker:
+          type: string
+        MaxItems:
+          type: integer
+          format: int32
+
+    ListAccessKeysOutput:
+      type: object
+      properties:
+        AccessKeyMetadata:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMAccessKey'
+        IsTruncated:
+          type: boolean
+        Marker:
+          type: string
+
+    DeleteAccessKeyOutput:
+      type: object
+      properties: {}
+
+    UpdateAccessKeyRequest:
+      type: object
+      required: [Status]
+      properties:
+        Status:
+          type: string
+          enum: [Active, Inactive]
+
+    UpdateAccessKeyOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # Role operations
+    # ============================================================
+    ListRolesInput:
+      type: object
+      properties:
+        PathPrefix:
+          type: string
+        Marker:
+          type: string
+        MaxItems:
+          type: integer
+          format: int32
+
+    ListRolesOutput:
+      type: object
+      properties:
+        Roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMRole'
+        IsTruncated:
+          type: boolean
+        Marker:
+          type: string
+
+    CreateRoleInput:
+      type: object
+      required: [RoleName, AssumeRolePolicyDocument]
+      properties:
+        Path:
+          type: string
+        RoleName:
+          type: string
+        AssumeRolePolicyDocument:
+          type: string
+          description: The trust relationship policy document (JSON string)
+        Description:
+          type: string
+        MaxSessionDuration:
+          type: integer
+          format: int32
+        PermissionsBoundary:
+          type: string
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMTag'
+
+    CreateRoleOutput:
+      type: object
+      properties:
+        Role:
+          $ref: '#/components/schemas/IAMRole'
+
+    GetRoleOutput:
+      type: object
+      properties:
+        Role:
+          $ref: '#/components/schemas/IAMRole'
+
+    DeleteRoleOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # Role policy operations
+    # ============================================================
+    AttachRolePolicyRequest:
+      type: object
+      required: [PolicyArn]
+      properties:
+        PolicyArn:
+          type: string
+
+    AttachRolePolicyOutput:
+      type: object
+      properties: {}
+
+    DetachRolePolicyRequest:
+      type: object
+      required: [PolicyArn]
+      properties:
+        PolicyArn:
+          type: string
+
+    DetachRolePolicyOutput:
+      type: object
+      properties: {}
+
+    ListAttachedRolePoliciesRequest:
+      type: object
+      properties:
+        PathPrefix:
+          type: string
+        Marker:
+          type: string
+        MaxItems:
+          type: integer
+          format: int32
+
+    ListAttachedRolePoliciesOutput:
+      type: object
+      properties:
+        AttachedPolicies:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttachedPolicy'
+        IsTruncated:
+          type: boolean
+        Marker:
+          type: string
+
+    GetRolePolicyOutput:
+      type: object
+      properties:
+        RoleName:
+          type: string
+        PolicyName:
+          type: string
+        PolicyDocument:
+          type: string
+          description: The policy document (URL-encoded JSON)
+
+    ListRolePoliciesRequest:
+      type: object
+      properties:
+        Marker:
+          type: string
+        MaxItems:
+          type: integer
+          format: int32
+
+    ListRolePoliciesOutput:
+      type: object
+      properties:
+        PolicyNames:
+          type: array
+          items: { type: string }
+        IsTruncated:
+          type: boolean
+        Marker:
+          type: string
+
+    # ============================================================
+    # Policy operations
+    # ============================================================
+    ListPoliciesInput:
+      type: object
+      properties:
+        Scope:
+          type: string
+          enum: [All, AWS, Local]
+        OnlyAttached:
+          type: boolean
+        PathPrefix:
+          type: string
+        PolicyUsageFilter:
+          type: string
+          enum: [PermissionsPolicy, PermissionsBoundary]
+        Marker:
+          type: string
+        MaxItems:
+          type: integer
+          format: int32
+
+    ListPoliciesOutput:
+      type: object
+      properties:
+        Policies:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMPolicy'
+        IsTruncated:
+          type: boolean
+        Marker:
+          type: string
+
+    CreatePolicyInput:
+      type: object
+      required: [PolicyName, PolicyDocument]
+      properties:
+        PolicyName:
+          type: string
+        PolicyDocument:
+          type: string
+          description: The JSON policy document
+        Path:
+          type: string
+        Description:
+          type: string
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMTag'
+
+    CreatePolicyOutput:
+      type: object
+      properties:
+        Policy:
+          $ref: '#/components/schemas/IAMPolicy'
+
+    GetPolicyRequest:
+      type: object
+      required: [PolicyArn]
+      properties:
+        PolicyArn:
+          type: string
+
+    GetPolicyOutput:
+      type: object
+      properties:
+        Policy:
+          $ref: '#/components/schemas/IAMPolicy'
+
+    DeletePolicyRequest:
+      type: object
+      required: [PolicyArn]
+      properties:
+        PolicyArn:
+          type: string
+
+    DeletePolicyOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # Group operations
+    # ============================================================
+    CreateGroupInput:
+      type: object
+      required: [GroupName]
+      properties:
+        Path:
+          type: string
+        GroupName:
+          type: string
+
+    CreateGroupOutput:
+      type: object
+      properties:
+        Group:
+          $ref: '#/components/schemas/IAMGroup'
+
+    ListGroupsInput:
+      type: object
+      properties:
+        PathPrefix:
+          type: string
+        Marker:
+          type: string
+        MaxItems:
+          type: integer
+          format: int32
+
+    ListGroupsOutput:
+      type: object
+      properties:
+        Groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMGroup'
+        IsTruncated:
+          type: boolean
+        Marker:
+          type: string
+
+    GetGroupOutput:
+      type: object
+      properties:
+        Group:
+          $ref: '#/components/schemas/IAMGroup'
+        Users:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMUser'
+        IsTruncated:
+          type: boolean
+        Marker:
+          type: string
+
+    DeleteGroupOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # Group membership operations
+    # ============================================================
+    AddUserToGroupRequest:
+      type: object
+      required: [UserName]
+      properties:
+        UserName:
+          type: string
+
+    AddUserToGroupOutput:
+      type: object
+      properties: {}
+
+    RemoveUserFromGroupOutput:
+      type: object
+      properties: {}
+
+    ListUsersForGroupRequest:
+      type: object
+      properties:
+        Marker:
+          type: string
+        MaxItems:
+          type: integer
+          format: int32
+
+    ListUsersForGroupOutput:
+      type: object
+      properties:
+        Users:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMUser'
+        IsTruncated:
+          type: boolean
+        Marker:
+          type: string
+
+    # ============================================================
+    # User group/policy listing operations
+    # ============================================================
+    ListGroupsForUserRequest:
+      type: object
+      properties:
+        Marker:
+          type: string
+        MaxItems:
+          type: integer
+          format: int32
+
+    ListGroupsForUserOutput:
+      type: object
+      properties:
+        Groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/IAMGroup'
+        IsTruncated:
+          type: boolean
+        Marker:
+          type: string
+
+    ListUserPoliciesRequest:
+      type: object
+      properties:
+        Marker:
+          type: string
+        MaxItems:
+          type: integer
+          format: int32
+
+    ListUserPoliciesOutput:
+      type: object
+      properties:
+        PolicyNames:
+          type: array
+          items: { type: string }
+        IsTruncated:
+          type: boolean
+        Marker:
+          type: string

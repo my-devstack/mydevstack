@@ -76,16 +76,9 @@ export {
   listTopics,
   createTopic,
   deleteTopic,
-  getTopicAttributes,
   subscribe,
-  listSubscriptions,
   listSubscriptionsByTopic,
-  unsubscribe,
   publish,
-  confirmSubscription,
-  getSubscriptionAttributes,
-  setSubscriptionAttributes,
-  listTagsForResource,
 } from './sns'
 
 // IAM Service
@@ -114,17 +107,10 @@ export {
   listKeys,
   encrypt,
   decrypt,
-  generateDataKey,
-  sign,
-  verify,
   enableKey,
   disableKey,
   scheduleKeyDeletion,
   deleteKey,
-  cancelKeyDeletion,
-  getKeyRotationStatus,
-  enableKeyRotation,
-  disableKeyRotation,
 } from './kms'
 
 // Secrets Manager Service
@@ -171,40 +157,23 @@ export {
 // Kinesis Service
 export {
   createStream,
-  listStreams,
+  listStreams as listKinesisStreams,
   describeStream,
-  describeStreamSummary,
   deleteStream,
   putRecord,
-  putRecords,
   getRecords,
   getShardIterator,
-  listShards,
-  splitShard,
-  mergeShards,
-  updateShardCount,
 } from './kinesis'
 
 // CloudFormation Service
 export {
+  cloudFormationService,
+  listStacks,
   createStack,
   deleteStack,
-  listStacks,
-  describeStacks,
-  describeStackResources,
-  updateStack,
-  cancelUpdateStack,
-  describeStackEvents,
-  describeStackResource,
-  estimateTemplateCost,
-  validateTemplate,
-  getTemplate,
-  getTemplateSummary,
-  describeChangeSet,
-  createChangeSet,
-  listChangeSets,
-  deleteChangeSet,
-  executeChangeSet,
+  getStackDetails,
+  getStackTemplate,
+  listStackResources,
 } from './cloudformation'
 
 // SSM Parameter Store Service
@@ -253,8 +222,89 @@ export {
   getBootstrapBrokers,
 } from './msk'
 
+// CloudWatch Service
+export {
+  CloudWatchService,
+  cloudWatchService,
+  describeAlarms,
+  putMetricAlarm,
+  deleteAlarms,
+  setAlarmState,
+  describeAlarmHistory,
+  listMetrics,
+  getMetricData,
+  getMetricStatistics,
+  putMetricData,
+} from './cloudwatch'
+
+// CloudWatch Logs Service
+export {
+  CloudWatchLogsService,
+  cloudWatchLogsService,
+  describeLogGroups,
+  createLogGroup,
+  deleteLogGroup,
+  describeLogStreams,
+  createLogStream,
+  putLogEvents,
+  getLogEvents,
+  putRetentionPolicy,
+} from './cloudwatch-logs'
+
+// ElastiCache Service
+export {
+  ElastiCacheService,
+  elasticacheService,
+  describeReplicationGroups,
+  createReplicationGroup,
+  deleteReplicationGroup,
+} from './elasticache'
+export type {
+  ReplicationGroup,
+  CreateReplicationGroupInput,
+} from './elasticache'
+
+// RDS Service
+export {
+  RDSService,
+  rdsService,
+  describeDBInstances,
+  createDBInstance,
+  deleteDBInstance,
+  describeDBEngineVersions,
+  modifyDBInstance,
+  rebootDBInstance,
+  describeDBParameterGroups,
+  describeDBParameters,
+  describeDBSubnetGroups,
+} from './rds'
+
+// SES Service
+export {
+  SESService,
+  sesService,
+  listEmailIdentities,
+  getEmailIdentity,
+  createEmailIdentity,
+  deleteEmailIdentity,
+  sendEmail,
+  listTemplates,
+  createTemplate,
+  updateTemplate,
+  deleteTemplate,
+  sendEmailWithTemplate,
+} from './ses'
+
+// Region Service
+export {
+  setRegion,
+  getRegion,
+} from './region'
+export type {
+  SetRegionResponse,
+} from './region'
+
 // Re-export APIError for convenience
 export { APIError } from '../client'
 
-// Re-export parseXML for convenience
-export { parseXML } from '../client'
+

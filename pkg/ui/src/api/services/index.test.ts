@@ -78,16 +78,9 @@ import {
   listTopics,
   createTopic,
   deleteTopic,
-  getTopicAttributes,
   subscribe,
-  listSubscriptions,
   listSubscriptionsByTopic,
-  unsubscribe,
   publish,
-  confirmSubscription,
-  getSubscriptionAttributes,
-  setSubscriptionAttributes,
-  listTagsForResource,
 } from './sns'
 
 // --- IAM ---
@@ -116,17 +109,10 @@ import {
   listKeys,
   encrypt,
   decrypt,
-  generateDataKey,
-  sign,
-  verify,
   enableKey,
   disableKey,
   scheduleKeyDeletion,
   deleteKey,
-  cancelKeyDeletion,
-  getKeyRotationStatus,
-  enableKeyRotation,
-  disableKeyRotation,
 } from './kms'
 
 // --- Secrets Manager ---
@@ -173,18 +159,12 @@ import {
 // --- Kinesis ---
 import {
   createStream,
-  listStreams,
+  listStreams as listKinesisStreams,
   describeStream,
-  describeStreamSummary,
   deleteStream,
   putRecord,
-  putRecords,
   getRecords,
   getShardIterator,
-  listShards,
-  splitShard,
-  mergeShards,
-  updateShardCount,
 } from './kinesis'
 
 // --- CloudFormation ---
@@ -246,7 +226,7 @@ import {
 } from './msk'
 
 // --- Shared re-exports ---
-import { APIError, parseXML } from '../client'
+import { APIError } from '../client'
 
 interface ReExportEntry {
   name: string
@@ -320,16 +300,9 @@ describe('Barrel exports (index.ts)', () => {
     { name: 'listTopics', value: listTopics, module: 'sns' },
     { name: 'createTopic', value: createTopic, module: 'sns' },
     { name: 'deleteTopic', value: deleteTopic, module: 'sns' },
-    { name: 'getTopicAttributes', value: getTopicAttributes, module: 'sns' },
     { name: 'subscribe', value: subscribe, module: 'sns' },
-    { name: 'listSubscriptions', value: listSubscriptions, module: 'sns' },
     { name: 'listSubscriptionsByTopic', value: listSubscriptionsByTopic, module: 'sns' },
-    { name: 'unsubscribe', value: unsubscribe, module: 'sns' },
     { name: 'publish', value: publish, module: 'sns' },
-    { name: 'confirmSubscription', value: confirmSubscription, module: 'sns' },
-    { name: 'getSubscriptionAttributes', value: getSubscriptionAttributes, module: 'sns' },
-    { name: 'setSubscriptionAttributes', value: setSubscriptionAttributes, module: 'sns' },
-    { name: 'listTagsForResource', value: listTagsForResource, module: 'sns' },
 
     // IAM
     { name: 'createUser', value: createUser, module: 'iam' },
@@ -354,17 +327,10 @@ describe('Barrel exports (index.ts)', () => {
     { name: 'listKeys', value: listKeys, module: 'kms' },
     { name: 'encrypt', value: encrypt, module: 'kms' },
     { name: 'decrypt', value: decrypt, module: 'kms' },
-    { name: 'generateDataKey', value: generateDataKey, module: 'kms' },
-    { name: 'sign', value: sign, module: 'kms' },
-    { name: 'verify', value: verify, module: 'kms' },
     { name: 'enableKey', value: enableKey, module: 'kms' },
     { name: 'disableKey', value: disableKey, module: 'kms' },
     { name: 'scheduleKeyDeletion', value: scheduleKeyDeletion, module: 'kms' },
     { name: 'deleteKey', value: deleteKey, module: 'kms' },
-    { name: 'cancelKeyDeletion', value: cancelKeyDeletion, module: 'kms' },
-    { name: 'getKeyRotationStatus', value: getKeyRotationStatus, module: 'kms' },
-    { name: 'enableKeyRotation', value: enableKeyRotation, module: 'kms' },
-    { name: 'disableKeyRotation', value: disableKeyRotation, module: 'kms' },
 
     // Secrets Manager
     { name: 'createSecret', value: createSecret, module: 'secrets-manager' },
@@ -405,18 +371,12 @@ describe('Barrel exports (index.ts)', () => {
 
     // Kinesis
     { name: 'createStream', value: createStream, module: 'kinesis' },
-    { name: 'listStreams', value: listStreams, module: 'kinesis' },
+    { name: 'listKinesisStreams', value: listKinesisStreams, module: 'kinesis' },
     { name: 'describeStream', value: describeStream, module: 'kinesis' },
-    { name: 'describeStreamSummary', value: describeStreamSummary, module: 'kinesis' },
     { name: 'deleteStream', value: deleteStream, module: 'kinesis' },
     { name: 'putRecord', value: putRecord, module: 'kinesis' },
-    { name: 'putRecords', value: putRecords, module: 'kinesis' },
     { name: 'getRecords', value: getRecords, module: 'kinesis' },
     { name: 'getShardIterator', value: getShardIterator, module: 'kinesis' },
-    { name: 'listShards', value: listShards, module: 'kinesis' },
-    { name: 'splitShard', value: splitShard, module: 'kinesis' },
-    { name: 'mergeShards', value: mergeShards, module: 'kinesis' },
-    { name: 'updateShardCount', value: updateShardCount, module: 'kinesis' },
 
     // CloudFormation
     { name: 'CloudFormationService', value: CloudFormationService, module: 'cloudformation' },
@@ -490,9 +450,6 @@ describe('Barrel exports (index.ts)', () => {
       expect(typeof APIError).toBe('function')
     })
 
-    it('re-exports parseXML function', () => {
-      expect(parseXML).toBeDefined()
-      expect(typeof parseXML).toBe('function')
-    })
+
   })
 })

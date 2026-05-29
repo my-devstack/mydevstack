@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	mockports "github.com/my-devstack/mydevstack/pkg/proxy/mocks/ports"
@@ -33,7 +32,7 @@ func TestLambda_ListFunctions(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "ListFunctions", []byte("{}"))
+		w := performRequest(r, "GET", "/lambda/functions", []byte("{}"))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -46,7 +45,7 @@ func TestLambda_ListFunctions(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "ListFunctions", []byte("{}"))
+		w := performRequest(r, "GET", "/lambda/functions", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -56,7 +55,7 @@ func TestLambda_ListFunctions(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "ListFunctions", []byte(`{bad json`))
+		w := performRequest(r, "GET", "/lambda/functions", []byte(`{bad json`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -77,7 +76,7 @@ func TestLambda_CreateFunction(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "CreateFunction", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "POST", "/lambda/functions", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -90,7 +89,7 @@ func TestLambda_CreateFunction(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "CreateFunction", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "POST", "/lambda/functions", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -100,7 +99,7 @@ func TestLambda_CreateFunction(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "CreateFunction", []byte(`{bad`))
+		w := performRequest(r, "POST", "/lambda/functions", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -121,7 +120,7 @@ func TestLambda_GetFunction(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "GetFunction", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "GET", "/lambda/functions/fn", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -134,18 +133,8 @@ func TestLambda_GetFunction(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "GetFunction", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "GET", "/lambda/functions/fn", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
-	})
-
-	t.Run("parse error", func(t *testing.T) {
-		t.Parallel()
-		svc := createMockSvc(t, nil)
-		versionSvc := createTestVersionService(t)
-		handler := NewProxyHandler(context.Background(), svc, versionSvc)
-		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "GetFunction", []byte(`{bad`))
-		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
 
@@ -165,7 +154,7 @@ func TestLambda_DeleteFunction(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "DeleteFunction", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "DELETE", "/lambda/functions/fn", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -178,18 +167,8 @@ func TestLambda_DeleteFunction(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "DeleteFunction", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "DELETE", "/lambda/functions/fn", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
-	})
-
-	t.Run("parse error", func(t *testing.T) {
-		t.Parallel()
-		svc := createMockSvc(t, nil)
-		versionSvc := createTestVersionService(t)
-		handler := NewProxyHandler(context.Background(), svc, versionSvc)
-		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "DeleteFunction", []byte(`{bad`))
-		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
 
@@ -213,7 +192,7 @@ func TestLambda_Invoke(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "Invoke", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "POST", "/lambda/functions/fn/invocations", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -240,7 +219,7 @@ func TestLambda_Invoke(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "Invoke", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "POST", "/lambda/functions/fn/invocations", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -261,7 +240,7 @@ func TestLambda_Invoke(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "Invoke", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "POST", "/lambda/functions/fn/invocations", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp map[string]interface{}
@@ -280,7 +259,7 @@ func TestLambda_Invoke(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "Invoke", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "POST", "/lambda/functions/fn/invocations", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -290,7 +269,7 @@ func TestLambda_Invoke(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "Invoke", []byte(`{bad`))
+		w := performRequest(r, "POST", "/lambda/functions/fn/invocations", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -311,7 +290,7 @@ func TestLambda_UpdateFunctionConfiguration(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "UpdateFunctionConfiguration", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "PUT", "/lambda/functions/fn", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -324,7 +303,7 @@ func TestLambda_UpdateFunctionConfiguration(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "UpdateFunctionConfiguration", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "PUT", "/lambda/functions/fn", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -334,7 +313,7 @@ func TestLambda_UpdateFunctionConfiguration(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "UpdateFunctionConfiguration", []byte(`{bad`))
+		w := performRequest(r, "PUT", "/lambda/functions/fn", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -355,7 +334,7 @@ func TestLambda_UpdateFunctionCode(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "UpdateFunctionCode", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "PUT", "/lambda/functions/fn/code", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -368,7 +347,7 @@ func TestLambda_UpdateFunctionCode(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "UpdateFunctionCode", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "PUT", "/lambda/functions/fn/code", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -378,7 +357,7 @@ func TestLambda_UpdateFunctionCode(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "UpdateFunctionCode", []byte(`{bad`))
+		w := performRequest(r, "PUT", "/lambda/functions/fn/code", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -386,11 +365,8 @@ func TestLambda_UpdateFunctionCode(t *testing.T) {
 // ---------------------------------------------------------------------------
 // Lambda — GetFunctionConfiguration
 //
-// Note: The dispatch for "GetFunctionConfiguration" routes to the
-// getFunction handler because strings.Contains("GetFunctionConfiguration",
-// "GetFunction") is true and GetFunction is checked first.  These tests
-// verify the actual behavior — mocking GetFunction, not
-// GetFunctionConfiguration.
+// With exact action matching via extractAction, "GetFunctionConfiguration"
+// now correctly routes to getFunctionConfiguration.
 // ---------------------------------------------------------------------------
 
 func TestLambda_GetFunctionConfiguration(t *testing.T) {
@@ -400,13 +376,13 @@ func TestLambda_GetFunctionConfiguration(t *testing.T) {
 		t.Parallel()
 		svc := createMockSvc(t, nil)
 		mp := mockports.NewLambdaPort(t)
-		// Dispatch bug: "GetFunctionConfiguration" matches "GetFunction" first.
-		mp.EXPECT().GetFunction(mock.Anything, mock.Anything).Return(&lambda.GetFunctionOutput{}, nil)
+		// Exact action matching now routes GetFunctionConfiguration correctly.
+		mp.EXPECT().GetFunctionConfiguration(mock.Anything, mock.Anything).Return(&lambda.GetFunctionConfigurationOutput{}, nil)
 		svc.EXPECT().Lambda().Return(mp)
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "GetFunctionConfiguration", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "GET", "/lambda/functions/fn/configuration", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -414,24 +390,13 @@ func TestLambda_GetFunctionConfiguration(t *testing.T) {
 		t.Parallel()
 		svc := createMockSvc(t, nil)
 		mp := mockports.NewLambdaPort(t)
-		// Dispatch bug: "GetFunctionConfiguration" matches "GetFunction" first.
-		mp.EXPECT().GetFunction(mock.Anything, mock.Anything).Return(nil, errors.New("get error"))
+		mp.EXPECT().GetFunctionConfiguration(mock.Anything, mock.Anything).Return(nil, errors.New("get config error"))
 		svc.EXPECT().Lambda().Return(mp)
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "GetFunctionConfiguration", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "GET", "/lambda/functions/fn/configuration", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
-	})
-
-	t.Run("parse error", func(t *testing.T) {
-		t.Parallel()
-		svc := createMockSvc(t, nil)
-		versionSvc := createTestVersionService(t)
-		handler := NewProxyHandler(context.Background(), svc, versionSvc)
-		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "GetFunctionConfiguration", []byte(`{bad`))
-		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
 
@@ -451,7 +416,7 @@ func TestLambda_ListEventSourceMappings(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "ListEventSourceMappings", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "GET", "/lambda/event-source-mappings", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -464,7 +429,7 @@ func TestLambda_ListEventSourceMappings(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "ListEventSourceMappings", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "GET", "/lambda/event-source-mappings", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -474,7 +439,7 @@ func TestLambda_ListEventSourceMappings(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "ListEventSourceMappings", []byte(`{bad`))
+		w := performRequest(r, "GET", "/lambda/event-source-mappings", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -495,7 +460,7 @@ func TestLambda_CreateEventSourceMapping(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "CreateEventSourceMapping", []byte(`{"FunctionName":"fn","EventSourceArn":"arn:aws:sqs:..."}`))
+		w := performRequest(r, "POST", "/lambda/event-source-mappings", []byte(`{"FunctionName":"fn","EventSourceArn":"arn:aws:sqs:..."}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -508,7 +473,7 @@ func TestLambda_CreateEventSourceMapping(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "CreateEventSourceMapping", []byte(`{"FunctionName":"fn"}`))
+		w := performRequest(r, "POST", "/lambda/event-source-mappings", []byte(`{"FunctionName":"fn"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
@@ -518,7 +483,7 @@ func TestLambda_CreateEventSourceMapping(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "CreateEventSourceMapping", []byte(`{bad`))
+		w := performRequest(r, "POST", "/lambda/event-source-mappings", []byte(`{bad`))
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
@@ -539,7 +504,7 @@ func TestLambda_GetEventSourceMapping(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "GetEventSourceMapping", []byte(`{"UUID":"abc123"}`))
+		w := performRequest(r, "GET", "/lambda/event-source-mappings/abc123", []byte(`{"UUID":"abc123"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -552,18 +517,8 @@ func TestLambda_GetEventSourceMapping(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "GetEventSourceMapping", []byte(`{"UUID":"abc123"}`))
+		w := performRequest(r, "GET", "/lambda/event-source-mappings/abc123", []byte(`{"UUID":"abc123"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
-	})
-
-	t.Run("parse error", func(t *testing.T) {
-		t.Parallel()
-		svc := createMockSvc(t, nil)
-		versionSvc := createTestVersionService(t)
-		handler := NewProxyHandler(context.Background(), svc, versionSvc)
-		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "GetEventSourceMapping", []byte(`{bad`))
-		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
 
@@ -583,7 +538,7 @@ func TestLambda_DeleteEventSourceMapping(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "DeleteEventSourceMapping", []byte(`{"UUID":"abc123"}`))
+		w := performRequest(r, "DELETE", "/lambda/event-source-mappings/abc123", []byte(`{"UUID":"abc123"}`))
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -596,18 +551,8 @@ func TestLambda_DeleteEventSourceMapping(t *testing.T) {
 		versionSvc := createTestVersionService(t)
 		handler := NewProxyHandler(context.Background(), svc, versionSvc)
 		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "DeleteEventSourceMapping", []byte(`{"UUID":"abc123"}`))
+		w := performRequest(r, "DELETE", "/lambda/event-source-mappings/abc123", []byte(`{"UUID":"abc123"}`))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
-	})
-
-	t.Run("parse error", func(t *testing.T) {
-		t.Parallel()
-		svc := createMockSvc(t, nil)
-		versionSvc := createTestVersionService(t)
-		handler := NewProxyHandler(context.Background(), svc, versionSvc)
-		r := setupTestRouter(handler)
-		w := performRequest(r, "POST", "/lambda/", "DeleteEventSourceMapping", []byte(`{bad`))
-		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
 
@@ -630,12 +575,10 @@ func TestLambda_GetFunctionConfiguration_Direct(t *testing.T) {
 		svc.EXPECT().Lambda().Return(mp)
 		handler := createHandler(svc, createTestVersionService(t))
 
-		gin.SetMode(gin.TestMode)
 		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("POST", "/lambda/", bytes.NewReader([]byte("{}")))
+		req := httptest.NewRequest("POST", "/lambda", bytes.NewReader([]byte("{}")))
 
-		handler.getFunctionConfiguration(context.Background(), c, []byte("{}"))
+		handler.getFunctionConfiguration(w, req)
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
@@ -647,28 +590,11 @@ func TestLambda_GetFunctionConfiguration_Direct(t *testing.T) {
 		svc.EXPECT().Lambda().Return(mp)
 		handler := createHandler(svc, createTestVersionService(t))
 
-		gin.SetMode(gin.TestMode)
 		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("POST", "/lambda/", bytes.NewReader([]byte("{}")))
+		req := httptest.NewRequest("POST", "/lambda", bytes.NewReader([]byte("{}")))
 
-		handler.getFunctionConfiguration(context.Background(), c, []byte("{}"))
+		handler.getFunctionConfiguration(w, req)
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
-	})
-
-	t.Run("parse error", func(t *testing.T) {
-		t.Parallel()
-		svc := createMockSvc(t, nil)
-		versionSvc := createTestVersionService(t)
-		handler := createHandler(svc, versionSvc)
-
-		gin.SetMode(gin.TestMode)
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("POST", "/lambda/", bytes.NewReader([]byte("{bad")))
-
-		handler.getFunctionConfiguration(context.Background(), c, []byte("{bad"))
-		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
 
@@ -683,6 +609,6 @@ func TestLambda_UnknownAction(t *testing.T) {
 	versionSvc := createTestVersionService(t)
 	handler := NewProxyHandler(context.Background(), svc, versionSvc)
 	r := setupTestRouter(handler)
-	w := performRequest(r, "POST", "/lambda/", "UnknownAction", []byte("{}"))
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	w := performRequest(r, "GET", "/lambda/unknown", []byte("{}"))
+	assert.Equal(t, http.StatusNotFound, w.Code)
 }

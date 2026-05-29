@@ -37,6 +37,39 @@ func (_m *CachePort) EXPECT() *CachePort_Expecter {
 	return &CachePort_Expecter{mock: &_m.Mock}
 }
 
+// Cleanup provides a mock function for the type CachePort
+func (_mock *CachePort) Cleanup() {
+	_mock.Called()
+	return
+}
+
+// CachePort_Cleanup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Cleanup'
+type CachePort_Cleanup_Call struct {
+	*mock.Call
+}
+
+// Cleanup is a helper method to define mock.On call
+func (_e *CachePort_Expecter) Cleanup() *CachePort_Cleanup_Call {
+	return &CachePort_Cleanup_Call{Call: _e.mock.On("Cleanup")}
+}
+
+func (_c *CachePort_Cleanup_Call) Run(run func()) *CachePort_Cleanup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *CachePort_Cleanup_Call) Return() *CachePort_Cleanup_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *CachePort_Cleanup_Call) RunAndReturn(run func()) *CachePort_Cleanup_Call {
+	_c.Run(run)
+	return _c
+}
+
 // Get provides a mock function for the type CachePort
 func (_mock *CachePort) Get(key string) (string, bool) {
 	ret := _mock.Called(key)
@@ -93,6 +126,50 @@ func (_c *CachePort_Get_Call) Return(s string, b bool) *CachePort_Get_Call {
 }
 
 func (_c *CachePort_Get_Call) RunAndReturn(run func(key string) (string, bool)) *CachePort_Get_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Len provides a mock function for the type CachePort
+func (_mock *CachePort) Len() int {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Len")
+	}
+
+	var r0 int
+	if returnFunc, ok := ret.Get(0).(func() int); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+	return r0
+}
+
+// CachePort_Len_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Len'
+type CachePort_Len_Call struct {
+	*mock.Call
+}
+
+// Len is a helper method to define mock.On call
+func (_e *CachePort_Expecter) Len() *CachePort_Len_Call {
+	return &CachePort_Len_Call{Call: _e.mock.On("Len")}
+}
+
+func (_c *CachePort_Len_Call) Run(run func()) *CachePort_Len_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *CachePort_Len_Call) Return(n int) *CachePort_Len_Call {
+	_c.Call.Return(n)
+	return _c
+}
+
+func (_c *CachePort_Len_Call) RunAndReturn(run func() int) *CachePort_Len_Call {
 	_c.Call.Return(run)
 	return _c
 }

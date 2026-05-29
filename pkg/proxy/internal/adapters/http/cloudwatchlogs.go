@@ -1,181 +1,216 @@
 package httphandlers
 
 import (
-	"context"
 	"net/http"
-	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
-	"github.com/gin-gonic/gin"
+	cwlogstypes "github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	"github.com/go-chi/chi/v5"
 )
 
-func (h *ProxyHandler) handleCloudWatchLogs(c *gin.Context) {
-	xAmzTarget := c.GetHeader("X-Amz-Target")
-	bodyBytes := readBody(c)
-	ctx := h.ctx
+func (h *ProxyHandler) registerCloudWatchLogsRoutes(r chi.Router) {
+	r.Route("/cloudwatch-logs", func(r chi.Router) {
+		r.Get("/log-groups", h.describeLogGroups)
+		r.Post("/log-groups", h.createLogGroup)
+		r.Delete("/log-groups/{logGroupName}", h.deleteLogGroup)
+		r.Put("/log-groups/{logGroupName}/retention", h.putRetentionPolicy)
 
-	switch {
-	case strings.Contains(xAmzTarget, "DescribeLogGroups"):
-		h.describeLogGroups(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateLogGroup"):
-		h.createLogGroup(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteLogGroup"):
-		h.deleteLogGroup(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DescribeLogStreams"):
-		h.describeLogStreams(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateLogStream"):
-		h.createLogStream(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutLogEvents"):
-		h.putLogEvents(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetLogEvents"):
-		h.getLogEvents(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutMetricFilter"):
-		h.putMetricFilter(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DescribeMetricFilters"):
-		h.describeMetricFilters(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutRetentionPolicy"):
-		h.putRetentionPolicy(ctx, c, bodyBytes)
-	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown CloudWatch Logs action: " + xAmzTarget})
-	}
+		r.Get("/log-groups/{logGroupName}/log-streams", h.describeLogStreams)
+		r.Post("/log-groups/{logGroupName}/log-streams", h.createLogStream)
+		r.Post("/log-groups/{logGroupName}/log-streams/{logStreamName}/events", h.putLogEvents)
+		r.Get("/log-groups/{logGroupName}/log-streams/{logStreamName}/events", h.getLogEvents)
+
+		r.Post("/metric-filters", h.putMetricFilter)
+		r.Get("/metric-filters", h.describeMetricFilters)
+	})
 }
 
-func (h *ProxyHandler) describeLogGroups(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) describeLogGroups(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &cloudwatchlogs.DescribeLogGroupsInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.CloudWatchLogs().DescribeLogGroups(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().DescribeLogGroups(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to describe log groups", err)
+		sendError(w, http.StatusInternalServerError, "Failed to describe log groups", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createLogGroup(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createLogGroup(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &cloudwatchlogs.CreateLogGroupInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.CloudWatchLogs().CreateLogGroup(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().CreateLogGroup(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create log group", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create log group", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteLogGroup(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &cloudwatchlogs.DeleteLogGroupInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteLogGroup(w http.ResponseWriter, r *http.Request) {
+	input := &cloudwatchlogs.DeleteLogGroupInput{
+		LogGroupName: aws.String(urlParam(r, "logGroupName")),
 	}
-	result, err := h.Svc.CloudWatchLogs().DeleteLogGroup(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().DeleteLogGroup(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete log group", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete log group", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) describeLogStreams(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &cloudwatchlogs.DescribeLogStreamsInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+func (h *ProxyHandler) describeLogStreams(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	var body struct {
+		OrderBy        string `json:"OrderBy"`
+		Descending     bool   `json:"Descending"`
+		Limit          int32  `json:"Limit"`
+		NextToken      string `json:"NextToken"`
+		LogStreamNamePrefix string `json:"LogStreamNamePrefix"`
+	}
+	if err := parseBody(bodyBytes, &body); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.CloudWatchLogs().DescribeLogStreams(ctx, input)
+	input := &cloudwatchlogs.DescribeLogStreamsInput{
+		LogGroupName: aws.String(urlParam(r, "logGroupName")),
+	}
+	if body.OrderBy != "" {
+		input.OrderBy = cwlogstypes.OrderBy(body.OrderBy)
+	}
+	if body.Descending {
+		input.Descending = aws.Bool(true)
+	}
+	if body.Limit > 0 {
+		input.Limit = aws.Int32(body.Limit)
+	}
+	if body.NextToken != "" {
+		input.NextToken = aws.String(body.NextToken)
+	}
+	result, err := h.Svc.CloudWatchLogs().DescribeLogStreams(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to describe log streams", err)
+		sendError(w, http.StatusInternalServerError, "Failed to describe log streams", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createLogStream(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createLogStream(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &cloudwatchlogs.CreateLogStreamInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.CloudWatchLogs().CreateLogStream(ctx, input)
+	input.LogGroupName = aws.String(urlParam(r, "logGroupName"))
+	result, err := h.Svc.CloudWatchLogs().CreateLogStream(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create log stream", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create log stream", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putLogEvents(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) putLogEvents(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &cloudwatchlogs.PutLogEventsInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.CloudWatchLogs().PutLogEvents(ctx, input)
+	input.LogGroupName = aws.String(urlParam(r, "logGroupName"))
+	input.LogStreamName = aws.String(urlParam(r, "logStreamName"))
+	result, err := h.Svc.CloudWatchLogs().PutLogEvents(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to put log events", err)
+		sendError(w, http.StatusInternalServerError, "Failed to put log events", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getLogEvents(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &cloudwatchlogs.GetLogEventsInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+func (h *ProxyHandler) getLogEvents(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	var body struct {
+		Limit          int32  `json:"Limit"`
+		NextToken      string `json:"NextToken"`
+		StartFromHead  bool   `json:"StartFromHead"`
+	}
+	if err := parseBody(bodyBytes, &body); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.CloudWatchLogs().GetLogEvents(ctx, input)
+	input := &cloudwatchlogs.GetLogEventsInput{
+		LogGroupName:  aws.String(urlParam(r, "logGroupName")),
+		LogStreamName: aws.String(urlParam(r, "logStreamName")),
+	}
+	if body.Limit > 0 {
+		input.Limit = aws.Int32(body.Limit)
+	}
+	if body.NextToken != "" {
+		input.NextToken = aws.String(body.NextToken)
+	}
+	if body.StartFromHead {
+		input.StartFromHead = aws.Bool(true)
+	}
+	result, err := h.Svc.CloudWatchLogs().GetLogEvents(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get log events", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get log events", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putMetricFilter(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) putMetricFilter(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &cloudwatchlogs.PutMetricFilterInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.CloudWatchLogs().PutMetricFilter(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().PutMetricFilter(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to put metric filter", err)
+		sendError(w, http.StatusInternalServerError, "Failed to put metric filter", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) describeMetricFilters(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) describeMetricFilters(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &cloudwatchlogs.DescribeMetricFiltersInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.CloudWatchLogs().DescribeMetricFilters(ctx, input)
+	result, err := h.Svc.CloudWatchLogs().DescribeMetricFilters(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to describe metric filters", err)
+		sendError(w, http.StatusInternalServerError, "Failed to describe metric filters", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putRetentionPolicy(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) putRetentionPolicy(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &cloudwatchlogs.PutRetentionPolicyInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.CloudWatchLogs().PutRetentionPolicy(ctx, input)
+	input.LogGroupName = aws.String(urlParam(r, "logGroupName"))
+	result, err := h.Svc.CloudWatchLogs().PutRetentionPolicy(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to put retention policy", err)
+		sendError(w, http.StatusInternalServerError, "Failed to put retention policy", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }

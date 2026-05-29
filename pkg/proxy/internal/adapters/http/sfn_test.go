@@ -16,37 +16,38 @@ func TestStepFunctionsActions(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		target    string
+		method    string
+		path      string
 		setupMock func(mp *mockports.StepFunctionsPort)
 	}{
-		{name: "ListStateMachines", target: "ListStateMachines", setupMock: func(mp *mockports.StepFunctionsPort) {
+		{name: "ListStateMachines", method: "GET", path: "/step-functions/state-machines", setupMock: func(mp *mockports.StepFunctionsPort) {
 			mp.EXPECT().ListStateMachines(mock.Anything, mock.Anything).Return(&sfn.ListStateMachinesOutput{}, nil)
 		}},
-		{name: "CreateStateMachine", target: "CreateStateMachine", setupMock: func(mp *mockports.StepFunctionsPort) {
+		{name: "CreateStateMachine", method: "POST", path: "/step-functions/state-machines", setupMock: func(mp *mockports.StepFunctionsPort) {
 			mp.EXPECT().CreateStateMachine(mock.Anything, mock.Anything).Return(&sfn.CreateStateMachineOutput{}, nil)
 		}},
-		{name: "DescribeStateMachine", target: "DescribeStateMachine", setupMock: func(mp *mockports.StepFunctionsPort) {
+		{name: "DescribeStateMachine", method: "GET", path: "/step-functions/state-machines/testarn", setupMock: func(mp *mockports.StepFunctionsPort) {
 			mp.EXPECT().DescribeStateMachine(mock.Anything, mock.Anything).Return(&sfn.DescribeStateMachineOutput{}, nil)
 		}},
-		{name: "UpdateStateMachine", target: "UpdateStateMachine", setupMock: func(mp *mockports.StepFunctionsPort) {
+		{name: "UpdateStateMachine", method: "PUT", path: "/step-functions/state-machines/testarn", setupMock: func(mp *mockports.StepFunctionsPort) {
 			mp.EXPECT().UpdateStateMachine(mock.Anything, mock.Anything).Return(&sfn.UpdateStateMachineOutput{}, nil)
 		}},
-		{name: "DeleteStateMachine", target: "DeleteStateMachine", setupMock: func(mp *mockports.StepFunctionsPort) {
+		{name: "DeleteStateMachine", method: "DELETE", path: "/step-functions/state-machines/testarn", setupMock: func(mp *mockports.StepFunctionsPort) {
 			mp.EXPECT().DeleteStateMachine(mock.Anything, mock.Anything).Return(&sfn.DeleteStateMachineOutput{}, nil)
 		}},
-		{name: "StartExecution", target: "StartExecution", setupMock: func(mp *mockports.StepFunctionsPort) {
+		{name: "StartExecution", method: "POST", path: "/step-functions/state-machines/testarn/executions", setupMock: func(mp *mockports.StepFunctionsPort) {
 			mp.EXPECT().StartExecution(mock.Anything, mock.Anything).Return(&sfn.StartExecutionOutput{}, nil)
 		}},
-		{name: "ListExecutions", target: "ListExecutions", setupMock: func(mp *mockports.StepFunctionsPort) {
+		{name: "ListExecutions", method: "GET", path: "/step-functions/state-machines/testarn/executions", setupMock: func(mp *mockports.StepFunctionsPort) {
 			mp.EXPECT().ListExecutions(mock.Anything, mock.Anything).Return(&sfn.ListExecutionsOutput{}, nil)
 		}},
-		{name: "StopExecution", target: "StopExecution", setupMock: func(mp *mockports.StepFunctionsPort) {
+		{name: "StopExecution", method: "POST", path: "/step-functions/executions/testarn/stop", setupMock: func(mp *mockports.StepFunctionsPort) {
 			mp.EXPECT().StopExecution(mock.Anything, mock.Anything).Return(&sfn.StopExecutionOutput{}, nil)
 		}},
-		{name: "DescribeExecution", target: "DescribeExecution", setupMock: func(mp *mockports.StepFunctionsPort) {
+		{name: "DescribeExecution", method: "GET", path: "/step-functions/executions/testarn", setupMock: func(mp *mockports.StepFunctionsPort) {
 			mp.EXPECT().DescribeExecution(mock.Anything, mock.Anything).Return(&sfn.DescribeExecutionOutput{}, nil)
 		}},
-		{name: "GetExecutionHistory", target: "GetExecutionHistory", setupMock: func(mp *mockports.StepFunctionsPort) {
+		{name: "GetExecutionHistory", method: "GET", path: "/step-functions/executions/testarn/history", setupMock: func(mp *mockports.StepFunctionsPort) {
 			mp.EXPECT().GetExecutionHistory(mock.Anything, mock.Anything).Return(&sfn.GetExecutionHistoryOutput{}, nil)
 		}},
 	}
@@ -61,7 +62,7 @@ func TestStepFunctionsActions(t *testing.T) {
 			svc.EXPECT().StepFunctions().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/stepfunctions/", tt.target, []byte("{}"))
+			w := performRequest(r, tt.method, tt.path, []byte("{}"))
 			assert.Equal(t, http.StatusOK, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -74,7 +75,7 @@ func TestStepFunctions_InvalidBody(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/stepfunctions/", "ListStateMachines", []byte(`{bad`))
+	w := performRequest(r, "GET", "/step-functions/state-machines", []byte(`{bad`))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -88,7 +89,7 @@ func TestStepFunctions_ServiceError(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	w := performRequest(r, "POST", "/stepfunctions/", "ListStateMachines", []byte("{}"))
+	w := performRequest(r, "GET", "/step-functions/state-machines", []byte("{}"))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -99,9 +100,8 @@ func TestStepFunctions_UnknownAction(t *testing.T) {
 	handler := createHandler(svc, createTestVersionService(t))
 	r := setupTestRouter(handler)
 
-	// SFN uses sendError for unknown actions (different from c.JSON).
-	w := performRequest(r, "POST", "/stepfunctions/", "UnknownSFNAction", []byte("{}"))
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	w := performRequest(r, "GET", "/step-functions/unknown", []byte("{}"))
+	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
 // ---------------------------------------------------------------------------
@@ -113,59 +113,60 @@ func TestStepFunctions_ServiceErrors(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		target    string
+		method    string
+		path      string
 		setupMock func(mp *mockports.StepFunctionsPort)
 	}{
 		{
-			name: "CreateStateMachine", target: "CreateStateMachine",
+			name: "CreateStateMachine", method: "POST", path: "/step-functions/state-machines",
 			setupMock: func(mp *mockports.StepFunctionsPort) {
 				mp.EXPECT().CreateStateMachine(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "DescribeStateMachine", target: "DescribeStateMachine",
+			name: "DescribeStateMachine", method: "GET", path: "/step-functions/state-machines/testarn",
 			setupMock: func(mp *mockports.StepFunctionsPort) {
 				mp.EXPECT().DescribeStateMachine(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "UpdateStateMachine", target: "UpdateStateMachine",
+			name: "UpdateStateMachine", method: "PUT", path: "/step-functions/state-machines/testarn",
 			setupMock: func(mp *mockports.StepFunctionsPort) {
 				mp.EXPECT().UpdateStateMachine(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "DeleteStateMachine", target: "DeleteStateMachine",
+			name: "DeleteStateMachine", method: "DELETE", path: "/step-functions/state-machines/testarn",
 			setupMock: func(mp *mockports.StepFunctionsPort) {
 				mp.EXPECT().DeleteStateMachine(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "StartExecution", target: "StartExecution",
+			name: "StartExecution", method: "POST", path: "/step-functions/state-machines/testarn/executions",
 			setupMock: func(mp *mockports.StepFunctionsPort) {
 				mp.EXPECT().StartExecution(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "ListExecutions", target: "ListExecutions",
+			name: "ListExecutions", method: "GET", path: "/step-functions/state-machines/testarn/executions",
 			setupMock: func(mp *mockports.StepFunctionsPort) {
 				mp.EXPECT().ListExecutions(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "StopExecution", target: "StopExecution",
+			name: "StopExecution", method: "POST", path: "/step-functions/executions/testarn/stop",
 			setupMock: func(mp *mockports.StepFunctionsPort) {
 				mp.EXPECT().StopExecution(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "DescribeExecution", target: "DescribeExecution",
+			name: "DescribeExecution", method: "GET", path: "/step-functions/executions/testarn",
 			setupMock: func(mp *mockports.StepFunctionsPort) {
 				mp.EXPECT().DescribeExecution(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
 		},
 		{
-			name: "GetExecutionHistory", target: "GetExecutionHistory",
+			name: "GetExecutionHistory", method: "GET", path: "/step-functions/executions/testarn/history",
 			setupMock: func(mp *mockports.StepFunctionsPort) {
 				mp.EXPECT().GetExecutionHistory(mock.Anything, mock.Anything).Return(nil, errors.New("service error"))
 			},
@@ -182,7 +183,7 @@ func TestStepFunctions_ServiceErrors(t *testing.T) {
 			svc.EXPECT().StepFunctions().Return(mp)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/stepfunctions/", tt.target, []byte("{}"))
+			w := performRequest(r, tt.method, tt.path, []byte("{}"))
 			assert.Equal(t, http.StatusInternalServerError, w.Code, "body=%s", w.Body.String())
 		})
 	}
@@ -195,21 +196,29 @@ func TestStepFunctions_ServiceErrors(t *testing.T) {
 func TestStepFunctions_ParseErrors(t *testing.T) {
 	t.Parallel()
 
-	targets := []string{
-		"ListStateMachines", "CreateStateMachine", "DescribeStateMachine",
-		"UpdateStateMachine", "DeleteStateMachine", "StartExecution",
-		"ListExecutions", "StopExecution", "DescribeExecution", "GetExecutionHistory",
+	tests := []struct {
+		name   string
+		method string
+		path   string
+	}{
+		{name: "ListStateMachines", method: "GET", path: "/step-functions/state-machines"},
+		{name: "CreateStateMachine", method: "POST", path: "/step-functions/state-machines"},
+		{name: "UpdateStateMachine", method: "PUT", path: "/step-functions/state-machines/testarn"},
+		{name: "StartExecution", method: "POST", path: "/step-functions/state-machines/testarn/executions"},
+		{name: "ListExecutions", method: "GET", path: "/step-functions/state-machines/testarn/executions"},
+		{name: "StopExecution", method: "POST", path: "/step-functions/executions/testarn/stop"},
+		{name: "GetExecutionHistory", method: "GET", path: "/step-functions/executions/testarn/history"},
 	}
 
-	for _, target := range targets {
-		target := target
-		t.Run(target, func(t *testing.T) {
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			svc := createMockSvc(t, nil)
 			handler := createHandler(svc, createTestVersionService(t))
 			r := setupTestRouter(handler)
-			w := performRequest(r, "POST", "/stepfunctions/", target, []byte(`{bad`))
-			assert.Equal(t, http.StatusBadRequest, w.Code, "target=%s body=%s", target, w.Body.String())
+			w := performRequest(r, tt.method, tt.path, []byte(`{bad`))
+			assert.Equal(t, http.StatusBadRequest, w.Code, "method=%s path=%s body=%s", tt.method, tt.path, w.Body.String())
 		})
 	}
 }

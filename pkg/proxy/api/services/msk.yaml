@@ -1,0 +1,555 @@
+openapi: 3.0.0
+info:
+  title: "MSK"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # Clusters
+  # ============================================================
+  /msk/clusters:
+    get:
+      tags: [MSK]
+      summary: List clusters
+      description: |
+        Returns a list of MSK clusters (both provisioned and serverless).
+        Supports pagination. Accepts both camelCase and TitleCase JSON keys.
+      operationId: listClustersV2
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListClustersV2Input'
+      responses:
+        "200":
+          description: List of clusters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListClustersV2Output'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [MSK]
+      summary: Create cluster
+      description: |
+        Creates a new MSK cluster (provisioned or serverless). Requires
+        ClusterName and one of Provisioned or Serverless configuration.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createClusterV2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClusterV2Input'
+      responses:
+        "200":
+          description: Cluster created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateClusterV2Output'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /msk/clusters/{clusterArn}:
+    get:
+      tags: [MSK]
+      summary: Describe cluster
+      description: |
+        Returns details about a specific MSK cluster, including its
+        configuration, broker nodes, and state.
+      operationId: describeClusterV2
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ClusterArnPath'
+      responses:
+        "200":
+          description: Cluster details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeClusterV2Output'
+        "404":
+          description: Cluster not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [MSK]
+      summary: Delete cluster
+      description: |
+        Deletes an MSK cluster.
+      operationId: deleteCluster
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ClusterArnPath'
+      responses:
+        "200":
+          description: Cluster deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteClusterOutput'
+        "404":
+          description: Cluster not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /msk/clusters/{clusterArn}/bootstrap-brokers:
+    get:
+      tags: [MSK]
+      summary: Get bootstrap brokers
+      description: |
+        Returns connection information for the brokers in a cluster.
+        Provides bootstrap broker strings for various connection protocols.
+      operationId: getBootstrapBrokers
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ClusterArnPath'
+      responses:
+        "200":
+          description: Bootstrap broker connection strings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetBootstrapBrokersOutput'
+        "404":
+          description: Cluster not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Core types
+    # ============================================================
+    BrokerNodeGroupInfo:
+      type: object
+      properties:
+        BrokerAZDistribution:
+          type: string
+          enum: [DEFAULT]
+          description: Distribution of broker nodes across availability zones
+        ClientSubnets:
+          type: array
+          items:
+            type: string
+          description: List of client subnets
+        InstanceType:
+          type: string
+          description: Broker instance type (e.g., kafka.m5.large)
+        SecurityGroups:
+          type: array
+          items:
+            type: string
+          description: List of security groups
+        StorageInfo:
+          type: object
+          properties:
+            EbsStorageInfo:
+              type: object
+              properties:
+                ProvisionedThroughput:
+                  type: object
+                  properties:
+                    Enabled:
+                      type: boolean
+                    VolumeThroughput:
+                      type: integer
+                      format: int32
+                VolumeSize:
+                  type: integer
+                  format: int32
+                  description: EBS volume size in GiB
+        ConnectivityInfo:
+          type: object
+          properties:
+            PublicAccess:
+              type: object
+              properties:
+                Type:
+                  type: string
+                  enum: [SERVICE_PROVIDED_EIPS, DISABLED]
+            VpcConnectivity:
+              type: object
+              properties:
+                ClientAuthentication:
+                  type: object
+                  properties:
+                    Sasl:
+                      type: object
+                      properties:
+                        Iam:
+                          type: object
+                          properties:
+                            Enabled:
+                              type: boolean
+                        Scram:
+                          type: object
+                          properties:
+                            Enabled:
+                              type: boolean
+
+    BrokerSoftwareInfo:
+      type: object
+      properties:
+        ConfigurationArn:
+          type: string
+        ConfigurationRevision:
+          type: integer
+          format: int64
+        KafkaVersion:
+          type: string
+
+    EncryptionInfo:
+      type: object
+      properties:
+        EncryptionAtRest:
+          type: object
+          properties:
+            DataVolumeKMSKeyId:
+              type: string
+        EncryptionInTransit:
+          type: object
+          properties:
+            ClientBroker:
+              type: string
+              enum: [TLS, TLS_PLAINTEXT, PLAINTEXT]
+            InCluster:
+              type: boolean
+
+    LoggingInfo:
+      type: object
+      properties:
+        BrokerLogs:
+          type: object
+          properties:
+            CloudWatchLogs:
+              type: object
+              properties:
+                Enabled:
+                  type: boolean
+                LogGroup:
+                  type: string
+            Firehose:
+              type: object
+              properties:
+                Enabled:
+                  type: boolean
+                DeliveryStream:
+                  type: string
+            S3:
+              type: object
+              properties:
+                Enabled:
+                  type: boolean
+                Bucket:
+                  type: string
+                Prefix:
+                  type: string
+
+    OpenMonitoringInfo:
+      type: object
+      properties:
+        Prometheus:
+          type: object
+          properties:
+            JmxExporter:
+              type: object
+              properties:
+                EnabledInBroker:
+                  type: boolean
+            NodeExporter:
+              type: object
+              properties:
+                EnabledInBroker:
+                  type: boolean
+
+    Provisioned:
+      type: object
+      properties:
+        BrokerNodes:
+          type: array
+          items:
+            type: object
+            properties:
+              AttachedENIId:
+                type: string
+              BrokerId:
+                type: number
+                format: double
+              ClientSubnet:
+                type: string
+              ClientVpcIpAddress:
+                type: string
+              CurrentBrokerSoftwareInfo:
+                $ref: '#/components/schemas/BrokerSoftwareInfo'
+              Endpoints:
+                type: array
+                items:
+                  type: string
+          description: List of broker nodes
+        BrokerNodeGroupInfo:
+          $ref: '#/components/schemas/BrokerNodeGroupInfo'
+        CurrentBrokerSoftwareInfo:
+          $ref: '#/components/schemas/BrokerSoftwareInfo'
+        CurrentInstanceType:
+          type: string
+        EncryptionInfo:
+          $ref: '#/components/schemas/EncryptionInfo'
+        EnhancedMonitoring:
+          type: string
+          enum: [DEFAULT, PER_BROKER, PER_TOPIC_PER_BROKER, PER_TOPIC_PER_PARTITION]
+        NumberOfBrokerNodes:
+          type: integer
+          format: int32
+        OpenMonitoring:
+          $ref: '#/components/schemas/OpenMonitoringInfo'
+        LoggingInfo:
+          $ref: '#/components/schemas/LoggingInfo'
+        StorageMode:
+          type: string
+          enum: [LOCAL, TIERED]
+        CustomerActionStatus:
+          type: string
+
+    ServerlessClientAuthentication:
+      type: object
+      properties:
+        Sasl:
+          type: object
+          properties:
+            Iam:
+              type: object
+              properties:
+                Enabled:
+                  type: boolean
+
+    Serverless:
+      type: object
+      properties:
+        VpcConfigs:
+          type: array
+          items:
+            type: object
+            properties:
+              SubnetIds:
+                type: array
+                items:
+                  type: string
+              SecurityGroupIds:
+                type: array
+                items:
+                  type: string
+          description: VPC configurations
+        ClientAuthentication:
+          $ref: '#/components/schemas/ServerlessClientAuthentication'
+
+    ClusterInfo:
+      type: object
+      properties:
+        ActiveOperationArn:
+          type: string
+          description: ARN of the currently active operation
+        ClusterArn:
+          type: string
+          description: Cluster ARN
+        ClusterName:
+          type: string
+          description: Cluster name
+        ClusterType:
+          type: string
+          enum: [PROVISIONED, SERVERLESS]
+        CreationTime:
+          type: string
+          format: date-time
+        CurrentVersion:
+          type: string
+        State:
+          type: string
+          enum: [ACTIVE, CREATING, DELETING, FAILED, HEALING, MAINTENANCE, REBOOTING_BROKER, UPDATING]
+        StateInfo:
+          type: object
+          properties:
+            Code:
+              type: string
+            Message:
+              type: string
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+        Provisioned:
+          $ref: '#/components/schemas/Provisioned'
+          description: Provisioned cluster details
+        Serverless:
+          $ref: '#/components/schemas/Serverless'
+          description: Serverless cluster details
+
+    # ============================================================
+    # ListClustersV2
+    # ============================================================
+    ListClustersV2Input:
+      type: object
+      properties:
+        ClusterNameFilter:
+          type: string
+          description: Filter by cluster name
+        MaxResults:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          description: Maximum number of clusters to return
+        NextToken:
+          type: string
+          description: Pagination token
+        ClusterTypeFilter:
+          type: string
+          enum: [PROVISIONED, SERVERLESS]
+          description: Filter by cluster type
+
+    ListClustersV2Output:
+      type: object
+      properties:
+        ClusterInfoList:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClusterInfo'
+          description: List of clusters
+        NextToken:
+          type: string
+          description: Pagination token
+
+    # ============================================================
+    # CreateClusterV2
+    # ============================================================
+    CreateClusterV2Input:
+      type: object
+      required: [ClusterName]
+      properties:
+        ClusterName:
+          type: string
+          description: Name of the cluster
+        Tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: Tags for the cluster
+        Provisioned:
+          $ref: '#/components/schemas/Provisioned'
+          description: Provisioned cluster configuration
+        Serverless:
+          $ref: '#/components/schemas/Serverless'
+          description: Serverless cluster configuration
+
+    CreateClusterV2Output:
+      type: object
+      properties:
+        ClusterArn:
+          type: string
+          description: ARN of the created cluster
+        ClusterName:
+          type: string
+          description: Name of the created cluster
+        State:
+          type: string
+          enum: [ACTIVE, CREATING, DELETING, FAILED, HEALING, MAINTENANCE, REBOOTING_BROKER, UPDATING]
+          description: Cluster state
+
+    # ============================================================
+    # DescribeClusterV2
+    # ============================================================
+    DescribeClusterV2Output:
+      type: object
+      properties:
+        ClusterInfo:
+          $ref: '#/components/schemas/ClusterInfo'
+          description: Cluster information
+
+    # ============================================================
+    # DeleteCluster
+    # ============================================================
+    DeleteClusterOutput:
+      type: object
+      properties:
+        ClusterArn:
+          type: string
+          description: ARN of the deleted cluster
+        State:
+          type: string
+          enum: [ACTIVE, CREATING, DELETING, FAILED, HEALING, MAINTENANCE, REBOOTING_BROKER, UPDATING]
+          description: Cluster state after deletion
+
+    # ============================================================
+    # GetBootstrapBrokers
+    # ============================================================
+    GetBootstrapBrokersOutput:
+      type: object
+      properties:
+        BootstrapBrokerString:
+          type: string
+          description: Plaintext bootstrap broker string
+        BootstrapBrokerStringPublicSaslIam:
+          type: string
+          description: Public SASL/IAM bootstrap broker string
+        BootstrapBrokerStringPublicSaslScram:
+          type: string
+          description: Public SASL/SCRAM bootstrap broker string
+        BootstrapBrokerStringPublicTls:
+          type: string
+          description: Public TLS bootstrap broker string
+        BootstrapBrokerStringSaslIam:
+          type: string
+          description: SASL/IAM bootstrap broker string
+        BootstrapBrokerStringSaslScram:
+          type: string
+          description: SASL/SCRAM bootstrap broker string
+        BootstrapBrokerStringTls:
+          type: string
+          description: TLS bootstrap broker string

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	mockports "github.com/my-devstack/mydevstack/pkg/proxy/mocks/ports"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +17,8 @@ func TestSQSHandler(t *testing.T) {
 
 	type sqsCase struct {
 		name       string
-		target     string
+		method     string
+		path       string
 		body       string
 		setupMock  func(mp *mockports.SQSPort, svc *mockports.ProxyService)
 		wantStatus int
@@ -24,160 +26,194 @@ func TestSQSHandler(t *testing.T) {
 
 	cases := []sqsCase{
 		// ListQueues
-		{name: "ListQueues/success", target: "ListQueues", body: "{}",
+		{name: "ListQueues/success", method: "GET", path: "/sqs/queues", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
 				mp.EXPECT().ListQueues(mock.Anything, mock.Anything).Return(&sqs.ListQueuesOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "ListQueues/error", target: "ListQueues", body: "{}",
+		{name: "ListQueues/error", method: "GET", path: "/sqs/queues", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
 				mp.EXPECT().ListQueues(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
 		// ListQueues
-		{name: "ListQueues/parse-error", target: "ListQueues", body: "{invalid}",
+		{name: "ListQueues/parse-error", method: "GET", path: "/sqs/queues", body: "{invalid}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// CreateQueue
-		{name: "CreateQueue/success", target: "CreateQueue", body: "{}",
+		{name: "CreateQueue/success", method: "POST", path: "/sqs/queues", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
 				mp.EXPECT().CreateQueue(mock.Anything, mock.Anything).Return(&sqs.CreateQueueOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "CreateQueue/error", target: "CreateQueue", body: "{}",
+		{name: "CreateQueue/error", method: "POST", path: "/sqs/queues", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
 				mp.EXPECT().CreateQueue(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "CreateQueue/parse-error", target: "CreateQueue", body: "{invalid}",
+		{name: "CreateQueue/parse-error", method: "POST", path: "/sqs/queues", body: "{invalid}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
 		// DeleteQueue
-		{name: "DeleteQueue/success", target: "DeleteQueue", body: "{}",
+		{name: "DeleteQueue/success", method: "DELETE", path: "/sqs/queues/testqueue", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
 				mp.EXPECT().DeleteQueue(mock.Anything, mock.Anything).Return(&sqs.DeleteQueueOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "DeleteQueue/error", target: "DeleteQueue", body: "{}",
+		{name: "DeleteQueue/error", method: "DELETE", path: "/sqs/queues/testqueue", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
 				mp.EXPECT().DeleteQueue(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "DeleteQueue/parse-error", target: "DeleteQueue", body: "{invalid}",
+		{name: "DeleteQueue/get-queue-url-error", method: "DELETE", path: "/sqs/queues/testqueue", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
+				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(nil, errors.New("not found"))
+			}, wantStatus: http.StatusInternalServerError},
 
 		// GetQueueUrl
-		{name: "GetQueueUrl/success", target: "GetQueueUrl", body: "{}",
+		{name: "GetQueueUrl/success", method: "GET", path: "/sqs/queues/testqueue", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
 				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "GetQueueUrl/error", target: "GetQueueUrl", body: "{}",
+		{name: "GetQueueUrl/error", method: "GET", path: "/sqs/queues/testqueue", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
 				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "GetQueueUrl/parse-error", target: "GetQueueUrl", body: "{invalid}",
-			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
 
 		// SendMessage
-		{name: "SendMessage/success", target: "SendMessage", body: "{}",
+		{name: "SendMessage/success", method: "POST", path: "/sqs/queues/testqueue/messages", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
 				mp.EXPECT().SendMessage(mock.Anything, mock.Anything).Return(&sqs.SendMessageOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "SendMessage/error", target: "SendMessage", body: "{}",
+		{name: "SendMessage/error", method: "POST", path: "/sqs/queues/testqueue/messages", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
 				mp.EXPECT().SendMessage(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "SendMessage/parse-error", target: "SendMessage", body: "{invalid}",
+		{name: "SendMessage/get-queue-url-error", method: "POST", path: "/sqs/queues/testqueue/messages", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
+				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(nil, errors.New("not found"))
+			}, wantStatus: http.StatusInternalServerError},
+		{name: "SendMessage/parse-error", method: "POST", path: "/sqs/queues/testqueue/messages", body: "{invalid}",
+			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
+				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
 			}, wantStatus: http.StatusBadRequest},
 
 		// ReceiveMessage
-		{name: "ReceiveMessage/success", target: "ReceiveMessage", body: "{}",
+		{name: "ReceiveMessage/success", method: "GET", path: "/sqs/queues/testqueue/messages", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
 				mp.EXPECT().ReceiveMessage(mock.Anything, mock.Anything).Return(&sqs.ReceiveMessageOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "ReceiveMessage/error", target: "ReceiveMessage", body: "{}",
+		{name: "ReceiveMessage/error", method: "GET", path: "/sqs/queues/testqueue/messages", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
 				mp.EXPECT().ReceiveMessage(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "ReceiveMessage/parse-error", target: "ReceiveMessage", body: "{invalid}",
+		{name: "ReceiveMessage/get-queue-url-error", method: "GET", path: "/sqs/queues/testqueue/messages", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
+				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(nil, errors.New("not found"))
+			}, wantStatus: http.StatusInternalServerError},
+		{name: "ReceiveMessage/empty-params", method: "GET", path: "/sqs/queues/testqueue/messages", body: "",
+			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
+				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
+				mp.EXPECT().ReceiveMessage(mock.Anything, mock.Anything).Return(&sqs.ReceiveMessageOutput{}, nil)
+			}, wantStatus: http.StatusOK},
 
 		// DeleteMessage
-		{name: "DeleteMessage/success", target: "DeleteMessage", body: "{}",
+		{name: "DeleteMessage/success", method: "DELETE", path: "/sqs/queues/testqueue/messages/testreceipt", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
 				mp.EXPECT().DeleteMessage(mock.Anything, mock.Anything).Return(&sqs.DeleteMessageOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "DeleteMessage/error", target: "DeleteMessage", body: "{}",
+		{name: "DeleteMessage/error", method: "DELETE", path: "/sqs/queues/testqueue/messages/testreceipt", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
 				mp.EXPECT().DeleteMessage(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "DeleteMessage/parse-error", target: "DeleteMessage", body: "{invalid}",
+		{name: "DeleteMessage/get-queue-url-error", method: "DELETE", path: "/sqs/queues/testqueue/messages/testreceipt", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
+				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(nil, errors.New("not found"))
+			}, wantStatus: http.StatusInternalServerError},
 
 		// PurgeQueue
-		{name: "PurgeQueue/success", target: "PurgeQueue", body: "{}",
+		{name: "PurgeQueue/success", method: "POST", path: "/sqs/queues/testqueue/purge", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
 				mp.EXPECT().PurgeQueue(mock.Anything, mock.Anything).Return(&sqs.PurgeQueueOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "PurgeQueue/error", target: "PurgeQueue", body: "{}",
+		{name: "PurgeQueue/error", method: "POST", path: "/sqs/queues/testqueue/purge", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
 				mp.EXPECT().PurgeQueue(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "PurgeQueue/parse-error", target: "PurgeQueue", body: "{invalid}",
+		{name: "PurgeQueue/get-queue-url-error", method: "POST", path: "/sqs/queues/testqueue/purge", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
+				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(nil, errors.New("not found"))
+			}, wantStatus: http.StatusInternalServerError},
+		{name: "PurgeQueue/empty-params", method: "POST", path: "/sqs/queues/testqueue/purge", body: "",
+			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
+				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
+				mp.EXPECT().PurgeQueue(mock.Anything, mock.Anything).Return(&sqs.PurgeQueueOutput{}, nil)
+			}, wantStatus: http.StatusOK},
 
 		// GetQueueAttributes
-		{name: "GetQueueAttributes/success", target: "GetQueueAttributes", body: "{}",
+		{name: "GetQueueAttributes/success", method: "GET", path: "/sqs/queues/testqueue/attributes", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
 				mp.EXPECT().GetQueueAttributes(mock.Anything, mock.Anything).Return(&sqs.GetQueueAttributesOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "GetQueueAttributes/error", target: "GetQueueAttributes", body: "{}",
+		{name: "GetQueueAttributes/error", method: "GET", path: "/sqs/queues/testqueue/attributes", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(&sqs.GetQueueUrlOutput{QueueUrl: aws.String("http://localhost/testqueue")}, nil)
 				mp.EXPECT().GetQueueAttributes(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "GetQueueAttributes/parse-error", target: "GetQueueAttributes", body: "{invalid}",
+		{name: "GetQueueAttributes/get-queue-url-error", method: "GET", path: "/sqs/queues/testqueue/attributes", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
+				svc.EXPECT().SQS().Return(mp)
+				mp.EXPECT().GetQueueUrl(mock.Anything, mock.Anything).Return(nil, errors.New("not found"))
+			}, wantStatus: http.StatusInternalServerError},
 
 		// SetQueueAttributes
-		{name: "SetQueueAttributes/success", target: "SetQueueAttributes", body: "{}",
+		{name: "SetQueueAttributes/success", method: "PUT", path: "/sqs/queues/testqueue/attributes", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
 				mp.EXPECT().SetQueueAttributes(mock.Anything, mock.Anything).Return(&sqs.SetQueueAttributesOutput{}, nil)
 			}, wantStatus: http.StatusOK},
-		{name: "SetQueueAttributes/error", target: "SetQueueAttributes", body: "{}",
+		{name: "SetQueueAttributes/error", method: "PUT", path: "/sqs/queues/testqueue/attributes", body: "{}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 				svc.EXPECT().SQS().Return(mp)
 				mp.EXPECT().SetQueueAttributes(mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
 			}, wantStatus: http.StatusInternalServerError},
-		{name: "SetQueueAttributes/parse-error", target: "SetQueueAttributes", body: "{invalid}",
+		{name: "SetQueueAttributes/parse-error", method: "PUT", path: "/sqs/queues/testqueue/attributes", body: "{invalid}",
 			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
 			}, wantStatus: http.StatusBadRequest},
 
-		// Unknown SQS action
-		{name: "unknown action", target: "UnknownSQSAction", body: "{}",
-			setupMock: func(mp *mockports.SQSPort, svc *mockports.ProxyService) {
-			}, wantStatus: http.StatusBadRequest},
 	}
 
 	for _, tc := range cases {
@@ -192,8 +228,8 @@ func TestSQSHandler(t *testing.T) {
 			handler := createHandler(svc, versionSvc)
 			r := setupTestRouter(handler)
 
-			w := performRequest(r, "POST", "/sqs/", tc.target, []byte(tc.body))
-			assert.Equal(t, tc.wantStatus, w.Code, "target=%q body=%q response=%s", tc.target, tc.body, w.Body.String())
+			w := performRequest(r, tc.method, tc.path, []byte(tc.body))
+			assert.Equal(t, tc.wantStatus, w.Code, "method=%q path=%q body=%q response=%s", tc.method, tc.path, tc.body, w.Body.String())
 		})
 	}
 }

@@ -71,6 +71,8 @@ import {
   getHttpApiInvokeUrl,
 } from './api-gateway'
 
+const BASE = 'http://127.0.0.1:8081'
+
 describe('API Gateway Service', () => {
   beforeEach(() => {
     mockFetch.mockReset()
@@ -109,21 +111,23 @@ describe('API Gateway Service', () => {
       expect(result.items[0].name).toBe('Lower')
     })
 
-    it('createRestApi sends correct request', async () => {
+    it('createRestApi sends POST with correct body and URL', async () => {
       mockFetch.mockResolvedValue(mockResponse({ id: 'new-api' }))
       const result = await createRestApi('MyApi', { Description: 'test' })
       expect(result).toEqual({ id: 'new-api' })
       expect(mockFetch).toHaveBeenCalledTimes(1)
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(callArgs.name).toBe('MyApi')
       expect(callArgs.Description).toBe('test')
     })
 
-    it('deleteRestApi sends correct body', async () => {
+    it('deleteRestApi sends DELETE with apiId in URL', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await deleteRestApi('api123')
-      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callArgs.restApiId).toBe('api123')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api123`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
     })
 
     it('getRestApi normalizes response', async () => {
@@ -189,11 +193,12 @@ describe('API Gateway Service', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1)
     })
 
-    it('putMethod uppercases httpMethod', async () => {
+    it('putMethod uppercases httpMethod in URL', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await putMethod('api1', 'r1', 'get', { authorizationType: 'NONE' })
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/resources/r1/methods/GET`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('PUT')
       const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callArgs.httpMethod).toBe('GET')
       expect(callArgs.authorizationType).toBe('NONE')
     })
 
@@ -209,12 +214,14 @@ describe('API Gateway Service', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1)
     })
 
-    it('putIntegration works with uppercase conversion', async () => {
+    it('putIntegration uses PUT with correct URL', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await putIntegration('api1', 'r1', 'post', { type: 'HTTP', integrationHttpMethod: 'post' })
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/resources/r1/methods/POST/integrations`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('PUT')
       const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callArgs.httpMethod).toBe('POST')
       expect(callArgs.integrationHttpMethod).toBe('POST')
+      expect(callArgs.type).toBe('HTTP')
     })
 
     it('getIntegration works', async () => {
@@ -229,9 +236,11 @@ describe('API Gateway Service', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1)
     })
 
-    it('createDeployment passes options', async () => {
+    it('createDeployment passes options to URL', async () => {
       mockFetch.mockResolvedValue(mockResponse({ id: 'd1' }))
       await createDeployment('api1', { stageName: 'prod', description: 'release' })
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/deployments`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(callArgs.stageName).toBe('prod')
       expect(callArgs.description).toBe('release')
@@ -618,16 +627,31 @@ describe('API Gateway Service', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1)
     })
 
-    it('getRestApiInvokeUrl calls GetInvokeUrl with APIGateway prefix', async () => {
+    it('getRestApiInvokeUrl sends POST to rest-apis invoke-url', async () => {
       mockFetch.mockResolvedValue(mockResponse({ url: 'https://api.example.com' }))
       const result = await getRestApiInvokeUrl('api1', 'prod')
-      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('APIGateway.GetInvokeUrl')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/invoke-url`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(callArgs.apiId).toBe('api1')
+      expect(callArgs.stageName).toBe('prod')
     })
 
-    it('getHttpApiInvokeUrl calls GetInvokeUrl with ApiGatewayV2 prefix', async () => {
+    it('getHttpApiInvokeUrl sends POST to V2 apis invoke-url', async () => {
       mockFetch.mockResolvedValue(mockResponse({ url: 'https://http-api.example.com' }))
       const result = await getHttpApiInvokeUrl('http1', 'prod')
-      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('ApiGatewayV2.GetInvokeUrl')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/apis/http1/invoke-url`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(callArgs.apiId).toBe('http1')
+      expect(callArgs.stageName).toBe('prod')
+    })
+
+    it('getHttpApiInvokeUrl passes protocolType when given', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ url: 'https://ws-api.example.com' }))
+      const result = await getHttpApiInvokeUrl('ws1', 'prod', 'WEBSOCKET')
+      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(callArgs.protocolType).toBe('WEBSOCKET')
     })
   })
 
@@ -726,17 +750,174 @@ describe('API Gateway Service', () => {
     })
   })
 
-  describe('X-Amz-Target header', () => {
-    it('uses APIGateway prefix for REST operations', async () => {
-      mockFetch.mockResolvedValue(mockResponse({}))
+  describe('REST routes', () => {
+    it('getRestApis sends GET to /rest-apis', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ Items: [] }))
       await getRestApis()
-      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('APIGateway.GetRestApis')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBeUndefined()
     })
 
-    it('uses ApiGatewayV2 prefix for HTTP v2 operations', async () => {
+    it('getHttpApis sends GET to /apis', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Items: [] }))
       await getHttpApis()
-      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBe('ApiGatewayV2.GetApis')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/apis`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBeUndefined()
+    })
+
+    it('getRestApi sends GET to /rest-apis/{id}', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await getRestApi('api1')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
+
+    it('deleteRestApi sends DELETE to /rest-apis/{id}', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await deleteRestApi('api1')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
+    })
+
+    it('getResources sends GET to /rest-apis/{id}/resources', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ Items: [] }))
+      await getResources('api1')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/resources`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
+
+    it('createResource sends POST to /rest-apis/{id}/resources', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ id: 'r1' }))
+      await createResource('api1', 'parent1', 'users')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/resources`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+    })
+
+    it('getMethod sends GET with httpMethod in URL', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await getMethod('api1', 'r1', 'GET')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/resources/r1/methods/GET`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
+
+    it('deleteMethod sends DELETE with httpMethod in URL', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await deleteMethod('api1', 'r1', 'GET')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/resources/r1/methods/GET`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
+    })
+
+    it('getIntegration sends GET with integrations path', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await getIntegration('api1', 'r1', 'GET')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/resources/r1/methods/GET/integrations`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
+
+    it('deleteIntegration sends DELETE with integrations path', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await deleteIntegration('api1', 'r1', 'GET')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/resources/r1/methods/GET/integrations`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
+    })
+
+    it('createDeployment sends POST to /rest-apis/{id}/deployments', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await createDeployment('api1', {})
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/deployments`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+    })
+
+    it('deleteDeployment sends DELETE to /rest-apis/{id}/deployments/{depId}', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await deleteDeployment('api1', 'd1')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/deployments/d1`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
+    })
+
+    it('getDeployments sends GET to /rest-apis/{id}/deployments', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ items: [] }))
+      await getDeployments('api1')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/deployments`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
+
+    it('updateRestApi sends PUT to /rest-apis/{id}', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await updateRestApi('api1', { name: 'new-name' })
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('PUT')
+    })
+
+    it('V2 deleteApi sends DELETE to /apis/{id}', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await deleteHttpApi('http1')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/apis/http1`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
+    })
+
+    it('V2 getApi sends GET to /apis/{id}', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await getHttpApi('http1')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/apis/http1`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
+
+    it('V2 getRoutes sends GET to /apis/{id}/routes', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ Items: [] }))
+      await getHttpRoutes('http1')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/apis/http1/routes`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
+
+    it('V2 createRoute sends POST to /apis/{id}/routes', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ RouteId: 'r1' }))
+      await createHttpRoute('http1', { routeKey: 'GET /' })
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/apis/http1/routes`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+    })
+
+    it('V2 updateRoute sends PUT to /apis/{id}/routes/{routeId}', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await updateHttpRoute('http1', 'r1', { routeKey: 'POST /' })
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/apis/http1/routes/r1`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('PUT')
+    })
+
+    it('V2 deleteRoute sends DELETE to /apis/{id}/routes/{routeId}', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await deleteHttpRoute('http1', 'r1')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/apis/http1/routes/r1`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
+    })
+
+    it('V2 createIntegration sends POST to /apis/{id}/integrations', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ IntegrationId: 'i1' }))
+      await createHttpIntegration('http1', { integrationType: 'HTTP' })
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/apis/http1/integrations`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+    })
+
+    it('V2 updateIntegration sends PUT to /apis/{id}/integrations/{intId}', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await updateHttpIntegration('http1', 'i1', { description: 'updated' })
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/apis/http1/integrations/i1`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('PUT')
+    })
+
+    it('V2 deleteIntegration sends DELETE to /apis/{id}/integrations/{intId}', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await deleteHttpApiIntegration('http1', 'i1')
+      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/apis/http1/integrations/i1`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
+    })
+
+    it('no X-Amz-Target header on any request', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await getRestApis()
+      expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBeUndefined()
     })
   })
 })

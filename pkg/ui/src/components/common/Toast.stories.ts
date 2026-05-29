@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import Toast from './Toast.vue';
 import type { ToastItem } from './Toast.vue';
 

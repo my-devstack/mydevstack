@@ -5,8 +5,8 @@ import * as elasticacheApi from '@/api/services/elasticache'
 
 export interface ReplicationGroup {
   ReplicationGroupId: string
-  ReplicationGroupDescription: string
-  Status: string
+  ReplicationGroupDescription?: string
+  Status?: string
   NodeGroups?: Array<{
     NodeGroupId: string
     PrimaryEndpoint?: { Address: string; Port: number }

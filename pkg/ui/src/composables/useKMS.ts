@@ -84,7 +84,7 @@ export function useKMS() {
     isLoading.value = true
     try {
       const result = await kmsApi.listKeys()
-      const keysList = (result.Keys || []).map((key: { KeyId: string; KeyArn: string }) => ({
+      const keysList: KeyInfo[] = (result.Keys || []).map((key: { KeyId: string; KeyArn: string }) => ({
         KeyId: key.KeyId,
         KeyArn: key.KeyArn,
       }))

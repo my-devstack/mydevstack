@@ -1,7 +1,6 @@
 package httphandlers
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"log"
@@ -13,168 +12,100 @@ import (
 	apigwTypes "github.com/aws/aws-sdk-go-v2/service/apigateway/types"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	apigwV2Types "github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 )
 
-func (h *ProxyHandler) handleAPIGateway(c *gin.Context) {
-	xAmzTarget := c.GetHeader("X-Amz-Target")
-	bodyBytes := readBody(c)
-	ctx := h.ctx
+func (h *ProxyHandler) registerAPIGatewayRoutes(r chi.Router) {
+	r.Route("/apigateway", func(r chi.Router) {
+		// V2 HTTP APIs
+		r.Get("/apis", h.getApis)
+		r.Post("/apis", h.createApi)
+		r.Get("/apis/{apiId}", h.getApi)
+		r.Delete("/apis/{apiId}", h.deleteApi)
+		r.Get("/apis/{apiId}/routes", h.getRoutes)
+		r.Post("/apis/{apiId}/routes", h.createRoute)
+		r.Put("/apis/{apiId}/routes/{routeId}", h.updateRoute)
+		r.Delete("/apis/{apiId}/routes/{routeId}", h.deleteRoute)
+		r.Get("/apis/{apiId}/integrations", h.getIntegrationsV2)
+		r.Post("/apis/{apiId}/integrations", h.createIntegrationV2)
+		r.Put("/apis/{apiId}/integrations/{integrationId}", h.updateIntegrationV2)
+		r.Delete("/apis/{apiId}/integrations/{integrationId}", h.deleteIntegrationV2)
+		r.Get("/apis/{apiId}/stages", h.getStagesV2)
+		r.Post("/apis/{apiId}/stages", h.createStageV2)
+		r.Put("/apis/{apiId}/stages/{stageName}", h.updateStageV2)
+		r.Delete("/apis/{apiId}/stages/{stageName}", h.deleteStageV2)
+		r.Get("/apis/{apiId}/stages/{stageName}", h.getStageV2)
+		r.Post("/apis/{apiId}/invoke-url", h.getInvokeUrlV2)
 
-	switch {
-	// HTTP API v2 operations (must be before REST API operations)
-	case strings.Contains(xAmzTarget, "GetApis"):
-		h.getApis(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateApi"):
-		h.createApi(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteApi"):
-		h.deleteApi(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetApi"):
-		h.getApi(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetRoutes"):
-		h.getRoutes(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateRoute"):
-		h.createRoute(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "UpdateRoute"):
-		h.updateRoute(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteRoute"):
-		h.deleteRoute(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetIntegrations"):
-		h.getIntegrationsV2(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateIntegration"): // HTTP API v2 - must be after CreateRoute
-		h.createIntegrationV2(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "UpdateIntegration"):
-		h.updateIntegrationV2(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteIntegration"): // HTTP API v2
-		h.deleteIntegrationV2(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetStages"):
-		if strings.HasPrefix(xAmzTarget, "ApiGatewayV2.") {
-			h.getStagesV2(ctx, c, bodyBytes)
-		} else if strings.HasPrefix(xAmzTarget, "APIGateway.") {
-			h.getStages(ctx, c, bodyBytes)
-		} else {
-			h.getStagesV2(ctx, c, bodyBytes)
-		}
-	case strings.Contains(xAmzTarget, "GetStage"):
-		h.getStageV2(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateStage"):
-		if strings.HasPrefix(xAmzTarget, "ApiGatewayV2.") {
-			h.createStageV2(ctx, c, bodyBytes)
-		} else if strings.HasPrefix(xAmzTarget, "APIGateway.") {
-			h.createStage(ctx, c, bodyBytes)
-		} else {
-			h.createStageV2(ctx, c, bodyBytes)
-		}
-	case strings.Contains(xAmzTarget, "UpdateStage"):
-		if strings.HasPrefix(xAmzTarget, "ApiGatewayV2.") {
-			h.updateStageV2(ctx, c, bodyBytes)
-		} else if strings.HasPrefix(xAmzTarget, "APIGateway.") {
-			h.updateStage(ctx, c, bodyBytes)
-		} else {
-			h.updateStageV2(ctx, c, bodyBytes)
-		}
-	case strings.Contains(xAmzTarget, "DeleteStage"):
-		if strings.HasPrefix(xAmzTarget, "ApiGatewayV2.") {
-			h.deleteStageV2(ctx, c, bodyBytes)
-		} else if strings.HasPrefix(xAmzTarget, "APIGateway.") {
-			h.deleteStage(ctx, c, bodyBytes)
-		} else {
-			h.deleteStageV2(ctx, c, bodyBytes)
-		}
+		// V1 REST APIs
+		r.Get("/rest-apis", h.getRestApis)
+		r.Post("/rest-apis", h.createRestApi)
+		r.Put("/rest-apis/{restApiId}", h.updateRestApi)
+		r.Get("/rest-apis/{restApiId}", h.getRestApi)
+		r.Delete("/rest-apis/{restApiId}", h.deleteRestApi)
+		r.Post("/rest-apis/{restApiId}/import", h.importRestApi)
 
-	// REST API v1 operations
-	case strings.Contains(xAmzTarget, "GetRestApis"):
-		h.getRestApis(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateRestApi"):
-		h.createRestApi(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteRestApi"):
-		h.deleteRestApi(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetRestApi"):
-		h.getRestApi(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "UpdateRestApi"):
-		h.updateRestApi(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetResources"):
-		h.getResources(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetResource"):
-		h.getResource(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateResource"):
-		h.createResource(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteResource"):
-		h.deleteResource(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutMethod"):
-		h.putMethod(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetMethod"):
-		h.getMethod(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteMethod"):
-		h.deleteMethod(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "PutIntegration"):
-		h.putIntegration(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetIntegration"): // REST API v1 handler
-		h.getIntegration(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteIntegration") && strings.HasPrefix(xAmzTarget, "APIGateway."): // REST API v1
-		h.deleteIntegration(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateDeployment"):
-		h.createDeployment(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteDeployment"):
-		h.deleteDeployment(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetDeployments"):
-		h.getDeployments(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "CreateStage"):
-		h.createStage(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetStages"):
-		h.getStages(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "UpdateStage"):
-		h.updateStage(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "DeleteStage"):
-		h.deleteStage(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "ImportRestApi"):
-		h.importRestApi(ctx, c, bodyBytes)
-	case strings.Contains(xAmzTarget, "GetInvokeUrl"):
-		if strings.HasPrefix(xAmzTarget, "ApiGatewayV2.") {
-			h.getInvokeUrlV2(ctx, c, bodyBytes)
-		} else if strings.HasPrefix(xAmzTarget, "APIGateway.") {
-			h.getInvokeUrl(ctx, c, bodyBytes)
-		} else {
-			h.getInvokeUrlV2(ctx, c, bodyBytes)
-		}
-	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown API Gateway action: " + xAmzTarget})
-	}
+		r.Get("/rest-apis/{restApiId}/resources", h.getResources)
+		r.Get("/rest-apis/{restApiId}/resources/{resourceId}", h.getResource)
+		r.Post("/rest-apis/{restApiId}/resources", h.createResource)
+		r.Delete("/rest-apis/{restApiId}/resources/{resourceId}", h.deleteResource)
+
+		r.Put("/rest-apis/{restApiId}/resources/{resourceId}/methods/{httpMethod}", h.putMethod)
+		r.Get("/rest-apis/{restApiId}/resources/{resourceId}/methods/{httpMethod}", h.getMethod)
+		r.Delete("/rest-apis/{restApiId}/resources/{resourceId}/methods/{httpMethod}", h.deleteMethod)
+
+		r.Put("/rest-apis/{restApiId}/resources/{resourceId}/methods/{httpMethod}/integrations", h.putIntegration)
+		r.Get("/rest-apis/{restApiId}/resources/{resourceId}/methods/{httpMethod}/integrations", h.getIntegration)
+		r.Delete("/rest-apis/{restApiId}/resources/{resourceId}/methods/{httpMethod}/integrations", h.deleteIntegration)
+
+		r.Post("/rest-apis/{restApiId}/deployments", h.createDeployment)
+		r.Get("/rest-apis/{restApiId}/deployments", h.getDeployments)
+		r.Delete("/rest-apis/{restApiId}/deployments/{deploymentId}", h.deleteDeployment)
+
+		r.Post("/rest-apis/{restApiId}/stages", h.createStage)
+		r.Get("/rest-apis/{restApiId}/stages", h.getStages)
+		r.Put("/rest-apis/{restApiId}/stages/{stageName}", h.updateStage)
+		r.Delete("/rest-apis/{restApiId}/stages/{stageName}", h.deleteStage)
+		r.Post("/rest-apis/{restApiId}/invoke-url", h.getInvokeUrl)
+	})
 }
 
-func (h *ProxyHandler) getRestApis(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) getRestApis(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	log.Printf("getRestApis called with body: %s", string(bodyBytes))
 	input := &apigateway.GetRestApisInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
+	if err := parseBody(bodyBytes, input); err != nil {
 		log.Printf("getRestApis parse error: %v", err)
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.APIGateway().GetRestApis(ctx, input)
+	result, err := h.Svc.APIGateway().GetRestApis(h.ctx, input)
 	if err != nil {
 		log.Printf("getRestApis error: %v", err)
-		sendError(c, http.StatusInternalServerError, "Failed to get REST APIs", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get REST APIs", err)
 		return
 	}
 	log.Printf("getRestApis result type: %T", result)
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createRestApi(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createRestApi(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigateway.CreateRestApiInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.APIGateway().CreateRestApi(ctx, input)
+	result, err := h.Svc.APIGateway().CreateRestApi(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create REST API", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create REST API", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) importRestApi(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) importRestApi(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	log.Printf("ImportRestApi received %d bytes", len(bodyBytes))
 
 	// Check if body is JSON with "body" field (base64 encoded)
@@ -192,13 +123,13 @@ func (h *ProxyHandler) importRestApi(ctx context.Context, c *gin.Context, bodyBy
 			input := &apigateway.ImportRestApiInput{
 				Body: decoded,
 			}
-			result, err := h.Svc.APIGateway().ImportRestApi(ctx, input)
+			result, err := h.Svc.APIGateway().ImportRestApi(h.ctx, input)
 			if err != nil {
 				log.Printf("ImportRestApi error (base64): %v", err)
-				sendError(c, http.StatusInternalServerError, "Failed to import REST API", err)
+				sendError(w, http.StatusInternalServerError, "Failed to import REST API", err)
 				return
 			}
-			c.JSON(http.StatusOK, result)
+			writeJSON(w, http.StatusOK, result)
 			return
 		}
 	}
@@ -209,13 +140,13 @@ func (h *ProxyHandler) importRestApi(ctx context.Context, c *gin.Context, bodyBy
 		input := &apigateway.ImportRestApiInput{
 			Body: bodyBytes,
 		}
-		result, err := h.Svc.APIGateway().ImportRestApi(ctx, input)
+		result, err := h.Svc.APIGateway().ImportRestApi(h.ctx, input)
 		if err != nil {
 			log.Printf("ImportRestApi error (JSON): %v", err)
-			sendError(c, http.StatusInternalServerError, "Failed to import REST API", err)
+			sendError(w, http.StatusInternalServerError, "Failed to import REST API", err)
 			return
 		}
-		c.JSON(http.StatusOK, result)
+		writeJSON(w, http.StatusOK, result)
 		return
 	}
 
@@ -224,65 +155,57 @@ func (h *ProxyHandler) importRestApi(ctx context.Context, c *gin.Context, bodyBy
 	input := &apigateway.ImportRestApiInput{
 		Body: bodyBytes,
 	}
-	result, err := h.Svc.APIGateway().ImportRestApi(ctx, input)
+	result, err := h.Svc.APIGateway().ImportRestApi(h.ctx, input)
 	if err != nil {
 		log.Printf("ImportRestApi error (raw): %v", err)
-		sendError(c, http.StatusInternalServerError, "Failed to import REST API", err)
+		sendError(w, http.StatusInternalServerError, "Failed to import REST API", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteRestApi(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigateway.DeleteRestApiInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteRestApi(w http.ResponseWriter, r *http.Request) {
+	input := &apigateway.DeleteRestApiInput{
+		RestApiId: aws.String(chi.URLParam(r, "restApiId")),
 	}
-	result, err := h.Svc.APIGateway().DeleteRestApi(ctx, input)
+	result, err := h.Svc.APIGateway().DeleteRestApi(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete REST API", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete REST API", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getRestApi(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	log.Printf("GetRestApi body: %s", string(bodyBytes))
-
-	input := &apigateway.GetRestApiInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getRestApi(w http.ResponseWriter, r *http.Request) {
+	input := &apigateway.GetRestApiInput{
+		RestApiId: aws.String(chi.URLParam(r, "restApiId")),
 	}
-	log.Printf("GetRestApi input: RestApiId=%s", aws.ToString(input.RestApiId))
+	log.Printf("GetRestApi input: RestApiId=%s", *input.RestApiId)
 
-	result, err := h.Svc.APIGateway().GetRestApi(ctx, input)
+	result, err := h.Svc.APIGateway().GetRestApi(h.ctx, input)
 	if err != nil {
 		log.Printf("GetRestApi error: %v", err)
-		sendError(c, http.StatusInternalServerError, "Failed to get REST API", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get REST API", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateRestApi(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateRestApi(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	log.Printf("UpdateRestApi body: %s", string(bodyBytes))
 
 	var bodyData map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &bodyData); err != nil {
 		log.Printf("UpdateRestApi: json unmarshal error: %v", err)
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	log.Printf("UpdateRestApi bodyData: %+v", bodyData)
 
 	// Check if it's using AWS SDK format (array of patch operations) vs simple format (name/description fields)
-	// The simple format from Vue has "name" and "Description" as top-level fields (uppercase from json serializer)
-	// The AWS SDK format has "patchOperations" as an array
 	if nameVal, hasName := bodyData["name"]; hasName {
-		// Simple format: convert name/description to patch operations
 		log.Printf("UpdateRestApi: using simple format")
 		patchOperations := []apigwTypes.PatchOperation{}
 
@@ -294,7 +217,6 @@ func (h *ProxyHandler) updateRestApi(ctx context.Context, c *gin.Context, bodyBy
 			})
 		}
 
-		// Handle both "description" (lowercase) and "Description" (uppercase)
 		var desc string
 		hasDesc := false
 		if descVal, ok := bodyData["Description"].(string); ok {
@@ -312,343 +234,329 @@ func (h *ProxyHandler) updateRestApi(ctx context.Context, c *gin.Context, bodyBy
 			})
 		}
 
-		restApiId, _ := bodyData["restApiId"].(string)
 		input := &apigateway.UpdateRestApiInput{
-			RestApiId:       aws.String(restApiId),
+			RestApiId:       aws.String(chi.URLParam(r, "restApiId")),
 			PatchOperations: patchOperations,
 		}
 
-		result, err := h.Svc.APIGateway().UpdateRestApi(ctx, input)
+		result, err := h.Svc.APIGateway().UpdateRestApi(h.ctx, input)
 		if err != nil {
 			log.Printf("UpdateRestApi error: %v", err)
-			sendError(c, http.StatusInternalServerError, "Failed to update REST API", err)
+			sendError(w, http.StatusInternalServerError, "Failed to update REST API", err)
 			return
 		}
-		c.JSON(http.StatusOK, result)
+		writeJSON(w, http.StatusOK, result)
 		return
 	}
 
 	// AWS SDK format with patchOperations array
 	log.Printf("UpdateRestApi: using AWS SDK patchOperations format")
 	input := &apigateway.UpdateRestApiInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.APIGateway().UpdateRestApi(ctx, input)
+	input.RestApiId = aws.String(chi.URLParam(r, "restApiId"))
+	result, err := h.Svc.APIGateway().UpdateRestApi(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update REST API", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update REST API", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getResources(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigateway.GetResourcesInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getResources(w http.ResponseWriter, r *http.Request) {
+	input := &apigateway.GetResourcesInput{
+		RestApiId: aws.String(chi.URLParam(r, "restApiId")),
 	}
-	result, err := h.Svc.APIGateway().GetResources(ctx, input)
+	result, err := h.Svc.APIGateway().GetResources(h.ctx, input)
 	if err != nil {
 		errStr := err.Error()
 		if strings.Contains(errStr, "NotFoundException") || strings.Contains(errStr, "not found") || strings.Contains(errStr, "Invalid API") {
-			c.JSON(http.StatusOK, gin.H{"items": []interface{}{}, "item": []interface{}{}})
+			writeJSON(w, http.StatusOK, map[string]interface{}{"items": []interface{}{}, "item": []interface{}{}})
 			return
 		}
-		sendError(c, http.StatusInternalServerError, "Failed to get resources", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get resources", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getResource(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigateway.GetResourceInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getResource(w http.ResponseWriter, r *http.Request) {
+	input := &apigateway.GetResourceInput{
+		RestApiId:  aws.String(chi.URLParam(r, "restApiId")),
+		ResourceId: aws.String(chi.URLParam(r, "resourceId")),
 	}
-	result, err := h.Svc.APIGateway().GetResource(ctx, input)
+	result, err := h.Svc.APIGateway().GetResource(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get resource", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get resource", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createResource(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createResource(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	log.Printf("createResource body: %s", string(bodyBytes))
 
 	input := &apigateway.CreateResourceInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
+	if err := parseBody(bodyBytes, input); err != nil {
 		log.Printf("createResource parse error: %v", err)
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	input.RestApiId = aws.String(chi.URLParam(r, "restApiId"))
 	log.Printf("createResource input: RestApiId=%s, ParentId=%s, PathPart=%s",
 		aws.ToString(input.RestApiId), aws.ToString(input.ParentId), aws.ToString(input.PathPart))
 
-	result, err := h.Svc.APIGateway().CreateResource(ctx, input)
+	result, err := h.Svc.APIGateway().CreateResource(h.ctx, input)
 	if err != nil {
 		log.Printf("createResource error: %v", err)
-		sendError(c, http.StatusInternalServerError, "Failed to create resource", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create resource", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteResource(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigateway.DeleteResourceInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteResource(w http.ResponseWriter, r *http.Request) {
+	input := &apigateway.DeleteResourceInput{
+		RestApiId:  aws.String(chi.URLParam(r, "restApiId")),
+		ResourceId: aws.String(chi.URLParam(r, "resourceId")),
 	}
-	result, err := h.Svc.APIGateway().DeleteResource(ctx, input)
+	result, err := h.Svc.APIGateway().DeleteResource(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete resource", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete resource", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putMethod(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) putMethod(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigateway.PutMethodInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.APIGateway().PutMethod(ctx, input)
+	input.RestApiId = aws.String(chi.URLParam(r, "restApiId"))
+	input.ResourceId = aws.String(chi.URLParam(r, "resourceId"))
+	input.HttpMethod = aws.String(chi.URLParam(r, "httpMethod"))
+	result, err := h.Svc.APIGateway().PutMethod(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to put method", err)
+		sendError(w, http.StatusInternalServerError, "Failed to put method", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getMethod(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigateway.GetMethodInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getMethod(w http.ResponseWriter, r *http.Request) {
+	input := &apigateway.GetMethodInput{
+		RestApiId:  aws.String(chi.URLParam(r, "restApiId")),
+		ResourceId: aws.String(chi.URLParam(r, "resourceId")),
+		HttpMethod: aws.String(chi.URLParam(r, "httpMethod")),
 	}
-	result, err := h.Svc.APIGateway().GetMethod(ctx, input)
+	result, err := h.Svc.APIGateway().GetMethod(h.ctx, input)
 	if err != nil {
 		errStr := err.Error()
 		if strings.Contains(errStr, "NotFound") || strings.Contains(errStr, "not found") {
-			c.JSON(http.StatusNotFound, map[string]string{"message": "Method not found"})
+			writeJSON(w, http.StatusNotFound, map[string]string{"message": "Method not found"})
 			return
 		}
 		log.Printf("GetMethod error: %v", err)
-		sendError(c, http.StatusInternalServerError, "Failed to get method", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get method", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteMethod(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigateway.DeleteMethodInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteMethod(w http.ResponseWriter, r *http.Request) {
+	input := &apigateway.DeleteMethodInput{
+		RestApiId:  aws.String(chi.URLParam(r, "restApiId")),
+		ResourceId: aws.String(chi.URLParam(r, "resourceId")),
+		HttpMethod: aws.String(chi.URLParam(r, "httpMethod")),
 	}
-	result, err := h.Svc.APIGateway().DeleteMethod(ctx, input)
+	result, err := h.Svc.APIGateway().DeleteMethod(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete method", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete method", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) putIntegration(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) putIntegration(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigateway.PutIntegrationInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	input.RestApiId = aws.String(chi.URLParam(r, "restApiId"))
+	input.ResourceId = aws.String(chi.URLParam(r, "resourceId"))
+	input.HttpMethod = aws.String(chi.URLParam(r, "httpMethod"))
 	log.Printf("PutIntegration input: %+v", input)
-	result, err := h.Svc.APIGateway().PutIntegration(ctx, input)
+	result, err := h.Svc.APIGateway().PutIntegration(h.ctx, input)
 	if err != nil {
 		log.Printf("PutIntegration error: %v", err)
-		sendError(c, http.StatusInternalServerError, "Failed to put integration", err)
+		sendError(w, http.StatusInternalServerError, "Failed to put integration", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getIntegration(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigateway.GetIntegrationInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getIntegration(w http.ResponseWriter, r *http.Request) {
+	input := &apigateway.GetIntegrationInput{
+		RestApiId:  aws.String(chi.URLParam(r, "restApiId")),
+		ResourceId: aws.String(chi.URLParam(r, "resourceId")),
+		HttpMethod: aws.String(chi.URLParam(r, "httpMethod")),
 	}
-	result, err := h.Svc.APIGateway().GetIntegration(ctx, input)
+	result, err := h.Svc.APIGateway().GetIntegration(h.ctx, input)
 	if err != nil {
 		errStr := err.Error()
 		if strings.Contains(errStr, "NotFound") || strings.Contains(errStr, "not found") || strings.Contains(errStr, "Invalid integration") {
-			c.JSON(http.StatusNotFound, map[string]string{"message": "Integration not found"})
+			writeJSON(w, http.StatusNotFound, map[string]string{"message": "Integration not found"})
 			return
 		}
 		log.Printf("GetIntegration error: %v", err)
-		sendError(c, http.StatusInternalServerError, "Failed to get integration", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get integration", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteIntegration(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigateway.DeleteIntegrationInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteIntegration(w http.ResponseWriter, r *http.Request) {
+	input := &apigateway.DeleteIntegrationInput{
+		RestApiId:  aws.String(chi.URLParam(r, "restApiId")),
+		ResourceId: aws.String(chi.URLParam(r, "resourceId")),
+		HttpMethod: aws.String(chi.URLParam(r, "httpMethod")),
 	}
-	result, err := h.Svc.APIGateway().DeleteIntegration(ctx, input)
+	result, err := h.Svc.APIGateway().DeleteIntegration(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete integration", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete integration", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createDeployment(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createDeployment(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigateway.CreateDeploymentInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.APIGateway().CreateDeployment(ctx, input)
+	input.RestApiId = aws.String(chi.URLParam(r, "restApiId"))
+	result, err := h.Svc.APIGateway().CreateDeployment(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create deployment", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create deployment", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteDeployment(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigateway.DeleteDeploymentInput{}
-
-	var data map[string]interface{}
-	if err := json.Unmarshal(bodyBytes, &data); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteDeployment(w http.ResponseWriter, r *http.Request) {
+	input := &apigateway.DeleteDeploymentInput{
+		RestApiId:    aws.String(chi.URLParam(r, "restApiId")),
+		DeploymentId: aws.String(chi.URLParam(r, "deploymentId")),
 	}
-
-	if v, ok := data["restApiId"]; ok {
-		input.RestApiId = aws.String(v.(string))
-	}
-	if v, ok := data["deploymentId"]; ok {
-		input.DeploymentId = aws.String(v.(string))
-	}
-
-	result, err := h.Svc.APIGateway().DeleteDeployment(ctx, input)
+	result, err := h.Svc.APIGateway().DeleteDeployment(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete deployment", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete deployment", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getDeployments(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigateway.GetDeploymentsInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getDeployments(w http.ResponseWriter, r *http.Request) {
+	input := &apigateway.GetDeploymentsInput{
+		RestApiId: aws.String(chi.URLParam(r, "restApiId")),
 	}
-	result, err := h.Svc.APIGateway().GetDeployments(ctx, input)
+	result, err := h.Svc.APIGateway().GetDeployments(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get deployments", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get deployments", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createStage(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createStage(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigateway.CreateStageInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.APIGateway().CreateStage(ctx, input)
+	input.RestApiId = aws.String(chi.URLParam(r, "restApiId"))
+	result, err := h.Svc.APIGateway().CreateStage(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create stage", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create stage", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getStages(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigateway.GetStagesInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getStages(w http.ResponseWriter, r *http.Request) {
+	input := &apigateway.GetStagesInput{
+		RestApiId: aws.String(chi.URLParam(r, "restApiId")),
 	}
-	result, err := h.Svc.APIGateway().GetStages(ctx, input)
+	result, err := h.Svc.APIGateway().GetStages(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get stages", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get stages", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateStage(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateStage(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigateway.UpdateStageInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.APIGateway().UpdateStage(ctx, input)
+	input.RestApiId = aws.String(chi.URLParam(r, "restApiId"))
+	input.StageName = aws.String(chi.URLParam(r, "stageName"))
+	result, err := h.Svc.APIGateway().UpdateStage(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update stage", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update stage", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteStage(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigateway.DeleteStageInput{}
-	log.Printf("deleteStage raw body: %s", string(bodyBytes))
-
-	// Parse to map first
-	var data map[string]interface{}
-	if err := json.Unmarshal(bodyBytes, &data); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteStage(w http.ResponseWriter, r *http.Request) {
+	input := &apigateway.DeleteStageInput{
+		RestApiId: aws.String(chi.URLParam(r, "restApiId")),
+		StageName: aws.String(chi.URLParam(r, "stageName")),
 	}
-
-	// Map keys to TitleCase
-	if v, ok := data["restApiId"]; ok {
-		input.RestApiId = aws.String(v.(string))
-	}
-	if v, ok := data["stageName"]; ok {
-		input.StageName = aws.String(v.(string))
-	}
-
-	result, err := h.Svc.APIGateway().DeleteStage(ctx, input)
+	result, err := h.Svc.APIGateway().DeleteStage(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete stage", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete stage", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
 // HTTP API v2 (ApiGatewayV2) handlers
-func (h *ProxyHandler) getApis(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) getApis(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigatewayv2.GetApisInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	result, err := h.Svc.APIGatewayV2().GetApis(ctx, input)
+	result, err := h.Svc.APIGatewayV2().GetApis(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get HTTP APIs", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get HTTP APIs", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createApi(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createApi(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigatewayv2.CreateApiInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -662,310 +570,303 @@ func (h *ProxyHandler) createApi(ctx context.Context, c *gin.Context, bodyBytes 
 		input.RouteSelectionExpression = aws.String("$request.body.action")
 	}
 
-	result, err := h.Svc.APIGatewayV2().CreateApi(ctx, input)
+	result, err := h.Svc.APIGatewayV2().CreateApi(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create API", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create API", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteApi(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigatewayv2.DeleteApiInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteApi(w http.ResponseWriter, r *http.Request) {
+	input := &apigatewayv2.DeleteApiInput{
+		ApiId: aws.String(chi.URLParam(r, "apiId")),
 	}
-	result, err := h.Svc.APIGatewayV2().DeleteApi(ctx, input)
+	result, err := h.Svc.APIGatewayV2().DeleteApi(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete HTTP API", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete HTTP API", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getApi(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigatewayv2.GetApiInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getApi(w http.ResponseWriter, r *http.Request) {
+	input := &apigatewayv2.GetApiInput{
+		ApiId: aws.String(chi.URLParam(r, "apiId")),
 	}
-	result, err := h.Svc.APIGatewayV2().GetApi(ctx, input)
+	result, err := h.Svc.APIGatewayV2().GetApi(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get HTTP API", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get HTTP API", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getRoutes(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigatewayv2.GetRoutesInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getRoutes(w http.ResponseWriter, r *http.Request) {
+	input := &apigatewayv2.GetRoutesInput{
+		ApiId: aws.String(chi.URLParam(r, "apiId")),
 	}
-	result, err := h.Svc.APIGatewayV2().GetRoutes(ctx, input)
+	result, err := h.Svc.APIGatewayV2().GetRoutes(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get routes", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get routes", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createRoute(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createRoute(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigatewayv2.CreateRouteInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	if input.ApiId == nil || *input.ApiId == "" {
-		sendError(c, http.StatusBadRequest, "ApiId is required", nil)
+	input.ApiId = aws.String(chi.URLParam(r, "apiId"))
+	if *input.ApiId == "" {
+		sendError(w, http.StatusBadRequest, "ApiId is required", nil)
 		return
 	}
-	result, err := h.Svc.APIGatewayV2().CreateRoute(ctx, input)
+	result, err := h.Svc.APIGatewayV2().CreateRoute(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create route", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create route", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteRoute(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigatewayv2.DeleteRouteInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteRoute(w http.ResponseWriter, r *http.Request) {
+	input := &apigatewayv2.DeleteRouteInput{
+		ApiId:   aws.String(chi.URLParam(r, "apiId")),
+		RouteId: aws.String(chi.URLParam(r, "routeId")),
 	}
-	result, err := h.Svc.APIGatewayV2().DeleteRoute(ctx, input)
+	result, err := h.Svc.APIGatewayV2().DeleteRoute(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete route", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete route", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateRoute(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateRoute(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigatewayv2.UpdateRouteInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	if input.ApiId == nil || *input.ApiId == "" {
-		sendError(c, http.StatusBadRequest, "ApiId is required", nil)
+	input.ApiId = aws.String(chi.URLParam(r, "apiId"))
+	input.RouteId = aws.String(chi.URLParam(r, "routeId"))
+	if *input.ApiId == "" {
+		sendError(w, http.StatusBadRequest, "ApiId is required", nil)
 		return
 	}
-	if input.RouteId == nil || *input.RouteId == "" {
-		sendError(c, http.StatusBadRequest, "RouteId is required", nil)
+	if *input.RouteId == "" {
+		sendError(w, http.StatusBadRequest, "RouteId is required", nil)
 		return
 	}
-	result, err := h.Svc.APIGatewayV2().UpdateRoute(ctx, input)
+	result, err := h.Svc.APIGatewayV2().UpdateRoute(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update route", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update route", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getIntegrationsV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigatewayv2.GetIntegrationsInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getIntegrationsV2(w http.ResponseWriter, r *http.Request) {
+	input := &apigatewayv2.GetIntegrationsInput{
+		ApiId: aws.String(chi.URLParam(r, "apiId")),
 	}
-	result, err := h.Svc.APIGatewayV2().GetIntegrations(ctx, input)
+	result, err := h.Svc.APIGatewayV2().GetIntegrations(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get integrations", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get integrations", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createIntegrationV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createIntegrationV2(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigatewayv2.CreateIntegrationInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	if input.ApiId == nil || *input.ApiId == "" {
-		sendError(c, http.StatusBadRequest, "ApiId is required", nil)
+	input.ApiId = aws.String(chi.URLParam(r, "apiId"))
+	if *input.ApiId == "" {
+		sendError(w, http.StatusBadRequest, "ApiId is required", nil)
 		return
 	}
-	result, err := h.Svc.APIGatewayV2().CreateIntegration(ctx, input)
+	result, err := h.Svc.APIGatewayV2().CreateIntegration(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create integration", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create integration", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateIntegrationV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateIntegrationV2(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigatewayv2.UpdateIntegrationInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	if input.ApiId == nil || *input.ApiId == "" {
-		sendError(c, http.StatusBadRequest, "ApiId is required", nil)
+	input.ApiId = aws.String(chi.URLParam(r, "apiId"))
+	input.IntegrationId = aws.String(chi.URLParam(r, "integrationId"))
+	if *input.ApiId == "" {
+		sendError(w, http.StatusBadRequest, "ApiId is required", nil)
 		return
 	}
-	if input.IntegrationId == nil || *input.IntegrationId == "" {
-		sendError(c, http.StatusBadRequest, "IntegrationId is required", nil)
+	if *input.IntegrationId == "" {
+		sendError(w, http.StatusBadRequest, "IntegrationId is required", nil)
 		return
 	}
-	result, err := h.Svc.APIGatewayV2().UpdateIntegration(ctx, input)
+	result, err := h.Svc.APIGatewayV2().UpdateIntegration(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update integration", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update integration", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteIntegrationV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigatewayv2.DeleteIntegrationInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteIntegrationV2(w http.ResponseWriter, r *http.Request) {
+	input := &apigatewayv2.DeleteIntegrationInput{
+		ApiId:         aws.String(chi.URLParam(r, "apiId")),
+		IntegrationId: aws.String(chi.URLParam(r, "integrationId")),
 	}
-	result, err := h.Svc.APIGatewayV2().DeleteIntegration(ctx, input)
+	result, err := h.Svc.APIGatewayV2().DeleteIntegration(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete integration", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete integration", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
 // HTTP API v2 Stage handlers
-func (h *ProxyHandler) getStagesV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigatewayv2.GetStagesInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+func (h *ProxyHandler) getStagesV2(w http.ResponseWriter, r *http.Request) {
+	input := &apigatewayv2.GetStagesInput{
+		ApiId: aws.String(chi.URLParam(r, "apiId")),
+	}
+	if *input.ApiId == "" {
+		sendError(w, http.StatusBadRequest, "ApiId is required", nil)
 		return
 	}
-
-	// Map lowercase keys to TitleCase
-	data := make(map[string]interface{})
-	if err := json.Unmarshal(bodyBytes, &data); err == nil {
-		if v, ok := data["apiId"]; ok {
-			input.ApiId = aws.String(v.(string))
-		}
-	}
-
-	if input.ApiId == nil || *input.ApiId == "" {
-		sendError(c, http.StatusBadRequest, "ApiId is required", nil)
-		return
-	}
-
-	result, err := h.Svc.APIGatewayV2().GetStages(ctx, input)
+	result, err := h.Svc.APIGatewayV2().GetStages(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get stages", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get stages", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getStageV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigatewayv2.GetStageInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) getStageV2(w http.ResponseWriter, r *http.Request) {
+	input := &apigatewayv2.GetStageInput{
+		ApiId:     aws.String(chi.URLParam(r, "apiId")),
+		StageName: aws.String(chi.URLParam(r, "stageName")),
 	}
-	result, err := h.Svc.APIGatewayV2().GetStage(ctx, input)
+	result, err := h.Svc.APIGatewayV2().GetStage(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get stage", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get stage", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) createStageV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) createStageV2(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigatewayv2.CreateStageInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	if input.ApiId == nil || *input.ApiId == "" {
-		sendError(c, http.StatusBadRequest, "ApiId is required", nil)
+	input.ApiId = aws.String(chi.URLParam(r, "apiId"))
+	if *input.ApiId == "" {
+		sendError(w, http.StatusBadRequest, "ApiId is required", nil)
 		return
 	}
-	result, err := h.Svc.APIGatewayV2().CreateStage(ctx, input)
+	result, err := h.Svc.APIGatewayV2().CreateStage(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to create stage", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create stage", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) updateStageV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) updateStageV2(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	input := &apigatewayv2.UpdateStageInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	if input.ApiId == nil || *input.ApiId == "" {
-		sendError(c, http.StatusBadRequest, "ApiId is required", nil)
+	input.ApiId = aws.String(chi.URLParam(r, "apiId"))
+	input.StageName = aws.String(chi.URLParam(r, "stageName"))
+	if *input.ApiId == "" {
+		sendError(w, http.StatusBadRequest, "ApiId is required", nil)
 		return
 	}
-	if input.StageName == nil || *input.StageName == "" {
-		sendError(c, http.StatusBadRequest, "StageName is required", nil)
+	if *input.StageName == "" {
+		sendError(w, http.StatusBadRequest, "StageName is required", nil)
 		return
 	}
-	result, err := h.Svc.APIGatewayV2().UpdateStage(ctx, input)
+	result, err := h.Svc.APIGatewayV2().UpdateStage(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to update stage", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update stage", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) deleteStageV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
-	input := &apigatewayv2.DeleteStageInput{}
-	if err := parseBody(c, bodyBytes, input); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
-		return
+func (h *ProxyHandler) deleteStageV2(w http.ResponseWriter, r *http.Request) {
+	input := &apigatewayv2.DeleteStageInput{
+		ApiId:     aws.String(chi.URLParam(r, "apiId")),
+		StageName: aws.String(chi.URLParam(r, "stageName")),
 	}
-	result, err := h.Svc.APIGatewayV2().DeleteStage(ctx, input)
+	result, err := h.Svc.APIGatewayV2().DeleteStage(h.ctx, input)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to delete stage", err)
+		sendError(w, http.StatusInternalServerError, "Failed to delete stage", err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *ProxyHandler) getInvokeUrl(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) getInvokeUrl(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	var bodyData struct {
 		ApiID     string `json:"apiId"`
 		StageName string `json:"stageName"`
 	}
 	if err := json.Unmarshal(bodyBytes, &bodyData); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	url, err := h.Svc.APIGateway().GetInvokeUrl(ctx, bodyData.ApiID, bodyData.StageName)
+	url, err := h.Svc.APIGateway().GetInvokeUrl(h.ctx, bodyData.ApiID, bodyData.StageName)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get invoke URL", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get invoke URL", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"invokeUrl": url})
+	writeJSON(w, http.StatusOK, map[string]interface{}{"invokeUrl": url})
 }
 
-func (h *ProxyHandler) getInvokeUrlV2(ctx context.Context, c *gin.Context, bodyBytes []byte) {
+func (h *ProxyHandler) getInvokeUrlV2(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
 	var bodyData struct {
 		ApiID        string `json:"apiId"`
 		StageName    string `json:"stageName"`
 		ProtocolType string `json:"protocolType"`
 	}
 	if err := json.Unmarshal(bodyBytes, &bodyData); err != nil {
-		sendError(c, http.StatusBadRequest, "Invalid request body", err)
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 	protocolType := bodyData.ProtocolType
 	if protocolType == "" {
 		protocolType = "HTTP"
 	}
-	url, err := h.Svc.APIGatewayV2().GetInvokeUrl(ctx, bodyData.ApiID, bodyData.StageName, protocolType)
+	url, err := h.Svc.APIGatewayV2().GetInvokeUrl(h.ctx, bodyData.ApiID, bodyData.StageName, protocolType)
 	if err != nil {
-		sendError(c, http.StatusInternalServerError, "Failed to get invoke URL", err)
+		sendError(w, http.StatusInternalServerError, "Failed to get invoke URL", err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"invokeUrl": url})
+	writeJSON(w, http.StatusOK, map[string]interface{}{"invokeUrl": url})
 }

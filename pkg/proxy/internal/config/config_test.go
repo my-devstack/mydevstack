@@ -7,75 +7,14 @@ import (
 	"testing"
 )
 
-func TestConfig_SetDefaults(t *testing.T) {
-	cfg := &Config{}
-	defaults := cfg.SetDefaults()
-
-	tests := []struct {
-		name     string
-		key     string
-		want    interface{}
-	}{
-		{"port", "port", "8081"},
-		{"aws_endpoint", "aws.endpoint", "http://localhost:4566"},
-		{"aws_access_key", "aws.access_key", "test"},
-		{"aws_secret_key", "aws.secret_key", "test"},
-		{"service_pattern", "service_pattern", "root"},
-		{"emulator", "emulator", ""},
-		{"github_repo", "github_repo", "https://github.com/my-devstack/mydevstack"},
-		{"version_check_hours", "version_check_hours", 24},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, ok := defaults[tt.key]
-			if !ok {
-				t.Errorf("SetDefaults() missing key %s", tt.key)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("SetDefaults()[%s] = %v (%T), want %v (%T)", tt.key, got, got, tt.want, tt.want)
-			}
-		})
-	}
-}
-
-func TestConfig_SetDefaults_AllKeys(t *testing.T) {
-	cfg := &Config{}
-	defaults := cfg.SetDefaults()
-
-	if len(defaults) == 0 {
-		t.Error("SetDefaults() returned empty map")
-	}
-
-	// Verify all expected keys exist
-	expectedKeys := []string{
-		"port",
-		"aws.endpoint",
-		"aws.access_key",
-		"aws.secret_key",
-		"service_pattern",
-		"emulator",
-		"github_repo",
-		"version_check_hours",
-	}
-
-	for _, key := range expectedKeys {
-		if _, ok := defaults[key]; !ok {
-			t.Errorf("SetDefaults() missing expected key %s", key)
-		}
-	}
-}
-
 // Helper to clear all config-related env vars
 func clearConfigEnv() {
 	envVars := []string{
-		"CONFIG_FILE",
+		CONFIG_FILE,
 		"PROXY_PORT",
 		"AWS_ENDPOINT",
 		"AWS_ACCESS_KEY",
 		"AWS_SECRET_KEY",
-		"SERVICE_PATTERN",
 		"EMULATOR",
 		"GITHUB_REPO",
 		"VERSION_CHECK_HOURS",
@@ -90,61 +29,11 @@ func init() {
 	clearConfigEnv()
 }
 
-func TestLoadConfig_WithDefaults(t *testing.T) {
-	clearConfigEnv()
-
-	cfg := &Config{}
-	defaults := cfg.SetDefaults()
-
-	// Verify all defaults match expected struct field values after load
-	wantPort := "8081"
-	if defaults["port"] != wantPort {
-		t.Errorf("port default = %v, want %v", defaults["port"], wantPort)
-	}
-
-	wantEndpoint := "http://localhost:4566"
-	if defaults["aws.endpoint"] != wantEndpoint {
-		t.Errorf("aws.endpoint default = %v, want %v", defaults["aws.endpoint"], wantEndpoint)
-	}
-
-	wantAccessKey := "test"
-	if defaults["aws.access_key"] != wantAccessKey {
-		t.Errorf("aws.access_key default = %v, want %v", defaults["aws.access_key"], wantAccessKey)
-	}
-
-	wantSecretKey := "test"
-	if defaults["aws.secret_key"] != wantSecretKey {
-		t.Errorf("aws.secret_key default = %v, want %v", defaults["aws.secret_key"], wantSecretKey)
-	}
-
-	wantPattern := "root"
-	if defaults["service_pattern"] != wantPattern {
-		t.Errorf("service_pattern default = %v, want %v", defaults["service_pattern"], wantPattern)
-	}
-
-	wantEmulator := ""
-	if defaults["emulator"] != wantEmulator {
-		t.Errorf("emulator default = %v, want %v", defaults["emulator"], wantEmulator)
-	}
-
-	wantRepo := "https://github.com/my-devstack/mydevstack"
-	if defaults["github_repo"] != wantRepo {
-		t.Errorf("github_repo default = %v, want %v", defaults["github_repo"], wantRepo)
-	}
-
-	// version_check_hours is stored as int (24), not string "24"
-	wantVersionHours := 24
-	if defaults["version_check_hours"] != wantVersionHours {
-		t.Errorf("version_check_hours default = %v, want %v", defaults["version_check_hours"], wantVersionHours)
-	}
-}
-
 func TestConfig_StructFields(t *testing.T) {
 	cfg := &Config{
 		Port:              "8080",
-		ServicePattern:   "custom",
-		Emulator:         "moto",
-		GitHubRepo:       "https://github.com/test/repo",
+		Emulator:          "moto",
+		GitHubRepo:        "https://github.com/test/repo",
 		VersionCheckHours: 12,
 		AWS: AWSProxyConfig{
 			Endpoint:  "http://test:4566",
@@ -153,12 +42,8 @@ func TestConfig_StructFields(t *testing.T) {
 		},
 	}
 
-	// Verify struct fields are set correctly
 	if cfg.Port != "8080" {
 		t.Errorf("Port = %v, want 8080", cfg.Port)
-	}
-	if cfg.ServicePattern != "custom" {
-		t.Errorf("ServicePattern = %v, want custom", cfg.ServicePattern)
 	}
 	if cfg.Emulator != "moto" {
 		t.Errorf("Emulator = %v, want moto", cfg.Emulator)
@@ -198,18 +83,88 @@ func TestAWSProxyConfig_StructFields(t *testing.T) {
 	}
 }
 
-// Test config file loading with environment variables
-// Skipping due to environment isolation issues with CONFIG_FILE handling
-func TestLoadConfig_FromEnv(t *testing.T) {
-	t.Skip("Skipping - requires isolated config environment")
-	// This test would verify that env vars override defaults
-	// Currently fails due to CONFIG_FILE state from other tests
+func TestLoadConfig_Defaults(t *testing.T) {
+	clearConfigEnv()
+
+	cfg, err := LoadConfig(context.Background())
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+
+	if cfg.Port != "8081" {
+		t.Errorf("Port = %v, want 8081", cfg.Port)
+	}
+	if cfg.AWS.Endpoint != "http://localhost:4566" {
+		t.Errorf("AWS.Endpoint = %v, want http://localhost:4566", cfg.AWS.Endpoint)
+	}
+	if cfg.AWS.AccessKey != "test" {
+		t.Errorf("AWS.AccessKey = %v, want test", cfg.AWS.AccessKey)
+	}
+	if cfg.AWS.SecretKey != "test" {
+		t.Errorf("AWS.SecretKey = %v, want test", cfg.AWS.SecretKey)
+	}
+	if cfg.Emulator != "" {
+		t.Errorf("Emulator = %v, want empty string", cfg.Emulator)
+	}
+	if cfg.GitHubRepo != "https://github.com/my-devstack/mydevstack" {
+		t.Errorf("GitHubRepo = %v, want https://github.com/my-devstack/mydevstack", cfg.GitHubRepo)
+	}
+	if cfg.VersionCheckHours != 24 {
+		t.Errorf("VersionCheckHours = %v, want 24", cfg.VersionCheckHours)
+	}
+}
+
+func TestLoadConfig_WithEnvOverrides(t *testing.T) {
+	clearConfigEnv()
+	defer clearConfigEnv()
+
+	envs := map[string]string{
+		"PROXY_PORT":          "9090",
+		"AWS_ENDPOINT":        "http://override:4566",
+		"AWS_ACCESS_KEY":      "override_key",
+		"AWS_SECRET_KEY":      "override_secret",
+		"EMULATOR":            "moto",
+		"GITHUB_REPO":         "https://github.com/override/repo",
+		"VERSION_CHECK_HOURS": "12",
+	}
+	for k, v := range envs {
+		if err := os.Setenv(k, v); err != nil {
+			t.Fatalf("Setenv(%s) failed: %v", k, err)
+		}
+	}
+
+	cfg, err := LoadConfig(context.Background())
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+
+	if cfg.Port != "9090" {
+		t.Errorf("Port = %v, want 9090", cfg.Port)
+	}
+	if cfg.AWS.Endpoint != "http://override:4566" {
+		t.Errorf("AWS.Endpoint = %v, want http://override:4566", cfg.AWS.Endpoint)
+	}
+	if cfg.AWS.AccessKey != "override_key" {
+		t.Errorf("AWS.AccessKey = %v, want override_key", cfg.AWS.AccessKey)
+	}
+	if cfg.AWS.SecretKey != "override_secret" {
+		t.Errorf("AWS.SecretKey = %v, want override_secret", cfg.AWS.SecretKey)
+	}
+	if cfg.Emulator != "moto" {
+		t.Errorf("Emulator = %v, want moto", cfg.Emulator)
+	}
+	if cfg.GitHubRepo != "https://github.com/override/repo" {
+		t.Errorf("GitHubRepo = %v, want https://github.com/override/repo", cfg.GitHubRepo)
+	}
+	if cfg.VersionCheckHours != 12 {
+		t.Errorf("VersionCheckHours = %v, want 12", cfg.VersionCheckHours)
+	}
 }
 
 func TestLoadConfig_FromFile(t *testing.T) {
 	clearConfigEnv()
+	defer clearConfigEnv()
 
-	// Create a temporary config file
 	tmpDir := t.TempDir()
 	configFile := filepath.Join(tmpDir, "config.yaml")
 
@@ -218,7 +173,6 @@ aws:
   endpoint: "http://file:4566"
   access_key: "file_key"
   secret_key: "file_secret"
-service_pattern: "file_pattern"
 emulator: "moto"
 github_repo: "https://github.com/file/repo"
 version_check_hours: 12
@@ -227,15 +181,15 @@ version_check_hours: 12
 		t.Fatalf("Failed to write config file: %v", err)
 	}
 
-	_ = os.Setenv("CONFIG_FILE", configFile)
-	defer clearConfigEnv()
+	if err := os.Setenv(CONFIG_FILE, configFile); err != nil {
+		t.Fatalf("Setenv failed: %v", err)
+	}
 
-	cfg, err := LoadConfig(context.TODO())
+	cfg, err := LoadConfig(context.Background())
 	if err != nil {
 		t.Fatalf("LoadConfig() error = %v", err)
 	}
 
-	// Verify file values loaded
 	if cfg.Port != "9000" {
 		t.Errorf("Port = %v, want 9000", cfg.Port)
 	}
@@ -248,9 +202,6 @@ version_check_hours: 12
 	if cfg.AWS.SecretKey != "file_secret" {
 		t.Errorf("AWS.SecretKey = %v, want file_secret", cfg.AWS.SecretKey)
 	}
-	if cfg.ServicePattern != "file_pattern" {
-		t.Errorf("ServicePattern = %v, want file_pattern", cfg.ServicePattern)
-	}
 	if cfg.Emulator != "moto" {
 		t.Errorf("Emulator = %v, want moto", cfg.Emulator)
 	}
@@ -262,41 +213,72 @@ version_check_hours: 12
 	}
 }
 
-// Test that empty CONFIG_FILE causes error
-func TestLoadConfig_EmptyConfigFileError(t *testing.T) {
+func TestLoadConfig_NonExistentFile(t *testing.T) {
 	clearConfigEnv()
-	_ = os.Setenv("CONFIG_FILE", "")
 	defer clearConfigEnv()
 
-	_, err := LoadConfig(context.TODO())
-	if err == nil {
-		t.Error("LoadConfig() expected error with empty CONFIG_FILE, got nil")
+	nonexistent := filepath.Join(t.TempDir(), "nonexistent.yaml")
+	if err := os.Setenv(CONFIG_FILE, nonexistent); err != nil {
+		t.Fatalf("Setenv failed: %v", err)
+	}
+
+	cfg, err := LoadConfig(context.Background())
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+
+	// Should return defaults when file does not exist
+	if cfg.Port != "8081" {
+		t.Errorf("Port = %v, want 8081 (default)", cfg.Port)
 	}
 }
 
-// Test field mapping documentation
-// The mapstructure tags in Config struct map to the following keys:
-// Port -> "port"
-// AWS.Endpoint -> "aws.endpoint"
-// AWS.AccessKey -> "aws.access_key"
-// AWS.SecretKey -> "aws.secret_key"
-// ServicePattern -> "service_pattern"
-// Emulator -> "emulator"
-// GitHubRepo -> "github_repo"
-// VersionCheckHours -> "version_check_hours"
-func TestConfig_MapstructureTags(t *testing.T) {
-	// This test documents the field mappings
-	// The actual mapping is tested indirectly through LoadConfig tests above
+func TestLoadConfig_UnmarshalError(t *testing.T) {
+	clearConfigEnv()
+	defer clearConfigEnv()
 
-	cfg := &Config{}
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, "config.yaml")
 
-	// Verify struct has all expected fields
-	_ = cfg.Port
-	_ = cfg.ServicePattern
-	_ = cfg.Emulator
-	_ = cfg.GitHubRepo
-	_ = cfg.VersionCheckHours
-	_ = cfg.AWS
+	// version_check_hours is int; a non-parseable string causes mapstructure to fail
+	configContent := `port: "8080"
+aws:
+  endpoint: "http://local:4566"
+  access_key: "ak"
+  secret_key: "sk"
+version_check_hours: "not_a_number"
+`
+	if err := os.WriteFile(configFile, []byte(configContent), 0644); err != nil {
+		t.Fatalf("Failed to write config file: %v", err)
+	}
+	if err := os.Setenv(CONFIG_FILE, configFile); err != nil {
+		t.Fatalf("Setenv failed: %v", err)
+	}
 
-	// If we reach here, struct fields exist
+	_, err := LoadConfig(context.Background())
+	if err == nil {
+		t.Error("LoadConfig() expected Unmarshal error for bad int value, got nil")
+	}
+}
+
+func TestLoadConfig_InvalidYamlFile(t *testing.T) {
+	clearConfigEnv()
+	defer clearConfigEnv()
+
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, "bad.yaml")
+
+	// Write a file with invalid YAML content that will cause a parse error
+	if err := os.WriteFile(configFile, []byte("'"), 0644); err != nil {
+		t.Fatalf("Failed to write config file: %v", err)
+	}
+
+	if err := os.Setenv(CONFIG_FILE, configFile); err != nil {
+		t.Fatalf("Setenv failed: %v", err)
+	}
+
+	_, err := LoadConfig(context.Background())
+	if err == nil {
+		t.Error("LoadConfig() expected error for invalid YAML, got nil")
+	}
 }

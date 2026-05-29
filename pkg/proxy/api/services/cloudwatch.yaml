@@ -1,0 +1,956 @@
+openapi: 3.0.0
+info:
+  title: "CloudWatch"
+  version: "1.0.0"
+
+paths:
+  # ============================================================
+  # Alarms
+  # ============================================================
+  /cloudwatch/alarms:
+    get:
+      tags: [CloudWatch]
+      summary: Describe alarms
+      description: |
+        Returns a list of CloudWatch alarms with optional filtering by
+        state, name prefix, or action prefix.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: describeAlarms
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DescribeAlarmsInput'
+      responses:
+        "200":
+          description: List of alarms
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeAlarmsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [CloudWatch]
+      summary: Put metric alarm
+      description: |
+        Creates or updates a CloudWatch alarm based on a metric.
+        Requires AlarmName and EvaluationPeriods.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putMetricAlarm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutMetricAlarmInput'
+      responses:
+        "200":
+          description: Alarm created or updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PutMetricAlarmOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cloudwatch/alarms/{alarmName}:
+    delete:
+      tags: [CloudWatch]
+      summary: Delete alarms
+      description: |
+        Deletes one or more CloudWatch alarms by name. The path parameter
+        provides the primary alarm name; additional alarm names can be
+        provided in the request body.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: deleteAlarms
+      parameters:
+        - name: alarmName
+          in: path
+          required: true
+          schema: { type: string }
+          description: CloudWatch alarm name
+          example: HighCPUUtilization
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteAlarmsInput'
+      responses:
+        "200":
+          description: Alarms deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteAlarmsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [CloudWatch]
+      summary: Set alarm state
+      description: |
+        Temporarily sets the state of an alarm for testing purposes.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: setAlarmState
+      parameters:
+        - name: alarmName
+          in: path
+          required: true
+          schema: { type: string }
+          description: CloudWatch alarm name
+          example: HighCPUUtilization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetAlarmStateInput'
+      responses:
+        "200":
+          description: Alarm state updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetAlarmStateOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cloudwatch/alarms/{alarmName}/history:
+    get:
+      tags: [CloudWatch]
+      summary: Describe alarm history
+      description: |
+        Returns the history of a specific alarm, including state changes
+        and configuration updates.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: describeAlarmHistory
+      parameters:
+        - name: alarmName
+          in: path
+          required: true
+          schema: { type: string }
+          description: CloudWatch alarm name
+          example: HighCPUUtilization
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DescribeAlarmHistoryInput'
+      responses:
+        "200":
+          description: Alarm history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeAlarmHistoryOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
+  # Metrics
+  # ============================================================
+  /cloudwatch/metrics:
+    get:
+      tags: [CloudWatch]
+      summary: List metrics
+      description: |
+        Returns a list of CloudWatch metrics with optional filtering by
+        namespace, metric name, or dimensions.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listMetrics
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListMetricsInput'
+      responses:
+        "200":
+          description: List of metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListMetricsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [CloudWatch]
+      summary: Put metric data
+      description: |
+        Publishes metric data points to CloudWatch. Supports multiple
+        metrics in a single request.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putMetricData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutMetricDataInput'
+      responses:
+        "200":
+          description: Metric data published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PutMetricDataOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cloudwatch/metrics/statistics:
+    post:
+      tags: [CloudWatch]
+      summary: Get metric statistics
+      description: |
+        Returns statistics for a specific metric over a time range.
+        Requires Namespace, MetricName, StartTime, EndTime, and Period.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getMetricStatistics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetMetricStatisticsInput'
+      responses:
+        "200":
+          description: Metric statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMetricStatisticsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cloudwatch/metrics/data:
+    post:
+      tags: [CloudWatch]
+      summary: Get metric data
+      description: |
+        Returns metric data with advanced querying support using
+        MetricDataQueries, including math expressions and metric insights.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getMetricData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetMetricDataInput'
+      responses:
+        "200":
+          description: Metric data results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMetricDataOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Core types
+    # ============================================================
+    Dimension:
+      type: object
+      required: [Name, Value]
+      properties:
+        Name:
+          type: string
+          description: Dimension name
+        Value:
+          type: string
+          description: Dimension value
+
+    Metric:
+      type: object
+      properties:
+        Namespace:
+          type: string
+        MetricName:
+          type: string
+        Dimensions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dimension'
+
+    MetricAlarm:
+      type: object
+      properties:
+        AlarmName:
+          type: string
+        AlarmArn:
+          type: string
+        AlarmDescription:
+          type: string
+        AlarmConfigurationUpdatedTimestamp:
+          type: string
+          format: date-time
+        ActionsEnabled:
+          type: boolean
+        OKActions:
+          type: array
+          items:
+            type: string
+        AlarmActions:
+          type: array
+          items:
+            type: string
+        InsufficientDataActions:
+          type: array
+          items:
+            type: string
+        StateValue:
+          type: string
+          enum: [OK, ALARM, INSUFFICIENT_DATA]
+        StateReason:
+          type: string
+        StateReasonData:
+          type: string
+        StateUpdatedTimestamp:
+          type: string
+          format: date-time
+        MetricName:
+          type: string
+        Namespace:
+          type: string
+        Statistic:
+          type: string
+          enum: [SampleCount, Average, Sum, Minimum, Maximum]
+        ExtendedStatistic:
+          type: string
+        Dimensions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dimension'
+        Period:
+          type: integer
+          format: int32
+        Unit:
+          type: string
+          enum: [Seconds, Microseconds, Milliseconds, Bytes, Kilobytes, Megabytes, Gigabytes, Terabytes, Bits, Kilobits, Megabits, Gigabits, Terabits, Percent, Count, Bytes/Second, Kilobytes/Second, Megabytes/Second, Gigabytes/Second, Terabytes/Second, Bits/Second, Kilobits/Second, Megabits/Second, Gigabits/Second, Terabits/Second, Count/Second, None]
+        EvaluationPeriods:
+          type: integer
+          format: int32
+        DatapointsToAlarm:
+          type: integer
+          format: int32
+        Threshold:
+          type: number
+        ComparisonOperator:
+          type: string
+          enum: [GreaterThanOrEqualToThreshold, GreaterThanThreshold, LessThanThreshold, LessThanOrEqualToThreshold, LessThanLowerOrGreaterThanUpperThreshold, LessThanLowerThreshold, GreaterThanUpperThreshold]
+        TreatMissingData:
+          type: string
+        EvaluateLowSampleCountPercentile:
+          type: string
+        Metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricDataQuery'
+        ThresholdMetricId:
+          type: string
+        AlarmType:
+          type: string
+          enum: [MetricAlarm, CompositeAlarm]
+
+    AlarmHistoryItem:
+      type: object
+      properties:
+        AlarmName:
+          type: string
+        AlarmType:
+          type: string
+          enum: [MetricAlarm, CompositeAlarm]
+        Timestamp:
+          type: string
+          format: date-time
+        HistoryItemType:
+          type: string
+          enum: [ConfigurationUpdate, StateUpdate, Action]
+        HistorySummary:
+          type: string
+        HistoryData:
+          type: string
+          description: JSON-formatted history data
+
+    Datapoint:
+      type: object
+      properties:
+        Timestamp:
+          type: string
+          format: date-time
+        Sum:
+          type: number
+        Average:
+          type: number
+        Minimum:
+          type: number
+        Maximum:
+          type: number
+        SampleCount:
+          type: number
+        ExtendedStatistics:
+          type: object
+          additionalProperties:
+            type: number
+        Unit:
+          type: string
+          enum: [Seconds, Microseconds, Milliseconds, Bytes, Kilobytes, Megabytes, Gigabytes, Terabytes, Bits, Kilobits, Megabits, Gigabits, Terabits, Percent, Count, Bytes/Second, Kilobytes/Second, Megabytes/Second, Gigabytes/Second, Terabytes/Second, Bits/Second, Kilobits/Second, Megabits/Second, Gigabits/Second, Terabits/Second, Count/Second, None]
+
+    MetricDataQuery:
+      type: object
+      required: [Id]
+      properties:
+        Id:
+          type: string
+        MetricStat:
+          $ref: '#/components/schemas/MetricStat'
+        Expression:
+          type: string
+        Label:
+          type: string
+        ReturnData:
+          type: boolean
+        Period:
+          type: integer
+          format: int32
+        AccountId:
+          type: string
+
+    MetricStat:
+      type: object
+      required: [Metric, Period, Stat]
+      properties:
+        Metric:
+          $ref: '#/components/schemas/Metric'
+        Period:
+          type: integer
+          format: int32
+        Stat:
+          type: string
+        Unit:
+          type: string
+          enum: [Seconds, Microseconds, Milliseconds, Bytes, Kilobytes, Megabytes, Gigabytes, Terabytes, Bits, Kilobits, Megabits, Gigabits, Terabits, Percent, Count, Bytes/Second, Kilobytes/Second, Megabytes/Second, Gigabytes/Second, Terabytes/Second, Bits/Second, Kilobits/Second, Megabits/Second, Gigabits/Second, Terabits/Second, Count/Second, None]
+
+    MetricDataResult:
+      type: object
+      properties:
+        Id:
+          type: string
+        Label:
+          type: string
+        Timestamps:
+          type: array
+          items:
+            type: string
+            format: date-time
+        Values:
+          type: array
+          items:
+            type: number
+        StatusCode:
+          type: string
+          enum: [Complete, InternalError, PartialData, Forbidden]
+        Messages:
+          type: array
+          items:
+            type: object
+            properties:
+              Code:
+                type: string
+              Value:
+                type: string
+
+    # ============================================================
+    # DescribeAlarms
+    # ============================================================
+    DescribeAlarmsInput:
+      type: object
+      properties:
+        AlarmNames:
+          type: array
+          items:
+            type: string
+        AlarmNamePrefix:
+          type: string
+        AlarmTypes:
+          type: array
+          items:
+            type: string
+            enum: [MetricAlarm, CompositeAlarm]
+        ChildrenOfAlarmName:
+          type: string
+        ParentsOfAlarmName:
+          type: string
+        StateValue:
+          type: string
+          enum: [OK, ALARM, INSUFFICIENT_DATA]
+        ActionPrefix:
+          type: string
+        MaxRecords:
+          type: integer
+          format: int32
+        NextToken:
+          type: string
+
+    DescribeAlarmsOutput:
+      type: object
+      properties:
+        CompositeAlarms:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricAlarm'
+        MetricAlarms:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricAlarm'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # PutMetricAlarm
+    # ============================================================
+    PutMetricAlarmInput:
+      type: object
+      required: [AlarmName, EvaluationPeriods]
+      properties:
+        AlarmName:
+          type: string
+        AlarmDescription:
+          type: string
+        ActionsEnabled:
+          type: boolean
+        OKActions:
+          type: array
+          items:
+            type: string
+        AlarmActions:
+          type: array
+          items:
+            type: string
+        InsufficientDataActions:
+          type: array
+          items:
+            type: string
+        MetricName:
+          type: string
+        Namespace:
+          type: string
+        Statistic:
+          type: string
+          enum: [SampleCount, Average, Sum, Minimum, Maximum]
+        ExtendedStatistic:
+          type: string
+        Dimensions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dimension'
+        Period:
+          type: integer
+          format: int32
+        Unit:
+          type: string
+          enum: [Seconds, Microseconds, Milliseconds, Bytes, Kilobytes, Megabytes, Gigabytes, Terabytes, Bits, Kilobits, Megabits, Gigabits, Terabits, Percent, Count, Bytes/Second, Kilobytes/Second, Megabytes/Second, Gigabytes/Second, Terabytes/Second, Bits/Second, Kilobits/Second, Megabits/Second, Gigabits/Second, Terabits/Second, Count/Second, None]
+        EvaluationPeriods:
+          type: integer
+          format: int32
+        Threshold:
+          type: number
+        ComparisonOperator:
+          type: string
+          enum: [GreaterThanOrEqualToThreshold, GreaterThanThreshold, LessThanThreshold, LessThanOrEqualToThreshold, LessThanLowerOrGreaterThanUpperThreshold, LessThanLowerThreshold, GreaterThanUpperThreshold]
+        TreatMissingData:
+          type: string
+        EvaluateLowSampleCountPercentile:
+          type: string
+        Metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricDataQuery'
+        Tags:
+          type: array
+          items:
+            type: object
+            properties:
+              Key:
+                type: string
+              Value:
+                type: string
+        ThresholdMetricId:
+          type: string
+        DatapointsToAlarm:
+          type: integer
+          format: int32
+
+    PutMetricAlarmOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # DeleteAlarms
+    # ============================================================
+    DeleteAlarmsInput:
+      type: object
+      required: [AlarmNames]
+      properties:
+        AlarmNames:
+          type: array
+          items:
+            type: string
+
+    DeleteAlarmsOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # DescribeAlarmHistory
+    # ============================================================
+    DescribeAlarmHistoryInput:
+      type: object
+      properties:
+        AlarmName:
+          type: string
+        AlarmTypes:
+          type: array
+          items:
+            type: string
+            enum: [MetricAlarm, CompositeAlarm]
+        HistoryItemType:
+          type: string
+          enum: [ConfigurationUpdate, StateUpdate, Action]
+        StartDate:
+          type: string
+          format: date-time
+        EndDate:
+          type: string
+          format: date-time
+        MaxRecords:
+          type: integer
+          format: int32
+        NextToken:
+          type: string
+        ScanBy:
+          type: string
+          enum: [TimestampDescending, TimestampAscending]
+
+    DescribeAlarmHistoryOutput:
+      type: object
+      properties:
+        AlarmHistoryItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/AlarmHistoryItem'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # SetAlarmState
+    # ============================================================
+    SetAlarmStateInput:
+      type: object
+      required: [AlarmName, StateValue, StateReason]
+      properties:
+        AlarmName:
+          type: string
+        StateValue:
+          type: string
+          enum: [OK, ALARM, INSUFFICIENT_DATA]
+        StateReason:
+          type: string
+        StateReasonData:
+          type: string
+
+    SetAlarmStateOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # ListMetrics
+    # ============================================================
+    ListMetricsInput:
+      type: object
+      properties:
+        Namespace:
+          type: string
+        MetricName:
+          type: string
+        Dimensions:
+          type: array
+          items:
+            $ref: '#/components/schemas/DimensionFilter'
+        NextToken:
+          type: string
+        RecentlyActive:
+          type: string
+          enum: [PT3H]
+
+    DimensionFilter:
+      type: object
+      required: [Name]
+      properties:
+        Name:
+          type: string
+        Value:
+          type: string
+
+    ListMetricsOutput:
+      type: object
+      properties:
+        Metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/Metric'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # PutMetricData
+    # ============================================================
+    PutMetricDataInput:
+      type: object
+      required: [Namespace, MetricData]
+      properties:
+        Namespace:
+          type: string
+        MetricData:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricDatum'
+
+    MetricDatum:
+      type: object
+      required: [MetricName]
+      properties:
+        MetricName:
+          type: string
+        Dimensions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dimension'
+        Timestamp:
+          type: string
+          format: date-time
+        Value:
+          type: number
+        Values:
+          type: array
+          items:
+            type: number
+        Counts:
+          type: array
+          items:
+            type: number
+        StatisticValues:
+          type: object
+          properties:
+            SampleCount:
+              type: number
+            Sum:
+              type: number
+            Minimum:
+              type: number
+            Maximum:
+              type: number
+        Unit:
+          type: string
+          enum: [Seconds, Microseconds, Milliseconds, Bytes, Kilobytes, Megabytes, Gigabytes, Terabytes, Bits, Kilobits, Megabits, Gigabits, Terabits, Percent, Count, Bytes/Second, Kilobytes/Second, Megabytes/Second, Gigabytes/Second, Terabytes/Second, Bits/Second, Kilobits/Second, Megabits/Second, Gigabits/Second, Terabits/Second, Count/Second, None]
+        StorageResolution:
+          type: integer
+          format: int32
+
+    PutMetricDataOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # GetMetricStatistics
+    # ============================================================
+    GetMetricStatisticsInput:
+      type: object
+      required: [Namespace, MetricName, StartTime, EndTime, Period]
+      properties:
+        Namespace:
+          type: string
+        MetricName:
+          type: string
+        Dimensions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dimension'
+        StartTime:
+          type: string
+          format: date-time
+        EndTime:
+          type: string
+          format: date-time
+        Period:
+          type: integer
+          format: int32
+        Statistics:
+          type: array
+          items:
+            type: string
+            enum: [SampleCount, Average, Sum, Minimum, Maximum]
+        ExtendedStatistics:
+          type: array
+          items:
+            type: string
+        Unit:
+          type: string
+          enum: [Seconds, Microseconds, Milliseconds, Bytes, Kilobytes, Megabytes, Gigabytes, Terabytes, Bits, Kilobits, Megabits, Gigabits, Terabits, Percent, Count, Bytes/Second, Kilobytes/Second, Megabytes/Second, Gigabytes/Second, Terabytes/Second, Bits/Second, Kilobits/Second, Megabits/Second, Gigabits/Second, Terabits/Second, Count/Second, None]
+
+    GetMetricStatisticsOutput:
+      type: object
+      properties:
+        Label:
+          type: string
+        Datapoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Datapoint'
+
+    # ============================================================
+    # GetMetricData
+    # ============================================================
+    GetMetricDataInput:
+      type: object
+      required: [MetricDataQueries]
+      properties:
+        MetricDataQueries:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricDataQuery'
+        StartTime:
+          type: string
+          format: date-time
+        EndTime:
+          type: string
+          format: date-time
+        NextToken:
+          type: string
+        ScanBy:
+          type: string
+          enum: [TimestampDescending, TimestampAscending]
+        MaxDatapoints:
+          type: integer
+          format: int32
+        LabelOptions:
+          type: string
+          enum: [All, TimeSeries, NoLabel]
+
+    GetMetricDataOutput:
+      type: object
+      properties:
+        MetricDataResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricDataResult'
+        NextToken:
+          type: string
+        Messages:
+          type: array
+          items:
+            type: object
+            properties:
+              Code:
+                type: string
+              Value:
+                type: string

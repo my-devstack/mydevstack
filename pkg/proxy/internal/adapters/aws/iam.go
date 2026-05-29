@@ -15,8 +15,7 @@ type ListUsersForGroupInput = ports.ListUsersForGroupInput
 type ListUsersForGroupOutput = ports.ListUsersForGroupOutput
 
 type IAMAdapter struct {
-	client       ports.IAMClientPort
-	directClient *iam.Client
+	client ports.IAMClientPort
 }
 
 func NewIAMAdapter(awsCfg aws.Config, endpoint string) ports.IAMPort {
@@ -26,8 +25,7 @@ func NewIAMAdapter(awsCfg aws.Config, endpoint string) ports.IAMPort {
 		o.HTTPClient = httpClient
 	})
 	return &IAMAdapter{
-		client:       client,
-		directClient: client,
+		client: client,
 	}
 }
 

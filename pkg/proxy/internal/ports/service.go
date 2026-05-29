@@ -21,8 +21,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
-	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sesv2"
+	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -183,6 +183,10 @@ type KMSPort interface {
 	Decrypt(ctx context.Context, input *kms.DecryptInput) (*kms.DecryptOutput, error)
 	GenerateDataKey(ctx context.Context, input *kms.GenerateDataKeyInput) (*kms.GenerateDataKeyOutput, error)
 	GenerateRandom(ctx context.Context, input *kms.GenerateRandomInput) (*kms.GenerateRandomOutput, error)
+	GetKeyPolicy(ctx context.Context, input *kms.GetKeyPolicyInput) (*kms.GetKeyPolicyOutput, error)
+	EnableKey(ctx context.Context, input *kms.EnableKeyInput) (*kms.EnableKeyOutput, error)
+	DisableKey(ctx context.Context, input *kms.DisableKeyInput) (*kms.DisableKeyOutput, error)
+	ScheduleKeyDeletion(ctx context.Context, input *kms.ScheduleKeyDeletionInput) (*kms.ScheduleKeyDeletionOutput, error)
 }
 
 type DynamoDBPort interface {
@@ -397,5 +401,3 @@ type ConfigPort interface {
 	LoadConfig(ctx context.Context) (ConfigPort, error)
 	SetDefaults() config.ConfigMap
 }
-
-
