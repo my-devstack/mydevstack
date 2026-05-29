@@ -22,7 +22,6 @@ func testConfig() *configloader.Config {
 			AccessKey: "test",
 			SecretKey: "test",
 		},
-		ServicePattern:    "root",
 		Emulator:          "", // empty = no emulator health check, always healthy in unit tests
 		GitHubRepo:        "https://github.com/my-devstack/mydevstack",
 		VersionCheckHours: 24,

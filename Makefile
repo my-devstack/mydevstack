@@ -1,8 +1,9 @@
 
+HASH := \#
 FILE=./.env
 ifneq ("$(wildcard $(FILE))","")
 	include $(FILE)
-	export $(shell sed 's/=.*//' $(FILE))
+	export $(shell grep -v '^$(HASH)' $(FILE) | sed 's/=.*//')
 endif
 
 .PHONY: help run-proxy run-ui build dist lint lint-proxy lint-ui test clean unit unit-coverage test-e2e openapi openapi-bundle
