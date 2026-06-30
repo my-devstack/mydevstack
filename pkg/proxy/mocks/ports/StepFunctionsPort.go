@@ -74,7 +74,7 @@ type StepFunctionsPort_CreateStateMachine_Call struct {
 // CreateStateMachine is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sfn.CreateStateMachineInput
-func (_e *StepFunctionsPort_Expecter) CreateStateMachine(ctx interface{}, input interface{}) *StepFunctionsPort_CreateStateMachine_Call {
+func (_e *StepFunctionsPort_Expecter) CreateStateMachine(ctx any, input any) *StepFunctionsPort_CreateStateMachine_Call {
 	return &StepFunctionsPort_CreateStateMachine_Call{Call: _e.mock.On("CreateStateMachine", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type StepFunctionsPort_DeleteStateMachine_Call struct {
 // DeleteStateMachine is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sfn.DeleteStateMachineInput
-func (_e *StepFunctionsPort_Expecter) DeleteStateMachine(ctx interface{}, input interface{}) *StepFunctionsPort_DeleteStateMachine_Call {
+func (_e *StepFunctionsPort_Expecter) DeleteStateMachine(ctx any, input any) *StepFunctionsPort_DeleteStateMachine_Call {
 	return &StepFunctionsPort_DeleteStateMachine_Call{Call: _e.mock.On("DeleteStateMachine", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type StepFunctionsPort_DescribeExecution_Call struct {
 // DescribeExecution is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sfn.DescribeExecutionInput
-func (_e *StepFunctionsPort_Expecter) DescribeExecution(ctx interface{}, input interface{}) *StepFunctionsPort_DescribeExecution_Call {
+func (_e *StepFunctionsPort_Expecter) DescribeExecution(ctx any, input any) *StepFunctionsPort_DescribeExecution_Call {
 	return &StepFunctionsPort_DescribeExecution_Call{Call: _e.mock.On("DescribeExecution", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type StepFunctionsPort_DescribeStateMachine_Call struct {
 // DescribeStateMachine is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sfn.DescribeStateMachineInput
-func (_e *StepFunctionsPort_Expecter) DescribeStateMachine(ctx interface{}, input interface{}) *StepFunctionsPort_DescribeStateMachine_Call {
+func (_e *StepFunctionsPort_Expecter) DescribeStateMachine(ctx any, input any) *StepFunctionsPort_DescribeStateMachine_Call {
 	return &StepFunctionsPort_DescribeStateMachine_Call{Call: _e.mock.On("DescribeStateMachine", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type StepFunctionsPort_GetExecutionHistory_Call struct {
 // GetExecutionHistory is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sfn.GetExecutionHistoryInput
-func (_e *StepFunctionsPort_Expecter) GetExecutionHistory(ctx interface{}, input interface{}) *StepFunctionsPort_GetExecutionHistory_Call {
+func (_e *StepFunctionsPort_Expecter) GetExecutionHistory(ctx any, input any) *StepFunctionsPort_GetExecutionHistory_Call {
 	return &StepFunctionsPort_GetExecutionHistory_Call{Call: _e.mock.On("GetExecutionHistory", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type StepFunctionsPort_ListExecutions_Call struct {
 // ListExecutions is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sfn.ListExecutionsInput
-func (_e *StepFunctionsPort_Expecter) ListExecutions(ctx interface{}, input interface{}) *StepFunctionsPort_ListExecutions_Call {
+func (_e *StepFunctionsPort_Expecter) ListExecutions(ctx any, input any) *StepFunctionsPort_ListExecutions_Call {
 	return &StepFunctionsPort_ListExecutions_Call{Call: _e.mock.On("ListExecutions", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type StepFunctionsPort_ListStateMachines_Call struct {
 // ListStateMachines is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sfn.ListStateMachinesInput
-func (_e *StepFunctionsPort_Expecter) ListStateMachines(ctx interface{}, input interface{}) *StepFunctionsPort_ListStateMachines_Call {
+func (_e *StepFunctionsPort_Expecter) ListStateMachines(ctx any, input any) *StepFunctionsPort_ListStateMachines_Call {
 	return &StepFunctionsPort_ListStateMachines_Call{Call: _e.mock.On("ListStateMachines", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type StepFunctionsPort_ListTagsForResource_Call struct {
 // ListTagsForResource is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sfn.ListTagsForResourceInput
-func (_e *StepFunctionsPort_Expecter) ListTagsForResource(ctx interface{}, input interface{}) *StepFunctionsPort_ListTagsForResource_Call {
+func (_e *StepFunctionsPort_Expecter) ListTagsForResource(ctx any, input any) *StepFunctionsPort_ListTagsForResource_Call {
 	return &StepFunctionsPort_ListTagsForResource_Call{Call: _e.mock.On("ListTagsForResource", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type StepFunctionsPort_StartExecution_Call struct {
 // StartExecution is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sfn.StartExecutionInput
-func (_e *StepFunctionsPort_Expecter) StartExecution(ctx interface{}, input interface{}) *StepFunctionsPort_StartExecution_Call {
+func (_e *StepFunctionsPort_Expecter) StartExecution(ctx any, input any) *StepFunctionsPort_StartExecution_Call {
 	return &StepFunctionsPort_StartExecution_Call{Call: _e.mock.On("StartExecution", ctx, input)}
 }
 
@@ -686,7 +686,7 @@ type StepFunctionsPort_StopExecution_Call struct {
 // StopExecution is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sfn.StopExecutionInput
-func (_e *StepFunctionsPort_Expecter) StopExecution(ctx interface{}, input interface{}) *StepFunctionsPort_StopExecution_Call {
+func (_e *StepFunctionsPort_Expecter) StopExecution(ctx any, input any) *StepFunctionsPort_StopExecution_Call {
 	return &StepFunctionsPort_StopExecution_Call{Call: _e.mock.On("StopExecution", ctx, input)}
 }
 
@@ -754,7 +754,7 @@ type StepFunctionsPort_TagResource_Call struct {
 // TagResource is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sfn.TagResourceInput
-func (_e *StepFunctionsPort_Expecter) TagResource(ctx interface{}, input interface{}) *StepFunctionsPort_TagResource_Call {
+func (_e *StepFunctionsPort_Expecter) TagResource(ctx any, input any) *StepFunctionsPort_TagResource_Call {
 	return &StepFunctionsPort_TagResource_Call{Call: _e.mock.On("TagResource", ctx, input)}
 }
 
@@ -822,7 +822,7 @@ type StepFunctionsPort_UntagResource_Call struct {
 // UntagResource is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sfn.UntagResourceInput
-func (_e *StepFunctionsPort_Expecter) UntagResource(ctx interface{}, input interface{}) *StepFunctionsPort_UntagResource_Call {
+func (_e *StepFunctionsPort_Expecter) UntagResource(ctx any, input any) *StepFunctionsPort_UntagResource_Call {
 	return &StepFunctionsPort_UntagResource_Call{Call: _e.mock.On("UntagResource", ctx, input)}
 }
 
@@ -890,7 +890,7 @@ type StepFunctionsPort_UpdateStateMachine_Call struct {
 // UpdateStateMachine is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sfn.UpdateStateMachineInput
-func (_e *StepFunctionsPort_Expecter) UpdateStateMachine(ctx interface{}, input interface{}) *StepFunctionsPort_UpdateStateMachine_Call {
+func (_e *StepFunctionsPort_Expecter) UpdateStateMachine(ctx any, input any) *StepFunctionsPort_UpdateStateMachine_Call {
 	return &StepFunctionsPort_UpdateStateMachine_Call{Call: _e.mock.On("UpdateStateMachine", ctx, input)}
 }
 

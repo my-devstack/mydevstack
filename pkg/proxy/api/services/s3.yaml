@@ -721,3 +721,84 @@ paths:
             application/json:
               schema:
                 $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /s3/buckets/{bucket}/lifecycle:
+    get:
+      tags: [S3]
+      summary: Get bucket lifecycle configuration
+      description: |
+        Returns the lifecycle configuration rules for a bucket.
+        Returns an empty Rules array if no lifecycle configuration exists.
+      operationId: getBucketLifecycleConfiguration
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      responses:
+        "200":
+          description: Lifecycle configuration
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3GetBucketLifecycleConfigurationOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [S3]
+      summary: Set bucket lifecycle configuration
+      description: |
+        Sets the lifecycle configuration for a bucket. Replaces all existing rules.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putBucketLifecycleConfiguration
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/S3PutBucketLifecycleConfigurationInput'
+      responses:
+        "200":
+          description: Lifecycle configuration updated
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3PutBucketLifecycleConfigurationOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [S3]
+      summary: Delete bucket lifecycle configuration
+      description: |
+        Removes all lifecycle configuration rules from a bucket.
+      operationId: deleteBucketLifecycleConfiguration
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/BucketPath'
+      responses:
+        "200":
+          description: Lifecycle configuration deleted
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/S3DeleteBucketLifecycleConfigurationOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'

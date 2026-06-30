@@ -81,9 +81,9 @@ type CloudWatchClientPort_DeleteAlarms_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatch.DeleteAlarmsInput
 //   - opts ...func(*cloudwatch.Options)
-func (_e *CloudWatchClientPort_Expecter) DeleteAlarms(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchClientPort_DeleteAlarms_Call {
+func (_e *CloudWatchClientPort_Expecter) DeleteAlarms(ctx any, input any, opts ...any) *CloudWatchClientPort_DeleteAlarms_Call {
 	return &CloudWatchClientPort_DeleteAlarms_Call{Call: _e.mock.On("DeleteAlarms",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchClientPort_DeleteAlarms_Call) Run(run func(ctx context.Context, input *cloudwatch.DeleteAlarmsInput, opts ...func(*cloudwatch.Options))) *CloudWatchClientPort_DeleteAlarms_Call {
@@ -164,9 +164,9 @@ type CloudWatchClientPort_DescribeAlarmHistory_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatch.DescribeAlarmHistoryInput
 //   - opts ...func(*cloudwatch.Options)
-func (_e *CloudWatchClientPort_Expecter) DescribeAlarmHistory(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchClientPort_DescribeAlarmHistory_Call {
+func (_e *CloudWatchClientPort_Expecter) DescribeAlarmHistory(ctx any, input any, opts ...any) *CloudWatchClientPort_DescribeAlarmHistory_Call {
 	return &CloudWatchClientPort_DescribeAlarmHistory_Call{Call: _e.mock.On("DescribeAlarmHistory",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchClientPort_DescribeAlarmHistory_Call) Run(run func(ctx context.Context, input *cloudwatch.DescribeAlarmHistoryInput, opts ...func(*cloudwatch.Options))) *CloudWatchClientPort_DescribeAlarmHistory_Call {
@@ -247,9 +247,9 @@ type CloudWatchClientPort_DescribeAlarms_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatch.DescribeAlarmsInput
 //   - opts ...func(*cloudwatch.Options)
-func (_e *CloudWatchClientPort_Expecter) DescribeAlarms(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchClientPort_DescribeAlarms_Call {
+func (_e *CloudWatchClientPort_Expecter) DescribeAlarms(ctx any, input any, opts ...any) *CloudWatchClientPort_DescribeAlarms_Call {
 	return &CloudWatchClientPort_DescribeAlarms_Call{Call: _e.mock.On("DescribeAlarms",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchClientPort_DescribeAlarms_Call) Run(run func(ctx context.Context, input *cloudwatch.DescribeAlarmsInput, opts ...func(*cloudwatch.Options))) *CloudWatchClientPort_DescribeAlarms_Call {
@@ -330,9 +330,9 @@ type CloudWatchClientPort_GetMetricData_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatch.GetMetricDataInput
 //   - opts ...func(*cloudwatch.Options)
-func (_e *CloudWatchClientPort_Expecter) GetMetricData(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchClientPort_GetMetricData_Call {
+func (_e *CloudWatchClientPort_Expecter) GetMetricData(ctx any, input any, opts ...any) *CloudWatchClientPort_GetMetricData_Call {
 	return &CloudWatchClientPort_GetMetricData_Call{Call: _e.mock.On("GetMetricData",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchClientPort_GetMetricData_Call) Run(run func(ctx context.Context, input *cloudwatch.GetMetricDataInput, opts ...func(*cloudwatch.Options))) *CloudWatchClientPort_GetMetricData_Call {
@@ -413,9 +413,9 @@ type CloudWatchClientPort_GetMetricStatistics_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatch.GetMetricStatisticsInput
 //   - opts ...func(*cloudwatch.Options)
-func (_e *CloudWatchClientPort_Expecter) GetMetricStatistics(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchClientPort_GetMetricStatistics_Call {
+func (_e *CloudWatchClientPort_Expecter) GetMetricStatistics(ctx any, input any, opts ...any) *CloudWatchClientPort_GetMetricStatistics_Call {
 	return &CloudWatchClientPort_GetMetricStatistics_Call{Call: _e.mock.On("GetMetricStatistics",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchClientPort_GetMetricStatistics_Call) Run(run func(ctx context.Context, input *cloudwatch.GetMetricStatisticsInput, opts ...func(*cloudwatch.Options))) *CloudWatchClientPort_GetMetricStatistics_Call {
@@ -496,9 +496,9 @@ type CloudWatchClientPort_ListMetrics_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatch.ListMetricsInput
 //   - opts ...func(*cloudwatch.Options)
-func (_e *CloudWatchClientPort_Expecter) ListMetrics(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchClientPort_ListMetrics_Call {
+func (_e *CloudWatchClientPort_Expecter) ListMetrics(ctx any, input any, opts ...any) *CloudWatchClientPort_ListMetrics_Call {
 	return &CloudWatchClientPort_ListMetrics_Call{Call: _e.mock.On("ListMetrics",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchClientPort_ListMetrics_Call) Run(run func(ctx context.Context, input *cloudwatch.ListMetricsInput, opts ...func(*cloudwatch.Options))) *CloudWatchClientPort_ListMetrics_Call {
@@ -579,9 +579,9 @@ type CloudWatchClientPort_PutMetricAlarm_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatch.PutMetricAlarmInput
 //   - opts ...func(*cloudwatch.Options)
-func (_e *CloudWatchClientPort_Expecter) PutMetricAlarm(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchClientPort_PutMetricAlarm_Call {
+func (_e *CloudWatchClientPort_Expecter) PutMetricAlarm(ctx any, input any, opts ...any) *CloudWatchClientPort_PutMetricAlarm_Call {
 	return &CloudWatchClientPort_PutMetricAlarm_Call{Call: _e.mock.On("PutMetricAlarm",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchClientPort_PutMetricAlarm_Call) Run(run func(ctx context.Context, input *cloudwatch.PutMetricAlarmInput, opts ...func(*cloudwatch.Options))) *CloudWatchClientPort_PutMetricAlarm_Call {
@@ -662,9 +662,9 @@ type CloudWatchClientPort_PutMetricData_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatch.PutMetricDataInput
 //   - opts ...func(*cloudwatch.Options)
-func (_e *CloudWatchClientPort_Expecter) PutMetricData(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchClientPort_PutMetricData_Call {
+func (_e *CloudWatchClientPort_Expecter) PutMetricData(ctx any, input any, opts ...any) *CloudWatchClientPort_PutMetricData_Call {
 	return &CloudWatchClientPort_PutMetricData_Call{Call: _e.mock.On("PutMetricData",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchClientPort_PutMetricData_Call) Run(run func(ctx context.Context, input *cloudwatch.PutMetricDataInput, opts ...func(*cloudwatch.Options))) *CloudWatchClientPort_PutMetricData_Call {
@@ -745,9 +745,9 @@ type CloudWatchClientPort_SetAlarmState_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatch.SetAlarmStateInput
 //   - opts ...func(*cloudwatch.Options)
-func (_e *CloudWatchClientPort_Expecter) SetAlarmState(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchClientPort_SetAlarmState_Call {
+func (_e *CloudWatchClientPort_Expecter) SetAlarmState(ctx any, input any, opts ...any) *CloudWatchClientPort_SetAlarmState_Call {
 	return &CloudWatchClientPort_SetAlarmState_Call{Call: _e.mock.On("SetAlarmState",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchClientPort_SetAlarmState_Call) Run(run func(ctx context.Context, input *cloudwatch.SetAlarmStateInput, opts ...func(*cloudwatch.Options))) *CloudWatchClientPort_SetAlarmState_Call {

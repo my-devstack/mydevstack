@@ -81,9 +81,9 @@ type RDSClientPort_CreateDBInstance_Call struct {
 //   - ctx context.Context
 //   - input *rds.CreateDBInstanceInput
 //   - opts ...func(*rds.Options)
-func (_e *RDSClientPort_Expecter) CreateDBInstance(ctx interface{}, input interface{}, opts ...interface{}) *RDSClientPort_CreateDBInstance_Call {
+func (_e *RDSClientPort_Expecter) CreateDBInstance(ctx any, input any, opts ...any) *RDSClientPort_CreateDBInstance_Call {
 	return &RDSClientPort_CreateDBInstance_Call{Call: _e.mock.On("CreateDBInstance",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *RDSClientPort_CreateDBInstance_Call) Run(run func(ctx context.Context, input *rds.CreateDBInstanceInput, opts ...func(*rds.Options))) *RDSClientPort_CreateDBInstance_Call {
@@ -164,9 +164,9 @@ type RDSClientPort_DeleteDBInstance_Call struct {
 //   - ctx context.Context
 //   - input *rds.DeleteDBInstanceInput
 //   - opts ...func(*rds.Options)
-func (_e *RDSClientPort_Expecter) DeleteDBInstance(ctx interface{}, input interface{}, opts ...interface{}) *RDSClientPort_DeleteDBInstance_Call {
+func (_e *RDSClientPort_Expecter) DeleteDBInstance(ctx any, input any, opts ...any) *RDSClientPort_DeleteDBInstance_Call {
 	return &RDSClientPort_DeleteDBInstance_Call{Call: _e.mock.On("DeleteDBInstance",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *RDSClientPort_DeleteDBInstance_Call) Run(run func(ctx context.Context, input *rds.DeleteDBInstanceInput, opts ...func(*rds.Options))) *RDSClientPort_DeleteDBInstance_Call {
@@ -247,9 +247,9 @@ type RDSClientPort_DescribeDBEngineVersions_Call struct {
 //   - ctx context.Context
 //   - input *rds.DescribeDBEngineVersionsInput
 //   - opts ...func(*rds.Options)
-func (_e *RDSClientPort_Expecter) DescribeDBEngineVersions(ctx interface{}, input interface{}, opts ...interface{}) *RDSClientPort_DescribeDBEngineVersions_Call {
+func (_e *RDSClientPort_Expecter) DescribeDBEngineVersions(ctx any, input any, opts ...any) *RDSClientPort_DescribeDBEngineVersions_Call {
 	return &RDSClientPort_DescribeDBEngineVersions_Call{Call: _e.mock.On("DescribeDBEngineVersions",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *RDSClientPort_DescribeDBEngineVersions_Call) Run(run func(ctx context.Context, input *rds.DescribeDBEngineVersionsInput, opts ...func(*rds.Options))) *RDSClientPort_DescribeDBEngineVersions_Call {
@@ -330,9 +330,9 @@ type RDSClientPort_DescribeDBInstances_Call struct {
 //   - ctx context.Context
 //   - input *rds.DescribeDBInstancesInput
 //   - opts ...func(*rds.Options)
-func (_e *RDSClientPort_Expecter) DescribeDBInstances(ctx interface{}, input interface{}, opts ...interface{}) *RDSClientPort_DescribeDBInstances_Call {
+func (_e *RDSClientPort_Expecter) DescribeDBInstances(ctx any, input any, opts ...any) *RDSClientPort_DescribeDBInstances_Call {
 	return &RDSClientPort_DescribeDBInstances_Call{Call: _e.mock.On("DescribeDBInstances",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *RDSClientPort_DescribeDBInstances_Call) Run(run func(ctx context.Context, input *rds.DescribeDBInstancesInput, opts ...func(*rds.Options))) *RDSClientPort_DescribeDBInstances_Call {
@@ -413,9 +413,9 @@ type RDSClientPort_ModifyDBInstance_Call struct {
 //   - ctx context.Context
 //   - input *rds.ModifyDBInstanceInput
 //   - opts ...func(*rds.Options)
-func (_e *RDSClientPort_Expecter) ModifyDBInstance(ctx interface{}, input interface{}, opts ...interface{}) *RDSClientPort_ModifyDBInstance_Call {
+func (_e *RDSClientPort_Expecter) ModifyDBInstance(ctx any, input any, opts ...any) *RDSClientPort_ModifyDBInstance_Call {
 	return &RDSClientPort_ModifyDBInstance_Call{Call: _e.mock.On("ModifyDBInstance",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *RDSClientPort_ModifyDBInstance_Call) Run(run func(ctx context.Context, input *rds.ModifyDBInstanceInput, opts ...func(*rds.Options))) *RDSClientPort_ModifyDBInstance_Call {
@@ -496,9 +496,9 @@ type RDSClientPort_RebootDBInstance_Call struct {
 //   - ctx context.Context
 //   - input *rds.RebootDBInstanceInput
 //   - opts ...func(*rds.Options)
-func (_e *RDSClientPort_Expecter) RebootDBInstance(ctx interface{}, input interface{}, opts ...interface{}) *RDSClientPort_RebootDBInstance_Call {
+func (_e *RDSClientPort_Expecter) RebootDBInstance(ctx any, input any, opts ...any) *RDSClientPort_RebootDBInstance_Call {
 	return &RDSClientPort_RebootDBInstance_Call{Call: _e.mock.On("RebootDBInstance",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *RDSClientPort_RebootDBInstance_Call) Run(run func(ctx context.Context, input *rds.RebootDBInstanceInput, opts ...func(*rds.Options))) *RDSClientPort_RebootDBInstance_Call {

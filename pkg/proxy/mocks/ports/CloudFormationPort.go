@@ -74,7 +74,7 @@ type CloudFormationPort_CreateStack_Call struct {
 // CreateStack is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudformation.CreateStackInput
-func (_e *CloudFormationPort_Expecter) CreateStack(ctx interface{}, input interface{}) *CloudFormationPort_CreateStack_Call {
+func (_e *CloudFormationPort_Expecter) CreateStack(ctx any, input any) *CloudFormationPort_CreateStack_Call {
 	return &CloudFormationPort_CreateStack_Call{Call: _e.mock.On("CreateStack", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type CloudFormationPort_DeleteStack_Call struct {
 // DeleteStack is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudformation.DeleteStackInput
-func (_e *CloudFormationPort_Expecter) DeleteStack(ctx interface{}, input interface{}) *CloudFormationPort_DeleteStack_Call {
+func (_e *CloudFormationPort_Expecter) DeleteStack(ctx any, input any) *CloudFormationPort_DeleteStack_Call {
 	return &CloudFormationPort_DeleteStack_Call{Call: _e.mock.On("DeleteStack", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type CloudFormationPort_DescribeStacks_Call struct {
 // DescribeStacks is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudformation.DescribeStacksInput
-func (_e *CloudFormationPort_Expecter) DescribeStacks(ctx interface{}, input interface{}) *CloudFormationPort_DescribeStacks_Call {
+func (_e *CloudFormationPort_Expecter) DescribeStacks(ctx any, input any) *CloudFormationPort_DescribeStacks_Call {
 	return &CloudFormationPort_DescribeStacks_Call{Call: _e.mock.On("DescribeStacks", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type CloudFormationPort_GetTemplate_Call struct {
 // GetTemplate is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudformation.GetTemplateInput
-func (_e *CloudFormationPort_Expecter) GetTemplate(ctx interface{}, input interface{}) *CloudFormationPort_GetTemplate_Call {
+func (_e *CloudFormationPort_Expecter) GetTemplate(ctx any, input any) *CloudFormationPort_GetTemplate_Call {
 	return &CloudFormationPort_GetTemplate_Call{Call: _e.mock.On("GetTemplate", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type CloudFormationPort_ListStackResources_Call struct {
 // ListStackResources is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudformation.ListStackResourcesInput
-func (_e *CloudFormationPort_Expecter) ListStackResources(ctx interface{}, input interface{}) *CloudFormationPort_ListStackResources_Call {
+func (_e *CloudFormationPort_Expecter) ListStackResources(ctx any, input any) *CloudFormationPort_ListStackResources_Call {
 	return &CloudFormationPort_ListStackResources_Call{Call: _e.mock.On("ListStackResources", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type CloudFormationPort_ListStacks_Call struct {
 // ListStacks is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudformation.ListStacksInput
-func (_e *CloudFormationPort_Expecter) ListStacks(ctx interface{}, input interface{}) *CloudFormationPort_ListStacks_Call {
+func (_e *CloudFormationPort_Expecter) ListStacks(ctx any, input any) *CloudFormationPort_ListStacks_Call {
 	return &CloudFormationPort_ListStacks_Call{Call: _e.mock.On("ListStacks", ctx, input)}
 }
 

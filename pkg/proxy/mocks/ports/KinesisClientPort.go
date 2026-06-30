@@ -81,9 +81,9 @@ type KinesisClientPort_CreateStream_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.CreateStreamInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) CreateStream(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_CreateStream_Call {
+func (_e *KinesisClientPort_Expecter) CreateStream(ctx any, input any, opts ...any) *KinesisClientPort_CreateStream_Call {
 	return &KinesisClientPort_CreateStream_Call{Call: _e.mock.On("CreateStream",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_CreateStream_Call) Run(run func(ctx context.Context, input *kinesis.CreateStreamInput, opts ...func(*kinesis.Options))) *KinesisClientPort_CreateStream_Call {
@@ -164,9 +164,9 @@ type KinesisClientPort_DeleteStream_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.DeleteStreamInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) DeleteStream(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_DeleteStream_Call {
+func (_e *KinesisClientPort_Expecter) DeleteStream(ctx any, input any, opts ...any) *KinesisClientPort_DeleteStream_Call {
 	return &KinesisClientPort_DeleteStream_Call{Call: _e.mock.On("DeleteStream",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_DeleteStream_Call) Run(run func(ctx context.Context, input *kinesis.DeleteStreamInput, opts ...func(*kinesis.Options))) *KinesisClientPort_DeleteStream_Call {
@@ -247,9 +247,9 @@ type KinesisClientPort_DescribeStream_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.DescribeStreamInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) DescribeStream(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_DescribeStream_Call {
+func (_e *KinesisClientPort_Expecter) DescribeStream(ctx any, input any, opts ...any) *KinesisClientPort_DescribeStream_Call {
 	return &KinesisClientPort_DescribeStream_Call{Call: _e.mock.On("DescribeStream",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_DescribeStream_Call) Run(run func(ctx context.Context, input *kinesis.DescribeStreamInput, opts ...func(*kinesis.Options))) *KinesisClientPort_DescribeStream_Call {
@@ -330,9 +330,9 @@ type KinesisClientPort_DescribeStreamSummary_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.DescribeStreamSummaryInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) DescribeStreamSummary(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_DescribeStreamSummary_Call {
+func (_e *KinesisClientPort_Expecter) DescribeStreamSummary(ctx any, input any, opts ...any) *KinesisClientPort_DescribeStreamSummary_Call {
 	return &KinesisClientPort_DescribeStreamSummary_Call{Call: _e.mock.On("DescribeStreamSummary",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_DescribeStreamSummary_Call) Run(run func(ctx context.Context, input *kinesis.DescribeStreamSummaryInput, opts ...func(*kinesis.Options))) *KinesisClientPort_DescribeStreamSummary_Call {
@@ -413,9 +413,9 @@ type KinesisClientPort_DisableEnhancedMonitoring_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.DisableEnhancedMonitoringInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) DisableEnhancedMonitoring(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_DisableEnhancedMonitoring_Call {
+func (_e *KinesisClientPort_Expecter) DisableEnhancedMonitoring(ctx any, input any, opts ...any) *KinesisClientPort_DisableEnhancedMonitoring_Call {
 	return &KinesisClientPort_DisableEnhancedMonitoring_Call{Call: _e.mock.On("DisableEnhancedMonitoring",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_DisableEnhancedMonitoring_Call) Run(run func(ctx context.Context, input *kinesis.DisableEnhancedMonitoringInput, opts ...func(*kinesis.Options))) *KinesisClientPort_DisableEnhancedMonitoring_Call {
@@ -496,9 +496,9 @@ type KinesisClientPort_EnableEnhancedMonitoring_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.EnableEnhancedMonitoringInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) EnableEnhancedMonitoring(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_EnableEnhancedMonitoring_Call {
+func (_e *KinesisClientPort_Expecter) EnableEnhancedMonitoring(ctx any, input any, opts ...any) *KinesisClientPort_EnableEnhancedMonitoring_Call {
 	return &KinesisClientPort_EnableEnhancedMonitoring_Call{Call: _e.mock.On("EnableEnhancedMonitoring",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_EnableEnhancedMonitoring_Call) Run(run func(ctx context.Context, input *kinesis.EnableEnhancedMonitoringInput, opts ...func(*kinesis.Options))) *KinesisClientPort_EnableEnhancedMonitoring_Call {
@@ -579,9 +579,9 @@ type KinesisClientPort_GetRecords_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.GetRecordsInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) GetRecords(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_GetRecords_Call {
+func (_e *KinesisClientPort_Expecter) GetRecords(ctx any, input any, opts ...any) *KinesisClientPort_GetRecords_Call {
 	return &KinesisClientPort_GetRecords_Call{Call: _e.mock.On("GetRecords",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_GetRecords_Call) Run(run func(ctx context.Context, input *kinesis.GetRecordsInput, opts ...func(*kinesis.Options))) *KinesisClientPort_GetRecords_Call {
@@ -662,9 +662,9 @@ type KinesisClientPort_GetShardIterator_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.GetShardIteratorInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) GetShardIterator(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_GetShardIterator_Call {
+func (_e *KinesisClientPort_Expecter) GetShardIterator(ctx any, input any, opts ...any) *KinesisClientPort_GetShardIterator_Call {
 	return &KinesisClientPort_GetShardIterator_Call{Call: _e.mock.On("GetShardIterator",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_GetShardIterator_Call) Run(run func(ctx context.Context, input *kinesis.GetShardIteratorInput, opts ...func(*kinesis.Options))) *KinesisClientPort_GetShardIterator_Call {
@@ -745,9 +745,9 @@ type KinesisClientPort_ListShards_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.ListShardsInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) ListShards(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_ListShards_Call {
+func (_e *KinesisClientPort_Expecter) ListShards(ctx any, input any, opts ...any) *KinesisClientPort_ListShards_Call {
 	return &KinesisClientPort_ListShards_Call{Call: _e.mock.On("ListShards",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_ListShards_Call) Run(run func(ctx context.Context, input *kinesis.ListShardsInput, opts ...func(*kinesis.Options))) *KinesisClientPort_ListShards_Call {
@@ -828,9 +828,9 @@ type KinesisClientPort_ListStreams_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.ListStreamsInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) ListStreams(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_ListStreams_Call {
+func (_e *KinesisClientPort_Expecter) ListStreams(ctx any, input any, opts ...any) *KinesisClientPort_ListStreams_Call {
 	return &KinesisClientPort_ListStreams_Call{Call: _e.mock.On("ListStreams",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_ListStreams_Call) Run(run func(ctx context.Context, input *kinesis.ListStreamsInput, opts ...func(*kinesis.Options))) *KinesisClientPort_ListStreams_Call {
@@ -911,9 +911,9 @@ type KinesisClientPort_MergeShards_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.MergeShardsInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) MergeShards(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_MergeShards_Call {
+func (_e *KinesisClientPort_Expecter) MergeShards(ctx any, input any, opts ...any) *KinesisClientPort_MergeShards_Call {
 	return &KinesisClientPort_MergeShards_Call{Call: _e.mock.On("MergeShards",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_MergeShards_Call) Run(run func(ctx context.Context, input *kinesis.MergeShardsInput, opts ...func(*kinesis.Options))) *KinesisClientPort_MergeShards_Call {
@@ -994,9 +994,9 @@ type KinesisClientPort_PutRecord_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.PutRecordInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) PutRecord(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_PutRecord_Call {
+func (_e *KinesisClientPort_Expecter) PutRecord(ctx any, input any, opts ...any) *KinesisClientPort_PutRecord_Call {
 	return &KinesisClientPort_PutRecord_Call{Call: _e.mock.On("PutRecord",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_PutRecord_Call) Run(run func(ctx context.Context, input *kinesis.PutRecordInput, opts ...func(*kinesis.Options))) *KinesisClientPort_PutRecord_Call {
@@ -1077,9 +1077,9 @@ type KinesisClientPort_PutRecords_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.PutRecordsInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) PutRecords(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_PutRecords_Call {
+func (_e *KinesisClientPort_Expecter) PutRecords(ctx any, input any, opts ...any) *KinesisClientPort_PutRecords_Call {
 	return &KinesisClientPort_PutRecords_Call{Call: _e.mock.On("PutRecords",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_PutRecords_Call) Run(run func(ctx context.Context, input *kinesis.PutRecordsInput, opts ...func(*kinesis.Options))) *KinesisClientPort_PutRecords_Call {
@@ -1160,9 +1160,9 @@ type KinesisClientPort_SplitShard_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.SplitShardInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) SplitShard(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_SplitShard_Call {
+func (_e *KinesisClientPort_Expecter) SplitShard(ctx any, input any, opts ...any) *KinesisClientPort_SplitShard_Call {
 	return &KinesisClientPort_SplitShard_Call{Call: _e.mock.On("SplitShard",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_SplitShard_Call) Run(run func(ctx context.Context, input *kinesis.SplitShardInput, opts ...func(*kinesis.Options))) *KinesisClientPort_SplitShard_Call {
@@ -1243,9 +1243,9 @@ type KinesisClientPort_UpdateShardCount_Call struct {
 //   - ctx context.Context
 //   - input *kinesis.UpdateShardCountInput
 //   - opts ...func(*kinesis.Options)
-func (_e *KinesisClientPort_Expecter) UpdateShardCount(ctx interface{}, input interface{}, opts ...interface{}) *KinesisClientPort_UpdateShardCount_Call {
+func (_e *KinesisClientPort_Expecter) UpdateShardCount(ctx any, input any, opts ...any) *KinesisClientPort_UpdateShardCount_Call {
 	return &KinesisClientPort_UpdateShardCount_Call{Call: _e.mock.On("UpdateShardCount",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KinesisClientPort_UpdateShardCount_Call) Run(run func(ctx context.Context, input *kinesis.UpdateShardCountInput, opts ...func(*kinesis.Options))) *KinesisClientPort_UpdateShardCount_Call {

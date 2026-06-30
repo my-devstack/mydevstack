@@ -81,9 +81,9 @@ type OpenSearchClientPort_AddTags_Call struct {
 //   - ctx context.Context
 //   - input *opensearch.AddTagsInput
 //   - opts ...func(*opensearch.Options)
-func (_e *OpenSearchClientPort_Expecter) AddTags(ctx interface{}, input interface{}, opts ...interface{}) *OpenSearchClientPort_AddTags_Call {
+func (_e *OpenSearchClientPort_Expecter) AddTags(ctx any, input any, opts ...any) *OpenSearchClientPort_AddTags_Call {
 	return &OpenSearchClientPort_AddTags_Call{Call: _e.mock.On("AddTags",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *OpenSearchClientPort_AddTags_Call) Run(run func(ctx context.Context, input *opensearch.AddTagsInput, opts ...func(*opensearch.Options))) *OpenSearchClientPort_AddTags_Call {
@@ -164,9 +164,9 @@ type OpenSearchClientPort_CreateDomain_Call struct {
 //   - ctx context.Context
 //   - input *opensearch.CreateDomainInput
 //   - opts ...func(*opensearch.Options)
-func (_e *OpenSearchClientPort_Expecter) CreateDomain(ctx interface{}, input interface{}, opts ...interface{}) *OpenSearchClientPort_CreateDomain_Call {
+func (_e *OpenSearchClientPort_Expecter) CreateDomain(ctx any, input any, opts ...any) *OpenSearchClientPort_CreateDomain_Call {
 	return &OpenSearchClientPort_CreateDomain_Call{Call: _e.mock.On("CreateDomain",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *OpenSearchClientPort_CreateDomain_Call) Run(run func(ctx context.Context, input *opensearch.CreateDomainInput, opts ...func(*opensearch.Options))) *OpenSearchClientPort_CreateDomain_Call {
@@ -247,9 +247,9 @@ type OpenSearchClientPort_DeleteDomain_Call struct {
 //   - ctx context.Context
 //   - input *opensearch.DeleteDomainInput
 //   - opts ...func(*opensearch.Options)
-func (_e *OpenSearchClientPort_Expecter) DeleteDomain(ctx interface{}, input interface{}, opts ...interface{}) *OpenSearchClientPort_DeleteDomain_Call {
+func (_e *OpenSearchClientPort_Expecter) DeleteDomain(ctx any, input any, opts ...any) *OpenSearchClientPort_DeleteDomain_Call {
 	return &OpenSearchClientPort_DeleteDomain_Call{Call: _e.mock.On("DeleteDomain",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *OpenSearchClientPort_DeleteDomain_Call) Run(run func(ctx context.Context, input *opensearch.DeleteDomainInput, opts ...func(*opensearch.Options))) *OpenSearchClientPort_DeleteDomain_Call {
@@ -330,9 +330,9 @@ type OpenSearchClientPort_DescribeDomain_Call struct {
 //   - ctx context.Context
 //   - input *opensearch.DescribeDomainInput
 //   - opts ...func(*opensearch.Options)
-func (_e *OpenSearchClientPort_Expecter) DescribeDomain(ctx interface{}, input interface{}, opts ...interface{}) *OpenSearchClientPort_DescribeDomain_Call {
+func (_e *OpenSearchClientPort_Expecter) DescribeDomain(ctx any, input any, opts ...any) *OpenSearchClientPort_DescribeDomain_Call {
 	return &OpenSearchClientPort_DescribeDomain_Call{Call: _e.mock.On("DescribeDomain",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *OpenSearchClientPort_DescribeDomain_Call) Run(run func(ctx context.Context, input *opensearch.DescribeDomainInput, opts ...func(*opensearch.Options))) *OpenSearchClientPort_DescribeDomain_Call {
@@ -413,9 +413,9 @@ type OpenSearchClientPort_DescribeDomainConfig_Call struct {
 //   - ctx context.Context
 //   - input *opensearch.DescribeDomainConfigInput
 //   - opts ...func(*opensearch.Options)
-func (_e *OpenSearchClientPort_Expecter) DescribeDomainConfig(ctx interface{}, input interface{}, opts ...interface{}) *OpenSearchClientPort_DescribeDomainConfig_Call {
+func (_e *OpenSearchClientPort_Expecter) DescribeDomainConfig(ctx any, input any, opts ...any) *OpenSearchClientPort_DescribeDomainConfig_Call {
 	return &OpenSearchClientPort_DescribeDomainConfig_Call{Call: _e.mock.On("DescribeDomainConfig",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *OpenSearchClientPort_DescribeDomainConfig_Call) Run(run func(ctx context.Context, input *opensearch.DescribeDomainConfigInput, opts ...func(*opensearch.Options))) *OpenSearchClientPort_DescribeDomainConfig_Call {
@@ -496,9 +496,9 @@ type OpenSearchClientPort_GetCompatibleVersions_Call struct {
 //   - ctx context.Context
 //   - input *opensearch.GetCompatibleVersionsInput
 //   - opts ...func(*opensearch.Options)
-func (_e *OpenSearchClientPort_Expecter) GetCompatibleVersions(ctx interface{}, input interface{}, opts ...interface{}) *OpenSearchClientPort_GetCompatibleVersions_Call {
+func (_e *OpenSearchClientPort_Expecter) GetCompatibleVersions(ctx any, input any, opts ...any) *OpenSearchClientPort_GetCompatibleVersions_Call {
 	return &OpenSearchClientPort_GetCompatibleVersions_Call{Call: _e.mock.On("GetCompatibleVersions",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *OpenSearchClientPort_GetCompatibleVersions_Call) Run(run func(ctx context.Context, input *opensearch.GetCompatibleVersionsInput, opts ...func(*opensearch.Options))) *OpenSearchClientPort_GetCompatibleVersions_Call {
@@ -579,9 +579,9 @@ type OpenSearchClientPort_ListDomainNames_Call struct {
 //   - ctx context.Context
 //   - input *opensearch.ListDomainNamesInput
 //   - opts ...func(*opensearch.Options)
-func (_e *OpenSearchClientPort_Expecter) ListDomainNames(ctx interface{}, input interface{}, opts ...interface{}) *OpenSearchClientPort_ListDomainNames_Call {
+func (_e *OpenSearchClientPort_Expecter) ListDomainNames(ctx any, input any, opts ...any) *OpenSearchClientPort_ListDomainNames_Call {
 	return &OpenSearchClientPort_ListDomainNames_Call{Call: _e.mock.On("ListDomainNames",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *OpenSearchClientPort_ListDomainNames_Call) Run(run func(ctx context.Context, input *opensearch.ListDomainNamesInput, opts ...func(*opensearch.Options))) *OpenSearchClientPort_ListDomainNames_Call {
@@ -662,9 +662,9 @@ type OpenSearchClientPort_ListTags_Call struct {
 //   - ctx context.Context
 //   - input *opensearch.ListTagsInput
 //   - opts ...func(*opensearch.Options)
-func (_e *OpenSearchClientPort_Expecter) ListTags(ctx interface{}, input interface{}, opts ...interface{}) *OpenSearchClientPort_ListTags_Call {
+func (_e *OpenSearchClientPort_Expecter) ListTags(ctx any, input any, opts ...any) *OpenSearchClientPort_ListTags_Call {
 	return &OpenSearchClientPort_ListTags_Call{Call: _e.mock.On("ListTags",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *OpenSearchClientPort_ListTags_Call) Run(run func(ctx context.Context, input *opensearch.ListTagsInput, opts ...func(*opensearch.Options))) *OpenSearchClientPort_ListTags_Call {
@@ -745,9 +745,9 @@ type OpenSearchClientPort_RemoveTags_Call struct {
 //   - ctx context.Context
 //   - input *opensearch.RemoveTagsInput
 //   - opts ...func(*opensearch.Options)
-func (_e *OpenSearchClientPort_Expecter) RemoveTags(ctx interface{}, input interface{}, opts ...interface{}) *OpenSearchClientPort_RemoveTags_Call {
+func (_e *OpenSearchClientPort_Expecter) RemoveTags(ctx any, input any, opts ...any) *OpenSearchClientPort_RemoveTags_Call {
 	return &OpenSearchClientPort_RemoveTags_Call{Call: _e.mock.On("RemoveTags",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *OpenSearchClientPort_RemoveTags_Call) Run(run func(ctx context.Context, input *opensearch.RemoveTagsInput, opts ...func(*opensearch.Options))) *OpenSearchClientPort_RemoveTags_Call {
@@ -828,9 +828,9 @@ type OpenSearchClientPort_UpdateDomainConfig_Call struct {
 //   - ctx context.Context
 //   - input *opensearch.UpdateDomainConfigInput
 //   - opts ...func(*opensearch.Options)
-func (_e *OpenSearchClientPort_Expecter) UpdateDomainConfig(ctx interface{}, input interface{}, opts ...interface{}) *OpenSearchClientPort_UpdateDomainConfig_Call {
+func (_e *OpenSearchClientPort_Expecter) UpdateDomainConfig(ctx any, input any, opts ...any) *OpenSearchClientPort_UpdateDomainConfig_Call {
 	return &OpenSearchClientPort_UpdateDomainConfig_Call{Call: _e.mock.On("UpdateDomainConfig",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *OpenSearchClientPort_UpdateDomainConfig_Call) Run(run func(ctx context.Context, input *opensearch.UpdateDomainConfigInput, opts ...func(*opensearch.Options))) *OpenSearchClientPort_UpdateDomainConfig_Call {

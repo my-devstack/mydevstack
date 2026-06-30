@@ -82,9 +82,9 @@ type PresignClientPort_PresignGetObject_Call struct {
 //   - ctx context.Context
 //   - input *s3.GetObjectInput
 //   - opts ...func(*s3.PresignOptions)
-func (_e *PresignClientPort_Expecter) PresignGetObject(ctx interface{}, input interface{}, opts ...interface{}) *PresignClientPort_PresignGetObject_Call {
+func (_e *PresignClientPort_Expecter) PresignGetObject(ctx any, input any, opts ...any) *PresignClientPort_PresignGetObject_Call {
 	return &PresignClientPort_PresignGetObject_Call{Call: _e.mock.On("PresignGetObject",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *PresignClientPort_PresignGetObject_Call) Run(run func(ctx context.Context, input *s3.GetObjectInput, opts ...func(*s3.PresignOptions))) *PresignClientPort_PresignGetObject_Call {
@@ -165,9 +165,9 @@ type PresignClientPort_PresignPutObject_Call struct {
 //   - ctx context.Context
 //   - input *s3.PutObjectInput
 //   - opts ...func(*s3.PresignOptions)
-func (_e *PresignClientPort_Expecter) PresignPutObject(ctx interface{}, input interface{}, opts ...interface{}) *PresignClientPort_PresignPutObject_Call {
+func (_e *PresignClientPort_Expecter) PresignPutObject(ctx any, input any, opts ...any) *PresignClientPort_PresignPutObject_Call {
 	return &PresignClientPort_PresignPutObject_Call{Call: _e.mock.On("PresignPutObject",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *PresignClientPort_PresignPutObject_Call) Run(run func(ctx context.Context, input *s3.PutObjectInput, opts ...func(*s3.PresignOptions))) *PresignClientPort_PresignPutObject_Call {

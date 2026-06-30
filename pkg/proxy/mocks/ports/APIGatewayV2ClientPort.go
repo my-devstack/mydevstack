@@ -81,9 +81,9 @@ type APIGatewayV2ClientPort_CreateApi_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.CreateApiInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) CreateApi(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_CreateApi_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) CreateApi(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_CreateApi_Call {
 	return &APIGatewayV2ClientPort_CreateApi_Call{Call: _e.mock.On("CreateApi",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_CreateApi_Call) Run(run func(ctx context.Context, input *apigatewayv2.CreateApiInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_CreateApi_Call {
@@ -164,9 +164,9 @@ type APIGatewayV2ClientPort_CreateIntegration_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.CreateIntegrationInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) CreateIntegration(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_CreateIntegration_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) CreateIntegration(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_CreateIntegration_Call {
 	return &APIGatewayV2ClientPort_CreateIntegration_Call{Call: _e.mock.On("CreateIntegration",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_CreateIntegration_Call) Run(run func(ctx context.Context, input *apigatewayv2.CreateIntegrationInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_CreateIntegration_Call {
@@ -247,9 +247,9 @@ type APIGatewayV2ClientPort_CreateRoute_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.CreateRouteInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) CreateRoute(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_CreateRoute_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) CreateRoute(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_CreateRoute_Call {
 	return &APIGatewayV2ClientPort_CreateRoute_Call{Call: _e.mock.On("CreateRoute",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_CreateRoute_Call) Run(run func(ctx context.Context, input *apigatewayv2.CreateRouteInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_CreateRoute_Call {
@@ -330,9 +330,9 @@ type APIGatewayV2ClientPort_CreateStage_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.CreateStageInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) CreateStage(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_CreateStage_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) CreateStage(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_CreateStage_Call {
 	return &APIGatewayV2ClientPort_CreateStage_Call{Call: _e.mock.On("CreateStage",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_CreateStage_Call) Run(run func(ctx context.Context, input *apigatewayv2.CreateStageInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_CreateStage_Call {
@@ -413,9 +413,9 @@ type APIGatewayV2ClientPort_DeleteApi_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.DeleteApiInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) DeleteApi(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_DeleteApi_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) DeleteApi(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_DeleteApi_Call {
 	return &APIGatewayV2ClientPort_DeleteApi_Call{Call: _e.mock.On("DeleteApi",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_DeleteApi_Call) Run(run func(ctx context.Context, input *apigatewayv2.DeleteApiInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_DeleteApi_Call {
@@ -496,9 +496,9 @@ type APIGatewayV2ClientPort_DeleteIntegration_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.DeleteIntegrationInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) DeleteIntegration(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_DeleteIntegration_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) DeleteIntegration(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_DeleteIntegration_Call {
 	return &APIGatewayV2ClientPort_DeleteIntegration_Call{Call: _e.mock.On("DeleteIntegration",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_DeleteIntegration_Call) Run(run func(ctx context.Context, input *apigatewayv2.DeleteIntegrationInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_DeleteIntegration_Call {
@@ -579,9 +579,9 @@ type APIGatewayV2ClientPort_DeleteRoute_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.DeleteRouteInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) DeleteRoute(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_DeleteRoute_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) DeleteRoute(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_DeleteRoute_Call {
 	return &APIGatewayV2ClientPort_DeleteRoute_Call{Call: _e.mock.On("DeleteRoute",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_DeleteRoute_Call) Run(run func(ctx context.Context, input *apigatewayv2.DeleteRouteInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_DeleteRoute_Call {
@@ -662,9 +662,9 @@ type APIGatewayV2ClientPort_DeleteStage_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.DeleteStageInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) DeleteStage(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_DeleteStage_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) DeleteStage(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_DeleteStage_Call {
 	return &APIGatewayV2ClientPort_DeleteStage_Call{Call: _e.mock.On("DeleteStage",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_DeleteStage_Call) Run(run func(ctx context.Context, input *apigatewayv2.DeleteStageInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_DeleteStage_Call {
@@ -745,9 +745,9 @@ type APIGatewayV2ClientPort_GetApi_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.GetApiInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) GetApi(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_GetApi_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) GetApi(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_GetApi_Call {
 	return &APIGatewayV2ClientPort_GetApi_Call{Call: _e.mock.On("GetApi",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_GetApi_Call) Run(run func(ctx context.Context, input *apigatewayv2.GetApiInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_GetApi_Call {
@@ -828,9 +828,9 @@ type APIGatewayV2ClientPort_GetApis_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.GetApisInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) GetApis(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_GetApis_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) GetApis(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_GetApis_Call {
 	return &APIGatewayV2ClientPort_GetApis_Call{Call: _e.mock.On("GetApis",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_GetApis_Call) Run(run func(ctx context.Context, input *apigatewayv2.GetApisInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_GetApis_Call {
@@ -911,9 +911,9 @@ type APIGatewayV2ClientPort_GetIntegrations_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.GetIntegrationsInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) GetIntegrations(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_GetIntegrations_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) GetIntegrations(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_GetIntegrations_Call {
 	return &APIGatewayV2ClientPort_GetIntegrations_Call{Call: _e.mock.On("GetIntegrations",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_GetIntegrations_Call) Run(run func(ctx context.Context, input *apigatewayv2.GetIntegrationsInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_GetIntegrations_Call {
@@ -994,9 +994,9 @@ type APIGatewayV2ClientPort_GetRoutes_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.GetRoutesInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) GetRoutes(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_GetRoutes_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) GetRoutes(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_GetRoutes_Call {
 	return &APIGatewayV2ClientPort_GetRoutes_Call{Call: _e.mock.On("GetRoutes",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_GetRoutes_Call) Run(run func(ctx context.Context, input *apigatewayv2.GetRoutesInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_GetRoutes_Call {
@@ -1077,9 +1077,9 @@ type APIGatewayV2ClientPort_GetStage_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.GetStageInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) GetStage(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_GetStage_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) GetStage(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_GetStage_Call {
 	return &APIGatewayV2ClientPort_GetStage_Call{Call: _e.mock.On("GetStage",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_GetStage_Call) Run(run func(ctx context.Context, input *apigatewayv2.GetStageInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_GetStage_Call {
@@ -1160,9 +1160,9 @@ type APIGatewayV2ClientPort_GetStages_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.GetStagesInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) GetStages(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_GetStages_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) GetStages(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_GetStages_Call {
 	return &APIGatewayV2ClientPort_GetStages_Call{Call: _e.mock.On("GetStages",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_GetStages_Call) Run(run func(ctx context.Context, input *apigatewayv2.GetStagesInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_GetStages_Call {
@@ -1243,9 +1243,9 @@ type APIGatewayV2ClientPort_UpdateIntegration_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.UpdateIntegrationInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) UpdateIntegration(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_UpdateIntegration_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) UpdateIntegration(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_UpdateIntegration_Call {
 	return &APIGatewayV2ClientPort_UpdateIntegration_Call{Call: _e.mock.On("UpdateIntegration",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_UpdateIntegration_Call) Run(run func(ctx context.Context, input *apigatewayv2.UpdateIntegrationInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_UpdateIntegration_Call {
@@ -1326,9 +1326,9 @@ type APIGatewayV2ClientPort_UpdateRoute_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.UpdateRouteInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) UpdateRoute(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_UpdateRoute_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) UpdateRoute(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_UpdateRoute_Call {
 	return &APIGatewayV2ClientPort_UpdateRoute_Call{Call: _e.mock.On("UpdateRoute",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_UpdateRoute_Call) Run(run func(ctx context.Context, input *apigatewayv2.UpdateRouteInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_UpdateRoute_Call {
@@ -1409,9 +1409,9 @@ type APIGatewayV2ClientPort_UpdateStage_Call struct {
 //   - ctx context.Context
 //   - input *apigatewayv2.UpdateStageInput
 //   - opts ...func(*apigatewayv2.Options)
-func (_e *APIGatewayV2ClientPort_Expecter) UpdateStage(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayV2ClientPort_UpdateStage_Call {
+func (_e *APIGatewayV2ClientPort_Expecter) UpdateStage(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_UpdateStage_Call {
 	return &APIGatewayV2ClientPort_UpdateStage_Call{Call: _e.mock.On("UpdateStage",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayV2ClientPort_UpdateStage_Call) Run(run func(ctx context.Context, input *apigatewayv2.UpdateStageInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_UpdateStage_Call {

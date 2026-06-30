@@ -74,7 +74,7 @@ type DynamoDBStreamsPort_DescribeStream_Call struct {
 // DescribeStream is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodbstreams.DescribeStreamInput
-func (_e *DynamoDBStreamsPort_Expecter) DescribeStream(ctx interface{}, input interface{}) *DynamoDBStreamsPort_DescribeStream_Call {
+func (_e *DynamoDBStreamsPort_Expecter) DescribeStream(ctx any, input any) *DynamoDBStreamsPort_DescribeStream_Call {
 	return &DynamoDBStreamsPort_DescribeStream_Call{Call: _e.mock.On("DescribeStream", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type DynamoDBStreamsPort_GetRecords_Call struct {
 // GetRecords is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodbstreams.GetRecordsInput
-func (_e *DynamoDBStreamsPort_Expecter) GetRecords(ctx interface{}, input interface{}) *DynamoDBStreamsPort_GetRecords_Call {
+func (_e *DynamoDBStreamsPort_Expecter) GetRecords(ctx any, input any) *DynamoDBStreamsPort_GetRecords_Call {
 	return &DynamoDBStreamsPort_GetRecords_Call{Call: _e.mock.On("GetRecords", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type DynamoDBStreamsPort_GetShardIterator_Call struct {
 // GetShardIterator is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodbstreams.GetShardIteratorInput
-func (_e *DynamoDBStreamsPort_Expecter) GetShardIterator(ctx interface{}, input interface{}) *DynamoDBStreamsPort_GetShardIterator_Call {
+func (_e *DynamoDBStreamsPort_Expecter) GetShardIterator(ctx any, input any) *DynamoDBStreamsPort_GetShardIterator_Call {
 	return &DynamoDBStreamsPort_GetShardIterator_Call{Call: _e.mock.On("GetShardIterator", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type DynamoDBStreamsPort_ListStreams_Call struct {
 // ListStreams is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodbstreams.ListStreamsInput
-func (_e *DynamoDBStreamsPort_Expecter) ListStreams(ctx interface{}, input interface{}) *DynamoDBStreamsPort_ListStreams_Call {
+func (_e *DynamoDBStreamsPort_Expecter) ListStreams(ctx any, input any) *DynamoDBStreamsPort_ListStreams_Call {
 	return &DynamoDBStreamsPort_ListStreams_Call{Call: _e.mock.On("ListStreams", ctx, input)}
 }
 

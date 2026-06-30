@@ -81,9 +81,9 @@ type SSMClientPort_AddTagsToResource_Call struct {
 //   - ctx context.Context
 //   - input *ssm.AddTagsToResourceInput
 //   - opts ...func(*ssm.Options)
-func (_e *SSMClientPort_Expecter) AddTagsToResource(ctx interface{}, input interface{}, opts ...interface{}) *SSMClientPort_AddTagsToResource_Call {
+func (_e *SSMClientPort_Expecter) AddTagsToResource(ctx any, input any, opts ...any) *SSMClientPort_AddTagsToResource_Call {
 	return &SSMClientPort_AddTagsToResource_Call{Call: _e.mock.On("AddTagsToResource",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SSMClientPort_AddTagsToResource_Call) Run(run func(ctx context.Context, input *ssm.AddTagsToResourceInput, opts ...func(*ssm.Options))) *SSMClientPort_AddTagsToResource_Call {
@@ -164,9 +164,9 @@ type SSMClientPort_DeleteParameter_Call struct {
 //   - ctx context.Context
 //   - input *ssm.DeleteParameterInput
 //   - opts ...func(*ssm.Options)
-func (_e *SSMClientPort_Expecter) DeleteParameter(ctx interface{}, input interface{}, opts ...interface{}) *SSMClientPort_DeleteParameter_Call {
+func (_e *SSMClientPort_Expecter) DeleteParameter(ctx any, input any, opts ...any) *SSMClientPort_DeleteParameter_Call {
 	return &SSMClientPort_DeleteParameter_Call{Call: _e.mock.On("DeleteParameter",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SSMClientPort_DeleteParameter_Call) Run(run func(ctx context.Context, input *ssm.DeleteParameterInput, opts ...func(*ssm.Options))) *SSMClientPort_DeleteParameter_Call {
@@ -247,9 +247,9 @@ type SSMClientPort_DescribeParameters_Call struct {
 //   - ctx context.Context
 //   - input *ssm.DescribeParametersInput
 //   - opts ...func(*ssm.Options)
-func (_e *SSMClientPort_Expecter) DescribeParameters(ctx interface{}, input interface{}, opts ...interface{}) *SSMClientPort_DescribeParameters_Call {
+func (_e *SSMClientPort_Expecter) DescribeParameters(ctx any, input any, opts ...any) *SSMClientPort_DescribeParameters_Call {
 	return &SSMClientPort_DescribeParameters_Call{Call: _e.mock.On("DescribeParameters",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SSMClientPort_DescribeParameters_Call) Run(run func(ctx context.Context, input *ssm.DescribeParametersInput, opts ...func(*ssm.Options))) *SSMClientPort_DescribeParameters_Call {
@@ -330,9 +330,9 @@ type SSMClientPort_GetParameter_Call struct {
 //   - ctx context.Context
 //   - input *ssm.GetParameterInput
 //   - opts ...func(*ssm.Options)
-func (_e *SSMClientPort_Expecter) GetParameter(ctx interface{}, input interface{}, opts ...interface{}) *SSMClientPort_GetParameter_Call {
+func (_e *SSMClientPort_Expecter) GetParameter(ctx any, input any, opts ...any) *SSMClientPort_GetParameter_Call {
 	return &SSMClientPort_GetParameter_Call{Call: _e.mock.On("GetParameter",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SSMClientPort_GetParameter_Call) Run(run func(ctx context.Context, input *ssm.GetParameterInput, opts ...func(*ssm.Options))) *SSMClientPort_GetParameter_Call {
@@ -413,9 +413,9 @@ type SSMClientPort_GetParameterHistory_Call struct {
 //   - ctx context.Context
 //   - input *ssm.GetParameterHistoryInput
 //   - opts ...func(*ssm.Options)
-func (_e *SSMClientPort_Expecter) GetParameterHistory(ctx interface{}, input interface{}, opts ...interface{}) *SSMClientPort_GetParameterHistory_Call {
+func (_e *SSMClientPort_Expecter) GetParameterHistory(ctx any, input any, opts ...any) *SSMClientPort_GetParameterHistory_Call {
 	return &SSMClientPort_GetParameterHistory_Call{Call: _e.mock.On("GetParameterHistory",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SSMClientPort_GetParameterHistory_Call) Run(run func(ctx context.Context, input *ssm.GetParameterHistoryInput, opts ...func(*ssm.Options))) *SSMClientPort_GetParameterHistory_Call {
@@ -496,9 +496,9 @@ type SSMClientPort_GetParameters_Call struct {
 //   - ctx context.Context
 //   - input *ssm.GetParametersInput
 //   - opts ...func(*ssm.Options)
-func (_e *SSMClientPort_Expecter) GetParameters(ctx interface{}, input interface{}, opts ...interface{}) *SSMClientPort_GetParameters_Call {
+func (_e *SSMClientPort_Expecter) GetParameters(ctx any, input any, opts ...any) *SSMClientPort_GetParameters_Call {
 	return &SSMClientPort_GetParameters_Call{Call: _e.mock.On("GetParameters",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SSMClientPort_GetParameters_Call) Run(run func(ctx context.Context, input *ssm.GetParametersInput, opts ...func(*ssm.Options))) *SSMClientPort_GetParameters_Call {
@@ -579,9 +579,9 @@ type SSMClientPort_GetParametersByPath_Call struct {
 //   - ctx context.Context
 //   - input *ssm.GetParametersByPathInput
 //   - opts ...func(*ssm.Options)
-func (_e *SSMClientPort_Expecter) GetParametersByPath(ctx interface{}, input interface{}, opts ...interface{}) *SSMClientPort_GetParametersByPath_Call {
+func (_e *SSMClientPort_Expecter) GetParametersByPath(ctx any, input any, opts ...any) *SSMClientPort_GetParametersByPath_Call {
 	return &SSMClientPort_GetParametersByPath_Call{Call: _e.mock.On("GetParametersByPath",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SSMClientPort_GetParametersByPath_Call) Run(run func(ctx context.Context, input *ssm.GetParametersByPathInput, opts ...func(*ssm.Options))) *SSMClientPort_GetParametersByPath_Call {
@@ -662,9 +662,9 @@ type SSMClientPort_ListTagsForResource_Call struct {
 //   - ctx context.Context
 //   - input *ssm.ListTagsForResourceInput
 //   - opts ...func(*ssm.Options)
-func (_e *SSMClientPort_Expecter) ListTagsForResource(ctx interface{}, input interface{}, opts ...interface{}) *SSMClientPort_ListTagsForResource_Call {
+func (_e *SSMClientPort_Expecter) ListTagsForResource(ctx any, input any, opts ...any) *SSMClientPort_ListTagsForResource_Call {
 	return &SSMClientPort_ListTagsForResource_Call{Call: _e.mock.On("ListTagsForResource",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SSMClientPort_ListTagsForResource_Call) Run(run func(ctx context.Context, input *ssm.ListTagsForResourceInput, opts ...func(*ssm.Options))) *SSMClientPort_ListTagsForResource_Call {
@@ -745,9 +745,9 @@ type SSMClientPort_PutParameter_Call struct {
 //   - ctx context.Context
 //   - input *ssm.PutParameterInput
 //   - opts ...func(*ssm.Options)
-func (_e *SSMClientPort_Expecter) PutParameter(ctx interface{}, input interface{}, opts ...interface{}) *SSMClientPort_PutParameter_Call {
+func (_e *SSMClientPort_Expecter) PutParameter(ctx any, input any, opts ...any) *SSMClientPort_PutParameter_Call {
 	return &SSMClientPort_PutParameter_Call{Call: _e.mock.On("PutParameter",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SSMClientPort_PutParameter_Call) Run(run func(ctx context.Context, input *ssm.PutParameterInput, opts ...func(*ssm.Options))) *SSMClientPort_PutParameter_Call {
@@ -828,9 +828,9 @@ type SSMClientPort_RemoveTagsFromResource_Call struct {
 //   - ctx context.Context
 //   - input *ssm.RemoveTagsFromResourceInput
 //   - opts ...func(*ssm.Options)
-func (_e *SSMClientPort_Expecter) RemoveTagsFromResource(ctx interface{}, input interface{}, opts ...interface{}) *SSMClientPort_RemoveTagsFromResource_Call {
+func (_e *SSMClientPort_Expecter) RemoveTagsFromResource(ctx any, input any, opts ...any) *SSMClientPort_RemoveTagsFromResource_Call {
 	return &SSMClientPort_RemoveTagsFromResource_Call{Call: _e.mock.On("RemoveTagsFromResource",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SSMClientPort_RemoveTagsFromResource_Call) Run(run func(ctx context.Context, input *ssm.RemoveTagsFromResourceInput, opts ...func(*ssm.Options))) *SSMClientPort_RemoveTagsFromResource_Call {

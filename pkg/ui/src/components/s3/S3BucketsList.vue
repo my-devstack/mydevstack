@@ -13,6 +13,7 @@ interface BucketDetails {
   versioning: { status: string; mfaDelete: string } | null
   encryption: { algorithm: string; keyId: string } | null
   tags: Array<{ Key: string; Value: string }>
+  lifecycleRules: Array<{ ID?: string; Status: string; Filter?: { Prefix?: string }; Expiration?: { Days?: number }; Transitions?: Array<{ StorageClass: string }> }>
   loading: boolean
 }
 
@@ -28,6 +29,8 @@ const emit = defineEmits<{
   'expand-bucket': [bucketName: string]
   'add-trigger': [bucketName: string]
   'view-policy': [bucketName: string]
+  'manage-lifecycle': [bucketName: string]
+  'toggle-versioning': [bucketName: string, enable: boolean]
 }>()
 
 const settingsStore = useSettingsStore()
@@ -165,6 +168,8 @@ function toggleBucketExpansion(bucketName: string) {
           :details="bucketDetails?.[bucket.Name] || null"
           @add-trigger="(name) => emit('add-trigger', name)"
           @view-policy="(name) => emit('view-policy', name)"
+          @manage-lifecycle="(name) => emit('manage-lifecycle', name)"
+          @toggle-versioning="(name, enable) => emit('toggle-versioning', name, enable)"
         />
       </div>
     </div>

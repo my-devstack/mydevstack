@@ -81,9 +81,9 @@ type SecretsManagerClientPort_CreateSecret_Call struct {
 //   - ctx context.Context
 //   - input *secretsmanager.CreateSecretInput
 //   - opts ...func(*secretsmanager.Options)
-func (_e *SecretsManagerClientPort_Expecter) CreateSecret(ctx interface{}, input interface{}, opts ...interface{}) *SecretsManagerClientPort_CreateSecret_Call {
+func (_e *SecretsManagerClientPort_Expecter) CreateSecret(ctx any, input any, opts ...any) *SecretsManagerClientPort_CreateSecret_Call {
 	return &SecretsManagerClientPort_CreateSecret_Call{Call: _e.mock.On("CreateSecret",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SecretsManagerClientPort_CreateSecret_Call) Run(run func(ctx context.Context, input *secretsmanager.CreateSecretInput, opts ...func(*secretsmanager.Options))) *SecretsManagerClientPort_CreateSecret_Call {
@@ -164,9 +164,9 @@ type SecretsManagerClientPort_DeleteSecret_Call struct {
 //   - ctx context.Context
 //   - input *secretsmanager.DeleteSecretInput
 //   - opts ...func(*secretsmanager.Options)
-func (_e *SecretsManagerClientPort_Expecter) DeleteSecret(ctx interface{}, input interface{}, opts ...interface{}) *SecretsManagerClientPort_DeleteSecret_Call {
+func (_e *SecretsManagerClientPort_Expecter) DeleteSecret(ctx any, input any, opts ...any) *SecretsManagerClientPort_DeleteSecret_Call {
 	return &SecretsManagerClientPort_DeleteSecret_Call{Call: _e.mock.On("DeleteSecret",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SecretsManagerClientPort_DeleteSecret_Call) Run(run func(ctx context.Context, input *secretsmanager.DeleteSecretInput, opts ...func(*secretsmanager.Options))) *SecretsManagerClientPort_DeleteSecret_Call {
@@ -247,9 +247,9 @@ type SecretsManagerClientPort_DescribeSecret_Call struct {
 //   - ctx context.Context
 //   - input *secretsmanager.DescribeSecretInput
 //   - opts ...func(*secretsmanager.Options)
-func (_e *SecretsManagerClientPort_Expecter) DescribeSecret(ctx interface{}, input interface{}, opts ...interface{}) *SecretsManagerClientPort_DescribeSecret_Call {
+func (_e *SecretsManagerClientPort_Expecter) DescribeSecret(ctx any, input any, opts ...any) *SecretsManagerClientPort_DescribeSecret_Call {
 	return &SecretsManagerClientPort_DescribeSecret_Call{Call: _e.mock.On("DescribeSecret",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SecretsManagerClientPort_DescribeSecret_Call) Run(run func(ctx context.Context, input *secretsmanager.DescribeSecretInput, opts ...func(*secretsmanager.Options))) *SecretsManagerClientPort_DescribeSecret_Call {
@@ -330,9 +330,9 @@ type SecretsManagerClientPort_GetRandomPassword_Call struct {
 //   - ctx context.Context
 //   - input *secretsmanager.GetRandomPasswordInput
 //   - opts ...func(*secretsmanager.Options)
-func (_e *SecretsManagerClientPort_Expecter) GetRandomPassword(ctx interface{}, input interface{}, opts ...interface{}) *SecretsManagerClientPort_GetRandomPassword_Call {
+func (_e *SecretsManagerClientPort_Expecter) GetRandomPassword(ctx any, input any, opts ...any) *SecretsManagerClientPort_GetRandomPassword_Call {
 	return &SecretsManagerClientPort_GetRandomPassword_Call{Call: _e.mock.On("GetRandomPassword",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SecretsManagerClientPort_GetRandomPassword_Call) Run(run func(ctx context.Context, input *secretsmanager.GetRandomPasswordInput, opts ...func(*secretsmanager.Options))) *SecretsManagerClientPort_GetRandomPassword_Call {
@@ -413,9 +413,9 @@ type SecretsManagerClientPort_GetSecretValue_Call struct {
 //   - ctx context.Context
 //   - input *secretsmanager.GetSecretValueInput
 //   - opts ...func(*secretsmanager.Options)
-func (_e *SecretsManagerClientPort_Expecter) GetSecretValue(ctx interface{}, input interface{}, opts ...interface{}) *SecretsManagerClientPort_GetSecretValue_Call {
+func (_e *SecretsManagerClientPort_Expecter) GetSecretValue(ctx any, input any, opts ...any) *SecretsManagerClientPort_GetSecretValue_Call {
 	return &SecretsManagerClientPort_GetSecretValue_Call{Call: _e.mock.On("GetSecretValue",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SecretsManagerClientPort_GetSecretValue_Call) Run(run func(ctx context.Context, input *secretsmanager.GetSecretValueInput, opts ...func(*secretsmanager.Options))) *SecretsManagerClientPort_GetSecretValue_Call {
@@ -496,9 +496,9 @@ type SecretsManagerClientPort_ListSecrets_Call struct {
 //   - ctx context.Context
 //   - input *secretsmanager.ListSecretsInput
 //   - opts ...func(*secretsmanager.Options)
-func (_e *SecretsManagerClientPort_Expecter) ListSecrets(ctx interface{}, input interface{}, opts ...interface{}) *SecretsManagerClientPort_ListSecrets_Call {
+func (_e *SecretsManagerClientPort_Expecter) ListSecrets(ctx any, input any, opts ...any) *SecretsManagerClientPort_ListSecrets_Call {
 	return &SecretsManagerClientPort_ListSecrets_Call{Call: _e.mock.On("ListSecrets",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SecretsManagerClientPort_ListSecrets_Call) Run(run func(ctx context.Context, input *secretsmanager.ListSecretsInput, opts ...func(*secretsmanager.Options))) *SecretsManagerClientPort_ListSecrets_Call {
@@ -579,9 +579,9 @@ type SecretsManagerClientPort_PutSecretValue_Call struct {
 //   - ctx context.Context
 //   - input *secretsmanager.PutSecretValueInput
 //   - opts ...func(*secretsmanager.Options)
-func (_e *SecretsManagerClientPort_Expecter) PutSecretValue(ctx interface{}, input interface{}, opts ...interface{}) *SecretsManagerClientPort_PutSecretValue_Call {
+func (_e *SecretsManagerClientPort_Expecter) PutSecretValue(ctx any, input any, opts ...any) *SecretsManagerClientPort_PutSecretValue_Call {
 	return &SecretsManagerClientPort_PutSecretValue_Call{Call: _e.mock.On("PutSecretValue",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SecretsManagerClientPort_PutSecretValue_Call) Run(run func(ctx context.Context, input *secretsmanager.PutSecretValueInput, opts ...func(*secretsmanager.Options))) *SecretsManagerClientPort_PutSecretValue_Call {
@@ -662,9 +662,9 @@ type SecretsManagerClientPort_RestoreSecret_Call struct {
 //   - ctx context.Context
 //   - input *secretsmanager.RestoreSecretInput
 //   - opts ...func(*secretsmanager.Options)
-func (_e *SecretsManagerClientPort_Expecter) RestoreSecret(ctx interface{}, input interface{}, opts ...interface{}) *SecretsManagerClientPort_RestoreSecret_Call {
+func (_e *SecretsManagerClientPort_Expecter) RestoreSecret(ctx any, input any, opts ...any) *SecretsManagerClientPort_RestoreSecret_Call {
 	return &SecretsManagerClientPort_RestoreSecret_Call{Call: _e.mock.On("RestoreSecret",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SecretsManagerClientPort_RestoreSecret_Call) Run(run func(ctx context.Context, input *secretsmanager.RestoreSecretInput, opts ...func(*secretsmanager.Options))) *SecretsManagerClientPort_RestoreSecret_Call {
@@ -745,9 +745,9 @@ type SecretsManagerClientPort_RotateSecret_Call struct {
 //   - ctx context.Context
 //   - input *secretsmanager.RotateSecretInput
 //   - opts ...func(*secretsmanager.Options)
-func (_e *SecretsManagerClientPort_Expecter) RotateSecret(ctx interface{}, input interface{}, opts ...interface{}) *SecretsManagerClientPort_RotateSecret_Call {
+func (_e *SecretsManagerClientPort_Expecter) RotateSecret(ctx any, input any, opts ...any) *SecretsManagerClientPort_RotateSecret_Call {
 	return &SecretsManagerClientPort_RotateSecret_Call{Call: _e.mock.On("RotateSecret",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SecretsManagerClientPort_RotateSecret_Call) Run(run func(ctx context.Context, input *secretsmanager.RotateSecretInput, opts ...func(*secretsmanager.Options))) *SecretsManagerClientPort_RotateSecret_Call {
@@ -828,9 +828,9 @@ type SecretsManagerClientPort_UpdateSecret_Call struct {
 //   - ctx context.Context
 //   - input *secretsmanager.UpdateSecretInput
 //   - opts ...func(*secretsmanager.Options)
-func (_e *SecretsManagerClientPort_Expecter) UpdateSecret(ctx interface{}, input interface{}, opts ...interface{}) *SecretsManagerClientPort_UpdateSecret_Call {
+func (_e *SecretsManagerClientPort_Expecter) UpdateSecret(ctx any, input any, opts ...any) *SecretsManagerClientPort_UpdateSecret_Call {
 	return &SecretsManagerClientPort_UpdateSecret_Call{Call: _e.mock.On("UpdateSecret",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SecretsManagerClientPort_UpdateSecret_Call) Run(run func(ctx context.Context, input *secretsmanager.UpdateSecretInput, opts ...func(*secretsmanager.Options))) *SecretsManagerClientPort_UpdateSecret_Call {

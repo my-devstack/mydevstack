@@ -121,7 +121,7 @@ type ConfigPort_LoadConfig_Call struct {
 
 // LoadConfig is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *ConfigPort_Expecter) LoadConfig(ctx interface{}) *ConfigPort_LoadConfig_Call {
+func (_e *ConfigPort_Expecter) LoadConfig(ctx any) *ConfigPort_LoadConfig_Call {
 	return &ConfigPort_LoadConfig_Call{Call: _e.mock.On("LoadConfig", ctx)}
 }
 

@@ -1098,6 +1098,133 @@ func TestS3_GetBucketPolicy(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
+// S3 — getBucketLifecycleConfiguration
+// ---------------------------------------------------------------------------
+
+func TestS3_GetBucketLifecycleConfiguration(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+		svc := createMockSvc(t, nil)
+		mp := mockports.NewS3Port(t)
+		mp.EXPECT().GetBucketLifecycleConfiguration(mock.Anything, mock.Anything).Return(
+			&s3.GetBucketLifecycleConfigurationOutput{
+				Rules: []types.LifecycleRule{
+					{ID: strPtr("rule1"), Status: types.ExpirationStatusEnabled},
+				},
+			}, nil)
+		svc.EXPECT().S3().Return(mp)
+		versionSvc := createTestVersionService(t)
+		handler := NewProxyHandler(context.Background(), svc, versionSvc)
+		r := setupTestRouter(handler)
+		w := performRequest(r, "GET", "/s3/buckets/b/lifecycle", []byte(`{"Bucket":"b"}`))
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var resp map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.NotNil(t, resp["Rules"])
+	})
+
+	t.Run("error returns empty rules", func(t *testing.T) {
+		t.Parallel()
+		svc := createMockSvc(t, nil)
+		mp := mockports.NewS3Port(t)
+		mp.EXPECT().GetBucketLifecycleConfiguration(mock.Anything, mock.Anything).Return(nil, errors.New("not found"))
+		svc.EXPECT().S3().Return(mp)
+		versionSvc := createTestVersionService(t)
+		handler := NewProxyHandler(context.Background(), svc, versionSvc)
+		r := setupTestRouter(handler)
+		w := performRequest(r, "GET", "/s3/buckets/b/lifecycle", []byte(`{"Bucket":"b"}`))
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var resp map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Nil(t, resp["Rules"])
+	})
+}
+
+// ---------------------------------------------------------------------------
+// S3 — putBucketLifecycleConfiguration
+// ---------------------------------------------------------------------------
+
+func TestS3_PutBucketLifecycleConfiguration(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+		svc := createMockSvc(t, nil)
+		mp := mockports.NewS3Port(t)
+		mp.EXPECT().PutBucketLifecycleConfiguration(mock.Anything, mock.Anything).Return(&s3.PutBucketLifecycleConfigurationOutput{}, nil)
+		svc.EXPECT().S3().Return(mp)
+		versionSvc := createTestVersionService(t)
+		handler := NewProxyHandler(context.Background(), svc, versionSvc)
+		r := setupTestRouter(handler)
+		w := performRequest(r, "PUT", "/s3/buckets/b/lifecycle", []byte(`{"Bucket":"b","LifecycleConfiguration":{"Rules":[{"ID":"rule1","Status":"Enabled","Filter":{}}]}}`))
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		t.Parallel()
+		svc := createMockSvc(t, nil)
+		mp := mockports.NewS3Port(t)
+		mp.EXPECT().PutBucketLifecycleConfiguration(mock.Anything, mock.Anything).Return(nil, errors.New("put error"))
+		svc.EXPECT().S3().Return(mp)
+		versionSvc := createTestVersionService(t)
+		handler := NewProxyHandler(context.Background(), svc, versionSvc)
+		r := setupTestRouter(handler)
+		w := performRequest(r, "PUT", "/s3/buckets/b/lifecycle", []byte(`{"Bucket":"b"}`))
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("parse error", func(t *testing.T) {
+		t.Parallel()
+		svc := createMockSvc(t, nil)
+		versionSvc := createTestVersionService(t)
+		handler := NewProxyHandler(context.Background(), svc, versionSvc)
+		r := setupTestRouter(handler)
+		w := performRequest(r, "PUT", "/s3/buckets/b/lifecycle", []byte(`{bad`))
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+}
+
+// ---------------------------------------------------------------------------
+// S3 — deleteBucketLifecycleConfiguration
+// ---------------------------------------------------------------------------
+
+func TestS3_DeleteBucketLifecycleConfiguration(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+		svc := createMockSvc(t, nil)
+		mp := mockports.NewS3Port(t)
+		mp.EXPECT().DeleteBucketLifecycle(mock.Anything, mock.Anything).Return(&s3.DeleteBucketLifecycleOutput{}, nil)
+		svc.EXPECT().S3().Return(mp)
+		versionSvc := createTestVersionService(t)
+		handler := NewProxyHandler(context.Background(), svc, versionSvc)
+		r := setupTestRouter(handler)
+		w := performRequest(r, "DELETE", "/s3/buckets/b/lifecycle", []byte(`{"Bucket":"b"}`))
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		t.Parallel()
+		svc := createMockSvc(t, nil)
+		mp := mockports.NewS3Port(t)
+		mp.EXPECT().DeleteBucketLifecycle(mock.Anything, mock.Anything).Return(nil, errors.New("delete error"))
+		svc.EXPECT().S3().Return(mp)
+		versionSvc := createTestVersionService(t)
+		handler := NewProxyHandler(context.Background(), svc, versionSvc)
+		r := setupTestRouter(handler)
+		w := performRequest(r, "DELETE", "/s3/buckets/b/lifecycle", []byte(`{"Bucket":"b"}`))
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+}
+
+// ---------------------------------------------------------------------------
 // S3 — unknown action
 // ---------------------------------------------------------------------------
 

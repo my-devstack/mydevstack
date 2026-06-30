@@ -13,6 +13,10 @@ const mockUploadObject = vi.fn()
 const mockGetObject = vi.fn()
 const mockGetPresignedUrl = vi.fn()
 const mockConfigureLambdaTrigger = vi.fn()
+const mockLoadLifecycleRules = vi.fn()
+const mockSaveLifecycleRules = vi.fn()
+const mockDeleteLifecycleRule = vi.fn()
+const mockToggleVersioning = vi.fn()
 const mockBuckets = ref([
   { Name: 'test-bucket', CreationDate: '2024-01-01T00:00:00Z' },
   { Name: 'another-bucket', CreationDate: '2024-02-01T00:00:00Z' },
@@ -36,6 +40,10 @@ vi.mock('@/composables/useS3', () => ({
     getObject: mockGetObject,
     getPresignedUrl: mockGetPresignedUrl,
     configureLambdaTrigger: mockConfigureLambdaTrigger,
+    loadLifecycleRules: mockLoadLifecycleRules,
+    saveLifecycleRules: mockSaveLifecycleRules,
+    deleteLifecycleRule: mockDeleteLifecycleRule,
+    toggleVersioning: mockToggleVersioning,
   }),
 }))
 
@@ -59,6 +67,7 @@ const mountStubs = {
   S3CodeExamples: true,
   S3TriggerModal: true,
   S3PolicyModal: true,
+  S3LifecycleModal: true,
   Button: { template: '<button><slot /></button>' },
   LoadingSpinner: true,
   EmptyState: true,

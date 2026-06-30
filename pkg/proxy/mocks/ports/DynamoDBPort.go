@@ -74,7 +74,7 @@ type DynamoDBPort_BatchGetItem_Call struct {
 // BatchGetItem is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.BatchGetItemInput
-func (_e *DynamoDBPort_Expecter) BatchGetItem(ctx interface{}, input interface{}) *DynamoDBPort_BatchGetItem_Call {
+func (_e *DynamoDBPort_Expecter) BatchGetItem(ctx any, input any) *DynamoDBPort_BatchGetItem_Call {
 	return &DynamoDBPort_BatchGetItem_Call{Call: _e.mock.On("BatchGetItem", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type DynamoDBPort_BatchWriteItem_Call struct {
 // BatchWriteItem is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.BatchWriteItemInput
-func (_e *DynamoDBPort_Expecter) BatchWriteItem(ctx interface{}, input interface{}) *DynamoDBPort_BatchWriteItem_Call {
+func (_e *DynamoDBPort_Expecter) BatchWriteItem(ctx any, input any) *DynamoDBPort_BatchWriteItem_Call {
 	return &DynamoDBPort_BatchWriteItem_Call{Call: _e.mock.On("BatchWriteItem", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type DynamoDBPort_CreateTable_Call struct {
 // CreateTable is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.CreateTableInput
-func (_e *DynamoDBPort_Expecter) CreateTable(ctx interface{}, input interface{}) *DynamoDBPort_CreateTable_Call {
+func (_e *DynamoDBPort_Expecter) CreateTable(ctx any, input any) *DynamoDBPort_CreateTable_Call {
 	return &DynamoDBPort_CreateTable_Call{Call: _e.mock.On("CreateTable", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type DynamoDBPort_DeleteItem_Call struct {
 // DeleteItem is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.DeleteItemInput
-func (_e *DynamoDBPort_Expecter) DeleteItem(ctx interface{}, input interface{}) *DynamoDBPort_DeleteItem_Call {
+func (_e *DynamoDBPort_Expecter) DeleteItem(ctx any, input any) *DynamoDBPort_DeleteItem_Call {
 	return &DynamoDBPort_DeleteItem_Call{Call: _e.mock.On("DeleteItem", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type DynamoDBPort_DeleteTable_Call struct {
 // DeleteTable is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.DeleteTableInput
-func (_e *DynamoDBPort_Expecter) DeleteTable(ctx interface{}, input interface{}) *DynamoDBPort_DeleteTable_Call {
+func (_e *DynamoDBPort_Expecter) DeleteTable(ctx any, input any) *DynamoDBPort_DeleteTable_Call {
 	return &DynamoDBPort_DeleteTable_Call{Call: _e.mock.On("DeleteTable", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type DynamoDBPort_DescribeTable_Call struct {
 // DescribeTable is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.DescribeTableInput
-func (_e *DynamoDBPort_Expecter) DescribeTable(ctx interface{}, input interface{}) *DynamoDBPort_DescribeTable_Call {
+func (_e *DynamoDBPort_Expecter) DescribeTable(ctx any, input any) *DynamoDBPort_DescribeTable_Call {
 	return &DynamoDBPort_DescribeTable_Call{Call: _e.mock.On("DescribeTable", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type DynamoDBPort_DescribeTimeToLive_Call struct {
 // DescribeTimeToLive is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.DescribeTimeToLiveInput
-func (_e *DynamoDBPort_Expecter) DescribeTimeToLive(ctx interface{}, input interface{}) *DynamoDBPort_DescribeTimeToLive_Call {
+func (_e *DynamoDBPort_Expecter) DescribeTimeToLive(ctx any, input any) *DynamoDBPort_DescribeTimeToLive_Call {
 	return &DynamoDBPort_DescribeTimeToLive_Call{Call: _e.mock.On("DescribeTimeToLive", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type DynamoDBPort_GetItem_Call struct {
 // GetItem is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.GetItemInput
-func (_e *DynamoDBPort_Expecter) GetItem(ctx interface{}, input interface{}) *DynamoDBPort_GetItem_Call {
+func (_e *DynamoDBPort_Expecter) GetItem(ctx any, input any) *DynamoDBPort_GetItem_Call {
 	return &DynamoDBPort_GetItem_Call{Call: _e.mock.On("GetItem", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type DynamoDBPort_ListTables_Call struct {
 // ListTables is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.ListTablesInput
-func (_e *DynamoDBPort_Expecter) ListTables(ctx interface{}, input interface{}) *DynamoDBPort_ListTables_Call {
+func (_e *DynamoDBPort_Expecter) ListTables(ctx any, input any) *DynamoDBPort_ListTables_Call {
 	return &DynamoDBPort_ListTables_Call{Call: _e.mock.On("ListTables", ctx, input)}
 }
 
@@ -686,7 +686,7 @@ type DynamoDBPort_PutItem_Call struct {
 // PutItem is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.PutItemInput
-func (_e *DynamoDBPort_Expecter) PutItem(ctx interface{}, input interface{}) *DynamoDBPort_PutItem_Call {
+func (_e *DynamoDBPort_Expecter) PutItem(ctx any, input any) *DynamoDBPort_PutItem_Call {
 	return &DynamoDBPort_PutItem_Call{Call: _e.mock.On("PutItem", ctx, input)}
 }
 
@@ -754,7 +754,7 @@ type DynamoDBPort_Query_Call struct {
 // Query is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.QueryInput
-func (_e *DynamoDBPort_Expecter) Query(ctx interface{}, input interface{}) *DynamoDBPort_Query_Call {
+func (_e *DynamoDBPort_Expecter) Query(ctx any, input any) *DynamoDBPort_Query_Call {
 	return &DynamoDBPort_Query_Call{Call: _e.mock.On("Query", ctx, input)}
 }
 
@@ -822,7 +822,7 @@ type DynamoDBPort_Scan_Call struct {
 // Scan is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.ScanInput
-func (_e *DynamoDBPort_Expecter) Scan(ctx interface{}, input interface{}) *DynamoDBPort_Scan_Call {
+func (_e *DynamoDBPort_Expecter) Scan(ctx any, input any) *DynamoDBPort_Scan_Call {
 	return &DynamoDBPort_Scan_Call{Call: _e.mock.On("Scan", ctx, input)}
 }
 
@@ -890,7 +890,7 @@ type DynamoDBPort_UpdateItem_Call struct {
 // UpdateItem is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.UpdateItemInput
-func (_e *DynamoDBPort_Expecter) UpdateItem(ctx interface{}, input interface{}) *DynamoDBPort_UpdateItem_Call {
+func (_e *DynamoDBPort_Expecter) UpdateItem(ctx any, input any) *DynamoDBPort_UpdateItem_Call {
 	return &DynamoDBPort_UpdateItem_Call{Call: _e.mock.On("UpdateItem", ctx, input)}
 }
 
@@ -958,7 +958,7 @@ type DynamoDBPort_UpdateTable_Call struct {
 // UpdateTable is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.UpdateTableInput
-func (_e *DynamoDBPort_Expecter) UpdateTable(ctx interface{}, input interface{}) *DynamoDBPort_UpdateTable_Call {
+func (_e *DynamoDBPort_Expecter) UpdateTable(ctx any, input any) *DynamoDBPort_UpdateTable_Call {
 	return &DynamoDBPort_UpdateTable_Call{Call: _e.mock.On("UpdateTable", ctx, input)}
 }
 
@@ -1026,7 +1026,7 @@ type DynamoDBPort_UpdateTimeToLive_Call struct {
 // UpdateTimeToLive is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *dynamodb.UpdateTimeToLiveInput
-func (_e *DynamoDBPort_Expecter) UpdateTimeToLive(ctx interface{}, input interface{}) *DynamoDBPort_UpdateTimeToLive_Call {
+func (_e *DynamoDBPort_Expecter) UpdateTimeToLive(ctx any, input any) *DynamoDBPort_UpdateTimeToLive_Call {
 	return &DynamoDBPort_UpdateTimeToLive_Call{Call: _e.mock.On("UpdateTimeToLive", ctx, input)}
 }
 

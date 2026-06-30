@@ -81,9 +81,9 @@ type CloudWatchLogsClientPort_CreateLogGroup_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatchlogs.CreateLogGroupInput
 //   - opts ...func(*cloudwatchlogs.Options)
-func (_e *CloudWatchLogsClientPort_Expecter) CreateLogGroup(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchLogsClientPort_CreateLogGroup_Call {
+func (_e *CloudWatchLogsClientPort_Expecter) CreateLogGroup(ctx any, input any, opts ...any) *CloudWatchLogsClientPort_CreateLogGroup_Call {
 	return &CloudWatchLogsClientPort_CreateLogGroup_Call{Call: _e.mock.On("CreateLogGroup",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchLogsClientPort_CreateLogGroup_Call) Run(run func(ctx context.Context, input *cloudwatchlogs.CreateLogGroupInput, opts ...func(*cloudwatchlogs.Options))) *CloudWatchLogsClientPort_CreateLogGroup_Call {
@@ -164,9 +164,9 @@ type CloudWatchLogsClientPort_CreateLogStream_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatchlogs.CreateLogStreamInput
 //   - opts ...func(*cloudwatchlogs.Options)
-func (_e *CloudWatchLogsClientPort_Expecter) CreateLogStream(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchLogsClientPort_CreateLogStream_Call {
+func (_e *CloudWatchLogsClientPort_Expecter) CreateLogStream(ctx any, input any, opts ...any) *CloudWatchLogsClientPort_CreateLogStream_Call {
 	return &CloudWatchLogsClientPort_CreateLogStream_Call{Call: _e.mock.On("CreateLogStream",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchLogsClientPort_CreateLogStream_Call) Run(run func(ctx context.Context, input *cloudwatchlogs.CreateLogStreamInput, opts ...func(*cloudwatchlogs.Options))) *CloudWatchLogsClientPort_CreateLogStream_Call {
@@ -247,9 +247,9 @@ type CloudWatchLogsClientPort_DeleteLogGroup_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatchlogs.DeleteLogGroupInput
 //   - opts ...func(*cloudwatchlogs.Options)
-func (_e *CloudWatchLogsClientPort_Expecter) DeleteLogGroup(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchLogsClientPort_DeleteLogGroup_Call {
+func (_e *CloudWatchLogsClientPort_Expecter) DeleteLogGroup(ctx any, input any, opts ...any) *CloudWatchLogsClientPort_DeleteLogGroup_Call {
 	return &CloudWatchLogsClientPort_DeleteLogGroup_Call{Call: _e.mock.On("DeleteLogGroup",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchLogsClientPort_DeleteLogGroup_Call) Run(run func(ctx context.Context, input *cloudwatchlogs.DeleteLogGroupInput, opts ...func(*cloudwatchlogs.Options))) *CloudWatchLogsClientPort_DeleteLogGroup_Call {
@@ -330,9 +330,9 @@ type CloudWatchLogsClientPort_DescribeLogGroups_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatchlogs.DescribeLogGroupsInput
 //   - opts ...func(*cloudwatchlogs.Options)
-func (_e *CloudWatchLogsClientPort_Expecter) DescribeLogGroups(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchLogsClientPort_DescribeLogGroups_Call {
+func (_e *CloudWatchLogsClientPort_Expecter) DescribeLogGroups(ctx any, input any, opts ...any) *CloudWatchLogsClientPort_DescribeLogGroups_Call {
 	return &CloudWatchLogsClientPort_DescribeLogGroups_Call{Call: _e.mock.On("DescribeLogGroups",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchLogsClientPort_DescribeLogGroups_Call) Run(run func(ctx context.Context, input *cloudwatchlogs.DescribeLogGroupsInput, opts ...func(*cloudwatchlogs.Options))) *CloudWatchLogsClientPort_DescribeLogGroups_Call {
@@ -413,9 +413,9 @@ type CloudWatchLogsClientPort_DescribeLogStreams_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatchlogs.DescribeLogStreamsInput
 //   - opts ...func(*cloudwatchlogs.Options)
-func (_e *CloudWatchLogsClientPort_Expecter) DescribeLogStreams(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchLogsClientPort_DescribeLogStreams_Call {
+func (_e *CloudWatchLogsClientPort_Expecter) DescribeLogStreams(ctx any, input any, opts ...any) *CloudWatchLogsClientPort_DescribeLogStreams_Call {
 	return &CloudWatchLogsClientPort_DescribeLogStreams_Call{Call: _e.mock.On("DescribeLogStreams",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchLogsClientPort_DescribeLogStreams_Call) Run(run func(ctx context.Context, input *cloudwatchlogs.DescribeLogStreamsInput, opts ...func(*cloudwatchlogs.Options))) *CloudWatchLogsClientPort_DescribeLogStreams_Call {
@@ -496,9 +496,9 @@ type CloudWatchLogsClientPort_DescribeMetricFilters_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatchlogs.DescribeMetricFiltersInput
 //   - opts ...func(*cloudwatchlogs.Options)
-func (_e *CloudWatchLogsClientPort_Expecter) DescribeMetricFilters(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchLogsClientPort_DescribeMetricFilters_Call {
+func (_e *CloudWatchLogsClientPort_Expecter) DescribeMetricFilters(ctx any, input any, opts ...any) *CloudWatchLogsClientPort_DescribeMetricFilters_Call {
 	return &CloudWatchLogsClientPort_DescribeMetricFilters_Call{Call: _e.mock.On("DescribeMetricFilters",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchLogsClientPort_DescribeMetricFilters_Call) Run(run func(ctx context.Context, input *cloudwatchlogs.DescribeMetricFiltersInput, opts ...func(*cloudwatchlogs.Options))) *CloudWatchLogsClientPort_DescribeMetricFilters_Call {
@@ -579,9 +579,9 @@ type CloudWatchLogsClientPort_GetLogEvents_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatchlogs.GetLogEventsInput
 //   - opts ...func(*cloudwatchlogs.Options)
-func (_e *CloudWatchLogsClientPort_Expecter) GetLogEvents(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchLogsClientPort_GetLogEvents_Call {
+func (_e *CloudWatchLogsClientPort_Expecter) GetLogEvents(ctx any, input any, opts ...any) *CloudWatchLogsClientPort_GetLogEvents_Call {
 	return &CloudWatchLogsClientPort_GetLogEvents_Call{Call: _e.mock.On("GetLogEvents",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchLogsClientPort_GetLogEvents_Call) Run(run func(ctx context.Context, input *cloudwatchlogs.GetLogEventsInput, opts ...func(*cloudwatchlogs.Options))) *CloudWatchLogsClientPort_GetLogEvents_Call {
@@ -662,9 +662,9 @@ type CloudWatchLogsClientPort_PutLogEvents_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatchlogs.PutLogEventsInput
 //   - opts ...func(*cloudwatchlogs.Options)
-func (_e *CloudWatchLogsClientPort_Expecter) PutLogEvents(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchLogsClientPort_PutLogEvents_Call {
+func (_e *CloudWatchLogsClientPort_Expecter) PutLogEvents(ctx any, input any, opts ...any) *CloudWatchLogsClientPort_PutLogEvents_Call {
 	return &CloudWatchLogsClientPort_PutLogEvents_Call{Call: _e.mock.On("PutLogEvents",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchLogsClientPort_PutLogEvents_Call) Run(run func(ctx context.Context, input *cloudwatchlogs.PutLogEventsInput, opts ...func(*cloudwatchlogs.Options))) *CloudWatchLogsClientPort_PutLogEvents_Call {
@@ -745,9 +745,9 @@ type CloudWatchLogsClientPort_PutMetricFilter_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatchlogs.PutMetricFilterInput
 //   - opts ...func(*cloudwatchlogs.Options)
-func (_e *CloudWatchLogsClientPort_Expecter) PutMetricFilter(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchLogsClientPort_PutMetricFilter_Call {
+func (_e *CloudWatchLogsClientPort_Expecter) PutMetricFilter(ctx any, input any, opts ...any) *CloudWatchLogsClientPort_PutMetricFilter_Call {
 	return &CloudWatchLogsClientPort_PutMetricFilter_Call{Call: _e.mock.On("PutMetricFilter",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchLogsClientPort_PutMetricFilter_Call) Run(run func(ctx context.Context, input *cloudwatchlogs.PutMetricFilterInput, opts ...func(*cloudwatchlogs.Options))) *CloudWatchLogsClientPort_PutMetricFilter_Call {
@@ -828,9 +828,9 @@ type CloudWatchLogsClientPort_PutRetentionPolicy_Call struct {
 //   - ctx context.Context
 //   - input *cloudwatchlogs.PutRetentionPolicyInput
 //   - opts ...func(*cloudwatchlogs.Options)
-func (_e *CloudWatchLogsClientPort_Expecter) PutRetentionPolicy(ctx interface{}, input interface{}, opts ...interface{}) *CloudWatchLogsClientPort_PutRetentionPolicy_Call {
+func (_e *CloudWatchLogsClientPort_Expecter) PutRetentionPolicy(ctx any, input any, opts ...any) *CloudWatchLogsClientPort_PutRetentionPolicy_Call {
 	return &CloudWatchLogsClientPort_PutRetentionPolicy_Call{Call: _e.mock.On("PutRetentionPolicy",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudWatchLogsClientPort_PutRetentionPolicy_Call) Run(run func(ctx context.Context, input *cloudwatchlogs.PutRetentionPolicyInput, opts ...func(*cloudwatchlogs.Options))) *CloudWatchLogsClientPort_PutRetentionPolicy_Call {

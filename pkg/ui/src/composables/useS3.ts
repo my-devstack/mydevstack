@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { useToast } from '@/composables/useToast'
 import * as s3Api from '@/api/services/s3'
+import type { LifecycleRule } from '@/api/services/s3'
 import * as lambdaApi from '@/api/services/lambda'
 
 export interface TriggerConfig {
@@ -24,6 +25,8 @@ export function useS3() {
   }>>({})
   const loading = ref(false)
   const uploading = ref(false)
+  const lifecycleRules = ref<Record<string, LifecycleRule[]>>({})
+  const lifecycleLoading = ref(false)
 
   async function loadBuckets() {
     loading.value = true
@@ -53,15 +56,17 @@ export function useS3() {
   async function loadBucketDetails(bucketName: string) {
     bucketDetails.value[bucketName] = { ...bucketDetails.value[bucketName], loading: true }
     try {
-      const [versioning, encryption, tags] = await Promise.all([
+      const [versioning, encryption, tags, lifecycle] = await Promise.all([
         s3Api.getBucketVersioning(bucketName).catch(() => null),
         s3Api.getBucketEncryption(bucketName).catch(() => null),
         s3Api.getBucketTagging(bucketName).catch(() => ({ tags: [] })),
+        s3Api.getBucketLifecycleConfiguration(bucketName).catch(() => ({ rules: [] })),
       ])
       bucketDetails.value[bucketName] = {
         versioning,
         encryption,
         tags: tags?.tags || [],
+        lifecycleRules: lifecycle?.rules || [],
         loading: false,
       }
     } catch (error) {
@@ -245,6 +250,60 @@ export function useS3() {
     }
   }
 
+  async function loadLifecycleRules(bucketName: string): Promise<LifecycleRule[]> {
+    lifecycleLoading.value = true
+    try {
+      const result = await s3Api.getBucketLifecycleConfiguration(bucketName)
+      lifecycleRules.value[bucketName] = result.rules
+      return result.rules
+    } catch (error) {
+      toast.error('Failed to load lifecycle rules: ' + (error instanceof Error ? error.message : 'Unknown error'))
+      lifecycleRules.value[bucketName] = []
+      return []
+    } finally {
+      lifecycleLoading.value = false
+    }
+  }
+
+  async function saveLifecycleRules(bucketName: string, rules: LifecycleRule[]): Promise<void> {
+    lifecycleLoading.value = true
+    try {
+      await s3Api.putBucketLifecycleConfiguration(bucketName, rules)
+      toast.success(`Lifecycle rules saved for "${bucketName}"`)
+      await loadLifecycleRules(bucketName)
+    } catch (error) {
+      toast.error('Failed to save lifecycle rules: ' + (error instanceof Error ? error.message : 'Unknown error'))
+      throw error
+    } finally {
+      lifecycleLoading.value = false
+    }
+  }
+
+  async function deleteLifecycleRule(bucketName: string): Promise<void> {
+    lifecycleLoading.value = true
+    try {
+      await s3Api.deleteBucketLifecycleConfiguration(bucketName)
+      toast.success(`Lifecycle rules deleted for "${bucketName}"`)
+      delete lifecycleRules.value[bucketName]
+    } catch (error) {
+      toast.error('Failed to delete lifecycle rules: ' + (error instanceof Error ? error.message : 'Unknown error'))
+      throw error
+    } finally {
+      lifecycleLoading.value = false
+    }
+  }
+
+  async function toggleVersioning(bucketName: string, enable: boolean): Promise<void> {
+    try {
+      await s3Api.putBucketVersioning(bucketName, enable ? 'Enabled' : 'Suspended')
+      toast.success(`Versioning ${enable ? 'enabled' : 'suspended'} for "${bucketName}"`)
+      await loadBucketDetails(bucketName)
+    } catch (error) {
+      toast.error('Failed to toggle versioning: ' + (error instanceof Error ? error.message : 'Unknown error'))
+      throw error
+    }
+  }
+
   return {
     buckets,
     objects,
@@ -264,5 +323,11 @@ export function useS3() {
     formatBody,
     configureLambdaTrigger,
     getLambdaTriggers,
+    lifecycleRules,
+    lifecycleLoading,
+    loadLifecycleRules,
+    saveLifecycleRules,
+    deleteLifecycleRule,
+    toggleVersioning,
   }
 }

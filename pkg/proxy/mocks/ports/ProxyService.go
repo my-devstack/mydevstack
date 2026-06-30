@@ -1117,7 +1117,7 @@ type ProxyService_SetRegion_Call struct {
 
 // SetRegion is a helper method to define mock.On call
 //   - region string
-func (_e *ProxyService_Expecter) SetRegion(region interface{}) *ProxyService_SetRegion_Call {
+func (_e *ProxyService_Expecter) SetRegion(region any) *ProxyService_SetRegion_Call {
 	return &ProxyService_SetRegion_Call{Call: _e.mock.On("SetRegion", region)}
 }
 

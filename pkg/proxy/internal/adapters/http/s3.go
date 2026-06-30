@@ -44,6 +44,9 @@ func (h *ProxyHandler) registerS3Routes(r chi.Router) {
 		r.Put("/buckets/{bucket}/public-access-block", h.putPublicAccessBlock)
 		r.Get("/buckets/{bucket}/notification", h.getBucketNotificationConfiguration)
 		r.Put("/buckets/{bucket}/notification", h.putBucketNotificationConfiguration)
+		r.Get("/buckets/{bucket}/lifecycle", h.getBucketLifecycleConfiguration)
+		r.Put("/buckets/{bucket}/lifecycle", h.putBucketLifecycleConfiguration)
+		r.Delete("/buckets/{bucket}/lifecycle", h.deleteBucketLifecycleConfiguration)
 	})
 }
 
@@ -529,6 +532,49 @@ func (h *ProxyHandler) getBucketNotificationConfiguration(w http.ResponseWriter,
 	result, err := h.Svc.S3().GetBucketNotificationConfiguration(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to get bucket notification configuration", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *ProxyHandler) getBucketLifecycleConfiguration(w http.ResponseWriter, r *http.Request) {
+	input := &s3.GetBucketLifecycleConfigurationInput{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
+	}
+	result, err := h.Svc.S3().GetBucketLifecycleConfiguration(h.ctx, input)
+	if err != nil {
+		// Return empty rules array instead of error (bucket may not have lifecycle config)
+		writeJSON(w, http.StatusOK, &s3.GetBucketLifecycleConfigurationOutput{
+			Rules: nil,
+		})
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *ProxyHandler) putBucketLifecycleConfiguration(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	input := &s3.PutBucketLifecycleConfigurationInput{}
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	input.Bucket = aws.String(chi.URLParam(r, "bucket"))
+	result, err := h.Svc.S3().PutBucketLifecycleConfiguration(h.ctx, input)
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, "Failed to put bucket lifecycle configuration", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *ProxyHandler) deleteBucketLifecycleConfiguration(w http.ResponseWriter, r *http.Request) {
+	input := &s3.DeleteBucketLifecycleInput{
+		Bucket: aws.String(chi.URLParam(r, "bucket")),
+	}
+	result, err := h.Svc.S3().DeleteBucketLifecycle(h.ctx, input)
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, "Failed to delete bucket lifecycle configuration", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)

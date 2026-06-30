@@ -74,7 +74,7 @@ type SESv2Port_CreateContactList_Call struct {
 // CreateContactList is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.CreateContactListInput
-func (_e *SESv2Port_Expecter) CreateContactList(ctx interface{}, input interface{}) *SESv2Port_CreateContactList_Call {
+func (_e *SESv2Port_Expecter) CreateContactList(ctx any, input any) *SESv2Port_CreateContactList_Call {
 	return &SESv2Port_CreateContactList_Call{Call: _e.mock.On("CreateContactList", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type SESv2Port_CreateEmailIdentity_Call struct {
 // CreateEmailIdentity is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.CreateEmailIdentityInput
-func (_e *SESv2Port_Expecter) CreateEmailIdentity(ctx interface{}, input interface{}) *SESv2Port_CreateEmailIdentity_Call {
+func (_e *SESv2Port_Expecter) CreateEmailIdentity(ctx any, input any) *SESv2Port_CreateEmailIdentity_Call {
 	return &SESv2Port_CreateEmailIdentity_Call{Call: _e.mock.On("CreateEmailIdentity", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type SESv2Port_CreateEmailTemplate_Call struct {
 // CreateEmailTemplate is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.CreateEmailTemplateInput
-func (_e *SESv2Port_Expecter) CreateEmailTemplate(ctx interface{}, input interface{}) *SESv2Port_CreateEmailTemplate_Call {
+func (_e *SESv2Port_Expecter) CreateEmailTemplate(ctx any, input any) *SESv2Port_CreateEmailTemplate_Call {
 	return &SESv2Port_CreateEmailTemplate_Call{Call: _e.mock.On("CreateEmailTemplate", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type SESv2Port_DeleteContactList_Call struct {
 // DeleteContactList is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.DeleteContactListInput
-func (_e *SESv2Port_Expecter) DeleteContactList(ctx interface{}, input interface{}) *SESv2Port_DeleteContactList_Call {
+func (_e *SESv2Port_Expecter) DeleteContactList(ctx any, input any) *SESv2Port_DeleteContactList_Call {
 	return &SESv2Port_DeleteContactList_Call{Call: _e.mock.On("DeleteContactList", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type SESv2Port_DeleteEmailIdentity_Call struct {
 // DeleteEmailIdentity is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.DeleteEmailIdentityInput
-func (_e *SESv2Port_Expecter) DeleteEmailIdentity(ctx interface{}, input interface{}) *SESv2Port_DeleteEmailIdentity_Call {
+func (_e *SESv2Port_Expecter) DeleteEmailIdentity(ctx any, input any) *SESv2Port_DeleteEmailIdentity_Call {
 	return &SESv2Port_DeleteEmailIdentity_Call{Call: _e.mock.On("DeleteEmailIdentity", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type SESv2Port_DeleteEmailTemplate_Call struct {
 // DeleteEmailTemplate is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.DeleteEmailTemplateInput
-func (_e *SESv2Port_Expecter) DeleteEmailTemplate(ctx interface{}, input interface{}) *SESv2Port_DeleteEmailTemplate_Call {
+func (_e *SESv2Port_Expecter) DeleteEmailTemplate(ctx any, input any) *SESv2Port_DeleteEmailTemplate_Call {
 	return &SESv2Port_DeleteEmailTemplate_Call{Call: _e.mock.On("DeleteEmailTemplate", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type SESv2Port_GetAccount_Call struct {
 // GetAccount is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.GetAccountInput
-func (_e *SESv2Port_Expecter) GetAccount(ctx interface{}, input interface{}) *SESv2Port_GetAccount_Call {
+func (_e *SESv2Port_Expecter) GetAccount(ctx any, input any) *SESv2Port_GetAccount_Call {
 	return &SESv2Port_GetAccount_Call{Call: _e.mock.On("GetAccount", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type SESv2Port_GetEmailIdentity_Call struct {
 // GetEmailIdentity is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.GetEmailIdentityInput
-func (_e *SESv2Port_Expecter) GetEmailIdentity(ctx interface{}, input interface{}) *SESv2Port_GetEmailIdentity_Call {
+func (_e *SESv2Port_Expecter) GetEmailIdentity(ctx any, input any) *SESv2Port_GetEmailIdentity_Call {
 	return &SESv2Port_GetEmailIdentity_Call{Call: _e.mock.On("GetEmailIdentity", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type SESv2Port_GetEmailTemplate_Call struct {
 // GetEmailTemplate is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.GetEmailTemplateInput
-func (_e *SESv2Port_Expecter) GetEmailTemplate(ctx interface{}, input interface{}) *SESv2Port_GetEmailTemplate_Call {
+func (_e *SESv2Port_Expecter) GetEmailTemplate(ctx any, input any) *SESv2Port_GetEmailTemplate_Call {
 	return &SESv2Port_GetEmailTemplate_Call{Call: _e.mock.On("GetEmailTemplate", ctx, input)}
 }
 
@@ -686,7 +686,7 @@ type SESv2Port_ListContactLists_Call struct {
 // ListContactLists is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.ListContactListsInput
-func (_e *SESv2Port_Expecter) ListContactLists(ctx interface{}, input interface{}) *SESv2Port_ListContactLists_Call {
+func (_e *SESv2Port_Expecter) ListContactLists(ctx any, input any) *SESv2Port_ListContactLists_Call {
 	return &SESv2Port_ListContactLists_Call{Call: _e.mock.On("ListContactLists", ctx, input)}
 }
 
@@ -754,7 +754,7 @@ type SESv2Port_ListCustomVerificationEmailTemplates_Call struct {
 // ListCustomVerificationEmailTemplates is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.ListCustomVerificationEmailTemplatesInput
-func (_e *SESv2Port_Expecter) ListCustomVerificationEmailTemplates(ctx interface{}, input interface{}) *SESv2Port_ListCustomVerificationEmailTemplates_Call {
+func (_e *SESv2Port_Expecter) ListCustomVerificationEmailTemplates(ctx any, input any) *SESv2Port_ListCustomVerificationEmailTemplates_Call {
 	return &SESv2Port_ListCustomVerificationEmailTemplates_Call{Call: _e.mock.On("ListCustomVerificationEmailTemplates", ctx, input)}
 }
 
@@ -822,7 +822,7 @@ type SESv2Port_ListEmailIdentities_Call struct {
 // ListEmailIdentities is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.ListEmailIdentitiesInput
-func (_e *SESv2Port_Expecter) ListEmailIdentities(ctx interface{}, input interface{}) *SESv2Port_ListEmailIdentities_Call {
+func (_e *SESv2Port_Expecter) ListEmailIdentities(ctx any, input any) *SESv2Port_ListEmailIdentities_Call {
 	return &SESv2Port_ListEmailIdentities_Call{Call: _e.mock.On("ListEmailIdentities", ctx, input)}
 }
 
@@ -890,7 +890,7 @@ type SESv2Port_ListEmailTemplates_Call struct {
 // ListEmailTemplates is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.ListEmailTemplatesInput
-func (_e *SESv2Port_Expecter) ListEmailTemplates(ctx interface{}, input interface{}) *SESv2Port_ListEmailTemplates_Call {
+func (_e *SESv2Port_Expecter) ListEmailTemplates(ctx any, input any) *SESv2Port_ListEmailTemplates_Call {
 	return &SESv2Port_ListEmailTemplates_Call{Call: _e.mock.On("ListEmailTemplates", ctx, input)}
 }
 
@@ -958,7 +958,7 @@ type SESv2Port_ListSuppressedDestinations_Call struct {
 // ListSuppressedDestinations is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.ListSuppressedDestinationsInput
-func (_e *SESv2Port_Expecter) ListSuppressedDestinations(ctx interface{}, input interface{}) *SESv2Port_ListSuppressedDestinations_Call {
+func (_e *SESv2Port_Expecter) ListSuppressedDestinations(ctx any, input any) *SESv2Port_ListSuppressedDestinations_Call {
 	return &SESv2Port_ListSuppressedDestinations_Call{Call: _e.mock.On("ListSuppressedDestinations", ctx, input)}
 }
 
@@ -1026,7 +1026,7 @@ type SESv2Port_PutAccountSuppressionAttributes_Call struct {
 // PutAccountSuppressionAttributes is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.PutAccountSuppressionAttributesInput
-func (_e *SESv2Port_Expecter) PutAccountSuppressionAttributes(ctx interface{}, input interface{}) *SESv2Port_PutAccountSuppressionAttributes_Call {
+func (_e *SESv2Port_Expecter) PutAccountSuppressionAttributes(ctx any, input any) *SESv2Port_PutAccountSuppressionAttributes_Call {
 	return &SESv2Port_PutAccountSuppressionAttributes_Call{Call: _e.mock.On("PutAccountSuppressionAttributes", ctx, input)}
 }
 
@@ -1094,7 +1094,7 @@ type SESv2Port_SendBulkEmail_Call struct {
 // SendBulkEmail is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.SendBulkEmailInput
-func (_e *SESv2Port_Expecter) SendBulkEmail(ctx interface{}, input interface{}) *SESv2Port_SendBulkEmail_Call {
+func (_e *SESv2Port_Expecter) SendBulkEmail(ctx any, input any) *SESv2Port_SendBulkEmail_Call {
 	return &SESv2Port_SendBulkEmail_Call{Call: _e.mock.On("SendBulkEmail", ctx, input)}
 }
 
@@ -1162,7 +1162,7 @@ type SESv2Port_SendEmail_Call struct {
 // SendEmail is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.SendEmailInput
-func (_e *SESv2Port_Expecter) SendEmail(ctx interface{}, input interface{}) *SESv2Port_SendEmail_Call {
+func (_e *SESv2Port_Expecter) SendEmail(ctx any, input any) *SESv2Port_SendEmail_Call {
 	return &SESv2Port_SendEmail_Call{Call: _e.mock.On("SendEmail", ctx, input)}
 }
 
@@ -1230,7 +1230,7 @@ type SESv2Port_UpdateEmailTemplate_Call struct {
 // UpdateEmailTemplate is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sesv2.UpdateEmailTemplateInput
-func (_e *SESv2Port_Expecter) UpdateEmailTemplate(ctx interface{}, input interface{}) *SESv2Port_UpdateEmailTemplate_Call {
+func (_e *SESv2Port_Expecter) UpdateEmailTemplate(ctx any, input any) *SESv2Port_UpdateEmailTemplate_Call {
 	return &SESv2Port_UpdateEmailTemplate_Call{Call: _e.mock.On("UpdateEmailTemplate", ctx, input)}
 }
 

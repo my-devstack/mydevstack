@@ -81,9 +81,9 @@ type SNSClientPort_CreateTopic_Call struct {
 //   - ctx context.Context
 //   - input *sns.CreateTopicInput
 //   - opts ...func(*sns.Options)
-func (_e *SNSClientPort_Expecter) CreateTopic(ctx interface{}, input interface{}, opts ...interface{}) *SNSClientPort_CreateTopic_Call {
+func (_e *SNSClientPort_Expecter) CreateTopic(ctx any, input any, opts ...any) *SNSClientPort_CreateTopic_Call {
 	return &SNSClientPort_CreateTopic_Call{Call: _e.mock.On("CreateTopic",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SNSClientPort_CreateTopic_Call) Run(run func(ctx context.Context, input *sns.CreateTopicInput, opts ...func(*sns.Options))) *SNSClientPort_CreateTopic_Call {
@@ -164,9 +164,9 @@ type SNSClientPort_DeleteTopic_Call struct {
 //   - ctx context.Context
 //   - input *sns.DeleteTopicInput
 //   - opts ...func(*sns.Options)
-func (_e *SNSClientPort_Expecter) DeleteTopic(ctx interface{}, input interface{}, opts ...interface{}) *SNSClientPort_DeleteTopic_Call {
+func (_e *SNSClientPort_Expecter) DeleteTopic(ctx any, input any, opts ...any) *SNSClientPort_DeleteTopic_Call {
 	return &SNSClientPort_DeleteTopic_Call{Call: _e.mock.On("DeleteTopic",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SNSClientPort_DeleteTopic_Call) Run(run func(ctx context.Context, input *sns.DeleteTopicInput, opts ...func(*sns.Options))) *SNSClientPort_DeleteTopic_Call {
@@ -247,9 +247,9 @@ type SNSClientPort_ListSubscriptions_Call struct {
 //   - ctx context.Context
 //   - input *sns.ListSubscriptionsInput
 //   - opts ...func(*sns.Options)
-func (_e *SNSClientPort_Expecter) ListSubscriptions(ctx interface{}, input interface{}, opts ...interface{}) *SNSClientPort_ListSubscriptions_Call {
+func (_e *SNSClientPort_Expecter) ListSubscriptions(ctx any, input any, opts ...any) *SNSClientPort_ListSubscriptions_Call {
 	return &SNSClientPort_ListSubscriptions_Call{Call: _e.mock.On("ListSubscriptions",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SNSClientPort_ListSubscriptions_Call) Run(run func(ctx context.Context, input *sns.ListSubscriptionsInput, opts ...func(*sns.Options))) *SNSClientPort_ListSubscriptions_Call {
@@ -330,9 +330,9 @@ type SNSClientPort_ListSubscriptionsByTopic_Call struct {
 //   - ctx context.Context
 //   - input *sns.ListSubscriptionsByTopicInput
 //   - opts ...func(*sns.Options)
-func (_e *SNSClientPort_Expecter) ListSubscriptionsByTopic(ctx interface{}, input interface{}, opts ...interface{}) *SNSClientPort_ListSubscriptionsByTopic_Call {
+func (_e *SNSClientPort_Expecter) ListSubscriptionsByTopic(ctx any, input any, opts ...any) *SNSClientPort_ListSubscriptionsByTopic_Call {
 	return &SNSClientPort_ListSubscriptionsByTopic_Call{Call: _e.mock.On("ListSubscriptionsByTopic",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SNSClientPort_ListSubscriptionsByTopic_Call) Run(run func(ctx context.Context, input *sns.ListSubscriptionsByTopicInput, opts ...func(*sns.Options))) *SNSClientPort_ListSubscriptionsByTopic_Call {
@@ -413,9 +413,9 @@ type SNSClientPort_ListTopics_Call struct {
 //   - ctx context.Context
 //   - input *sns.ListTopicsInput
 //   - opts ...func(*sns.Options)
-func (_e *SNSClientPort_Expecter) ListTopics(ctx interface{}, input interface{}, opts ...interface{}) *SNSClientPort_ListTopics_Call {
+func (_e *SNSClientPort_Expecter) ListTopics(ctx any, input any, opts ...any) *SNSClientPort_ListTopics_Call {
 	return &SNSClientPort_ListTopics_Call{Call: _e.mock.On("ListTopics",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SNSClientPort_ListTopics_Call) Run(run func(ctx context.Context, input *sns.ListTopicsInput, opts ...func(*sns.Options))) *SNSClientPort_ListTopics_Call {
@@ -496,9 +496,9 @@ type SNSClientPort_Publish_Call struct {
 //   - ctx context.Context
 //   - input *sns.PublishInput
 //   - opts ...func(*sns.Options)
-func (_e *SNSClientPort_Expecter) Publish(ctx interface{}, input interface{}, opts ...interface{}) *SNSClientPort_Publish_Call {
+func (_e *SNSClientPort_Expecter) Publish(ctx any, input any, opts ...any) *SNSClientPort_Publish_Call {
 	return &SNSClientPort_Publish_Call{Call: _e.mock.On("Publish",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SNSClientPort_Publish_Call) Run(run func(ctx context.Context, input *sns.PublishInput, opts ...func(*sns.Options))) *SNSClientPort_Publish_Call {
@@ -579,9 +579,9 @@ type SNSClientPort_Subscribe_Call struct {
 //   - ctx context.Context
 //   - input *sns.SubscribeInput
 //   - opts ...func(*sns.Options)
-func (_e *SNSClientPort_Expecter) Subscribe(ctx interface{}, input interface{}, opts ...interface{}) *SNSClientPort_Subscribe_Call {
+func (_e *SNSClientPort_Expecter) Subscribe(ctx any, input any, opts ...any) *SNSClientPort_Subscribe_Call {
 	return &SNSClientPort_Subscribe_Call{Call: _e.mock.On("Subscribe",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SNSClientPort_Subscribe_Call) Run(run func(ctx context.Context, input *sns.SubscribeInput, opts ...func(*sns.Options))) *SNSClientPort_Subscribe_Call {
@@ -662,9 +662,9 @@ type SNSClientPort_Unsubscribe_Call struct {
 //   - ctx context.Context
 //   - input *sns.UnsubscribeInput
 //   - opts ...func(*sns.Options)
-func (_e *SNSClientPort_Expecter) Unsubscribe(ctx interface{}, input interface{}, opts ...interface{}) *SNSClientPort_Unsubscribe_Call {
+func (_e *SNSClientPort_Expecter) Unsubscribe(ctx any, input any, opts ...any) *SNSClientPort_Unsubscribe_Call {
 	return &SNSClientPort_Unsubscribe_Call{Call: _e.mock.On("Unsubscribe",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SNSClientPort_Unsubscribe_Call) Run(run func(ctx context.Context, input *sns.UnsubscribeInput, opts ...func(*sns.Options))) *SNSClientPort_Unsubscribe_Call {

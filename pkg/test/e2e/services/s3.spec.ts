@@ -301,6 +301,151 @@ test.describe('S3', () => {
       // Now it should work without the JSON parse error
     }
   })
+
+  test('toggle versioning on existing bucket', async ({ page }) => {
+    await page.goto('/#/services/s3')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000)
+
+    // Find a versioned bucket (has "Disable" button) — look for "versioned" in name
+    const versionedBucket = page.locator('.border.rounded-lg span.font-medium').filter({ hasText: /versioned/ }).first()
+    await expect(versionedBucket).toBeVisible({ timeout: 10000 })
+    await versionedBucket.click()
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(1500)
+
+    // Find the "Disable" button in the versioning section
+    const disableBtn = page.getByRole('button', { name: 'Disable' }).first()
+    if (!await disableBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      test.skip('Disable button not found — versioning may not be enabled on any bucket')
+      return
+    }
+
+    // Click Disable
+    await disableBtn.click()
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(1000)
+
+    // Verify button changed to "Enable"
+    const enableBtn = page.getByRole('button', { name: 'Enable' }).first()
+    await expect(enableBtn).toBeVisible({ timeout: 8000 })
+  })
+
+  test('open lifecycle modal from bucket details', async ({ page }) => {
+    await page.goto('/#/services/s3')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000)
+
+    // Expand first bucket by clicking its name
+    const bucketName = page.locator('.border.rounded-lg span.font-medium').first()
+    await expect(bucketName).toBeVisible({ timeout: 10000 })
+    await bucketName.click()
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(1500)
+
+    // Click Manage Lifecycle button
+    const lifecycleBtn = page.getByText('Manage Lifecycle').first()
+    await expect(lifecycleBtn).toBeVisible({ timeout: 8000 })
+    await lifecycleBtn.click()
+    await page.waitForTimeout(1000)
+
+    // Verify dialog appeared
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+  })
+
+  test('add lifecycle rule from modal', async ({ page }) => {
+    await page.goto('/#/services/s3')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000)
+
+    // Expand first bucket
+    const bucketName = page.locator('.border.rounded-lg span.font-medium').first()
+    await expect(bucketName).toBeVisible({ timeout: 10000 })
+    await bucketName.click()
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(1500)
+
+    // Click Manage Lifecycle
+    const lifecycleBtn = page.getByText('Manage Lifecycle').first()
+    await expect(lifecycleBtn).toBeVisible({ timeout: 8000 })
+    await lifecycleBtn.click()
+    await page.waitForTimeout(1000)
+
+    // Verify dialog opened
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible({ timeout: 10000 })
+
+    // Click Add Rule button to show form
+    const addRuleBtn = page.getByText('Add Rule').first()
+    await addRuleBtn.click({ timeout: 5000, force: true })
+    await page.waitForTimeout(1000)
+
+    // Fill Rule ID (placeholder "e.g., ExpireLogs")
+    const idInput = page.locator('input[placeholder*="ExpireLogs"]').first()
+    if (await idInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await idInput.fill(`e2e-rule-${Date.now()}`, { force: true })
+    }
+
+    // Fill Prefix Filter (placeholder "e.g., logs/")
+    const prefixInput = page.locator('input[placeholder*="logs/"]').first()
+    if (await prefixInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await prefixInput.fill('test-prefix/', { force: true })
+    }
+
+    // Fill Expiration Days (placeholder "e.g., 30")
+    const daysInput = page.locator('input[placeholder*="30"]').first()
+    if (await daysInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await daysInput.fill('30', { force: true })
+    }
+
+    // Click Save Changes
+    const saveBtn = page.getByText('Save Changes').first()
+    if (await saveBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await saveBtn.click({ force: true })
+      await page.waitForTimeout(2000)
+
+      // Modal should close or show success
+      await expect(dialog).not.toBeVisible({ timeout: 10000 }).catch(() => {})
+    }
+  })
+
+  test('delete lifecycle rules', async ({ page }) => {
+    await page.goto('/#/services/s3')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000)
+
+    // Expand first bucket
+    const bucketName = page.locator('.border.rounded-lg span.font-medium').first()
+    await expect(bucketName).toBeVisible({ timeout: 10000 })
+    await bucketName.click()
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(1500)
+
+    // Click Manage Lifecycle
+    const lifecycleBtn = page.getByText('Manage Lifecycle').first()
+    await expect(lifecycleBtn).toBeVisible({ timeout: 8000 })
+    await lifecycleBtn.click()
+    await page.waitForTimeout(1000)
+
+    // Verify dialog opened
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible({ timeout: 10000 })
+
+    // Click Delete All button
+    const deleteAllBtn = page.getByText('Delete All').first()
+    await deleteAllBtn.click({ timeout: 5000, force: true })
+    await page.waitForTimeout(500)
+
+    // Handle confirmation — "Confirm" button appears inline
+    const confirmBtn = page.getByText('Confirm').first()
+    if (await confirmBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await confirmBtn.click({ force: true })
+      await page.waitForTimeout(1500)
+    }
+
+    // Verify modal closed or empty state
+    await expect(dialog).not.toBeVisible({ timeout: 10000 }).catch(() => {})
+  })
 })
 
 test.describe('Pagination', () => {

@@ -81,9 +81,9 @@ type DynamoDBStreamsClientPort_DescribeStream_Call struct {
 //   - ctx context.Context
 //   - input *dynamodbstreams.DescribeStreamInput
 //   - opts ...func(*dynamodbstreams.Options)
-func (_e *DynamoDBStreamsClientPort_Expecter) DescribeStream(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBStreamsClientPort_DescribeStream_Call {
+func (_e *DynamoDBStreamsClientPort_Expecter) DescribeStream(ctx any, input any, opts ...any) *DynamoDBStreamsClientPort_DescribeStream_Call {
 	return &DynamoDBStreamsClientPort_DescribeStream_Call{Call: _e.mock.On("DescribeStream",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBStreamsClientPort_DescribeStream_Call) Run(run func(ctx context.Context, input *dynamodbstreams.DescribeStreamInput, opts ...func(*dynamodbstreams.Options))) *DynamoDBStreamsClientPort_DescribeStream_Call {
@@ -164,9 +164,9 @@ type DynamoDBStreamsClientPort_GetRecords_Call struct {
 //   - ctx context.Context
 //   - input *dynamodbstreams.GetRecordsInput
 //   - opts ...func(*dynamodbstreams.Options)
-func (_e *DynamoDBStreamsClientPort_Expecter) GetRecords(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBStreamsClientPort_GetRecords_Call {
+func (_e *DynamoDBStreamsClientPort_Expecter) GetRecords(ctx any, input any, opts ...any) *DynamoDBStreamsClientPort_GetRecords_Call {
 	return &DynamoDBStreamsClientPort_GetRecords_Call{Call: _e.mock.On("GetRecords",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBStreamsClientPort_GetRecords_Call) Run(run func(ctx context.Context, input *dynamodbstreams.GetRecordsInput, opts ...func(*dynamodbstreams.Options))) *DynamoDBStreamsClientPort_GetRecords_Call {
@@ -247,9 +247,9 @@ type DynamoDBStreamsClientPort_GetShardIterator_Call struct {
 //   - ctx context.Context
 //   - input *dynamodbstreams.GetShardIteratorInput
 //   - opts ...func(*dynamodbstreams.Options)
-func (_e *DynamoDBStreamsClientPort_Expecter) GetShardIterator(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBStreamsClientPort_GetShardIterator_Call {
+func (_e *DynamoDBStreamsClientPort_Expecter) GetShardIterator(ctx any, input any, opts ...any) *DynamoDBStreamsClientPort_GetShardIterator_Call {
 	return &DynamoDBStreamsClientPort_GetShardIterator_Call{Call: _e.mock.On("GetShardIterator",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBStreamsClientPort_GetShardIterator_Call) Run(run func(ctx context.Context, input *dynamodbstreams.GetShardIteratorInput, opts ...func(*dynamodbstreams.Options))) *DynamoDBStreamsClientPort_GetShardIterator_Call {
@@ -330,9 +330,9 @@ type DynamoDBStreamsClientPort_ListStreams_Call struct {
 //   - ctx context.Context
 //   - input *dynamodbstreams.ListStreamsInput
 //   - opts ...func(*dynamodbstreams.Options)
-func (_e *DynamoDBStreamsClientPort_Expecter) ListStreams(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBStreamsClientPort_ListStreams_Call {
+func (_e *DynamoDBStreamsClientPort_Expecter) ListStreams(ctx any, input any, opts ...any) *DynamoDBStreamsClientPort_ListStreams_Call {
 	return &DynamoDBStreamsClientPort_ListStreams_Call{Call: _e.mock.On("ListStreams",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBStreamsClientPort_ListStreams_Call) Run(run func(ctx context.Context, input *dynamodbstreams.ListStreamsInput, opts ...func(*dynamodbstreams.Options))) *DynamoDBStreamsClientPort_ListStreams_Call {

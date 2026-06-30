@@ -81,9 +81,9 @@ type ElastiCacheClientPort_CreateReplicationGroup_Call struct {
 //   - ctx context.Context
 //   - input *elasticache.CreateReplicationGroupInput
 //   - opts ...func(*elasticache.Options)
-func (_e *ElastiCacheClientPort_Expecter) CreateReplicationGroup(ctx interface{}, input interface{}, opts ...interface{}) *ElastiCacheClientPort_CreateReplicationGroup_Call {
+func (_e *ElastiCacheClientPort_Expecter) CreateReplicationGroup(ctx any, input any, opts ...any) *ElastiCacheClientPort_CreateReplicationGroup_Call {
 	return &ElastiCacheClientPort_CreateReplicationGroup_Call{Call: _e.mock.On("CreateReplicationGroup",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *ElastiCacheClientPort_CreateReplicationGroup_Call) Run(run func(ctx context.Context, input *elasticache.CreateReplicationGroupInput, opts ...func(*elasticache.Options))) *ElastiCacheClientPort_CreateReplicationGroup_Call {
@@ -164,9 +164,9 @@ type ElastiCacheClientPort_DeleteReplicationGroup_Call struct {
 //   - ctx context.Context
 //   - input *elasticache.DeleteReplicationGroupInput
 //   - opts ...func(*elasticache.Options)
-func (_e *ElastiCacheClientPort_Expecter) DeleteReplicationGroup(ctx interface{}, input interface{}, opts ...interface{}) *ElastiCacheClientPort_DeleteReplicationGroup_Call {
+func (_e *ElastiCacheClientPort_Expecter) DeleteReplicationGroup(ctx any, input any, opts ...any) *ElastiCacheClientPort_DeleteReplicationGroup_Call {
 	return &ElastiCacheClientPort_DeleteReplicationGroup_Call{Call: _e.mock.On("DeleteReplicationGroup",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *ElastiCacheClientPort_DeleteReplicationGroup_Call) Run(run func(ctx context.Context, input *elasticache.DeleteReplicationGroupInput, opts ...func(*elasticache.Options))) *ElastiCacheClientPort_DeleteReplicationGroup_Call {
@@ -247,9 +247,9 @@ type ElastiCacheClientPort_DescribeReplicationGroups_Call struct {
 //   - ctx context.Context
 //   - input *elasticache.DescribeReplicationGroupsInput
 //   - opts ...func(*elasticache.Options)
-func (_e *ElastiCacheClientPort_Expecter) DescribeReplicationGroups(ctx interface{}, input interface{}, opts ...interface{}) *ElastiCacheClientPort_DescribeReplicationGroups_Call {
+func (_e *ElastiCacheClientPort_Expecter) DescribeReplicationGroups(ctx any, input any, opts ...any) *ElastiCacheClientPort_DescribeReplicationGroups_Call {
 	return &ElastiCacheClientPort_DescribeReplicationGroups_Call{Call: _e.mock.On("DescribeReplicationGroups",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *ElastiCacheClientPort_DescribeReplicationGroups_Call) Run(run func(ctx context.Context, input *elasticache.DescribeReplicationGroupsInput, opts ...func(*elasticache.Options))) *ElastiCacheClientPort_DescribeReplicationGroups_Call {

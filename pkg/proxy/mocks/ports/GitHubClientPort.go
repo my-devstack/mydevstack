@@ -74,7 +74,7 @@ type GitHubClientPort_GetLatestRelease_Call struct {
 // GetLatestRelease is a helper method to define mock.On call
 //   - ctx context.Context
 //   - repoURL string
-func (_e *GitHubClientPort_Expecter) GetLatestRelease(ctx interface{}, repoURL interface{}) *GitHubClientPort_GetLatestRelease_Call {
+func (_e *GitHubClientPort_Expecter) GetLatestRelease(ctx any, repoURL any) *GitHubClientPort_GetLatestRelease_Call {
 	return &GitHubClientPort_GetLatestRelease_Call{Call: _e.mock.On("GetLatestRelease", ctx, repoURL)}
 }
 

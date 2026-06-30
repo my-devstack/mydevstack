@@ -74,7 +74,7 @@ type CloudWatchLogsPort_CreateLogGroup_Call struct {
 // CreateLogGroup is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatchlogs.CreateLogGroupInput
-func (_e *CloudWatchLogsPort_Expecter) CreateLogGroup(ctx interface{}, input interface{}) *CloudWatchLogsPort_CreateLogGroup_Call {
+func (_e *CloudWatchLogsPort_Expecter) CreateLogGroup(ctx any, input any) *CloudWatchLogsPort_CreateLogGroup_Call {
 	return &CloudWatchLogsPort_CreateLogGroup_Call{Call: _e.mock.On("CreateLogGroup", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type CloudWatchLogsPort_CreateLogStream_Call struct {
 // CreateLogStream is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatchlogs.CreateLogStreamInput
-func (_e *CloudWatchLogsPort_Expecter) CreateLogStream(ctx interface{}, input interface{}) *CloudWatchLogsPort_CreateLogStream_Call {
+func (_e *CloudWatchLogsPort_Expecter) CreateLogStream(ctx any, input any) *CloudWatchLogsPort_CreateLogStream_Call {
 	return &CloudWatchLogsPort_CreateLogStream_Call{Call: _e.mock.On("CreateLogStream", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type CloudWatchLogsPort_DeleteLogGroup_Call struct {
 // DeleteLogGroup is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatchlogs.DeleteLogGroupInput
-func (_e *CloudWatchLogsPort_Expecter) DeleteLogGroup(ctx interface{}, input interface{}) *CloudWatchLogsPort_DeleteLogGroup_Call {
+func (_e *CloudWatchLogsPort_Expecter) DeleteLogGroup(ctx any, input any) *CloudWatchLogsPort_DeleteLogGroup_Call {
 	return &CloudWatchLogsPort_DeleteLogGroup_Call{Call: _e.mock.On("DeleteLogGroup", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type CloudWatchLogsPort_DescribeLogGroups_Call struct {
 // DescribeLogGroups is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatchlogs.DescribeLogGroupsInput
-func (_e *CloudWatchLogsPort_Expecter) DescribeLogGroups(ctx interface{}, input interface{}) *CloudWatchLogsPort_DescribeLogGroups_Call {
+func (_e *CloudWatchLogsPort_Expecter) DescribeLogGroups(ctx any, input any) *CloudWatchLogsPort_DescribeLogGroups_Call {
 	return &CloudWatchLogsPort_DescribeLogGroups_Call{Call: _e.mock.On("DescribeLogGroups", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type CloudWatchLogsPort_DescribeLogStreams_Call struct {
 // DescribeLogStreams is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatchlogs.DescribeLogStreamsInput
-func (_e *CloudWatchLogsPort_Expecter) DescribeLogStreams(ctx interface{}, input interface{}) *CloudWatchLogsPort_DescribeLogStreams_Call {
+func (_e *CloudWatchLogsPort_Expecter) DescribeLogStreams(ctx any, input any) *CloudWatchLogsPort_DescribeLogStreams_Call {
 	return &CloudWatchLogsPort_DescribeLogStreams_Call{Call: _e.mock.On("DescribeLogStreams", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type CloudWatchLogsPort_DescribeMetricFilters_Call struct {
 // DescribeMetricFilters is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatchlogs.DescribeMetricFiltersInput
-func (_e *CloudWatchLogsPort_Expecter) DescribeMetricFilters(ctx interface{}, input interface{}) *CloudWatchLogsPort_DescribeMetricFilters_Call {
+func (_e *CloudWatchLogsPort_Expecter) DescribeMetricFilters(ctx any, input any) *CloudWatchLogsPort_DescribeMetricFilters_Call {
 	return &CloudWatchLogsPort_DescribeMetricFilters_Call{Call: _e.mock.On("DescribeMetricFilters", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type CloudWatchLogsPort_GetLogEvents_Call struct {
 // GetLogEvents is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatchlogs.GetLogEventsInput
-func (_e *CloudWatchLogsPort_Expecter) GetLogEvents(ctx interface{}, input interface{}) *CloudWatchLogsPort_GetLogEvents_Call {
+func (_e *CloudWatchLogsPort_Expecter) GetLogEvents(ctx any, input any) *CloudWatchLogsPort_GetLogEvents_Call {
 	return &CloudWatchLogsPort_GetLogEvents_Call{Call: _e.mock.On("GetLogEvents", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type CloudWatchLogsPort_PutLogEvents_Call struct {
 // PutLogEvents is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatchlogs.PutLogEventsInput
-func (_e *CloudWatchLogsPort_Expecter) PutLogEvents(ctx interface{}, input interface{}) *CloudWatchLogsPort_PutLogEvents_Call {
+func (_e *CloudWatchLogsPort_Expecter) PutLogEvents(ctx any, input any) *CloudWatchLogsPort_PutLogEvents_Call {
 	return &CloudWatchLogsPort_PutLogEvents_Call{Call: _e.mock.On("PutLogEvents", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type CloudWatchLogsPort_PutMetricFilter_Call struct {
 // PutMetricFilter is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatchlogs.PutMetricFilterInput
-func (_e *CloudWatchLogsPort_Expecter) PutMetricFilter(ctx interface{}, input interface{}) *CloudWatchLogsPort_PutMetricFilter_Call {
+func (_e *CloudWatchLogsPort_Expecter) PutMetricFilter(ctx any, input any) *CloudWatchLogsPort_PutMetricFilter_Call {
 	return &CloudWatchLogsPort_PutMetricFilter_Call{Call: _e.mock.On("PutMetricFilter", ctx, input)}
 }
 
@@ -686,7 +686,7 @@ type CloudWatchLogsPort_PutRetentionPolicy_Call struct {
 // PutRetentionPolicy is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatchlogs.PutRetentionPolicyInput
-func (_e *CloudWatchLogsPort_Expecter) PutRetentionPolicy(ctx interface{}, input interface{}) *CloudWatchLogsPort_PutRetentionPolicy_Call {
+func (_e *CloudWatchLogsPort_Expecter) PutRetentionPolicy(ctx any, input any) *CloudWatchLogsPort_PutRetentionPolicy_Call {
 	return &CloudWatchLogsPort_PutRetentionPolicy_Call{Call: _e.mock.On("PutRetentionPolicy", ctx, input)}
 }
 

@@ -74,7 +74,7 @@ type KinesisPort_CreateStream_Call struct {
 // CreateStream is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.CreateStreamInput
-func (_e *KinesisPort_Expecter) CreateStream(ctx interface{}, input interface{}) *KinesisPort_CreateStream_Call {
+func (_e *KinesisPort_Expecter) CreateStream(ctx any, input any) *KinesisPort_CreateStream_Call {
 	return &KinesisPort_CreateStream_Call{Call: _e.mock.On("CreateStream", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type KinesisPort_DeleteStream_Call struct {
 // DeleteStream is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.DeleteStreamInput
-func (_e *KinesisPort_Expecter) DeleteStream(ctx interface{}, input interface{}) *KinesisPort_DeleteStream_Call {
+func (_e *KinesisPort_Expecter) DeleteStream(ctx any, input any) *KinesisPort_DeleteStream_Call {
 	return &KinesisPort_DeleteStream_Call{Call: _e.mock.On("DeleteStream", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type KinesisPort_DescribeStream_Call struct {
 // DescribeStream is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.DescribeStreamInput
-func (_e *KinesisPort_Expecter) DescribeStream(ctx interface{}, input interface{}) *KinesisPort_DescribeStream_Call {
+func (_e *KinesisPort_Expecter) DescribeStream(ctx any, input any) *KinesisPort_DescribeStream_Call {
 	return &KinesisPort_DescribeStream_Call{Call: _e.mock.On("DescribeStream", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type KinesisPort_DescribeStreamSummary_Call struct {
 // DescribeStreamSummary is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.DescribeStreamSummaryInput
-func (_e *KinesisPort_Expecter) DescribeStreamSummary(ctx interface{}, input interface{}) *KinesisPort_DescribeStreamSummary_Call {
+func (_e *KinesisPort_Expecter) DescribeStreamSummary(ctx any, input any) *KinesisPort_DescribeStreamSummary_Call {
 	return &KinesisPort_DescribeStreamSummary_Call{Call: _e.mock.On("DescribeStreamSummary", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type KinesisPort_DisableEnhancedMonitoring_Call struct {
 // DisableEnhancedMonitoring is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.DisableEnhancedMonitoringInput
-func (_e *KinesisPort_Expecter) DisableEnhancedMonitoring(ctx interface{}, input interface{}) *KinesisPort_DisableEnhancedMonitoring_Call {
+func (_e *KinesisPort_Expecter) DisableEnhancedMonitoring(ctx any, input any) *KinesisPort_DisableEnhancedMonitoring_Call {
 	return &KinesisPort_DisableEnhancedMonitoring_Call{Call: _e.mock.On("DisableEnhancedMonitoring", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type KinesisPort_EnableEnhancedMonitoring_Call struct {
 // EnableEnhancedMonitoring is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.EnableEnhancedMonitoringInput
-func (_e *KinesisPort_Expecter) EnableEnhancedMonitoring(ctx interface{}, input interface{}) *KinesisPort_EnableEnhancedMonitoring_Call {
+func (_e *KinesisPort_Expecter) EnableEnhancedMonitoring(ctx any, input any) *KinesisPort_EnableEnhancedMonitoring_Call {
 	return &KinesisPort_EnableEnhancedMonitoring_Call{Call: _e.mock.On("EnableEnhancedMonitoring", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type KinesisPort_GetRecords_Call struct {
 // GetRecords is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.GetRecordsInput
-func (_e *KinesisPort_Expecter) GetRecords(ctx interface{}, input interface{}) *KinesisPort_GetRecords_Call {
+func (_e *KinesisPort_Expecter) GetRecords(ctx any, input any) *KinesisPort_GetRecords_Call {
 	return &KinesisPort_GetRecords_Call{Call: _e.mock.On("GetRecords", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type KinesisPort_GetShardIterator_Call struct {
 // GetShardIterator is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.GetShardIteratorInput
-func (_e *KinesisPort_Expecter) GetShardIterator(ctx interface{}, input interface{}) *KinesisPort_GetShardIterator_Call {
+func (_e *KinesisPort_Expecter) GetShardIterator(ctx any, input any) *KinesisPort_GetShardIterator_Call {
 	return &KinesisPort_GetShardIterator_Call{Call: _e.mock.On("GetShardIterator", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type KinesisPort_ListShards_Call struct {
 // ListShards is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.ListShardsInput
-func (_e *KinesisPort_Expecter) ListShards(ctx interface{}, input interface{}) *KinesisPort_ListShards_Call {
+func (_e *KinesisPort_Expecter) ListShards(ctx any, input any) *KinesisPort_ListShards_Call {
 	return &KinesisPort_ListShards_Call{Call: _e.mock.On("ListShards", ctx, input)}
 }
 
@@ -686,7 +686,7 @@ type KinesisPort_ListStreams_Call struct {
 // ListStreams is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.ListStreamsInput
-func (_e *KinesisPort_Expecter) ListStreams(ctx interface{}, input interface{}) *KinesisPort_ListStreams_Call {
+func (_e *KinesisPort_Expecter) ListStreams(ctx any, input any) *KinesisPort_ListStreams_Call {
 	return &KinesisPort_ListStreams_Call{Call: _e.mock.On("ListStreams", ctx, input)}
 }
 
@@ -754,7 +754,7 @@ type KinesisPort_MergeShards_Call struct {
 // MergeShards is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.MergeShardsInput
-func (_e *KinesisPort_Expecter) MergeShards(ctx interface{}, input interface{}) *KinesisPort_MergeShards_Call {
+func (_e *KinesisPort_Expecter) MergeShards(ctx any, input any) *KinesisPort_MergeShards_Call {
 	return &KinesisPort_MergeShards_Call{Call: _e.mock.On("MergeShards", ctx, input)}
 }
 
@@ -822,7 +822,7 @@ type KinesisPort_PutRecord_Call struct {
 // PutRecord is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.PutRecordInput
-func (_e *KinesisPort_Expecter) PutRecord(ctx interface{}, input interface{}) *KinesisPort_PutRecord_Call {
+func (_e *KinesisPort_Expecter) PutRecord(ctx any, input any) *KinesisPort_PutRecord_Call {
 	return &KinesisPort_PutRecord_Call{Call: _e.mock.On("PutRecord", ctx, input)}
 }
 
@@ -890,7 +890,7 @@ type KinesisPort_PutRecords_Call struct {
 // PutRecords is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.PutRecordsInput
-func (_e *KinesisPort_Expecter) PutRecords(ctx interface{}, input interface{}) *KinesisPort_PutRecords_Call {
+func (_e *KinesisPort_Expecter) PutRecords(ctx any, input any) *KinesisPort_PutRecords_Call {
 	return &KinesisPort_PutRecords_Call{Call: _e.mock.On("PutRecords", ctx, input)}
 }
 
@@ -958,7 +958,7 @@ type KinesisPort_SplitShard_Call struct {
 // SplitShard is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.SplitShardInput
-func (_e *KinesisPort_Expecter) SplitShard(ctx interface{}, input interface{}) *KinesisPort_SplitShard_Call {
+func (_e *KinesisPort_Expecter) SplitShard(ctx any, input any) *KinesisPort_SplitShard_Call {
 	return &KinesisPort_SplitShard_Call{Call: _e.mock.On("SplitShard", ctx, input)}
 }
 
@@ -1026,7 +1026,7 @@ type KinesisPort_UpdateShardCount_Call struct {
 // UpdateShardCount is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kinesis.UpdateShardCountInput
-func (_e *KinesisPort_Expecter) UpdateShardCount(ctx interface{}, input interface{}) *KinesisPort_UpdateShardCount_Call {
+func (_e *KinesisPort_Expecter) UpdateShardCount(ctx any, input any) *KinesisPort_UpdateShardCount_Call {
 	return &KinesisPort_UpdateShardCount_Call{Call: _e.mock.On("UpdateShardCount", ctx, input)}
 }
 

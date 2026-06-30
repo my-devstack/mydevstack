@@ -74,7 +74,7 @@ type SecretsManagerPort_CreateSecret_Call struct {
 // CreateSecret is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *secretsmanager.CreateSecretInput
-func (_e *SecretsManagerPort_Expecter) CreateSecret(ctx interface{}, input interface{}) *SecretsManagerPort_CreateSecret_Call {
+func (_e *SecretsManagerPort_Expecter) CreateSecret(ctx any, input any) *SecretsManagerPort_CreateSecret_Call {
 	return &SecretsManagerPort_CreateSecret_Call{Call: _e.mock.On("CreateSecret", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type SecretsManagerPort_DeleteSecret_Call struct {
 // DeleteSecret is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *secretsmanager.DeleteSecretInput
-func (_e *SecretsManagerPort_Expecter) DeleteSecret(ctx interface{}, input interface{}) *SecretsManagerPort_DeleteSecret_Call {
+func (_e *SecretsManagerPort_Expecter) DeleteSecret(ctx any, input any) *SecretsManagerPort_DeleteSecret_Call {
 	return &SecretsManagerPort_DeleteSecret_Call{Call: _e.mock.On("DeleteSecret", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type SecretsManagerPort_DescribeSecret_Call struct {
 // DescribeSecret is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *secretsmanager.DescribeSecretInput
-func (_e *SecretsManagerPort_Expecter) DescribeSecret(ctx interface{}, input interface{}) *SecretsManagerPort_DescribeSecret_Call {
+func (_e *SecretsManagerPort_Expecter) DescribeSecret(ctx any, input any) *SecretsManagerPort_DescribeSecret_Call {
 	return &SecretsManagerPort_DescribeSecret_Call{Call: _e.mock.On("DescribeSecret", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type SecretsManagerPort_GetRandomPassword_Call struct {
 // GetRandomPassword is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *secretsmanager.GetRandomPasswordInput
-func (_e *SecretsManagerPort_Expecter) GetRandomPassword(ctx interface{}, input interface{}) *SecretsManagerPort_GetRandomPassword_Call {
+func (_e *SecretsManagerPort_Expecter) GetRandomPassword(ctx any, input any) *SecretsManagerPort_GetRandomPassword_Call {
 	return &SecretsManagerPort_GetRandomPassword_Call{Call: _e.mock.On("GetRandomPassword", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type SecretsManagerPort_GetSecretValue_Call struct {
 // GetSecretValue is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *secretsmanager.GetSecretValueInput
-func (_e *SecretsManagerPort_Expecter) GetSecretValue(ctx interface{}, input interface{}) *SecretsManagerPort_GetSecretValue_Call {
+func (_e *SecretsManagerPort_Expecter) GetSecretValue(ctx any, input any) *SecretsManagerPort_GetSecretValue_Call {
 	return &SecretsManagerPort_GetSecretValue_Call{Call: _e.mock.On("GetSecretValue", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type SecretsManagerPort_ListSecrets_Call struct {
 // ListSecrets is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *secretsmanager.ListSecretsInput
-func (_e *SecretsManagerPort_Expecter) ListSecrets(ctx interface{}, input interface{}) *SecretsManagerPort_ListSecrets_Call {
+func (_e *SecretsManagerPort_Expecter) ListSecrets(ctx any, input any) *SecretsManagerPort_ListSecrets_Call {
 	return &SecretsManagerPort_ListSecrets_Call{Call: _e.mock.On("ListSecrets", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type SecretsManagerPort_PutSecretValue_Call struct {
 // PutSecretValue is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *secretsmanager.PutSecretValueInput
-func (_e *SecretsManagerPort_Expecter) PutSecretValue(ctx interface{}, input interface{}) *SecretsManagerPort_PutSecretValue_Call {
+func (_e *SecretsManagerPort_Expecter) PutSecretValue(ctx any, input any) *SecretsManagerPort_PutSecretValue_Call {
 	return &SecretsManagerPort_PutSecretValue_Call{Call: _e.mock.On("PutSecretValue", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type SecretsManagerPort_RestoreSecret_Call struct {
 // RestoreSecret is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *secretsmanager.RestoreSecretInput
-func (_e *SecretsManagerPort_Expecter) RestoreSecret(ctx interface{}, input interface{}) *SecretsManagerPort_RestoreSecret_Call {
+func (_e *SecretsManagerPort_Expecter) RestoreSecret(ctx any, input any) *SecretsManagerPort_RestoreSecret_Call {
 	return &SecretsManagerPort_RestoreSecret_Call{Call: _e.mock.On("RestoreSecret", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type SecretsManagerPort_RotateSecret_Call struct {
 // RotateSecret is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *secretsmanager.RotateSecretInput
-func (_e *SecretsManagerPort_Expecter) RotateSecret(ctx interface{}, input interface{}) *SecretsManagerPort_RotateSecret_Call {
+func (_e *SecretsManagerPort_Expecter) RotateSecret(ctx any, input any) *SecretsManagerPort_RotateSecret_Call {
 	return &SecretsManagerPort_RotateSecret_Call{Call: _e.mock.On("RotateSecret", ctx, input)}
 }
 
@@ -686,7 +686,7 @@ type SecretsManagerPort_UpdateSecret_Call struct {
 // UpdateSecret is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *secretsmanager.UpdateSecretInput
-func (_e *SecretsManagerPort_Expecter) UpdateSecret(ctx interface{}, input interface{}) *SecretsManagerPort_UpdateSecret_Call {
+func (_e *SecretsManagerPort_Expecter) UpdateSecret(ctx any, input any) *SecretsManagerPort_UpdateSecret_Call {
 	return &SecretsManagerPort_UpdateSecret_Call{Call: _e.mock.On("UpdateSecret", ctx, input)}
 }
 

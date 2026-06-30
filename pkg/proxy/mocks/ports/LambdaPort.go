@@ -74,7 +74,7 @@ type LambdaPort_CreateEventSourceMapping_Call struct {
 // CreateEventSourceMapping is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *lambda.CreateEventSourceMappingInput
-func (_e *LambdaPort_Expecter) CreateEventSourceMapping(ctx interface{}, input interface{}) *LambdaPort_CreateEventSourceMapping_Call {
+func (_e *LambdaPort_Expecter) CreateEventSourceMapping(ctx any, input any) *LambdaPort_CreateEventSourceMapping_Call {
 	return &LambdaPort_CreateEventSourceMapping_Call{Call: _e.mock.On("CreateEventSourceMapping", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type LambdaPort_CreateFunction_Call struct {
 // CreateFunction is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *lambda.CreateFunctionInput
-func (_e *LambdaPort_Expecter) CreateFunction(ctx interface{}, input interface{}) *LambdaPort_CreateFunction_Call {
+func (_e *LambdaPort_Expecter) CreateFunction(ctx any, input any) *LambdaPort_CreateFunction_Call {
 	return &LambdaPort_CreateFunction_Call{Call: _e.mock.On("CreateFunction", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type LambdaPort_DeleteEventSourceMapping_Call struct {
 // DeleteEventSourceMapping is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *lambda.DeleteEventSourceMappingInput
-func (_e *LambdaPort_Expecter) DeleteEventSourceMapping(ctx interface{}, input interface{}) *LambdaPort_DeleteEventSourceMapping_Call {
+func (_e *LambdaPort_Expecter) DeleteEventSourceMapping(ctx any, input any) *LambdaPort_DeleteEventSourceMapping_Call {
 	return &LambdaPort_DeleteEventSourceMapping_Call{Call: _e.mock.On("DeleteEventSourceMapping", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type LambdaPort_DeleteFunction_Call struct {
 // DeleteFunction is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *lambda.DeleteFunctionInput
-func (_e *LambdaPort_Expecter) DeleteFunction(ctx interface{}, input interface{}) *LambdaPort_DeleteFunction_Call {
+func (_e *LambdaPort_Expecter) DeleteFunction(ctx any, input any) *LambdaPort_DeleteFunction_Call {
 	return &LambdaPort_DeleteFunction_Call{Call: _e.mock.On("DeleteFunction", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type LambdaPort_GetEventSourceMapping_Call struct {
 // GetEventSourceMapping is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *lambda.GetEventSourceMappingInput
-func (_e *LambdaPort_Expecter) GetEventSourceMapping(ctx interface{}, input interface{}) *LambdaPort_GetEventSourceMapping_Call {
+func (_e *LambdaPort_Expecter) GetEventSourceMapping(ctx any, input any) *LambdaPort_GetEventSourceMapping_Call {
 	return &LambdaPort_GetEventSourceMapping_Call{Call: _e.mock.On("GetEventSourceMapping", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type LambdaPort_GetFunction_Call struct {
 // GetFunction is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *lambda.GetFunctionInput
-func (_e *LambdaPort_Expecter) GetFunction(ctx interface{}, input interface{}) *LambdaPort_GetFunction_Call {
+func (_e *LambdaPort_Expecter) GetFunction(ctx any, input any) *LambdaPort_GetFunction_Call {
 	return &LambdaPort_GetFunction_Call{Call: _e.mock.On("GetFunction", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type LambdaPort_GetFunctionConfiguration_Call struct {
 // GetFunctionConfiguration is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *lambda.GetFunctionConfigurationInput
-func (_e *LambdaPort_Expecter) GetFunctionConfiguration(ctx interface{}, input interface{}) *LambdaPort_GetFunctionConfiguration_Call {
+func (_e *LambdaPort_Expecter) GetFunctionConfiguration(ctx any, input any) *LambdaPort_GetFunctionConfiguration_Call {
 	return &LambdaPort_GetFunctionConfiguration_Call{Call: _e.mock.On("GetFunctionConfiguration", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type LambdaPort_Invoke_Call struct {
 // Invoke is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *lambda.InvokeInput
-func (_e *LambdaPort_Expecter) Invoke(ctx interface{}, input interface{}) *LambdaPort_Invoke_Call {
+func (_e *LambdaPort_Expecter) Invoke(ctx any, input any) *LambdaPort_Invoke_Call {
 	return &LambdaPort_Invoke_Call{Call: _e.mock.On("Invoke", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type LambdaPort_ListEventSourceMappings_Call struct {
 // ListEventSourceMappings is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *lambda.ListEventSourceMappingsInput
-func (_e *LambdaPort_Expecter) ListEventSourceMappings(ctx interface{}, input interface{}) *LambdaPort_ListEventSourceMappings_Call {
+func (_e *LambdaPort_Expecter) ListEventSourceMappings(ctx any, input any) *LambdaPort_ListEventSourceMappings_Call {
 	return &LambdaPort_ListEventSourceMappings_Call{Call: _e.mock.On("ListEventSourceMappings", ctx, input)}
 }
 
@@ -686,7 +686,7 @@ type LambdaPort_ListFunctions_Call struct {
 // ListFunctions is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *lambda.ListFunctionsInput
-func (_e *LambdaPort_Expecter) ListFunctions(ctx interface{}, input interface{}) *LambdaPort_ListFunctions_Call {
+func (_e *LambdaPort_Expecter) ListFunctions(ctx any, input any) *LambdaPort_ListFunctions_Call {
 	return &LambdaPort_ListFunctions_Call{Call: _e.mock.On("ListFunctions", ctx, input)}
 }
 
@@ -754,7 +754,7 @@ type LambdaPort_UpdateFunctionCode_Call struct {
 // UpdateFunctionCode is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *lambda.UpdateFunctionCodeInput
-func (_e *LambdaPort_Expecter) UpdateFunctionCode(ctx interface{}, input interface{}) *LambdaPort_UpdateFunctionCode_Call {
+func (_e *LambdaPort_Expecter) UpdateFunctionCode(ctx any, input any) *LambdaPort_UpdateFunctionCode_Call {
 	return &LambdaPort_UpdateFunctionCode_Call{Call: _e.mock.On("UpdateFunctionCode", ctx, input)}
 }
 
@@ -822,7 +822,7 @@ type LambdaPort_UpdateFunctionConfiguration_Call struct {
 // UpdateFunctionConfiguration is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *lambda.UpdateFunctionConfigurationInput
-func (_e *LambdaPort_Expecter) UpdateFunctionConfiguration(ctx interface{}, input interface{}) *LambdaPort_UpdateFunctionConfiguration_Call {
+func (_e *LambdaPort_Expecter) UpdateFunctionConfiguration(ctx any, input any) *LambdaPort_UpdateFunctionConfiguration_Call {
 	return &LambdaPort_UpdateFunctionConfiguration_Call{Call: _e.mock.On("UpdateFunctionConfiguration", ctx, input)}
 }
 

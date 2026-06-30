@@ -74,7 +74,7 @@ type SNSPort_CreateTopic_Call struct {
 // CreateTopic is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sns.CreateTopicInput
-func (_e *SNSPort_Expecter) CreateTopic(ctx interface{}, input interface{}) *SNSPort_CreateTopic_Call {
+func (_e *SNSPort_Expecter) CreateTopic(ctx any, input any) *SNSPort_CreateTopic_Call {
 	return &SNSPort_CreateTopic_Call{Call: _e.mock.On("CreateTopic", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type SNSPort_DeleteTopic_Call struct {
 // DeleteTopic is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sns.DeleteTopicInput
-func (_e *SNSPort_Expecter) DeleteTopic(ctx interface{}, input interface{}) *SNSPort_DeleteTopic_Call {
+func (_e *SNSPort_Expecter) DeleteTopic(ctx any, input any) *SNSPort_DeleteTopic_Call {
 	return &SNSPort_DeleteTopic_Call{Call: _e.mock.On("DeleteTopic", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type SNSPort_ListSubscriptions_Call struct {
 // ListSubscriptions is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sns.ListSubscriptionsInput
-func (_e *SNSPort_Expecter) ListSubscriptions(ctx interface{}, input interface{}) *SNSPort_ListSubscriptions_Call {
+func (_e *SNSPort_Expecter) ListSubscriptions(ctx any, input any) *SNSPort_ListSubscriptions_Call {
 	return &SNSPort_ListSubscriptions_Call{Call: _e.mock.On("ListSubscriptions", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type SNSPort_ListSubscriptionsByTopic_Call struct {
 // ListSubscriptionsByTopic is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sns.ListSubscriptionsByTopicInput
-func (_e *SNSPort_Expecter) ListSubscriptionsByTopic(ctx interface{}, input interface{}) *SNSPort_ListSubscriptionsByTopic_Call {
+func (_e *SNSPort_Expecter) ListSubscriptionsByTopic(ctx any, input any) *SNSPort_ListSubscriptionsByTopic_Call {
 	return &SNSPort_ListSubscriptionsByTopic_Call{Call: _e.mock.On("ListSubscriptionsByTopic", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type SNSPort_ListTopics_Call struct {
 // ListTopics is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sns.ListTopicsInput
-func (_e *SNSPort_Expecter) ListTopics(ctx interface{}, input interface{}) *SNSPort_ListTopics_Call {
+func (_e *SNSPort_Expecter) ListTopics(ctx any, input any) *SNSPort_ListTopics_Call {
 	return &SNSPort_ListTopics_Call{Call: _e.mock.On("ListTopics", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type SNSPort_Publish_Call struct {
 // Publish is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sns.PublishInput
-func (_e *SNSPort_Expecter) Publish(ctx interface{}, input interface{}) *SNSPort_Publish_Call {
+func (_e *SNSPort_Expecter) Publish(ctx any, input any) *SNSPort_Publish_Call {
 	return &SNSPort_Publish_Call{Call: _e.mock.On("Publish", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type SNSPort_Subscribe_Call struct {
 // Subscribe is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sns.SubscribeInput
-func (_e *SNSPort_Expecter) Subscribe(ctx interface{}, input interface{}) *SNSPort_Subscribe_Call {
+func (_e *SNSPort_Expecter) Subscribe(ctx any, input any) *SNSPort_Subscribe_Call {
 	return &SNSPort_Subscribe_Call{Call: _e.mock.On("Subscribe", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type SNSPort_Unsubscribe_Call struct {
 // Unsubscribe is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sns.UnsubscribeInput
-func (_e *SNSPort_Expecter) Unsubscribe(ctx interface{}, input interface{}) *SNSPort_Unsubscribe_Call {
+func (_e *SNSPort_Expecter) Unsubscribe(ctx any, input any) *SNSPort_Unsubscribe_Call {
 	return &SNSPort_Unsubscribe_Call{Call: _e.mock.On("Unsubscribe", ctx, input)}
 }
 

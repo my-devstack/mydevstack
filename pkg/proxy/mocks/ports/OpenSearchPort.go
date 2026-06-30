@@ -74,7 +74,7 @@ type OpenSearchPort_AddTags_Call struct {
 // AddTags is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *opensearch.AddTagsInput
-func (_e *OpenSearchPort_Expecter) AddTags(ctx interface{}, input interface{}) *OpenSearchPort_AddTags_Call {
+func (_e *OpenSearchPort_Expecter) AddTags(ctx any, input any) *OpenSearchPort_AddTags_Call {
 	return &OpenSearchPort_AddTags_Call{Call: _e.mock.On("AddTags", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type OpenSearchPort_CreateDomain_Call struct {
 // CreateDomain is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *opensearch.CreateDomainInput
-func (_e *OpenSearchPort_Expecter) CreateDomain(ctx interface{}, input interface{}) *OpenSearchPort_CreateDomain_Call {
+func (_e *OpenSearchPort_Expecter) CreateDomain(ctx any, input any) *OpenSearchPort_CreateDomain_Call {
 	return &OpenSearchPort_CreateDomain_Call{Call: _e.mock.On("CreateDomain", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type OpenSearchPort_DeleteDomain_Call struct {
 // DeleteDomain is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *opensearch.DeleteDomainInput
-func (_e *OpenSearchPort_Expecter) DeleteDomain(ctx interface{}, input interface{}) *OpenSearchPort_DeleteDomain_Call {
+func (_e *OpenSearchPort_Expecter) DeleteDomain(ctx any, input any) *OpenSearchPort_DeleteDomain_Call {
 	return &OpenSearchPort_DeleteDomain_Call{Call: _e.mock.On("DeleteDomain", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type OpenSearchPort_DescribeDomain_Call struct {
 // DescribeDomain is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *opensearch.DescribeDomainInput
-func (_e *OpenSearchPort_Expecter) DescribeDomain(ctx interface{}, input interface{}) *OpenSearchPort_DescribeDomain_Call {
+func (_e *OpenSearchPort_Expecter) DescribeDomain(ctx any, input any) *OpenSearchPort_DescribeDomain_Call {
 	return &OpenSearchPort_DescribeDomain_Call{Call: _e.mock.On("DescribeDomain", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type OpenSearchPort_DescribeDomainConfig_Call struct {
 // DescribeDomainConfig is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *opensearch.DescribeDomainConfigInput
-func (_e *OpenSearchPort_Expecter) DescribeDomainConfig(ctx interface{}, input interface{}) *OpenSearchPort_DescribeDomainConfig_Call {
+func (_e *OpenSearchPort_Expecter) DescribeDomainConfig(ctx any, input any) *OpenSearchPort_DescribeDomainConfig_Call {
 	return &OpenSearchPort_DescribeDomainConfig_Call{Call: _e.mock.On("DescribeDomainConfig", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type OpenSearchPort_GetCompatibleVersions_Call struct {
 // GetCompatibleVersions is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *opensearch.GetCompatibleVersionsInput
-func (_e *OpenSearchPort_Expecter) GetCompatibleVersions(ctx interface{}, input interface{}) *OpenSearchPort_GetCompatibleVersions_Call {
+func (_e *OpenSearchPort_Expecter) GetCompatibleVersions(ctx any, input any) *OpenSearchPort_GetCompatibleVersions_Call {
 	return &OpenSearchPort_GetCompatibleVersions_Call{Call: _e.mock.On("GetCompatibleVersions", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type OpenSearchPort_ListDomainNames_Call struct {
 // ListDomainNames is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *opensearch.ListDomainNamesInput
-func (_e *OpenSearchPort_Expecter) ListDomainNames(ctx interface{}, input interface{}) *OpenSearchPort_ListDomainNames_Call {
+func (_e *OpenSearchPort_Expecter) ListDomainNames(ctx any, input any) *OpenSearchPort_ListDomainNames_Call {
 	return &OpenSearchPort_ListDomainNames_Call{Call: _e.mock.On("ListDomainNames", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type OpenSearchPort_ListTags_Call struct {
 // ListTags is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *opensearch.ListTagsInput
-func (_e *OpenSearchPort_Expecter) ListTags(ctx interface{}, input interface{}) *OpenSearchPort_ListTags_Call {
+func (_e *OpenSearchPort_Expecter) ListTags(ctx any, input any) *OpenSearchPort_ListTags_Call {
 	return &OpenSearchPort_ListTags_Call{Call: _e.mock.On("ListTags", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type OpenSearchPort_RemoveTags_Call struct {
 // RemoveTags is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *opensearch.RemoveTagsInput
-func (_e *OpenSearchPort_Expecter) RemoveTags(ctx interface{}, input interface{}) *OpenSearchPort_RemoveTags_Call {
+func (_e *OpenSearchPort_Expecter) RemoveTags(ctx any, input any) *OpenSearchPort_RemoveTags_Call {
 	return &OpenSearchPort_RemoveTags_Call{Call: _e.mock.On("RemoveTags", ctx, input)}
 }
 
@@ -686,7 +686,7 @@ type OpenSearchPort_UpdateDomainConfig_Call struct {
 // UpdateDomainConfig is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *opensearch.UpdateDomainConfigInput
-func (_e *OpenSearchPort_Expecter) UpdateDomainConfig(ctx interface{}, input interface{}) *OpenSearchPort_UpdateDomainConfig_Call {
+func (_e *OpenSearchPort_Expecter) UpdateDomainConfig(ctx any, input any) *OpenSearchPort_UpdateDomainConfig_Call {
 	return &OpenSearchPort_UpdateDomainConfig_Call{Call: _e.mock.On("UpdateDomainConfig", ctx, input)}
 }
 

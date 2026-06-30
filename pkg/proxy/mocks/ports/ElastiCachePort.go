@@ -74,7 +74,7 @@ type ElastiCachePort_CreateReplicationGroup_Call struct {
 // CreateReplicationGroup is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *elasticache.CreateReplicationGroupInput
-func (_e *ElastiCachePort_Expecter) CreateReplicationGroup(ctx interface{}, input interface{}) *ElastiCachePort_CreateReplicationGroup_Call {
+func (_e *ElastiCachePort_Expecter) CreateReplicationGroup(ctx any, input any) *ElastiCachePort_CreateReplicationGroup_Call {
 	return &ElastiCachePort_CreateReplicationGroup_Call{Call: _e.mock.On("CreateReplicationGroup", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type ElastiCachePort_DeleteReplicationGroup_Call struct {
 // DeleteReplicationGroup is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *elasticache.DeleteReplicationGroupInput
-func (_e *ElastiCachePort_Expecter) DeleteReplicationGroup(ctx interface{}, input interface{}) *ElastiCachePort_DeleteReplicationGroup_Call {
+func (_e *ElastiCachePort_Expecter) DeleteReplicationGroup(ctx any, input any) *ElastiCachePort_DeleteReplicationGroup_Call {
 	return &ElastiCachePort_DeleteReplicationGroup_Call{Call: _e.mock.On("DeleteReplicationGroup", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type ElastiCachePort_DescribeReplicationGroups_Call struct {
 // DescribeReplicationGroups is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *elasticache.DescribeReplicationGroupsInput
-func (_e *ElastiCachePort_Expecter) DescribeReplicationGroups(ctx interface{}, input interface{}) *ElastiCachePort_DescribeReplicationGroups_Call {
+func (_e *ElastiCachePort_Expecter) DescribeReplicationGroups(ctx any, input any) *ElastiCachePort_DescribeReplicationGroups_Call {
 	return &ElastiCachePort_DescribeReplicationGroups_Call{Call: _e.mock.On("DescribeReplicationGroups", ctx, input)}
 }
 

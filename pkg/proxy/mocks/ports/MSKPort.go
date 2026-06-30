@@ -74,7 +74,7 @@ type MSKPort_CreateClusterV2_Call struct {
 // CreateClusterV2 is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kafka.CreateClusterV2Input
-func (_e *MSKPort_Expecter) CreateClusterV2(ctx interface{}, input interface{}) *MSKPort_CreateClusterV2_Call {
+func (_e *MSKPort_Expecter) CreateClusterV2(ctx any, input any) *MSKPort_CreateClusterV2_Call {
 	return &MSKPort_CreateClusterV2_Call{Call: _e.mock.On("CreateClusterV2", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type MSKPort_DeleteCluster_Call struct {
 // DeleteCluster is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kafka.DeleteClusterInput
-func (_e *MSKPort_Expecter) DeleteCluster(ctx interface{}, input interface{}) *MSKPort_DeleteCluster_Call {
+func (_e *MSKPort_Expecter) DeleteCluster(ctx any, input any) *MSKPort_DeleteCluster_Call {
 	return &MSKPort_DeleteCluster_Call{Call: _e.mock.On("DeleteCluster", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type MSKPort_DescribeClusterV2_Call struct {
 // DescribeClusterV2 is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kafka.DescribeClusterV2Input
-func (_e *MSKPort_Expecter) DescribeClusterV2(ctx interface{}, input interface{}) *MSKPort_DescribeClusterV2_Call {
+func (_e *MSKPort_Expecter) DescribeClusterV2(ctx any, input any) *MSKPort_DescribeClusterV2_Call {
 	return &MSKPort_DescribeClusterV2_Call{Call: _e.mock.On("DescribeClusterV2", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type MSKPort_GetBootstrapBrokers_Call struct {
 // GetBootstrapBrokers is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kafka.GetBootstrapBrokersInput
-func (_e *MSKPort_Expecter) GetBootstrapBrokers(ctx interface{}, input interface{}) *MSKPort_GetBootstrapBrokers_Call {
+func (_e *MSKPort_Expecter) GetBootstrapBrokers(ctx any, input any) *MSKPort_GetBootstrapBrokers_Call {
 	return &MSKPort_GetBootstrapBrokers_Call{Call: _e.mock.On("GetBootstrapBrokers", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type MSKPort_ListClustersV2_Call struct {
 // ListClustersV2 is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kafka.ListClustersV2Input
-func (_e *MSKPort_Expecter) ListClustersV2(ctx interface{}, input interface{}) *MSKPort_ListClustersV2_Call {
+func (_e *MSKPort_Expecter) ListClustersV2(ctx any, input any) *MSKPort_ListClustersV2_Call {
 	return &MSKPort_ListClustersV2_Call{Call: _e.mock.On("ListClustersV2", ctx, input)}
 }
 

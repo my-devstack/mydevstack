@@ -300,6 +300,25 @@ export class S3Service {
       throw error
     }
   }
+
+  async putBucketVersioning(bucket: string, status: 'Enabled' | 'Suspended'): Promise<any> {
+    return restFetch('PUT', `/s3/buckets/${enc(bucket)}/versioning`, {
+      VersioningConfiguration: { Status: status },
+    })
+  }
+
+  async getBucketLifecycleConfiguration(bucket: string): Promise<{ rules: LifecycleRule[] }> {
+    const data = await restFetch<any>('GET', `/s3/buckets/${enc(bucket)}/lifecycle`)
+    return { rules: data.Rules || [] }
+  }
+
+  async putBucketLifecycleConfiguration(bucket: string, rules: LifecycleRule[]): Promise<any> {
+    return restFetch('PUT', `/s3/buckets/${enc(bucket)}/lifecycle`, { LifecycleConfiguration: { Rules: rules } })
+  }
+
+  async deleteBucketLifecycleConfiguration(bucket: string): Promise<void> {
+    await restFetch('DELETE', `/s3/buckets/${enc(bucket)}/lifecycle`)
+  }
 }
 
 export const s3Service = new S3Service()
@@ -348,9 +367,43 @@ export const getPresignedUploadUrl = async (
 }
 
 export const getBucketVersioning = (bucket: string) => s3Service.getBucketVersioning(bucket)
+export const putBucketVersioning = (bucket: string, status: 'Enabled' | 'Suspended') =>
+  s3Service.putBucketVersioning(bucket, status)
 export const getBucketEncryption = (bucket: string) => s3Service.getBucketEncryption(bucket)
 export const getBucketTagging = (bucket: string) => s3Service.getBucketTagging(bucket)
 export const getBucketPolicy = (bucket: string) => s3Service.getBucketPolicy(bucket)
+export const getBucketLifecycleConfiguration = (bucket: string) => s3Service.getBucketLifecycleConfiguration(bucket)
+export const putBucketLifecycleConfiguration = (bucket: string, rules: LifecycleRule[]) =>
+  s3Service.putBucketLifecycleConfiguration(bucket, rules)
+export const deleteBucketLifecycleConfiguration = (bucket: string) =>
+  s3Service.deleteBucketLifecycleConfiguration(bucket)
+
+export interface LifecycleRule {
+  ID?: string
+  Status: 'Enabled' | 'Disabled'
+  Filter?: {
+    Prefix?: string
+  }
+  Expiration?: {
+    Days?: number
+    Date?: string
+    ExpiredObjectDeleteMarker?: boolean
+  }
+  NoncurrentVersionExpiration?: {
+    NoncurrentDays?: number
+  }
+  Transitions?: Array<{
+    Days?: number
+    StorageClass: string
+  }>
+  NoncurrentVersionTransitions?: Array<{
+    NoncurrentDays?: number
+    StorageClass: string
+  }>
+  AbortIncompleteMultipartUpload?: {
+    DaysAfterInitiation?: number
+  }
+}
 
 export interface NotificationConfig {
   Bucket: string

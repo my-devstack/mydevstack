@@ -217,4 +217,200 @@ describe('S3BucketDetails', () => {
 
     expect(wrapper.text()).toContain('Suspended')
   })
+
+  describe('lifecycle section', () => {
+    it('shows "No rules" when lifecycleRules is empty', () => {
+      const wrapper = mount(S3BucketDetails, {
+        props: {
+          bucketName: 'test-bucket',
+          details: {
+            versioning: { status: 'Enabled', mfaDelete: 'Disabled' },
+            encryption: { algorithm: 'AES256', keyId: '' },
+            tags: [],
+            lifecycleRules: [],
+            loading: false,
+          },
+        },
+      })
+
+      expect(wrapper.text()).toContain('No rules')
+    })
+
+    it('shows rule count when lifecycleRules exist', () => {
+      const wrapper = mount(S3BucketDetails, {
+        props: {
+          bucketName: 'test-bucket',
+          details: {
+            versioning: { status: 'Enabled', mfaDelete: 'Disabled' },
+            encryption: { algorithm: 'AES256', keyId: '' },
+            tags: [],
+            lifecycleRules: [
+              { ID: 'Rule-1', Status: 'Enabled' },
+              { ID: 'Rule-2', Status: 'Disabled' },
+            ],
+            loading: false,
+          },
+        },
+      })
+
+      expect(wrapper.text()).toContain('2 rule(s)')
+    })
+
+    it('shows lifecycle header with CalendarDaysIcon', () => {
+      const wrapper = mount(S3BucketDetails, {
+        props: {
+          bucketName: 'test-bucket',
+          details: {
+            versioning: { status: 'Enabled', mfaDelete: 'Disabled' },
+            encryption: { algorithm: 'AES256', keyId: '' },
+            tags: [],
+            lifecycleRules: [],
+            loading: false,
+          },
+        },
+      })
+
+      expect(wrapper.text()).toContain('Lifecycle Rules')
+    })
+
+    it('emits manageLifecycle when Manage Lifecycle button clicked', () => {
+      const wrapper = mount(S3BucketDetails, {
+        props: {
+          bucketName: 'test-bucket',
+          details: {
+            versioning: { status: 'Enabled', mfaDelete: 'Disabled' },
+            encryption: { algorithm: 'AES256', keyId: '' },
+            tags: [],
+            lifecycleRules: [],
+            loading: false,
+          },
+        },
+      })
+
+      const buttons = wrapper.findAll('button')
+      const manageBtn = buttons.find(b => b.text().includes('Manage Lifecycle'))
+      expect(manageBtn).toBeDefined()
+      manageBtn!.trigger('click')
+      expect(wrapper.emitted('manageLifecycle')).toBeTruthy()
+      expect(wrapper.emitted('manageLifecycle')?.[0]).toEqual(['test-bucket'])
+    })
+  })
+
+  describe('versioning toggle', () => {
+    it('shows Disable button when versioning is Enabled', () => {
+      const wrapper = mount(S3BucketDetails, {
+        props: {
+          bucketName: 'test-bucket',
+          details: {
+            versioning: { status: 'Enabled', mfaDelete: 'Disabled' },
+            encryption: { algorithm: 'AES256', keyId: '' },
+            tags: [],
+            lifecycleRules: [],
+            loading: false,
+          },
+        },
+      })
+
+      const disableBtn = wrapper.findAll('button').find(b => b.text().includes('Disable'))
+      expect(disableBtn).toBeDefined()
+    })
+
+    it('shows Enable button when versioning is empty string', () => {
+      const wrapper = mount(S3BucketDetails, {
+        props: {
+          bucketName: 'test-bucket',
+          details: {
+            versioning: { status: '', mfaDelete: 'Disabled' },
+            encryption: { algorithm: 'AES256', keyId: '' },
+            tags: [],
+            lifecycleRules: [],
+            loading: false,
+          },
+        },
+      })
+
+      const enableBtn = wrapper.findAll('button').find(b => b.text().includes('Enable'))
+      expect(enableBtn).toBeDefined()
+    })
+
+    it('shows Enable button when versioning is Suspended', () => {
+      const wrapper = mount(S3BucketDetails, {
+        props: {
+          bucketName: 'test-bucket',
+          details: {
+            versioning: { status: 'Suspended', mfaDelete: 'Disabled' },
+            encryption: { algorithm: 'AES256', keyId: '' },
+            tags: [],
+            lifecycleRules: [],
+            loading: false,
+          },
+        },
+      })
+
+      const enableBtn = wrapper.findAll('button').find(b => b.text().includes('Enable'))
+      expect(enableBtn).toBeDefined()
+    })
+
+    it('does not show toggle button when versioning is Unknown', () => {
+      const wrapper = mount(S3BucketDetails, {
+        props: {
+          bucketName: 'test-bucket',
+          details: {
+            versioning: { status: 'Unknown', mfaDelete: 'Disabled' },
+            encryption: { algorithm: 'AES256', keyId: '' },
+            tags: [],
+            lifecycleRules: [],
+            loading: false,
+          },
+        },
+      })
+
+      expect(wrapper.text()).not.toContain('Enable')
+      expect(wrapper.text()).not.toContain('Disable')
+    })
+
+    it('emits toggleVersioning with false when Disable clicked', () => {
+      const wrapper = mount(S3BucketDetails, {
+        props: {
+          bucketName: 'test-bucket',
+          details: {
+            versioning: { status: 'Enabled', mfaDelete: 'Disabled' },
+            encryption: { algorithm: 'AES256', keyId: '' },
+            tags: [],
+            lifecycleRules: [],
+            loading: false,
+          },
+        },
+      })
+
+      const buttons = wrapper.findAll('button')
+      const disableBtn = buttons.find(b => b.text().includes('Disable'))
+      expect(disableBtn).toBeDefined()
+      disableBtn!.trigger('click')
+      expect(wrapper.emitted('toggleVersioning')).toBeTruthy()
+      expect(wrapper.emitted('toggleVersioning')?.[0]).toEqual(['test-bucket', false])
+    })
+
+    it('emits toggleVersioning with true when Enable clicked', () => {
+      const wrapper = mount(S3BucketDetails, {
+        props: {
+          bucketName: 'test-bucket',
+          details: {
+            versioning: { status: 'Suspended', mfaDelete: 'Disabled' },
+            encryption: { algorithm: 'AES256', keyId: '' },
+            tags: [],
+            lifecycleRules: [],
+            loading: false,
+          },
+        },
+      })
+
+      const buttons = wrapper.findAll('button')
+      const enableBtn = buttons.find(b => b.text().includes('Enable'))
+      expect(enableBtn).toBeDefined()
+      enableBtn!.trigger('click')
+      expect(wrapper.emitted('toggleVersioning')).toBeTruthy()
+      expect(wrapper.emitted('toggleVersioning')?.[0]).toEqual(['test-bucket', true])
+    })
+  })
 })

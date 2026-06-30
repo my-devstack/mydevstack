@@ -75,7 +75,7 @@ type S3Port_CreateBucket_Call struct {
 // CreateBucket is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.CreateBucketInput
-func (_e *S3Port_Expecter) CreateBucket(ctx interface{}, input interface{}) *S3Port_CreateBucket_Call {
+func (_e *S3Port_Expecter) CreateBucket(ctx any, input any) *S3Port_CreateBucket_Call {
 	return &S3Port_CreateBucket_Call{Call: _e.mock.On("CreateBucket", ctx, input)}
 }
 
@@ -143,7 +143,7 @@ type S3Port_DeleteBucket_Call struct {
 // DeleteBucket is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.DeleteBucketInput
-func (_e *S3Port_Expecter) DeleteBucket(ctx interface{}, input interface{}) *S3Port_DeleteBucket_Call {
+func (_e *S3Port_Expecter) DeleteBucket(ctx any, input any) *S3Port_DeleteBucket_Call {
 	return &S3Port_DeleteBucket_Call{Call: _e.mock.On("DeleteBucket", ctx, input)}
 }
 
@@ -171,6 +171,74 @@ func (_c *S3Port_DeleteBucket_Call) Return(deleteBucketOutput *s3.DeleteBucketOu
 }
 
 func (_c *S3Port_DeleteBucket_Call) RunAndReturn(run func(ctx context.Context, input *s3.DeleteBucketInput) (*s3.DeleteBucketOutput, error)) *S3Port_DeleteBucket_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteBucketLifecycle provides a mock function for the type S3Port
+func (_mock *S3Port) DeleteBucketLifecycle(ctx context.Context, input *s3.DeleteBucketLifecycleInput) (*s3.DeleteBucketLifecycleOutput, error) {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteBucketLifecycle")
+	}
+
+	var r0 *s3.DeleteBucketLifecycleOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *s3.DeleteBucketLifecycleInput) (*s3.DeleteBucketLifecycleOutput, error)); ok {
+		return returnFunc(ctx, input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *s3.DeleteBucketLifecycleInput) *s3.DeleteBucketLifecycleOutput); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*s3.DeleteBucketLifecycleOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *s3.DeleteBucketLifecycleInput) error); ok {
+		r1 = returnFunc(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// S3Port_DeleteBucketLifecycle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteBucketLifecycle'
+type S3Port_DeleteBucketLifecycle_Call struct {
+	*mock.Call
+}
+
+// DeleteBucketLifecycle is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *s3.DeleteBucketLifecycleInput
+func (_e *S3Port_Expecter) DeleteBucketLifecycle(ctx any, input any) *S3Port_DeleteBucketLifecycle_Call {
+	return &S3Port_DeleteBucketLifecycle_Call{Call: _e.mock.On("DeleteBucketLifecycle", ctx, input)}
+}
+
+func (_c *S3Port_DeleteBucketLifecycle_Call) Run(run func(ctx context.Context, input *s3.DeleteBucketLifecycleInput)) *S3Port_DeleteBucketLifecycle_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *s3.DeleteBucketLifecycleInput
+		if args[1] != nil {
+			arg1 = args[1].(*s3.DeleteBucketLifecycleInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *S3Port_DeleteBucketLifecycle_Call) Return(deleteBucketLifecycleOutput *s3.DeleteBucketLifecycleOutput, err error) *S3Port_DeleteBucketLifecycle_Call {
+	_c.Call.Return(deleteBucketLifecycleOutput, err)
+	return _c
+}
+
+func (_c *S3Port_DeleteBucketLifecycle_Call) RunAndReturn(run func(ctx context.Context, input *s3.DeleteBucketLifecycleInput) (*s3.DeleteBucketLifecycleOutput, error)) *S3Port_DeleteBucketLifecycle_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -211,7 +279,7 @@ type S3Port_DeleteObject_Call struct {
 // DeleteObject is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.DeleteObjectInput
-func (_e *S3Port_Expecter) DeleteObject(ctx interface{}, input interface{}) *S3Port_DeleteObject_Call {
+func (_e *S3Port_Expecter) DeleteObject(ctx any, input any) *S3Port_DeleteObject_Call {
 	return &S3Port_DeleteObject_Call{Call: _e.mock.On("DeleteObject", ctx, input)}
 }
 
@@ -279,7 +347,7 @@ type S3Port_GetBucketEncryption_Call struct {
 // GetBucketEncryption is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.GetBucketEncryptionInput
-func (_e *S3Port_Expecter) GetBucketEncryption(ctx interface{}, input interface{}) *S3Port_GetBucketEncryption_Call {
+func (_e *S3Port_Expecter) GetBucketEncryption(ctx any, input any) *S3Port_GetBucketEncryption_Call {
 	return &S3Port_GetBucketEncryption_Call{Call: _e.mock.On("GetBucketEncryption", ctx, input)}
 }
 
@@ -307,6 +375,74 @@ func (_c *S3Port_GetBucketEncryption_Call) Return(getBucketEncryptionOutput *s3.
 }
 
 func (_c *S3Port_GetBucketEncryption_Call) RunAndReturn(run func(ctx context.Context, input *s3.GetBucketEncryptionInput) (*s3.GetBucketEncryptionOutput, error)) *S3Port_GetBucketEncryption_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetBucketLifecycleConfiguration provides a mock function for the type S3Port
+func (_mock *S3Port) GetBucketLifecycleConfiguration(ctx context.Context, input *s3.GetBucketLifecycleConfigurationInput) (*s3.GetBucketLifecycleConfigurationOutput, error) {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBucketLifecycleConfiguration")
+	}
+
+	var r0 *s3.GetBucketLifecycleConfigurationOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *s3.GetBucketLifecycleConfigurationInput) (*s3.GetBucketLifecycleConfigurationOutput, error)); ok {
+		return returnFunc(ctx, input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *s3.GetBucketLifecycleConfigurationInput) *s3.GetBucketLifecycleConfigurationOutput); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*s3.GetBucketLifecycleConfigurationOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *s3.GetBucketLifecycleConfigurationInput) error); ok {
+		r1 = returnFunc(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// S3Port_GetBucketLifecycleConfiguration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBucketLifecycleConfiguration'
+type S3Port_GetBucketLifecycleConfiguration_Call struct {
+	*mock.Call
+}
+
+// GetBucketLifecycleConfiguration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *s3.GetBucketLifecycleConfigurationInput
+func (_e *S3Port_Expecter) GetBucketLifecycleConfiguration(ctx any, input any) *S3Port_GetBucketLifecycleConfiguration_Call {
+	return &S3Port_GetBucketLifecycleConfiguration_Call{Call: _e.mock.On("GetBucketLifecycleConfiguration", ctx, input)}
+}
+
+func (_c *S3Port_GetBucketLifecycleConfiguration_Call) Run(run func(ctx context.Context, input *s3.GetBucketLifecycleConfigurationInput)) *S3Port_GetBucketLifecycleConfiguration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *s3.GetBucketLifecycleConfigurationInput
+		if args[1] != nil {
+			arg1 = args[1].(*s3.GetBucketLifecycleConfigurationInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *S3Port_GetBucketLifecycleConfiguration_Call) Return(getBucketLifecycleConfigurationOutput *s3.GetBucketLifecycleConfigurationOutput, err error) *S3Port_GetBucketLifecycleConfiguration_Call {
+	_c.Call.Return(getBucketLifecycleConfigurationOutput, err)
+	return _c
+}
+
+func (_c *S3Port_GetBucketLifecycleConfiguration_Call) RunAndReturn(run func(ctx context.Context, input *s3.GetBucketLifecycleConfigurationInput) (*s3.GetBucketLifecycleConfigurationOutput, error)) *S3Port_GetBucketLifecycleConfiguration_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -347,7 +483,7 @@ type S3Port_GetBucketNotificationConfiguration_Call struct {
 // GetBucketNotificationConfiguration is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.GetBucketNotificationConfigurationInput
-func (_e *S3Port_Expecter) GetBucketNotificationConfiguration(ctx interface{}, input interface{}) *S3Port_GetBucketNotificationConfiguration_Call {
+func (_e *S3Port_Expecter) GetBucketNotificationConfiguration(ctx any, input any) *S3Port_GetBucketNotificationConfiguration_Call {
 	return &S3Port_GetBucketNotificationConfiguration_Call{Call: _e.mock.On("GetBucketNotificationConfiguration", ctx, input)}
 }
 
@@ -415,7 +551,7 @@ type S3Port_GetBucketPolicy_Call struct {
 // GetBucketPolicy is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.GetBucketPolicyInput
-func (_e *S3Port_Expecter) GetBucketPolicy(ctx interface{}, input interface{}) *S3Port_GetBucketPolicy_Call {
+func (_e *S3Port_Expecter) GetBucketPolicy(ctx any, input any) *S3Port_GetBucketPolicy_Call {
 	return &S3Port_GetBucketPolicy_Call{Call: _e.mock.On("GetBucketPolicy", ctx, input)}
 }
 
@@ -483,7 +619,7 @@ type S3Port_GetBucketTagging_Call struct {
 // GetBucketTagging is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.GetBucketTaggingInput
-func (_e *S3Port_Expecter) GetBucketTagging(ctx interface{}, input interface{}) *S3Port_GetBucketTagging_Call {
+func (_e *S3Port_Expecter) GetBucketTagging(ctx any, input any) *S3Port_GetBucketTagging_Call {
 	return &S3Port_GetBucketTagging_Call{Call: _e.mock.On("GetBucketTagging", ctx, input)}
 }
 
@@ -551,7 +687,7 @@ type S3Port_GetBucketVersioning_Call struct {
 // GetBucketVersioning is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.GetBucketVersioningInput
-func (_e *S3Port_Expecter) GetBucketVersioning(ctx interface{}, input interface{}) *S3Port_GetBucketVersioning_Call {
+func (_e *S3Port_Expecter) GetBucketVersioning(ctx any, input any) *S3Port_GetBucketVersioning_Call {
 	return &S3Port_GetBucketVersioning_Call{Call: _e.mock.On("GetBucketVersioning", ctx, input)}
 }
 
@@ -619,7 +755,7 @@ type S3Port_GetObject_Call struct {
 // GetObject is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.GetObjectInput
-func (_e *S3Port_Expecter) GetObject(ctx interface{}, input interface{}) *S3Port_GetObject_Call {
+func (_e *S3Port_Expecter) GetObject(ctx any, input any) *S3Port_GetObject_Call {
 	return &S3Port_GetObject_Call{Call: _e.mock.On("GetObject", ctx, input)}
 }
 
@@ -687,7 +823,7 @@ type S3Port_GetPublicAccessBlock_Call struct {
 // GetPublicAccessBlock is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.GetPublicAccessBlockInput
-func (_e *S3Port_Expecter) GetPublicAccessBlock(ctx interface{}, input interface{}) *S3Port_GetPublicAccessBlock_Call {
+func (_e *S3Port_Expecter) GetPublicAccessBlock(ctx any, input any) *S3Port_GetPublicAccessBlock_Call {
 	return &S3Port_GetPublicAccessBlock_Call{Call: _e.mock.On("GetPublicAccessBlock", ctx, input)}
 }
 
@@ -755,7 +891,7 @@ type S3Port_HeadBucket_Call struct {
 // HeadBucket is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.HeadBucketInput
-func (_e *S3Port_Expecter) HeadBucket(ctx interface{}, input interface{}) *S3Port_HeadBucket_Call {
+func (_e *S3Port_Expecter) HeadBucket(ctx any, input any) *S3Port_HeadBucket_Call {
 	return &S3Port_HeadBucket_Call{Call: _e.mock.On("HeadBucket", ctx, input)}
 }
 
@@ -823,7 +959,7 @@ type S3Port_HeadObject_Call struct {
 // HeadObject is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.HeadObjectInput
-func (_e *S3Port_Expecter) HeadObject(ctx interface{}, input interface{}) *S3Port_HeadObject_Call {
+func (_e *S3Port_Expecter) HeadObject(ctx any, input any) *S3Port_HeadObject_Call {
 	return &S3Port_HeadObject_Call{Call: _e.mock.On("HeadObject", ctx, input)}
 }
 
@@ -890,7 +1026,7 @@ type S3Port_ListBuckets_Call struct {
 
 // ListBuckets is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *S3Port_Expecter) ListBuckets(ctx interface{}) *S3Port_ListBuckets_Call {
+func (_e *S3Port_Expecter) ListBuckets(ctx any) *S3Port_ListBuckets_Call {
 	return &S3Port_ListBuckets_Call{Call: _e.mock.On("ListBuckets", ctx)}
 }
 
@@ -953,7 +1089,7 @@ type S3Port_ListObjectsV2_Call struct {
 // ListObjectsV2 is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.ListObjectsV2Input
-func (_e *S3Port_Expecter) ListObjectsV2(ctx interface{}, input interface{}) *S3Port_ListObjectsV2_Call {
+func (_e *S3Port_Expecter) ListObjectsV2(ctx any, input any) *S3Port_ListObjectsV2_Call {
 	return &S3Port_ListObjectsV2_Call{Call: _e.mock.On("ListObjectsV2", ctx, input)}
 }
 
@@ -1021,7 +1157,7 @@ type S3Port_PresignGetObject_Call struct {
 //   - bucket string
 //   - key string
 //   - expires time.Duration
-func (_e *S3Port_Expecter) PresignGetObject(ctx interface{}, bucket interface{}, key interface{}, expires interface{}) *S3Port_PresignGetObject_Call {
+func (_e *S3Port_Expecter) PresignGetObject(ctx any, bucket any, key any, expires any) *S3Port_PresignGetObject_Call {
 	return &S3Port_PresignGetObject_Call{Call: _e.mock.On("PresignGetObject", ctx, bucket, key, expires)}
 }
 
@@ -1099,7 +1235,7 @@ type S3Port_PresignPutObject_Call struct {
 //   - bucket string
 //   - key string
 //   - expires time.Duration
-func (_e *S3Port_Expecter) PresignPutObject(ctx interface{}, bucket interface{}, key interface{}, expires interface{}) *S3Port_PresignPutObject_Call {
+func (_e *S3Port_Expecter) PresignPutObject(ctx any, bucket any, key any, expires any) *S3Port_PresignPutObject_Call {
 	return &S3Port_PresignPutObject_Call{Call: _e.mock.On("PresignPutObject", ctx, bucket, key, expires)}
 }
 
@@ -1177,7 +1313,7 @@ type S3Port_PutBucketEncryption_Call struct {
 // PutBucketEncryption is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.PutBucketEncryptionInput
-func (_e *S3Port_Expecter) PutBucketEncryption(ctx interface{}, input interface{}) *S3Port_PutBucketEncryption_Call {
+func (_e *S3Port_Expecter) PutBucketEncryption(ctx any, input any) *S3Port_PutBucketEncryption_Call {
 	return &S3Port_PutBucketEncryption_Call{Call: _e.mock.On("PutBucketEncryption", ctx, input)}
 }
 
@@ -1205,6 +1341,74 @@ func (_c *S3Port_PutBucketEncryption_Call) Return(putBucketEncryptionOutput *s3.
 }
 
 func (_c *S3Port_PutBucketEncryption_Call) RunAndReturn(run func(ctx context.Context, input *s3.PutBucketEncryptionInput) (*s3.PutBucketEncryptionOutput, error)) *S3Port_PutBucketEncryption_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PutBucketLifecycleConfiguration provides a mock function for the type S3Port
+func (_mock *S3Port) PutBucketLifecycleConfiguration(ctx context.Context, input *s3.PutBucketLifecycleConfigurationInput) (*s3.PutBucketLifecycleConfigurationOutput, error) {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutBucketLifecycleConfiguration")
+	}
+
+	var r0 *s3.PutBucketLifecycleConfigurationOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *s3.PutBucketLifecycleConfigurationInput) (*s3.PutBucketLifecycleConfigurationOutput, error)); ok {
+		return returnFunc(ctx, input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *s3.PutBucketLifecycleConfigurationInput) *s3.PutBucketLifecycleConfigurationOutput); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*s3.PutBucketLifecycleConfigurationOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *s3.PutBucketLifecycleConfigurationInput) error); ok {
+		r1 = returnFunc(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// S3Port_PutBucketLifecycleConfiguration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutBucketLifecycleConfiguration'
+type S3Port_PutBucketLifecycleConfiguration_Call struct {
+	*mock.Call
+}
+
+// PutBucketLifecycleConfiguration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *s3.PutBucketLifecycleConfigurationInput
+func (_e *S3Port_Expecter) PutBucketLifecycleConfiguration(ctx any, input any) *S3Port_PutBucketLifecycleConfiguration_Call {
+	return &S3Port_PutBucketLifecycleConfiguration_Call{Call: _e.mock.On("PutBucketLifecycleConfiguration", ctx, input)}
+}
+
+func (_c *S3Port_PutBucketLifecycleConfiguration_Call) Run(run func(ctx context.Context, input *s3.PutBucketLifecycleConfigurationInput)) *S3Port_PutBucketLifecycleConfiguration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *s3.PutBucketLifecycleConfigurationInput
+		if args[1] != nil {
+			arg1 = args[1].(*s3.PutBucketLifecycleConfigurationInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *S3Port_PutBucketLifecycleConfiguration_Call) Return(putBucketLifecycleConfigurationOutput *s3.PutBucketLifecycleConfigurationOutput, err error) *S3Port_PutBucketLifecycleConfiguration_Call {
+	_c.Call.Return(putBucketLifecycleConfigurationOutput, err)
+	return _c
+}
+
+func (_c *S3Port_PutBucketLifecycleConfiguration_Call) RunAndReturn(run func(ctx context.Context, input *s3.PutBucketLifecycleConfigurationInput) (*s3.PutBucketLifecycleConfigurationOutput, error)) *S3Port_PutBucketLifecycleConfiguration_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1245,7 +1449,7 @@ type S3Port_PutBucketNotificationConfiguration_Call struct {
 // PutBucketNotificationConfiguration is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.PutBucketNotificationConfigurationInput
-func (_e *S3Port_Expecter) PutBucketNotificationConfiguration(ctx interface{}, input interface{}) *S3Port_PutBucketNotificationConfiguration_Call {
+func (_e *S3Port_Expecter) PutBucketNotificationConfiguration(ctx any, input any) *S3Port_PutBucketNotificationConfiguration_Call {
 	return &S3Port_PutBucketNotificationConfiguration_Call{Call: _e.mock.On("PutBucketNotificationConfiguration", ctx, input)}
 }
 
@@ -1313,7 +1517,7 @@ type S3Port_PutBucketPolicy_Call struct {
 // PutBucketPolicy is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.PutBucketPolicyInput
-func (_e *S3Port_Expecter) PutBucketPolicy(ctx interface{}, input interface{}) *S3Port_PutBucketPolicy_Call {
+func (_e *S3Port_Expecter) PutBucketPolicy(ctx any, input any) *S3Port_PutBucketPolicy_Call {
 	return &S3Port_PutBucketPolicy_Call{Call: _e.mock.On("PutBucketPolicy", ctx, input)}
 }
 
@@ -1381,7 +1585,7 @@ type S3Port_PutBucketTagging_Call struct {
 // PutBucketTagging is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.PutBucketTaggingInput
-func (_e *S3Port_Expecter) PutBucketTagging(ctx interface{}, input interface{}) *S3Port_PutBucketTagging_Call {
+func (_e *S3Port_Expecter) PutBucketTagging(ctx any, input any) *S3Port_PutBucketTagging_Call {
 	return &S3Port_PutBucketTagging_Call{Call: _e.mock.On("PutBucketTagging", ctx, input)}
 }
 
@@ -1449,7 +1653,7 @@ type S3Port_PutBucketVersioning_Call struct {
 // PutBucketVersioning is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.PutBucketVersioningInput
-func (_e *S3Port_Expecter) PutBucketVersioning(ctx interface{}, input interface{}) *S3Port_PutBucketVersioning_Call {
+func (_e *S3Port_Expecter) PutBucketVersioning(ctx any, input any) *S3Port_PutBucketVersioning_Call {
 	return &S3Port_PutBucketVersioning_Call{Call: _e.mock.On("PutBucketVersioning", ctx, input)}
 }
 
@@ -1517,7 +1721,7 @@ type S3Port_PutObject_Call struct {
 // PutObject is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.PutObjectInput
-func (_e *S3Port_Expecter) PutObject(ctx interface{}, input interface{}) *S3Port_PutObject_Call {
+func (_e *S3Port_Expecter) PutObject(ctx any, input any) *S3Port_PutObject_Call {
 	return &S3Port_PutObject_Call{Call: _e.mock.On("PutObject", ctx, input)}
 }
 
@@ -1585,7 +1789,7 @@ type S3Port_PutPublicAccessBlock_Call struct {
 // PutPublicAccessBlock is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *s3.PutPublicAccessBlockInput
-func (_e *S3Port_Expecter) PutPublicAccessBlock(ctx interface{}, input interface{}) *S3Port_PutPublicAccessBlock_Call {
+func (_e *S3Port_Expecter) PutPublicAccessBlock(ctx any, input any) *S3Port_PutPublicAccessBlock_Call {
 	return &S3Port_PutPublicAccessBlock_Call{Call: _e.mock.On("PutPublicAccessBlock", ctx, input)}
 }
 
