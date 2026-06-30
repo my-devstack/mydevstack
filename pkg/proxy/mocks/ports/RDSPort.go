@@ -74,7 +74,7 @@ type RDSPort_CreateDBInstance_Call struct {
 // CreateDBInstance is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *rds.CreateDBInstanceInput
-func (_e *RDSPort_Expecter) CreateDBInstance(ctx interface{}, input interface{}) *RDSPort_CreateDBInstance_Call {
+func (_e *RDSPort_Expecter) CreateDBInstance(ctx any, input any) *RDSPort_CreateDBInstance_Call {
 	return &RDSPort_CreateDBInstance_Call{Call: _e.mock.On("CreateDBInstance", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type RDSPort_DeleteDBInstance_Call struct {
 // DeleteDBInstance is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *rds.DeleteDBInstanceInput
-func (_e *RDSPort_Expecter) DeleteDBInstance(ctx interface{}, input interface{}) *RDSPort_DeleteDBInstance_Call {
+func (_e *RDSPort_Expecter) DeleteDBInstance(ctx any, input any) *RDSPort_DeleteDBInstance_Call {
 	return &RDSPort_DeleteDBInstance_Call{Call: _e.mock.On("DeleteDBInstance", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type RDSPort_DescribeDBEngineVersions_Call struct {
 // DescribeDBEngineVersions is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *rds.DescribeDBEngineVersionsInput
-func (_e *RDSPort_Expecter) DescribeDBEngineVersions(ctx interface{}, input interface{}) *RDSPort_DescribeDBEngineVersions_Call {
+func (_e *RDSPort_Expecter) DescribeDBEngineVersions(ctx any, input any) *RDSPort_DescribeDBEngineVersions_Call {
 	return &RDSPort_DescribeDBEngineVersions_Call{Call: _e.mock.On("DescribeDBEngineVersions", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type RDSPort_DescribeDBInstances_Call struct {
 // DescribeDBInstances is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *rds.DescribeDBInstancesInput
-func (_e *RDSPort_Expecter) DescribeDBInstances(ctx interface{}, input interface{}) *RDSPort_DescribeDBInstances_Call {
+func (_e *RDSPort_Expecter) DescribeDBInstances(ctx any, input any) *RDSPort_DescribeDBInstances_Call {
 	return &RDSPort_DescribeDBInstances_Call{Call: _e.mock.On("DescribeDBInstances", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type RDSPort_ModifyDBInstance_Call struct {
 // ModifyDBInstance is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *rds.ModifyDBInstanceInput
-func (_e *RDSPort_Expecter) ModifyDBInstance(ctx interface{}, input interface{}) *RDSPort_ModifyDBInstance_Call {
+func (_e *RDSPort_Expecter) ModifyDBInstance(ctx any, input any) *RDSPort_ModifyDBInstance_Call {
 	return &RDSPort_ModifyDBInstance_Call{Call: _e.mock.On("ModifyDBInstance", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type RDSPort_RebootDBInstance_Call struct {
 // RebootDBInstance is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *rds.RebootDBInstanceInput
-func (_e *RDSPort_Expecter) RebootDBInstance(ctx interface{}, input interface{}) *RDSPort_RebootDBInstance_Call {
+func (_e *RDSPort_Expecter) RebootDBInstance(ctx any, input any) *RDSPort_RebootDBInstance_Call {
 	return &RDSPort_RebootDBInstance_Call{Call: _e.mock.On("RebootDBInstance", ctx, input)}
 }
 

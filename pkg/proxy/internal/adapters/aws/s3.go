@@ -111,6 +111,18 @@ func (a *S3Adapter) GetBucketNotificationConfiguration(ctx context.Context, inpu
 	return a.client.GetBucketNotificationConfiguration(ctx, input)
 }
 
+func (a *S3Adapter) GetBucketLifecycleConfiguration(ctx context.Context, input *s3.GetBucketLifecycleConfigurationInput) (*s3.GetBucketLifecycleConfigurationOutput, error) {
+	return a.client.GetBucketLifecycleConfiguration(ctx, input)
+}
+
+func (a *S3Adapter) PutBucketLifecycleConfiguration(ctx context.Context, input *s3.PutBucketLifecycleConfigurationInput) (*s3.PutBucketLifecycleConfigurationOutput, error) {
+	return a.client.PutBucketLifecycleConfiguration(ctx, input)
+}
+
+func (a *S3Adapter) DeleteBucketLifecycle(ctx context.Context, input *s3.DeleteBucketLifecycleInput) (*s3.DeleteBucketLifecycleOutput, error) {
+	return a.client.DeleteBucketLifecycle(ctx, input)
+}
+
 func (a *S3Adapter) PresignGetObject(ctx context.Context, bucket, key string, expires time.Duration) (string, error) {
 	input := &s3.GetObjectInput{
 		Bucket: &bucket,

@@ -103,7 +103,7 @@ type CachePort_Get_Call struct {
 
 // Get is a helper method to define mock.On call
 //   - key string
-func (_e *CachePort_Expecter) Get(key interface{}) *CachePort_Get_Call {
+func (_e *CachePort_Expecter) Get(key any) *CachePort_Get_Call {
 	return &CachePort_Get_Call{Call: _e.mock.On("Get", key)}
 }
 
@@ -189,7 +189,7 @@ type CachePort_Set_Call struct {
 //   - key string
 //   - value string
 //   - ttl time.Duration
-func (_e *CachePort_Expecter) Set(key interface{}, value interface{}, ttl interface{}) *CachePort_Set_Call {
+func (_e *CachePort_Expecter) Set(key any, value any, ttl any) *CachePort_Set_Call {
 	return &CachePort_Set_Call{Call: _e.mock.On("Set", key, value, ttl)}
 }
 

@@ -81,9 +81,9 @@ type KMSClientPort_CreateKey_Call struct {
 //   - ctx context.Context
 //   - input *kms.CreateKeyInput
 //   - opts ...func(*kms.Options)
-func (_e *KMSClientPort_Expecter) CreateKey(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_CreateKey_Call {
+func (_e *KMSClientPort_Expecter) CreateKey(ctx any, input any, opts ...any) *KMSClientPort_CreateKey_Call {
 	return &KMSClientPort_CreateKey_Call{Call: _e.mock.On("CreateKey",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KMSClientPort_CreateKey_Call) Run(run func(ctx context.Context, input *kms.CreateKeyInput, opts ...func(*kms.Options))) *KMSClientPort_CreateKey_Call {
@@ -164,9 +164,9 @@ type KMSClientPort_Decrypt_Call struct {
 //   - ctx context.Context
 //   - input *kms.DecryptInput
 //   - opts ...func(*kms.Options)
-func (_e *KMSClientPort_Expecter) Decrypt(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_Decrypt_Call {
+func (_e *KMSClientPort_Expecter) Decrypt(ctx any, input any, opts ...any) *KMSClientPort_Decrypt_Call {
 	return &KMSClientPort_Decrypt_Call{Call: _e.mock.On("Decrypt",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KMSClientPort_Decrypt_Call) Run(run func(ctx context.Context, input *kms.DecryptInput, opts ...func(*kms.Options))) *KMSClientPort_Decrypt_Call {
@@ -247,9 +247,9 @@ type KMSClientPort_DeleteAlias_Call struct {
 //   - ctx context.Context
 //   - input *kms.DeleteAliasInput
 //   - opts ...func(*kms.Options)
-func (_e *KMSClientPort_Expecter) DeleteAlias(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_DeleteAlias_Call {
+func (_e *KMSClientPort_Expecter) DeleteAlias(ctx any, input any, opts ...any) *KMSClientPort_DeleteAlias_Call {
 	return &KMSClientPort_DeleteAlias_Call{Call: _e.mock.On("DeleteAlias",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KMSClientPort_DeleteAlias_Call) Run(run func(ctx context.Context, input *kms.DeleteAliasInput, opts ...func(*kms.Options))) *KMSClientPort_DeleteAlias_Call {
@@ -330,9 +330,9 @@ type KMSClientPort_DescribeKey_Call struct {
 //   - ctx context.Context
 //   - input *kms.DescribeKeyInput
 //   - opts ...func(*kms.Options)
-func (_e *KMSClientPort_Expecter) DescribeKey(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_DescribeKey_Call {
+func (_e *KMSClientPort_Expecter) DescribeKey(ctx any, input any, opts ...any) *KMSClientPort_DescribeKey_Call {
 	return &KMSClientPort_DescribeKey_Call{Call: _e.mock.On("DescribeKey",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KMSClientPort_DescribeKey_Call) Run(run func(ctx context.Context, input *kms.DescribeKeyInput, opts ...func(*kms.Options))) *KMSClientPort_DescribeKey_Call {
@@ -413,9 +413,9 @@ type KMSClientPort_DisableKey_Call struct {
 //   - ctx context.Context
 //   - input *kms.DisableKeyInput
 //   - opts ...func(*kms.Options)
-func (_e *KMSClientPort_Expecter) DisableKey(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_DisableKey_Call {
+func (_e *KMSClientPort_Expecter) DisableKey(ctx any, input any, opts ...any) *KMSClientPort_DisableKey_Call {
 	return &KMSClientPort_DisableKey_Call{Call: _e.mock.On("DisableKey",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KMSClientPort_DisableKey_Call) Run(run func(ctx context.Context, input *kms.DisableKeyInput, opts ...func(*kms.Options))) *KMSClientPort_DisableKey_Call {
@@ -496,9 +496,9 @@ type KMSClientPort_EnableKey_Call struct {
 //   - ctx context.Context
 //   - input *kms.EnableKeyInput
 //   - opts ...func(*kms.Options)
-func (_e *KMSClientPort_Expecter) EnableKey(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_EnableKey_Call {
+func (_e *KMSClientPort_Expecter) EnableKey(ctx any, input any, opts ...any) *KMSClientPort_EnableKey_Call {
 	return &KMSClientPort_EnableKey_Call{Call: _e.mock.On("EnableKey",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KMSClientPort_EnableKey_Call) Run(run func(ctx context.Context, input *kms.EnableKeyInput, opts ...func(*kms.Options))) *KMSClientPort_EnableKey_Call {
@@ -579,9 +579,9 @@ type KMSClientPort_Encrypt_Call struct {
 //   - ctx context.Context
 //   - input *kms.EncryptInput
 //   - opts ...func(*kms.Options)
-func (_e *KMSClientPort_Expecter) Encrypt(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_Encrypt_Call {
+func (_e *KMSClientPort_Expecter) Encrypt(ctx any, input any, opts ...any) *KMSClientPort_Encrypt_Call {
 	return &KMSClientPort_Encrypt_Call{Call: _e.mock.On("Encrypt",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KMSClientPort_Encrypt_Call) Run(run func(ctx context.Context, input *kms.EncryptInput, opts ...func(*kms.Options))) *KMSClientPort_Encrypt_Call {
@@ -662,9 +662,9 @@ type KMSClientPort_GenerateDataKey_Call struct {
 //   - ctx context.Context
 //   - input *kms.GenerateDataKeyInput
 //   - opts ...func(*kms.Options)
-func (_e *KMSClientPort_Expecter) GenerateDataKey(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_GenerateDataKey_Call {
+func (_e *KMSClientPort_Expecter) GenerateDataKey(ctx any, input any, opts ...any) *KMSClientPort_GenerateDataKey_Call {
 	return &KMSClientPort_GenerateDataKey_Call{Call: _e.mock.On("GenerateDataKey",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KMSClientPort_GenerateDataKey_Call) Run(run func(ctx context.Context, input *kms.GenerateDataKeyInput, opts ...func(*kms.Options))) *KMSClientPort_GenerateDataKey_Call {
@@ -745,9 +745,9 @@ type KMSClientPort_GenerateRandom_Call struct {
 //   - ctx context.Context
 //   - input *kms.GenerateRandomInput
 //   - opts ...func(*kms.Options)
-func (_e *KMSClientPort_Expecter) GenerateRandom(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_GenerateRandom_Call {
+func (_e *KMSClientPort_Expecter) GenerateRandom(ctx any, input any, opts ...any) *KMSClientPort_GenerateRandom_Call {
 	return &KMSClientPort_GenerateRandom_Call{Call: _e.mock.On("GenerateRandom",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KMSClientPort_GenerateRandom_Call) Run(run func(ctx context.Context, input *kms.GenerateRandomInput, opts ...func(*kms.Options))) *KMSClientPort_GenerateRandom_Call {
@@ -828,9 +828,9 @@ type KMSClientPort_GetKeyPolicy_Call struct {
 //   - ctx context.Context
 //   - input *kms.GetKeyPolicyInput
 //   - opts ...func(*kms.Options)
-func (_e *KMSClientPort_Expecter) GetKeyPolicy(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_GetKeyPolicy_Call {
+func (_e *KMSClientPort_Expecter) GetKeyPolicy(ctx any, input any, opts ...any) *KMSClientPort_GetKeyPolicy_Call {
 	return &KMSClientPort_GetKeyPolicy_Call{Call: _e.mock.On("GetKeyPolicy",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KMSClientPort_GetKeyPolicy_Call) Run(run func(ctx context.Context, input *kms.GetKeyPolicyInput, opts ...func(*kms.Options))) *KMSClientPort_GetKeyPolicy_Call {
@@ -911,9 +911,9 @@ type KMSClientPort_ListKeys_Call struct {
 //   - ctx context.Context
 //   - input *kms.ListKeysInput
 //   - opts ...func(*kms.Options)
-func (_e *KMSClientPort_Expecter) ListKeys(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_ListKeys_Call {
+func (_e *KMSClientPort_Expecter) ListKeys(ctx any, input any, opts ...any) *KMSClientPort_ListKeys_Call {
 	return &KMSClientPort_ListKeys_Call{Call: _e.mock.On("ListKeys",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KMSClientPort_ListKeys_Call) Run(run func(ctx context.Context, input *kms.ListKeysInput, opts ...func(*kms.Options))) *KMSClientPort_ListKeys_Call {
@@ -994,9 +994,9 @@ type KMSClientPort_ScheduleKeyDeletion_Call struct {
 //   - ctx context.Context
 //   - input *kms.ScheduleKeyDeletionInput
 //   - opts ...func(*kms.Options)
-func (_e *KMSClientPort_Expecter) ScheduleKeyDeletion(ctx interface{}, input interface{}, opts ...interface{}) *KMSClientPort_ScheduleKeyDeletion_Call {
+func (_e *KMSClientPort_Expecter) ScheduleKeyDeletion(ctx any, input any, opts ...any) *KMSClientPort_ScheduleKeyDeletion_Call {
 	return &KMSClientPort_ScheduleKeyDeletion_Call{Call: _e.mock.On("ScheduleKeyDeletion",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *KMSClientPort_ScheduleKeyDeletion_Call) Run(run func(ctx context.Context, input *kms.ScheduleKeyDeletionInput, opts ...func(*kms.Options))) *KMSClientPort_ScheduleKeyDeletion_Call {

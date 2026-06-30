@@ -6,12 +6,15 @@ import {
   TagIcon,
   DocumentTextIcon,
   CloudArrowUpIcon,
+  CalendarDaysIcon,
+  ArrowPathIcon,
 } from '@heroicons/vue/24/outline'
 
 interface BucketDetails {
   versioning: { status: string; mfaDelete: string } | null
   encryption: { algorithm: string; keyId: string } | null
   tags: Array<{ Key: string; Value: string }>
+  lifecycleRules: Array<{ ID?: string; Status: string; Filter?: { Prefix?: string }; Expiration?: { Days?: number }; Transitions?: Array<{ StorageClass: string }> }>
   loading: boolean
 }
 
@@ -28,9 +31,21 @@ const emit = defineEmits<{
   close: []
   addTrigger: [bucketName: string]
   viewPolicy: [bucketName: string]
+  manageLifecycle: [bucketName: string]
+  toggleVersioning: [bucketName: string, enable: boolean]
 }>()
 
 const settingsStore = useSettingsStore()
+
+function getVersioningToggleClass(enable: boolean): string {
+  return enable
+    ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
+    : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/50'
+}
+
+function getLifecycleRuleCount(): number {
+  return props.details?.lifecycleRules?.length || 0
+}
 
 function getVersioningStatusClass(status: string): string {
   switch (status) {
@@ -87,6 +102,26 @@ function getEncryptionClass(algorithm: string): string {
       >
         MFA Delete
       </span>
+      <button
+        v-if="details.versioning?.status === 'Enabled'"
+        type="button"
+        class="ml-2 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded"
+        :class="getVersioningToggleClass(false)"
+        @click="emit('toggleVersioning', bucketName, false)"
+      >
+        <ArrowPathIcon class="w-3 h-3" />
+        Disable
+      </button>
+      <button
+        v-if="details.versioning?.status === '' || details.versioning?.status === 'Suspended'"
+        type="button"
+        class="ml-2 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded"
+        :class="getVersioningToggleClass(true)"
+        @click="emit('toggleVersioning', bucketName, true)"
+      >
+        <ArrowPathIcon class="w-3 h-3" />
+        Enable
+      </button>
     </div>
 
     <!-- Encryption -->
@@ -135,6 +170,25 @@ function getEncryptionClass(algorithm: string): string {
       >
         No tags
       </p>
+    </div>
+
+    <!-- Lifecycle -->
+    <div>
+      <div class="flex items-center gap-2 mb-2">
+        <CalendarDaysIcon class="w-4 h-4 text-primary-500" />
+        <label class="text-xs font-medium text-light-muted dark:text-dark-muted uppercase">Lifecycle Rules</label>
+      </div>
+      <p class="text-sm text-light-text dark:text-dark-text mb-2">
+        {{ getLifecycleRuleCount() > 0 ? `${getLifecycleRuleCount()} rule(s)` : 'No rules' }}
+      </p>
+      <button
+        type="button"
+        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+        @click="emit('manageLifecycle', bucketName)"
+      >
+        <CalendarDaysIcon class="w-3.5 h-3.5" />
+        Manage Lifecycle
+      </button>
     </div>
 
     <!-- Actions -->

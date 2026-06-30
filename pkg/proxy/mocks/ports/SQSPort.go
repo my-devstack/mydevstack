@@ -74,7 +74,7 @@ type SQSPort_CreateQueue_Call struct {
 // CreateQueue is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sqs.CreateQueueInput
-func (_e *SQSPort_Expecter) CreateQueue(ctx interface{}, input interface{}) *SQSPort_CreateQueue_Call {
+func (_e *SQSPort_Expecter) CreateQueue(ctx any, input any) *SQSPort_CreateQueue_Call {
 	return &SQSPort_CreateQueue_Call{Call: _e.mock.On("CreateQueue", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type SQSPort_DeleteMessage_Call struct {
 // DeleteMessage is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sqs.DeleteMessageInput
-func (_e *SQSPort_Expecter) DeleteMessage(ctx interface{}, input interface{}) *SQSPort_DeleteMessage_Call {
+func (_e *SQSPort_Expecter) DeleteMessage(ctx any, input any) *SQSPort_DeleteMessage_Call {
 	return &SQSPort_DeleteMessage_Call{Call: _e.mock.On("DeleteMessage", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type SQSPort_DeleteQueue_Call struct {
 // DeleteQueue is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sqs.DeleteQueueInput
-func (_e *SQSPort_Expecter) DeleteQueue(ctx interface{}, input interface{}) *SQSPort_DeleteQueue_Call {
+func (_e *SQSPort_Expecter) DeleteQueue(ctx any, input any) *SQSPort_DeleteQueue_Call {
 	return &SQSPort_DeleteQueue_Call{Call: _e.mock.On("DeleteQueue", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type SQSPort_GetQueueAttributes_Call struct {
 // GetQueueAttributes is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sqs.GetQueueAttributesInput
-func (_e *SQSPort_Expecter) GetQueueAttributes(ctx interface{}, input interface{}) *SQSPort_GetQueueAttributes_Call {
+func (_e *SQSPort_Expecter) GetQueueAttributes(ctx any, input any) *SQSPort_GetQueueAttributes_Call {
 	return &SQSPort_GetQueueAttributes_Call{Call: _e.mock.On("GetQueueAttributes", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type SQSPort_GetQueueUrl_Call struct {
 // GetQueueUrl is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sqs.GetQueueUrlInput
-func (_e *SQSPort_Expecter) GetQueueUrl(ctx interface{}, input interface{}) *SQSPort_GetQueueUrl_Call {
+func (_e *SQSPort_Expecter) GetQueueUrl(ctx any, input any) *SQSPort_GetQueueUrl_Call {
 	return &SQSPort_GetQueueUrl_Call{Call: _e.mock.On("GetQueueUrl", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type SQSPort_ListQueues_Call struct {
 // ListQueues is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sqs.ListQueuesInput
-func (_e *SQSPort_Expecter) ListQueues(ctx interface{}, input interface{}) *SQSPort_ListQueues_Call {
+func (_e *SQSPort_Expecter) ListQueues(ctx any, input any) *SQSPort_ListQueues_Call {
 	return &SQSPort_ListQueues_Call{Call: _e.mock.On("ListQueues", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type SQSPort_PurgeQueue_Call struct {
 // PurgeQueue is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sqs.PurgeQueueInput
-func (_e *SQSPort_Expecter) PurgeQueue(ctx interface{}, input interface{}) *SQSPort_PurgeQueue_Call {
+func (_e *SQSPort_Expecter) PurgeQueue(ctx any, input any) *SQSPort_PurgeQueue_Call {
 	return &SQSPort_PurgeQueue_Call{Call: _e.mock.On("PurgeQueue", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type SQSPort_ReceiveMessage_Call struct {
 // ReceiveMessage is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sqs.ReceiveMessageInput
-func (_e *SQSPort_Expecter) ReceiveMessage(ctx interface{}, input interface{}) *SQSPort_ReceiveMessage_Call {
+func (_e *SQSPort_Expecter) ReceiveMessage(ctx any, input any) *SQSPort_ReceiveMessage_Call {
 	return &SQSPort_ReceiveMessage_Call{Call: _e.mock.On("ReceiveMessage", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type SQSPort_SendMessage_Call struct {
 // SendMessage is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sqs.SendMessageInput
-func (_e *SQSPort_Expecter) SendMessage(ctx interface{}, input interface{}) *SQSPort_SendMessage_Call {
+func (_e *SQSPort_Expecter) SendMessage(ctx any, input any) *SQSPort_SendMessage_Call {
 	return &SQSPort_SendMessage_Call{Call: _e.mock.On("SendMessage", ctx, input)}
 }
 
@@ -686,7 +686,7 @@ type SQSPort_SetQueueAttributes_Call struct {
 // SetQueueAttributes is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *sqs.SetQueueAttributesInput
-func (_e *SQSPort_Expecter) SetQueueAttributes(ctx interface{}, input interface{}) *SQSPort_SetQueueAttributes_Call {
+func (_e *SQSPort_Expecter) SetQueueAttributes(ctx any, input any) *SQSPort_SetQueueAttributes_Call {
 	return &SQSPort_SetQueueAttributes_Call{Call: _e.mock.On("SetQueueAttributes", ctx, input)}
 }
 

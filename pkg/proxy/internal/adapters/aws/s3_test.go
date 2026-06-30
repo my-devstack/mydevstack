@@ -608,6 +608,126 @@ func TestS3Adapter_GetBucketNotificationConfiguration_Error(t *testing.T) {
 	assert.Nil(t, output)
 }
 
+// --- GetBucketLifecycleConfiguration ---
+
+func TestS3Adapter_GetBucketLifecycleConfiguration(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetBucketLifecycleConfigurationInput{Bucket: aws.String("test-bucket")}
+	expectedOutput := &s3.GetBucketLifecycleConfigurationOutput{
+		Rules: []types.LifecycleRule{
+			{
+				ID:     aws.String("rule1"),
+				Status: types.ExpirationStatusEnabled,
+				Filter: &types.LifecycleRuleFilter{},
+				Expiration: &types.LifecycleExpiration{
+					Days: aws.Int32(30),
+				},
+			},
+		},
+	}
+
+	mockClient.EXPECT().GetBucketLifecycleConfiguration(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetBucketLifecycleConfiguration(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_GetBucketLifecycleConfiguration_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.GetBucketLifecycleConfigurationInput{Bucket: aws.String("test-bucket")}
+
+	mockClient.EXPECT().GetBucketLifecycleConfiguration(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.GetBucketLifecycleConfiguration(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- PutBucketLifecycleConfiguration ---
+
+func TestS3Adapter_PutBucketLifecycleConfiguration(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutBucketLifecycleConfigurationInput{
+		Bucket: aws.String("test-bucket"),
+		LifecycleConfiguration: &types.BucketLifecycleConfiguration{
+			Rules: []types.LifecycleRule{
+				{
+					ID:     aws.String("rule1"),
+					Status: types.ExpirationStatusEnabled,
+					Filter: &types.LifecycleRuleFilter{},
+				},
+			},
+		},
+	}
+	expectedOutput := &s3.PutBucketLifecycleConfigurationOutput{}
+
+	mockClient.EXPECT().PutBucketLifecycleConfiguration(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutBucketLifecycleConfiguration(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_PutBucketLifecycleConfiguration_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.PutBucketLifecycleConfigurationInput{
+		Bucket: aws.String("test-bucket"),
+		LifecycleConfiguration: &types.BucketLifecycleConfiguration{
+			Rules: []types.LifecycleRule{},
+		},
+	}
+
+	mockClient.EXPECT().PutBucketLifecycleConfiguration(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.PutBucketLifecycleConfiguration(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+// --- DeleteBucketLifecycleConfiguration ---
+
+func TestS3Adapter_DeleteBucketLifecycleConfiguration(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.DeleteBucketLifecycleInput{Bucket: aws.String("test-bucket")}
+	expectedOutput := &s3.DeleteBucketLifecycleOutput{}
+
+	mockClient.EXPECT().DeleteBucketLifecycle(ctx, input).Return(expectedOutput, nil)
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.DeleteBucketLifecycle(ctx, input)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestS3Adapter_DeleteBucketLifecycleConfiguration_Error(t *testing.T) {
+	mockClient := s3mocks.NewS3ClientPort(t)
+	ctx := context.Background()
+	input := &s3.DeleteBucketLifecycleInput{Bucket: aws.String("test-bucket")}
+
+	mockClient.EXPECT().DeleteBucketLifecycle(ctx, input).Return(nil, errors.New("some error"))
+
+	adapter := &S3Adapter{client: mockClient, region: "us-east-1"}
+	output, err := adapter.DeleteBucketLifecycle(ctx, input)
+
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
 // --- PresignGetObject ---
 
 func TestS3Adapter_PresignGetObject(t *testing.T) {

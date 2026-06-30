@@ -81,9 +81,9 @@ type SQSClientPort_CreateQueue_Call struct {
 //   - ctx context.Context
 //   - input *sqs.CreateQueueInput
 //   - opts ...func(*sqs.Options)
-func (_e *SQSClientPort_Expecter) CreateQueue(ctx interface{}, input interface{}, opts ...interface{}) *SQSClientPort_CreateQueue_Call {
+func (_e *SQSClientPort_Expecter) CreateQueue(ctx any, input any, opts ...any) *SQSClientPort_CreateQueue_Call {
 	return &SQSClientPort_CreateQueue_Call{Call: _e.mock.On("CreateQueue",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SQSClientPort_CreateQueue_Call) Run(run func(ctx context.Context, input *sqs.CreateQueueInput, opts ...func(*sqs.Options))) *SQSClientPort_CreateQueue_Call {
@@ -164,9 +164,9 @@ type SQSClientPort_DeleteMessage_Call struct {
 //   - ctx context.Context
 //   - input *sqs.DeleteMessageInput
 //   - opts ...func(*sqs.Options)
-func (_e *SQSClientPort_Expecter) DeleteMessage(ctx interface{}, input interface{}, opts ...interface{}) *SQSClientPort_DeleteMessage_Call {
+func (_e *SQSClientPort_Expecter) DeleteMessage(ctx any, input any, opts ...any) *SQSClientPort_DeleteMessage_Call {
 	return &SQSClientPort_DeleteMessage_Call{Call: _e.mock.On("DeleteMessage",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SQSClientPort_DeleteMessage_Call) Run(run func(ctx context.Context, input *sqs.DeleteMessageInput, opts ...func(*sqs.Options))) *SQSClientPort_DeleteMessage_Call {
@@ -247,9 +247,9 @@ type SQSClientPort_DeleteQueue_Call struct {
 //   - ctx context.Context
 //   - input *sqs.DeleteQueueInput
 //   - opts ...func(*sqs.Options)
-func (_e *SQSClientPort_Expecter) DeleteQueue(ctx interface{}, input interface{}, opts ...interface{}) *SQSClientPort_DeleteQueue_Call {
+func (_e *SQSClientPort_Expecter) DeleteQueue(ctx any, input any, opts ...any) *SQSClientPort_DeleteQueue_Call {
 	return &SQSClientPort_DeleteQueue_Call{Call: _e.mock.On("DeleteQueue",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SQSClientPort_DeleteQueue_Call) Run(run func(ctx context.Context, input *sqs.DeleteQueueInput, opts ...func(*sqs.Options))) *SQSClientPort_DeleteQueue_Call {
@@ -330,9 +330,9 @@ type SQSClientPort_GetQueueAttributes_Call struct {
 //   - ctx context.Context
 //   - input *sqs.GetQueueAttributesInput
 //   - opts ...func(*sqs.Options)
-func (_e *SQSClientPort_Expecter) GetQueueAttributes(ctx interface{}, input interface{}, opts ...interface{}) *SQSClientPort_GetQueueAttributes_Call {
+func (_e *SQSClientPort_Expecter) GetQueueAttributes(ctx any, input any, opts ...any) *SQSClientPort_GetQueueAttributes_Call {
 	return &SQSClientPort_GetQueueAttributes_Call{Call: _e.mock.On("GetQueueAttributes",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SQSClientPort_GetQueueAttributes_Call) Run(run func(ctx context.Context, input *sqs.GetQueueAttributesInput, opts ...func(*sqs.Options))) *SQSClientPort_GetQueueAttributes_Call {
@@ -413,9 +413,9 @@ type SQSClientPort_GetQueueUrl_Call struct {
 //   - ctx context.Context
 //   - input *sqs.GetQueueUrlInput
 //   - opts ...func(*sqs.Options)
-func (_e *SQSClientPort_Expecter) GetQueueUrl(ctx interface{}, input interface{}, opts ...interface{}) *SQSClientPort_GetQueueUrl_Call {
+func (_e *SQSClientPort_Expecter) GetQueueUrl(ctx any, input any, opts ...any) *SQSClientPort_GetQueueUrl_Call {
 	return &SQSClientPort_GetQueueUrl_Call{Call: _e.mock.On("GetQueueUrl",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SQSClientPort_GetQueueUrl_Call) Run(run func(ctx context.Context, input *sqs.GetQueueUrlInput, opts ...func(*sqs.Options))) *SQSClientPort_GetQueueUrl_Call {
@@ -496,9 +496,9 @@ type SQSClientPort_ListQueues_Call struct {
 //   - ctx context.Context
 //   - input *sqs.ListQueuesInput
 //   - opts ...func(*sqs.Options)
-func (_e *SQSClientPort_Expecter) ListQueues(ctx interface{}, input interface{}, opts ...interface{}) *SQSClientPort_ListQueues_Call {
+func (_e *SQSClientPort_Expecter) ListQueues(ctx any, input any, opts ...any) *SQSClientPort_ListQueues_Call {
 	return &SQSClientPort_ListQueues_Call{Call: _e.mock.On("ListQueues",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SQSClientPort_ListQueues_Call) Run(run func(ctx context.Context, input *sqs.ListQueuesInput, opts ...func(*sqs.Options))) *SQSClientPort_ListQueues_Call {
@@ -579,9 +579,9 @@ type SQSClientPort_PurgeQueue_Call struct {
 //   - ctx context.Context
 //   - input *sqs.PurgeQueueInput
 //   - opts ...func(*sqs.Options)
-func (_e *SQSClientPort_Expecter) PurgeQueue(ctx interface{}, input interface{}, opts ...interface{}) *SQSClientPort_PurgeQueue_Call {
+func (_e *SQSClientPort_Expecter) PurgeQueue(ctx any, input any, opts ...any) *SQSClientPort_PurgeQueue_Call {
 	return &SQSClientPort_PurgeQueue_Call{Call: _e.mock.On("PurgeQueue",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SQSClientPort_PurgeQueue_Call) Run(run func(ctx context.Context, input *sqs.PurgeQueueInput, opts ...func(*sqs.Options))) *SQSClientPort_PurgeQueue_Call {
@@ -662,9 +662,9 @@ type SQSClientPort_ReceiveMessage_Call struct {
 //   - ctx context.Context
 //   - input *sqs.ReceiveMessageInput
 //   - opts ...func(*sqs.Options)
-func (_e *SQSClientPort_Expecter) ReceiveMessage(ctx interface{}, input interface{}, opts ...interface{}) *SQSClientPort_ReceiveMessage_Call {
+func (_e *SQSClientPort_Expecter) ReceiveMessage(ctx any, input any, opts ...any) *SQSClientPort_ReceiveMessage_Call {
 	return &SQSClientPort_ReceiveMessage_Call{Call: _e.mock.On("ReceiveMessage",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SQSClientPort_ReceiveMessage_Call) Run(run func(ctx context.Context, input *sqs.ReceiveMessageInput, opts ...func(*sqs.Options))) *SQSClientPort_ReceiveMessage_Call {
@@ -745,9 +745,9 @@ type SQSClientPort_SendMessage_Call struct {
 //   - ctx context.Context
 //   - input *sqs.SendMessageInput
 //   - opts ...func(*sqs.Options)
-func (_e *SQSClientPort_Expecter) SendMessage(ctx interface{}, input interface{}, opts ...interface{}) *SQSClientPort_SendMessage_Call {
+func (_e *SQSClientPort_Expecter) SendMessage(ctx any, input any, opts ...any) *SQSClientPort_SendMessage_Call {
 	return &SQSClientPort_SendMessage_Call{Call: _e.mock.On("SendMessage",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SQSClientPort_SendMessage_Call) Run(run func(ctx context.Context, input *sqs.SendMessageInput, opts ...func(*sqs.Options))) *SQSClientPort_SendMessage_Call {
@@ -828,9 +828,9 @@ type SQSClientPort_SetQueueAttributes_Call struct {
 //   - ctx context.Context
 //   - input *sqs.SetQueueAttributesInput
 //   - opts ...func(*sqs.Options)
-func (_e *SQSClientPort_Expecter) SetQueueAttributes(ctx interface{}, input interface{}, opts ...interface{}) *SQSClientPort_SetQueueAttributes_Call {
+func (_e *SQSClientPort_Expecter) SetQueueAttributes(ctx any, input any, opts ...any) *SQSClientPort_SetQueueAttributes_Call {
 	return &SQSClientPort_SetQueueAttributes_Call{Call: _e.mock.On("SetQueueAttributes",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SQSClientPort_SetQueueAttributes_Call) Run(run func(ctx context.Context, input *sqs.SetQueueAttributesInput, opts ...func(*sqs.Options))) *SQSClientPort_SetQueueAttributes_Call {

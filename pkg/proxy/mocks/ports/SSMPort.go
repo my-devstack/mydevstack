@@ -74,7 +74,7 @@ type SSMPort_AddTagsToResource_Call struct {
 // AddTagsToResource is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *ssm.AddTagsToResourceInput
-func (_e *SSMPort_Expecter) AddTagsToResource(ctx interface{}, input interface{}) *SSMPort_AddTagsToResource_Call {
+func (_e *SSMPort_Expecter) AddTagsToResource(ctx any, input any) *SSMPort_AddTagsToResource_Call {
 	return &SSMPort_AddTagsToResource_Call{Call: _e.mock.On("AddTagsToResource", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type SSMPort_DeleteParameter_Call struct {
 // DeleteParameter is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *ssm.DeleteParameterInput
-func (_e *SSMPort_Expecter) DeleteParameter(ctx interface{}, input interface{}) *SSMPort_DeleteParameter_Call {
+func (_e *SSMPort_Expecter) DeleteParameter(ctx any, input any) *SSMPort_DeleteParameter_Call {
 	return &SSMPort_DeleteParameter_Call{Call: _e.mock.On("DeleteParameter", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type SSMPort_DescribeParameters_Call struct {
 // DescribeParameters is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *ssm.DescribeParametersInput
-func (_e *SSMPort_Expecter) DescribeParameters(ctx interface{}, input interface{}) *SSMPort_DescribeParameters_Call {
+func (_e *SSMPort_Expecter) DescribeParameters(ctx any, input any) *SSMPort_DescribeParameters_Call {
 	return &SSMPort_DescribeParameters_Call{Call: _e.mock.On("DescribeParameters", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type SSMPort_GetParameter_Call struct {
 // GetParameter is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *ssm.GetParameterInput
-func (_e *SSMPort_Expecter) GetParameter(ctx interface{}, input interface{}) *SSMPort_GetParameter_Call {
+func (_e *SSMPort_Expecter) GetParameter(ctx any, input any) *SSMPort_GetParameter_Call {
 	return &SSMPort_GetParameter_Call{Call: _e.mock.On("GetParameter", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type SSMPort_GetParameterHistory_Call struct {
 // GetParameterHistory is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *ssm.GetParameterHistoryInput
-func (_e *SSMPort_Expecter) GetParameterHistory(ctx interface{}, input interface{}) *SSMPort_GetParameterHistory_Call {
+func (_e *SSMPort_Expecter) GetParameterHistory(ctx any, input any) *SSMPort_GetParameterHistory_Call {
 	return &SSMPort_GetParameterHistory_Call{Call: _e.mock.On("GetParameterHistory", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type SSMPort_GetParameters_Call struct {
 // GetParameters is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *ssm.GetParametersInput
-func (_e *SSMPort_Expecter) GetParameters(ctx interface{}, input interface{}) *SSMPort_GetParameters_Call {
+func (_e *SSMPort_Expecter) GetParameters(ctx any, input any) *SSMPort_GetParameters_Call {
 	return &SSMPort_GetParameters_Call{Call: _e.mock.On("GetParameters", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type SSMPort_GetParametersByPath_Call struct {
 // GetParametersByPath is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *ssm.GetParametersByPathInput
-func (_e *SSMPort_Expecter) GetParametersByPath(ctx interface{}, input interface{}) *SSMPort_GetParametersByPath_Call {
+func (_e *SSMPort_Expecter) GetParametersByPath(ctx any, input any) *SSMPort_GetParametersByPath_Call {
 	return &SSMPort_GetParametersByPath_Call{Call: _e.mock.On("GetParametersByPath", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type SSMPort_ListTagsForResource_Call struct {
 // ListTagsForResource is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *ssm.ListTagsForResourceInput
-func (_e *SSMPort_Expecter) ListTagsForResource(ctx interface{}, input interface{}) *SSMPort_ListTagsForResource_Call {
+func (_e *SSMPort_Expecter) ListTagsForResource(ctx any, input any) *SSMPort_ListTagsForResource_Call {
 	return &SSMPort_ListTagsForResource_Call{Call: _e.mock.On("ListTagsForResource", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type SSMPort_PutParameter_Call struct {
 // PutParameter is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *ssm.PutParameterInput
-func (_e *SSMPort_Expecter) PutParameter(ctx interface{}, input interface{}) *SSMPort_PutParameter_Call {
+func (_e *SSMPort_Expecter) PutParameter(ctx any, input any) *SSMPort_PutParameter_Call {
 	return &SSMPort_PutParameter_Call{Call: _e.mock.On("PutParameter", ctx, input)}
 }
 
@@ -686,7 +686,7 @@ type SSMPort_RemoveTagsFromResource_Call struct {
 // RemoveTagsFromResource is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *ssm.RemoveTagsFromResourceInput
-func (_e *SSMPort_Expecter) RemoveTagsFromResource(ctx interface{}, input interface{}) *SSMPort_RemoveTagsFromResource_Call {
+func (_e *SSMPort_Expecter) RemoveTagsFromResource(ctx any, input any) *SSMPort_RemoveTagsFromResource_Call {
 	return &SSMPort_RemoveTagsFromResource_Call{Call: _e.mock.On("RemoveTagsFromResource", ctx, input)}
 }
 

@@ -81,9 +81,9 @@ type APIGatewayClientPort_CreateDeployment_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.CreateDeploymentInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) CreateDeployment(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_CreateDeployment_Call {
+func (_e *APIGatewayClientPort_Expecter) CreateDeployment(ctx any, input any, opts ...any) *APIGatewayClientPort_CreateDeployment_Call {
 	return &APIGatewayClientPort_CreateDeployment_Call{Call: _e.mock.On("CreateDeployment",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_CreateDeployment_Call) Run(run func(ctx context.Context, input *apigateway.CreateDeploymentInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_CreateDeployment_Call {
@@ -164,9 +164,9 @@ type APIGatewayClientPort_CreateResource_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.CreateResourceInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) CreateResource(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_CreateResource_Call {
+func (_e *APIGatewayClientPort_Expecter) CreateResource(ctx any, input any, opts ...any) *APIGatewayClientPort_CreateResource_Call {
 	return &APIGatewayClientPort_CreateResource_Call{Call: _e.mock.On("CreateResource",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_CreateResource_Call) Run(run func(ctx context.Context, input *apigateway.CreateResourceInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_CreateResource_Call {
@@ -247,9 +247,9 @@ type APIGatewayClientPort_CreateRestApi_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.CreateRestApiInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) CreateRestApi(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_CreateRestApi_Call {
+func (_e *APIGatewayClientPort_Expecter) CreateRestApi(ctx any, input any, opts ...any) *APIGatewayClientPort_CreateRestApi_Call {
 	return &APIGatewayClientPort_CreateRestApi_Call{Call: _e.mock.On("CreateRestApi",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_CreateRestApi_Call) Run(run func(ctx context.Context, input *apigateway.CreateRestApiInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_CreateRestApi_Call {
@@ -330,9 +330,9 @@ type APIGatewayClientPort_CreateStage_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.CreateStageInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) CreateStage(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_CreateStage_Call {
+func (_e *APIGatewayClientPort_Expecter) CreateStage(ctx any, input any, opts ...any) *APIGatewayClientPort_CreateStage_Call {
 	return &APIGatewayClientPort_CreateStage_Call{Call: _e.mock.On("CreateStage",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_CreateStage_Call) Run(run func(ctx context.Context, input *apigateway.CreateStageInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_CreateStage_Call {
@@ -413,9 +413,9 @@ type APIGatewayClientPort_DeleteDeployment_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.DeleteDeploymentInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) DeleteDeployment(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_DeleteDeployment_Call {
+func (_e *APIGatewayClientPort_Expecter) DeleteDeployment(ctx any, input any, opts ...any) *APIGatewayClientPort_DeleteDeployment_Call {
 	return &APIGatewayClientPort_DeleteDeployment_Call{Call: _e.mock.On("DeleteDeployment",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_DeleteDeployment_Call) Run(run func(ctx context.Context, input *apigateway.DeleteDeploymentInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_DeleteDeployment_Call {
@@ -496,9 +496,9 @@ type APIGatewayClientPort_DeleteIntegration_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.DeleteIntegrationInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) DeleteIntegration(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_DeleteIntegration_Call {
+func (_e *APIGatewayClientPort_Expecter) DeleteIntegration(ctx any, input any, opts ...any) *APIGatewayClientPort_DeleteIntegration_Call {
 	return &APIGatewayClientPort_DeleteIntegration_Call{Call: _e.mock.On("DeleteIntegration",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_DeleteIntegration_Call) Run(run func(ctx context.Context, input *apigateway.DeleteIntegrationInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_DeleteIntegration_Call {
@@ -579,9 +579,9 @@ type APIGatewayClientPort_DeleteMethod_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.DeleteMethodInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) DeleteMethod(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_DeleteMethod_Call {
+func (_e *APIGatewayClientPort_Expecter) DeleteMethod(ctx any, input any, opts ...any) *APIGatewayClientPort_DeleteMethod_Call {
 	return &APIGatewayClientPort_DeleteMethod_Call{Call: _e.mock.On("DeleteMethod",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_DeleteMethod_Call) Run(run func(ctx context.Context, input *apigateway.DeleteMethodInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_DeleteMethod_Call {
@@ -662,9 +662,9 @@ type APIGatewayClientPort_DeleteResource_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.DeleteResourceInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) DeleteResource(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_DeleteResource_Call {
+func (_e *APIGatewayClientPort_Expecter) DeleteResource(ctx any, input any, opts ...any) *APIGatewayClientPort_DeleteResource_Call {
 	return &APIGatewayClientPort_DeleteResource_Call{Call: _e.mock.On("DeleteResource",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_DeleteResource_Call) Run(run func(ctx context.Context, input *apigateway.DeleteResourceInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_DeleteResource_Call {
@@ -745,9 +745,9 @@ type APIGatewayClientPort_DeleteRestApi_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.DeleteRestApiInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) DeleteRestApi(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_DeleteRestApi_Call {
+func (_e *APIGatewayClientPort_Expecter) DeleteRestApi(ctx any, input any, opts ...any) *APIGatewayClientPort_DeleteRestApi_Call {
 	return &APIGatewayClientPort_DeleteRestApi_Call{Call: _e.mock.On("DeleteRestApi",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_DeleteRestApi_Call) Run(run func(ctx context.Context, input *apigateway.DeleteRestApiInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_DeleteRestApi_Call {
@@ -828,9 +828,9 @@ type APIGatewayClientPort_DeleteStage_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.DeleteStageInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) DeleteStage(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_DeleteStage_Call {
+func (_e *APIGatewayClientPort_Expecter) DeleteStage(ctx any, input any, opts ...any) *APIGatewayClientPort_DeleteStage_Call {
 	return &APIGatewayClientPort_DeleteStage_Call{Call: _e.mock.On("DeleteStage",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_DeleteStage_Call) Run(run func(ctx context.Context, input *apigateway.DeleteStageInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_DeleteStage_Call {
@@ -911,9 +911,9 @@ type APIGatewayClientPort_GetDeployments_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.GetDeploymentsInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) GetDeployments(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_GetDeployments_Call {
+func (_e *APIGatewayClientPort_Expecter) GetDeployments(ctx any, input any, opts ...any) *APIGatewayClientPort_GetDeployments_Call {
 	return &APIGatewayClientPort_GetDeployments_Call{Call: _e.mock.On("GetDeployments",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_GetDeployments_Call) Run(run func(ctx context.Context, input *apigateway.GetDeploymentsInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_GetDeployments_Call {
@@ -994,9 +994,9 @@ type APIGatewayClientPort_GetIntegration_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.GetIntegrationInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) GetIntegration(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_GetIntegration_Call {
+func (_e *APIGatewayClientPort_Expecter) GetIntegration(ctx any, input any, opts ...any) *APIGatewayClientPort_GetIntegration_Call {
 	return &APIGatewayClientPort_GetIntegration_Call{Call: _e.mock.On("GetIntegration",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_GetIntegration_Call) Run(run func(ctx context.Context, input *apigateway.GetIntegrationInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_GetIntegration_Call {
@@ -1077,9 +1077,9 @@ type APIGatewayClientPort_GetMethod_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.GetMethodInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) GetMethod(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_GetMethod_Call {
+func (_e *APIGatewayClientPort_Expecter) GetMethod(ctx any, input any, opts ...any) *APIGatewayClientPort_GetMethod_Call {
 	return &APIGatewayClientPort_GetMethod_Call{Call: _e.mock.On("GetMethod",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_GetMethod_Call) Run(run func(ctx context.Context, input *apigateway.GetMethodInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_GetMethod_Call {
@@ -1160,9 +1160,9 @@ type APIGatewayClientPort_GetResource_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.GetResourceInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) GetResource(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_GetResource_Call {
+func (_e *APIGatewayClientPort_Expecter) GetResource(ctx any, input any, opts ...any) *APIGatewayClientPort_GetResource_Call {
 	return &APIGatewayClientPort_GetResource_Call{Call: _e.mock.On("GetResource",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_GetResource_Call) Run(run func(ctx context.Context, input *apigateway.GetResourceInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_GetResource_Call {
@@ -1243,9 +1243,9 @@ type APIGatewayClientPort_GetResources_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.GetResourcesInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) GetResources(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_GetResources_Call {
+func (_e *APIGatewayClientPort_Expecter) GetResources(ctx any, input any, opts ...any) *APIGatewayClientPort_GetResources_Call {
 	return &APIGatewayClientPort_GetResources_Call{Call: _e.mock.On("GetResources",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_GetResources_Call) Run(run func(ctx context.Context, input *apigateway.GetResourcesInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_GetResources_Call {
@@ -1326,9 +1326,9 @@ type APIGatewayClientPort_GetRestApi_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.GetRestApiInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) GetRestApi(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_GetRestApi_Call {
+func (_e *APIGatewayClientPort_Expecter) GetRestApi(ctx any, input any, opts ...any) *APIGatewayClientPort_GetRestApi_Call {
 	return &APIGatewayClientPort_GetRestApi_Call{Call: _e.mock.On("GetRestApi",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_GetRestApi_Call) Run(run func(ctx context.Context, input *apigateway.GetRestApiInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_GetRestApi_Call {
@@ -1409,9 +1409,9 @@ type APIGatewayClientPort_GetRestApis_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.GetRestApisInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) GetRestApis(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_GetRestApis_Call {
+func (_e *APIGatewayClientPort_Expecter) GetRestApis(ctx any, input any, opts ...any) *APIGatewayClientPort_GetRestApis_Call {
 	return &APIGatewayClientPort_GetRestApis_Call{Call: _e.mock.On("GetRestApis",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_GetRestApis_Call) Run(run func(ctx context.Context, input *apigateway.GetRestApisInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_GetRestApis_Call {
@@ -1492,9 +1492,9 @@ type APIGatewayClientPort_GetStages_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.GetStagesInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) GetStages(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_GetStages_Call {
+func (_e *APIGatewayClientPort_Expecter) GetStages(ctx any, input any, opts ...any) *APIGatewayClientPort_GetStages_Call {
 	return &APIGatewayClientPort_GetStages_Call{Call: _e.mock.On("GetStages",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_GetStages_Call) Run(run func(ctx context.Context, input *apigateway.GetStagesInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_GetStages_Call {
@@ -1575,9 +1575,9 @@ type APIGatewayClientPort_ImportRestApi_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.ImportRestApiInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) ImportRestApi(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_ImportRestApi_Call {
+func (_e *APIGatewayClientPort_Expecter) ImportRestApi(ctx any, input any, opts ...any) *APIGatewayClientPort_ImportRestApi_Call {
 	return &APIGatewayClientPort_ImportRestApi_Call{Call: _e.mock.On("ImportRestApi",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_ImportRestApi_Call) Run(run func(ctx context.Context, input *apigateway.ImportRestApiInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_ImportRestApi_Call {
@@ -1658,9 +1658,9 @@ type APIGatewayClientPort_PutIntegration_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.PutIntegrationInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) PutIntegration(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_PutIntegration_Call {
+func (_e *APIGatewayClientPort_Expecter) PutIntegration(ctx any, input any, opts ...any) *APIGatewayClientPort_PutIntegration_Call {
 	return &APIGatewayClientPort_PutIntegration_Call{Call: _e.mock.On("PutIntegration",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_PutIntegration_Call) Run(run func(ctx context.Context, input *apigateway.PutIntegrationInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_PutIntegration_Call {
@@ -1741,9 +1741,9 @@ type APIGatewayClientPort_PutMethod_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.PutMethodInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) PutMethod(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_PutMethod_Call {
+func (_e *APIGatewayClientPort_Expecter) PutMethod(ctx any, input any, opts ...any) *APIGatewayClientPort_PutMethod_Call {
 	return &APIGatewayClientPort_PutMethod_Call{Call: _e.mock.On("PutMethod",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_PutMethod_Call) Run(run func(ctx context.Context, input *apigateway.PutMethodInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_PutMethod_Call {
@@ -1824,9 +1824,9 @@ type APIGatewayClientPort_UpdateRestApi_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.UpdateRestApiInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) UpdateRestApi(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_UpdateRestApi_Call {
+func (_e *APIGatewayClientPort_Expecter) UpdateRestApi(ctx any, input any, opts ...any) *APIGatewayClientPort_UpdateRestApi_Call {
 	return &APIGatewayClientPort_UpdateRestApi_Call{Call: _e.mock.On("UpdateRestApi",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_UpdateRestApi_Call) Run(run func(ctx context.Context, input *apigateway.UpdateRestApiInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_UpdateRestApi_Call {
@@ -1907,9 +1907,9 @@ type APIGatewayClientPort_UpdateStage_Call struct {
 //   - ctx context.Context
 //   - input *apigateway.UpdateStageInput
 //   - opts ...func(*apigateway.Options)
-func (_e *APIGatewayClientPort_Expecter) UpdateStage(ctx interface{}, input interface{}, opts ...interface{}) *APIGatewayClientPort_UpdateStage_Call {
+func (_e *APIGatewayClientPort_Expecter) UpdateStage(ctx any, input any, opts ...any) *APIGatewayClientPort_UpdateStage_Call {
 	return &APIGatewayClientPort_UpdateStage_Call{Call: _e.mock.On("UpdateStage",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *APIGatewayClientPort_UpdateStage_Call) Run(run func(ctx context.Context, input *apigateway.UpdateStageInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_UpdateStage_Call {

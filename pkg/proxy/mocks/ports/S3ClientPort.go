@@ -81,9 +81,9 @@ type S3ClientPort_CreateBucket_Call struct {
 //   - ctx context.Context
 //   - input *s3.CreateBucketInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) CreateBucket(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_CreateBucket_Call {
+func (_e *S3ClientPort_Expecter) CreateBucket(ctx any, input any, opts ...any) *S3ClientPort_CreateBucket_Call {
 	return &S3ClientPort_CreateBucket_Call{Call: _e.mock.On("CreateBucket",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_CreateBucket_Call) Run(run func(ctx context.Context, input *s3.CreateBucketInput, opts ...func(*s3.Options))) *S3ClientPort_CreateBucket_Call {
@@ -164,9 +164,9 @@ type S3ClientPort_DeleteBucket_Call struct {
 //   - ctx context.Context
 //   - input *s3.DeleteBucketInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) DeleteBucket(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_DeleteBucket_Call {
+func (_e *S3ClientPort_Expecter) DeleteBucket(ctx any, input any, opts ...any) *S3ClientPort_DeleteBucket_Call {
 	return &S3ClientPort_DeleteBucket_Call{Call: _e.mock.On("DeleteBucket",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_DeleteBucket_Call) Run(run func(ctx context.Context, input *s3.DeleteBucketInput, opts ...func(*s3.Options))) *S3ClientPort_DeleteBucket_Call {
@@ -200,6 +200,89 @@ func (_c *S3ClientPort_DeleteBucket_Call) Return(deleteBucketOutput *s3.DeleteBu
 }
 
 func (_c *S3ClientPort_DeleteBucket_Call) RunAndReturn(run func(ctx context.Context, input *s3.DeleteBucketInput, opts ...func(*s3.Options)) (*s3.DeleteBucketOutput, error)) *S3ClientPort_DeleteBucket_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteBucketLifecycle provides a mock function for the type S3ClientPort
+func (_mock *S3ClientPort) DeleteBucketLifecycle(ctx context.Context, input *s3.DeleteBucketLifecycleInput, opts ...func(*s3.Options)) (*s3.DeleteBucketLifecycleOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteBucketLifecycle")
+	}
+
+	var r0 *s3.DeleteBucketLifecycleOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *s3.DeleteBucketLifecycleInput, ...func(*s3.Options)) (*s3.DeleteBucketLifecycleOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *s3.DeleteBucketLifecycleInput, ...func(*s3.Options)) *s3.DeleteBucketLifecycleOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*s3.DeleteBucketLifecycleOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *s3.DeleteBucketLifecycleInput, ...func(*s3.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// S3ClientPort_DeleteBucketLifecycle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteBucketLifecycle'
+type S3ClientPort_DeleteBucketLifecycle_Call struct {
+	*mock.Call
+}
+
+// DeleteBucketLifecycle is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *s3.DeleteBucketLifecycleInput
+//   - opts ...func(*s3.Options)
+func (_e *S3ClientPort_Expecter) DeleteBucketLifecycle(ctx any, input any, opts ...any) *S3ClientPort_DeleteBucketLifecycle_Call {
+	return &S3ClientPort_DeleteBucketLifecycle_Call{Call: _e.mock.On("DeleteBucketLifecycle",
+		append([]any{ctx, input}, opts...)...)}
+}
+
+func (_c *S3ClientPort_DeleteBucketLifecycle_Call) Run(run func(ctx context.Context, input *s3.DeleteBucketLifecycleInput, opts ...func(*s3.Options))) *S3ClientPort_DeleteBucketLifecycle_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *s3.DeleteBucketLifecycleInput
+		if args[1] != nil {
+			arg1 = args[1].(*s3.DeleteBucketLifecycleInput)
+		}
+		var arg2 []func(*s3.Options)
+		var variadicArgs []func(*s3.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*s3.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *S3ClientPort_DeleteBucketLifecycle_Call) Return(deleteBucketLifecycleOutput *s3.DeleteBucketLifecycleOutput, err error) *S3ClientPort_DeleteBucketLifecycle_Call {
+	_c.Call.Return(deleteBucketLifecycleOutput, err)
+	return _c
+}
+
+func (_c *S3ClientPort_DeleteBucketLifecycle_Call) RunAndReturn(run func(ctx context.Context, input *s3.DeleteBucketLifecycleInput, opts ...func(*s3.Options)) (*s3.DeleteBucketLifecycleOutput, error)) *S3ClientPort_DeleteBucketLifecycle_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -247,9 +330,9 @@ type S3ClientPort_DeleteObject_Call struct {
 //   - ctx context.Context
 //   - input *s3.DeleteObjectInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) DeleteObject(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_DeleteObject_Call {
+func (_e *S3ClientPort_Expecter) DeleteObject(ctx any, input any, opts ...any) *S3ClientPort_DeleteObject_Call {
 	return &S3ClientPort_DeleteObject_Call{Call: _e.mock.On("DeleteObject",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_DeleteObject_Call) Run(run func(ctx context.Context, input *s3.DeleteObjectInput, opts ...func(*s3.Options))) *S3ClientPort_DeleteObject_Call {
@@ -330,9 +413,9 @@ type S3ClientPort_GetBucketEncryption_Call struct {
 //   - ctx context.Context
 //   - input *s3.GetBucketEncryptionInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) GetBucketEncryption(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_GetBucketEncryption_Call {
+func (_e *S3ClientPort_Expecter) GetBucketEncryption(ctx any, input any, opts ...any) *S3ClientPort_GetBucketEncryption_Call {
 	return &S3ClientPort_GetBucketEncryption_Call{Call: _e.mock.On("GetBucketEncryption",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_GetBucketEncryption_Call) Run(run func(ctx context.Context, input *s3.GetBucketEncryptionInput, opts ...func(*s3.Options))) *S3ClientPort_GetBucketEncryption_Call {
@@ -366,6 +449,89 @@ func (_c *S3ClientPort_GetBucketEncryption_Call) Return(getBucketEncryptionOutpu
 }
 
 func (_c *S3ClientPort_GetBucketEncryption_Call) RunAndReturn(run func(ctx context.Context, input *s3.GetBucketEncryptionInput, opts ...func(*s3.Options)) (*s3.GetBucketEncryptionOutput, error)) *S3ClientPort_GetBucketEncryption_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetBucketLifecycleConfiguration provides a mock function for the type S3ClientPort
+func (_mock *S3ClientPort) GetBucketLifecycleConfiguration(ctx context.Context, input *s3.GetBucketLifecycleConfigurationInput, opts ...func(*s3.Options)) (*s3.GetBucketLifecycleConfigurationOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBucketLifecycleConfiguration")
+	}
+
+	var r0 *s3.GetBucketLifecycleConfigurationOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *s3.GetBucketLifecycleConfigurationInput, ...func(*s3.Options)) (*s3.GetBucketLifecycleConfigurationOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *s3.GetBucketLifecycleConfigurationInput, ...func(*s3.Options)) *s3.GetBucketLifecycleConfigurationOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*s3.GetBucketLifecycleConfigurationOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *s3.GetBucketLifecycleConfigurationInput, ...func(*s3.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// S3ClientPort_GetBucketLifecycleConfiguration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBucketLifecycleConfiguration'
+type S3ClientPort_GetBucketLifecycleConfiguration_Call struct {
+	*mock.Call
+}
+
+// GetBucketLifecycleConfiguration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *s3.GetBucketLifecycleConfigurationInput
+//   - opts ...func(*s3.Options)
+func (_e *S3ClientPort_Expecter) GetBucketLifecycleConfiguration(ctx any, input any, opts ...any) *S3ClientPort_GetBucketLifecycleConfiguration_Call {
+	return &S3ClientPort_GetBucketLifecycleConfiguration_Call{Call: _e.mock.On("GetBucketLifecycleConfiguration",
+		append([]any{ctx, input}, opts...)...)}
+}
+
+func (_c *S3ClientPort_GetBucketLifecycleConfiguration_Call) Run(run func(ctx context.Context, input *s3.GetBucketLifecycleConfigurationInput, opts ...func(*s3.Options))) *S3ClientPort_GetBucketLifecycleConfiguration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *s3.GetBucketLifecycleConfigurationInput
+		if args[1] != nil {
+			arg1 = args[1].(*s3.GetBucketLifecycleConfigurationInput)
+		}
+		var arg2 []func(*s3.Options)
+		var variadicArgs []func(*s3.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*s3.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *S3ClientPort_GetBucketLifecycleConfiguration_Call) Return(getBucketLifecycleConfigurationOutput *s3.GetBucketLifecycleConfigurationOutput, err error) *S3ClientPort_GetBucketLifecycleConfiguration_Call {
+	_c.Call.Return(getBucketLifecycleConfigurationOutput, err)
+	return _c
+}
+
+func (_c *S3ClientPort_GetBucketLifecycleConfiguration_Call) RunAndReturn(run func(ctx context.Context, input *s3.GetBucketLifecycleConfigurationInput, opts ...func(*s3.Options)) (*s3.GetBucketLifecycleConfigurationOutput, error)) *S3ClientPort_GetBucketLifecycleConfiguration_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -413,9 +579,9 @@ type S3ClientPort_GetBucketNotificationConfiguration_Call struct {
 //   - ctx context.Context
 //   - input *s3.GetBucketNotificationConfigurationInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) GetBucketNotificationConfiguration(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_GetBucketNotificationConfiguration_Call {
+func (_e *S3ClientPort_Expecter) GetBucketNotificationConfiguration(ctx any, input any, opts ...any) *S3ClientPort_GetBucketNotificationConfiguration_Call {
 	return &S3ClientPort_GetBucketNotificationConfiguration_Call{Call: _e.mock.On("GetBucketNotificationConfiguration",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_GetBucketNotificationConfiguration_Call) Run(run func(ctx context.Context, input *s3.GetBucketNotificationConfigurationInput, opts ...func(*s3.Options))) *S3ClientPort_GetBucketNotificationConfiguration_Call {
@@ -496,9 +662,9 @@ type S3ClientPort_GetBucketPolicy_Call struct {
 //   - ctx context.Context
 //   - input *s3.GetBucketPolicyInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) GetBucketPolicy(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_GetBucketPolicy_Call {
+func (_e *S3ClientPort_Expecter) GetBucketPolicy(ctx any, input any, opts ...any) *S3ClientPort_GetBucketPolicy_Call {
 	return &S3ClientPort_GetBucketPolicy_Call{Call: _e.mock.On("GetBucketPolicy",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_GetBucketPolicy_Call) Run(run func(ctx context.Context, input *s3.GetBucketPolicyInput, opts ...func(*s3.Options))) *S3ClientPort_GetBucketPolicy_Call {
@@ -579,9 +745,9 @@ type S3ClientPort_GetBucketTagging_Call struct {
 //   - ctx context.Context
 //   - input *s3.GetBucketTaggingInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) GetBucketTagging(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_GetBucketTagging_Call {
+func (_e *S3ClientPort_Expecter) GetBucketTagging(ctx any, input any, opts ...any) *S3ClientPort_GetBucketTagging_Call {
 	return &S3ClientPort_GetBucketTagging_Call{Call: _e.mock.On("GetBucketTagging",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_GetBucketTagging_Call) Run(run func(ctx context.Context, input *s3.GetBucketTaggingInput, opts ...func(*s3.Options))) *S3ClientPort_GetBucketTagging_Call {
@@ -662,9 +828,9 @@ type S3ClientPort_GetBucketVersioning_Call struct {
 //   - ctx context.Context
 //   - input *s3.GetBucketVersioningInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) GetBucketVersioning(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_GetBucketVersioning_Call {
+func (_e *S3ClientPort_Expecter) GetBucketVersioning(ctx any, input any, opts ...any) *S3ClientPort_GetBucketVersioning_Call {
 	return &S3ClientPort_GetBucketVersioning_Call{Call: _e.mock.On("GetBucketVersioning",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_GetBucketVersioning_Call) Run(run func(ctx context.Context, input *s3.GetBucketVersioningInput, opts ...func(*s3.Options))) *S3ClientPort_GetBucketVersioning_Call {
@@ -745,9 +911,9 @@ type S3ClientPort_GetObject_Call struct {
 //   - ctx context.Context
 //   - input *s3.GetObjectInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) GetObject(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_GetObject_Call {
+func (_e *S3ClientPort_Expecter) GetObject(ctx any, input any, opts ...any) *S3ClientPort_GetObject_Call {
 	return &S3ClientPort_GetObject_Call{Call: _e.mock.On("GetObject",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_GetObject_Call) Run(run func(ctx context.Context, input *s3.GetObjectInput, opts ...func(*s3.Options))) *S3ClientPort_GetObject_Call {
@@ -828,9 +994,9 @@ type S3ClientPort_GetPublicAccessBlock_Call struct {
 //   - ctx context.Context
 //   - input *s3.GetPublicAccessBlockInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) GetPublicAccessBlock(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_GetPublicAccessBlock_Call {
+func (_e *S3ClientPort_Expecter) GetPublicAccessBlock(ctx any, input any, opts ...any) *S3ClientPort_GetPublicAccessBlock_Call {
 	return &S3ClientPort_GetPublicAccessBlock_Call{Call: _e.mock.On("GetPublicAccessBlock",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_GetPublicAccessBlock_Call) Run(run func(ctx context.Context, input *s3.GetPublicAccessBlockInput, opts ...func(*s3.Options))) *S3ClientPort_GetPublicAccessBlock_Call {
@@ -911,9 +1077,9 @@ type S3ClientPort_HeadBucket_Call struct {
 //   - ctx context.Context
 //   - input *s3.HeadBucketInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) HeadBucket(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_HeadBucket_Call {
+func (_e *S3ClientPort_Expecter) HeadBucket(ctx any, input any, opts ...any) *S3ClientPort_HeadBucket_Call {
 	return &S3ClientPort_HeadBucket_Call{Call: _e.mock.On("HeadBucket",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_HeadBucket_Call) Run(run func(ctx context.Context, input *s3.HeadBucketInput, opts ...func(*s3.Options))) *S3ClientPort_HeadBucket_Call {
@@ -994,9 +1160,9 @@ type S3ClientPort_HeadObject_Call struct {
 //   - ctx context.Context
 //   - input *s3.HeadObjectInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) HeadObject(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_HeadObject_Call {
+func (_e *S3ClientPort_Expecter) HeadObject(ctx any, input any, opts ...any) *S3ClientPort_HeadObject_Call {
 	return &S3ClientPort_HeadObject_Call{Call: _e.mock.On("HeadObject",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_HeadObject_Call) Run(run func(ctx context.Context, input *s3.HeadObjectInput, opts ...func(*s3.Options))) *S3ClientPort_HeadObject_Call {
@@ -1077,9 +1243,9 @@ type S3ClientPort_ListBuckets_Call struct {
 //   - ctx context.Context
 //   - input *s3.ListBucketsInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) ListBuckets(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_ListBuckets_Call {
+func (_e *S3ClientPort_Expecter) ListBuckets(ctx any, input any, opts ...any) *S3ClientPort_ListBuckets_Call {
 	return &S3ClientPort_ListBuckets_Call{Call: _e.mock.On("ListBuckets",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_ListBuckets_Call) Run(run func(ctx context.Context, input *s3.ListBucketsInput, opts ...func(*s3.Options))) *S3ClientPort_ListBuckets_Call {
@@ -1160,9 +1326,9 @@ type S3ClientPort_ListObjectsV2_Call struct {
 //   - ctx context.Context
 //   - input *s3.ListObjectsV2Input
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) ListObjectsV2(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_ListObjectsV2_Call {
+func (_e *S3ClientPort_Expecter) ListObjectsV2(ctx any, input any, opts ...any) *S3ClientPort_ListObjectsV2_Call {
 	return &S3ClientPort_ListObjectsV2_Call{Call: _e.mock.On("ListObjectsV2",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_ListObjectsV2_Call) Run(run func(ctx context.Context, input *s3.ListObjectsV2Input, opts ...func(*s3.Options))) *S3ClientPort_ListObjectsV2_Call {
@@ -1243,9 +1409,9 @@ type S3ClientPort_PutBucketEncryption_Call struct {
 //   - ctx context.Context
 //   - input *s3.PutBucketEncryptionInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) PutBucketEncryption(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_PutBucketEncryption_Call {
+func (_e *S3ClientPort_Expecter) PutBucketEncryption(ctx any, input any, opts ...any) *S3ClientPort_PutBucketEncryption_Call {
 	return &S3ClientPort_PutBucketEncryption_Call{Call: _e.mock.On("PutBucketEncryption",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_PutBucketEncryption_Call) Run(run func(ctx context.Context, input *s3.PutBucketEncryptionInput, opts ...func(*s3.Options))) *S3ClientPort_PutBucketEncryption_Call {
@@ -1279,6 +1445,89 @@ func (_c *S3ClientPort_PutBucketEncryption_Call) Return(putBucketEncryptionOutpu
 }
 
 func (_c *S3ClientPort_PutBucketEncryption_Call) RunAndReturn(run func(ctx context.Context, input *s3.PutBucketEncryptionInput, opts ...func(*s3.Options)) (*s3.PutBucketEncryptionOutput, error)) *S3ClientPort_PutBucketEncryption_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PutBucketLifecycleConfiguration provides a mock function for the type S3ClientPort
+func (_mock *S3ClientPort) PutBucketLifecycleConfiguration(ctx context.Context, input *s3.PutBucketLifecycleConfigurationInput, opts ...func(*s3.Options)) (*s3.PutBucketLifecycleConfigurationOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutBucketLifecycleConfiguration")
+	}
+
+	var r0 *s3.PutBucketLifecycleConfigurationOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *s3.PutBucketLifecycleConfigurationInput, ...func(*s3.Options)) (*s3.PutBucketLifecycleConfigurationOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *s3.PutBucketLifecycleConfigurationInput, ...func(*s3.Options)) *s3.PutBucketLifecycleConfigurationOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*s3.PutBucketLifecycleConfigurationOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *s3.PutBucketLifecycleConfigurationInput, ...func(*s3.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// S3ClientPort_PutBucketLifecycleConfiguration_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutBucketLifecycleConfiguration'
+type S3ClientPort_PutBucketLifecycleConfiguration_Call struct {
+	*mock.Call
+}
+
+// PutBucketLifecycleConfiguration is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *s3.PutBucketLifecycleConfigurationInput
+//   - opts ...func(*s3.Options)
+func (_e *S3ClientPort_Expecter) PutBucketLifecycleConfiguration(ctx any, input any, opts ...any) *S3ClientPort_PutBucketLifecycleConfiguration_Call {
+	return &S3ClientPort_PutBucketLifecycleConfiguration_Call{Call: _e.mock.On("PutBucketLifecycleConfiguration",
+		append([]any{ctx, input}, opts...)...)}
+}
+
+func (_c *S3ClientPort_PutBucketLifecycleConfiguration_Call) Run(run func(ctx context.Context, input *s3.PutBucketLifecycleConfigurationInput, opts ...func(*s3.Options))) *S3ClientPort_PutBucketLifecycleConfiguration_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *s3.PutBucketLifecycleConfigurationInput
+		if args[1] != nil {
+			arg1 = args[1].(*s3.PutBucketLifecycleConfigurationInput)
+		}
+		var arg2 []func(*s3.Options)
+		var variadicArgs []func(*s3.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*s3.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *S3ClientPort_PutBucketLifecycleConfiguration_Call) Return(putBucketLifecycleConfigurationOutput *s3.PutBucketLifecycleConfigurationOutput, err error) *S3ClientPort_PutBucketLifecycleConfiguration_Call {
+	_c.Call.Return(putBucketLifecycleConfigurationOutput, err)
+	return _c
+}
+
+func (_c *S3ClientPort_PutBucketLifecycleConfiguration_Call) RunAndReturn(run func(ctx context.Context, input *s3.PutBucketLifecycleConfigurationInput, opts ...func(*s3.Options)) (*s3.PutBucketLifecycleConfigurationOutput, error)) *S3ClientPort_PutBucketLifecycleConfiguration_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1326,9 +1575,9 @@ type S3ClientPort_PutBucketNotificationConfiguration_Call struct {
 //   - ctx context.Context
 //   - input *s3.PutBucketNotificationConfigurationInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) PutBucketNotificationConfiguration(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_PutBucketNotificationConfiguration_Call {
+func (_e *S3ClientPort_Expecter) PutBucketNotificationConfiguration(ctx any, input any, opts ...any) *S3ClientPort_PutBucketNotificationConfiguration_Call {
 	return &S3ClientPort_PutBucketNotificationConfiguration_Call{Call: _e.mock.On("PutBucketNotificationConfiguration",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_PutBucketNotificationConfiguration_Call) Run(run func(ctx context.Context, input *s3.PutBucketNotificationConfigurationInput, opts ...func(*s3.Options))) *S3ClientPort_PutBucketNotificationConfiguration_Call {
@@ -1409,9 +1658,9 @@ type S3ClientPort_PutBucketPolicy_Call struct {
 //   - ctx context.Context
 //   - input *s3.PutBucketPolicyInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) PutBucketPolicy(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_PutBucketPolicy_Call {
+func (_e *S3ClientPort_Expecter) PutBucketPolicy(ctx any, input any, opts ...any) *S3ClientPort_PutBucketPolicy_Call {
 	return &S3ClientPort_PutBucketPolicy_Call{Call: _e.mock.On("PutBucketPolicy",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_PutBucketPolicy_Call) Run(run func(ctx context.Context, input *s3.PutBucketPolicyInput, opts ...func(*s3.Options))) *S3ClientPort_PutBucketPolicy_Call {
@@ -1492,9 +1741,9 @@ type S3ClientPort_PutBucketTagging_Call struct {
 //   - ctx context.Context
 //   - input *s3.PutBucketTaggingInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) PutBucketTagging(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_PutBucketTagging_Call {
+func (_e *S3ClientPort_Expecter) PutBucketTagging(ctx any, input any, opts ...any) *S3ClientPort_PutBucketTagging_Call {
 	return &S3ClientPort_PutBucketTagging_Call{Call: _e.mock.On("PutBucketTagging",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_PutBucketTagging_Call) Run(run func(ctx context.Context, input *s3.PutBucketTaggingInput, opts ...func(*s3.Options))) *S3ClientPort_PutBucketTagging_Call {
@@ -1575,9 +1824,9 @@ type S3ClientPort_PutBucketVersioning_Call struct {
 //   - ctx context.Context
 //   - input *s3.PutBucketVersioningInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) PutBucketVersioning(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_PutBucketVersioning_Call {
+func (_e *S3ClientPort_Expecter) PutBucketVersioning(ctx any, input any, opts ...any) *S3ClientPort_PutBucketVersioning_Call {
 	return &S3ClientPort_PutBucketVersioning_Call{Call: _e.mock.On("PutBucketVersioning",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_PutBucketVersioning_Call) Run(run func(ctx context.Context, input *s3.PutBucketVersioningInput, opts ...func(*s3.Options))) *S3ClientPort_PutBucketVersioning_Call {
@@ -1658,9 +1907,9 @@ type S3ClientPort_PutObject_Call struct {
 //   - ctx context.Context
 //   - input *s3.PutObjectInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) PutObject(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_PutObject_Call {
+func (_e *S3ClientPort_Expecter) PutObject(ctx any, input any, opts ...any) *S3ClientPort_PutObject_Call {
 	return &S3ClientPort_PutObject_Call{Call: _e.mock.On("PutObject",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_PutObject_Call) Run(run func(ctx context.Context, input *s3.PutObjectInput, opts ...func(*s3.Options))) *S3ClientPort_PutObject_Call {
@@ -1741,9 +1990,9 @@ type S3ClientPort_PutPublicAccessBlock_Call struct {
 //   - ctx context.Context
 //   - input *s3.PutPublicAccessBlockInput
 //   - opts ...func(*s3.Options)
-func (_e *S3ClientPort_Expecter) PutPublicAccessBlock(ctx interface{}, input interface{}, opts ...interface{}) *S3ClientPort_PutPublicAccessBlock_Call {
+func (_e *S3ClientPort_Expecter) PutPublicAccessBlock(ctx any, input any, opts ...any) *S3ClientPort_PutPublicAccessBlock_Call {
 	return &S3ClientPort_PutPublicAccessBlock_Call{Call: _e.mock.On("PutPublicAccessBlock",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *S3ClientPort_PutPublicAccessBlock_Call) Run(run func(ctx context.Context, input *s3.PutPublicAccessBlockInput, opts ...func(*s3.Options))) *S3ClientPort_PutPublicAccessBlock_Call {

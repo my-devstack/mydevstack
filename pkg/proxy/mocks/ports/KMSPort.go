@@ -74,7 +74,7 @@ type KMSPort_CreateKey_Call struct {
 // CreateKey is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kms.CreateKeyInput
-func (_e *KMSPort_Expecter) CreateKey(ctx interface{}, input interface{}) *KMSPort_CreateKey_Call {
+func (_e *KMSPort_Expecter) CreateKey(ctx any, input any) *KMSPort_CreateKey_Call {
 	return &KMSPort_CreateKey_Call{Call: _e.mock.On("CreateKey", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type KMSPort_Decrypt_Call struct {
 // Decrypt is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kms.DecryptInput
-func (_e *KMSPort_Expecter) Decrypt(ctx interface{}, input interface{}) *KMSPort_Decrypt_Call {
+func (_e *KMSPort_Expecter) Decrypt(ctx any, input any) *KMSPort_Decrypt_Call {
 	return &KMSPort_Decrypt_Call{Call: _e.mock.On("Decrypt", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type KMSPort_DeleteAlias_Call struct {
 // DeleteAlias is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kms.DeleteAliasInput
-func (_e *KMSPort_Expecter) DeleteAlias(ctx interface{}, input interface{}) *KMSPort_DeleteAlias_Call {
+func (_e *KMSPort_Expecter) DeleteAlias(ctx any, input any) *KMSPort_DeleteAlias_Call {
 	return &KMSPort_DeleteAlias_Call{Call: _e.mock.On("DeleteAlias", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type KMSPort_DescribeKey_Call struct {
 // DescribeKey is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kms.DescribeKeyInput
-func (_e *KMSPort_Expecter) DescribeKey(ctx interface{}, input interface{}) *KMSPort_DescribeKey_Call {
+func (_e *KMSPort_Expecter) DescribeKey(ctx any, input any) *KMSPort_DescribeKey_Call {
 	return &KMSPort_DescribeKey_Call{Call: _e.mock.On("DescribeKey", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type KMSPort_DisableKey_Call struct {
 // DisableKey is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kms.DisableKeyInput
-func (_e *KMSPort_Expecter) DisableKey(ctx interface{}, input interface{}) *KMSPort_DisableKey_Call {
+func (_e *KMSPort_Expecter) DisableKey(ctx any, input any) *KMSPort_DisableKey_Call {
 	return &KMSPort_DisableKey_Call{Call: _e.mock.On("DisableKey", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type KMSPort_EnableKey_Call struct {
 // EnableKey is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kms.EnableKeyInput
-func (_e *KMSPort_Expecter) EnableKey(ctx interface{}, input interface{}) *KMSPort_EnableKey_Call {
+func (_e *KMSPort_Expecter) EnableKey(ctx any, input any) *KMSPort_EnableKey_Call {
 	return &KMSPort_EnableKey_Call{Call: _e.mock.On("EnableKey", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type KMSPort_Encrypt_Call struct {
 // Encrypt is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kms.EncryptInput
-func (_e *KMSPort_Expecter) Encrypt(ctx interface{}, input interface{}) *KMSPort_Encrypt_Call {
+func (_e *KMSPort_Expecter) Encrypt(ctx any, input any) *KMSPort_Encrypt_Call {
 	return &KMSPort_Encrypt_Call{Call: _e.mock.On("Encrypt", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type KMSPort_GenerateDataKey_Call struct {
 // GenerateDataKey is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kms.GenerateDataKeyInput
-func (_e *KMSPort_Expecter) GenerateDataKey(ctx interface{}, input interface{}) *KMSPort_GenerateDataKey_Call {
+func (_e *KMSPort_Expecter) GenerateDataKey(ctx any, input any) *KMSPort_GenerateDataKey_Call {
 	return &KMSPort_GenerateDataKey_Call{Call: _e.mock.On("GenerateDataKey", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type KMSPort_GenerateRandom_Call struct {
 // GenerateRandom is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kms.GenerateRandomInput
-func (_e *KMSPort_Expecter) GenerateRandom(ctx interface{}, input interface{}) *KMSPort_GenerateRandom_Call {
+func (_e *KMSPort_Expecter) GenerateRandom(ctx any, input any) *KMSPort_GenerateRandom_Call {
 	return &KMSPort_GenerateRandom_Call{Call: _e.mock.On("GenerateRandom", ctx, input)}
 }
 
@@ -686,7 +686,7 @@ type KMSPort_GetKeyPolicy_Call struct {
 // GetKeyPolicy is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kms.GetKeyPolicyInput
-func (_e *KMSPort_Expecter) GetKeyPolicy(ctx interface{}, input interface{}) *KMSPort_GetKeyPolicy_Call {
+func (_e *KMSPort_Expecter) GetKeyPolicy(ctx any, input any) *KMSPort_GetKeyPolicy_Call {
 	return &KMSPort_GetKeyPolicy_Call{Call: _e.mock.On("GetKeyPolicy", ctx, input)}
 }
 
@@ -754,7 +754,7 @@ type KMSPort_ListKeys_Call struct {
 // ListKeys is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kms.ListKeysInput
-func (_e *KMSPort_Expecter) ListKeys(ctx interface{}, input interface{}) *KMSPort_ListKeys_Call {
+func (_e *KMSPort_Expecter) ListKeys(ctx any, input any) *KMSPort_ListKeys_Call {
 	return &KMSPort_ListKeys_Call{Call: _e.mock.On("ListKeys", ctx, input)}
 }
 
@@ -822,7 +822,7 @@ type KMSPort_ScheduleKeyDeletion_Call struct {
 // ScheduleKeyDeletion is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *kms.ScheduleKeyDeletionInput
-func (_e *KMSPort_Expecter) ScheduleKeyDeletion(ctx interface{}, input interface{}) *KMSPort_ScheduleKeyDeletion_Call {
+func (_e *KMSPort_Expecter) ScheduleKeyDeletion(ctx any, input any) *KMSPort_ScheduleKeyDeletion_Call {
 	return &KMSPort_ScheduleKeyDeletion_Call{Call: _e.mock.On("ScheduleKeyDeletion", ctx, input)}
 }
 

@@ -20,6 +20,10 @@ vi.mock('@/api/services/s3', () => ({
   getPresignedUrl: vi.fn(),
   configureNotification: vi.fn(),
   getNotificationConfig: vi.fn(),
+  getBucketLifecycleConfiguration: vi.fn(),
+  putBucketLifecycleConfiguration: vi.fn(),
+  deleteBucketLifecycleConfiguration: vi.fn(),
+  putBucketVersioning: vi.fn(),
 }))
 
 vi.mock('@/api/services/lambda', () => ({
@@ -309,6 +313,7 @@ describe('useS3', () => {
     vi.mocked(s3Api.getBucketVersioning).mockResolvedValue(versioning as any)
     vi.mocked(s3Api.getBucketEncryption).mockResolvedValue(encryption as any)
     vi.mocked(s3Api.getBucketTagging).mockResolvedValue(tags as any)
+    vi.mocked(s3Api.getBucketLifecycleConfiguration).mockResolvedValue({ rules: [] })
 
     const { bucketDetails, loadBucketDetails } = useS3()
 
@@ -318,6 +323,7 @@ describe('useS3', () => {
       versioning,
       encryption,
       tags: [{ Key: 'Env', Value: 'Test' }],
+      lifecycleRules: [],
       loading: false,
     })
   })
@@ -326,6 +332,7 @@ describe('useS3', () => {
     vi.mocked(s3Api.getBucketVersioning).mockRejectedValue(new Error('No versioning'))
     vi.mocked(s3Api.getBucketEncryption).mockRejectedValue(new Error('No encryption'))
     vi.mocked(s3Api.getBucketTagging).mockResolvedValue({ tags: [] })
+    vi.mocked(s3Api.getBucketLifecycleConfiguration).mockResolvedValue({ rules: [] })
 
     const { bucketDetails, loadBucketDetails } = useS3()
 
@@ -334,6 +341,7 @@ describe('useS3', () => {
     expect(bucketDetails.value['test-bucket'].versioning).toBeNull()
     expect(bucketDetails.value['test-bucket'].encryption).toBeNull()
     expect(bucketDetails.value['test-bucket'].tags).toEqual([])
+    expect(bucketDetails.value['test-bucket'].lifecycleRules).toEqual([])
     expect(bucketDetails.value['test-bucket'].loading).toBe(false)
   })
 
@@ -341,10 +349,11 @@ describe('useS3', () => {
     vi.mocked(s3Api.getBucketVersioning).mockRejectedValue(new Error('All fail'))
     vi.mocked(s3Api.getBucketEncryption).mockRejectedValue(new Error('All fail'))
     vi.mocked(s3Api.getBucketTagging).mockRejectedValue(new Error('All fail'))
+    vi.mocked(s3Api.getBucketLifecycleConfiguration).mockRejectedValue(new Error('All fail'))
 
     const { bucketDetails, loadBucketDetails } = useS3()
     // Pre-populate entry
-    bucketDetails.value['test-bucket'] = { versioning: null, encryption: null, tags: [], loading: true }
+    bucketDetails.value['test-bucket'] = { versioning: null, encryption: null, tags: [], lifecycleRules: [], loading: true }
 
     await loadBucketDetails('test-bucket')
 
@@ -495,5 +504,79 @@ describe('useS3', () => {
     const triggers = await getLambdaTriggers('test-bucket')
 
     expect(triggers).toEqual([])
+  })
+
+  it('loadLifecycleRules success', async () => {
+    const mockRules = [
+      { ID: 'rule1', Status: 'Enabled', Expiration: { Days: 30 } },
+      { ID: 'rule2', Status: 'Disabled', NoncurrentVersionExpiration: { NoncurrentDays: 7 } },
+    ]
+    vi.mocked(s3Api.getBucketLifecycleConfiguration).mockResolvedValue({ rules: mockRules })
+
+    const { loadLifecycleRules, lifecycleRules } = useS3()
+    const result = await loadLifecycleRules('test-bucket')
+
+    expect(s3Api.getBucketLifecycleConfiguration).toHaveBeenCalledWith('test-bucket')
+    expect(result).toEqual(mockRules)
+    expect(lifecycleRules.value['test-bucket']).toEqual(mockRules)
+  })
+
+  it('loadLifecycleRules handles error', async () => {
+    vi.mocked(s3Api.getBucketLifecycleConfiguration).mockRejectedValue(new Error('No lifecycle config'))
+
+    const { loadLifecycleRules, lifecycleRules } = useS3()
+    const result = await loadLifecycleRules('test-bucket')
+
+    expect(result).toEqual([])
+    expect(lifecycleRules.value['test-bucket']).toEqual([])
+  })
+
+  it('saveLifecycleRules success', async () => {
+    const rules = [{ ID: 'rule1', Status: 'Enabled', Expiration: { Days: 30 } }]
+    vi.mocked(s3Api.putBucketLifecycleConfiguration).mockResolvedValue({})
+    vi.mocked(s3Api.getBucketLifecycleConfiguration).mockResolvedValue({ rules })
+
+    const { saveLifecycleRules, lifecycleRules } = useS3()
+    await saveLifecycleRules('test-bucket', rules)
+
+    expect(s3Api.putBucketLifecycleConfiguration).toHaveBeenCalledWith('test-bucket', rules)
+    expect(lifecycleRules.value['test-bucket']).toEqual(rules)
+  })
+
+  it('deleteLifecycleRule success', async () => {
+    vi.mocked(s3Api.deleteBucketLifecycleConfiguration).mockResolvedValue({})
+
+    const { deleteLifecycleRule, lifecycleRules } = useS3()
+    lifecycleRules.value['test-bucket'] = [{ ID: 'rule1', Status: 'Enabled' }]
+    await deleteLifecycleRule('test-bucket')
+
+    expect(s3Api.deleteBucketLifecycleConfiguration).toHaveBeenCalledWith('test-bucket')
+    expect(lifecycleRules.value['test-bucket']).toBeUndefined()
+  })
+
+  it('toggleVersioning enable', async () => {
+    vi.mocked(s3Api.putBucketVersioning).mockResolvedValue({})
+    vi.mocked(s3Api.getBucketVersioning).mockResolvedValue({ status: 'Enabled', mfaDelete: 'Disabled' })
+    vi.mocked(s3Api.getBucketEncryption).mockResolvedValue({ algorithm: 'None', keyId: '' })
+    vi.mocked(s3Api.getBucketTagging).mockResolvedValue({ tags: [] })
+
+    const { toggleVersioning, bucketDetails } = useS3()
+    await toggleVersioning('test-bucket', true)
+
+    expect(s3Api.putBucketVersioning).toHaveBeenCalledWith('test-bucket', 'Enabled')
+    expect(bucketDetails.value['test-bucket']?.versioning?.status).toBe('Enabled')
+  })
+
+  it('toggleVersioning disable', async () => {
+    vi.mocked(s3Api.putBucketVersioning).mockResolvedValue({})
+    vi.mocked(s3Api.getBucketVersioning).mockResolvedValue({ status: 'Suspended', mfaDelete: 'Disabled' })
+    vi.mocked(s3Api.getBucketEncryption).mockResolvedValue({ algorithm: 'None', keyId: '' })
+    vi.mocked(s3Api.getBucketTagging).mockResolvedValue({ tags: [] })
+
+    const { toggleVersioning, bucketDetails } = useS3()
+    await toggleVersioning('test-bucket', false)
+
+    expect(s3Api.putBucketVersioning).toHaveBeenCalledWith('test-bucket', 'Suspended')
+    expect(bucketDetails.value['test-bucket']?.versioning?.status).toBe('Suspended')
   })
 })

@@ -747,6 +747,164 @@ components:
       type: object
       properties: {}
 
+    # --- S3 Lifecycle Types ---
+
+    S3LifecycleRuleFilter:
+      type: object
+      description: Filter for lifecycle rule (prefix and/or tags)
+      properties:
+        Prefix:
+          type: string
+          description: Object key prefix filter
+        Tag:
+          type: object
+          description: Tag-based filter
+          properties:
+            Key:
+              type: string
+            Value:
+              type: string
+        And:
+          type: object
+          description: AND combination of multiple filters
+          properties:
+            Prefix:
+              type: string
+            Tags:
+              type: array
+              items:
+                type: object
+                properties:
+                  Key:
+                    type: string
+                  Value:
+                    type: string
+        ObjectSizeGreaterThan:
+          type: integer
+          format: int64
+          description: Minimum object size in bytes
+        ObjectSizeLessThan:
+          type: integer
+          format: int64
+          description: Maximum object size in bytes
+
+    S3LifecycleExpiration:
+      type: object
+      description: Expiration actions for lifecycle rule
+      properties:
+        Days:
+          type: integer
+          format: int32
+          description: Number of days after creation when objects expire
+        Date:
+          type: string
+          format: date-time
+          description: Date when objects expire (ISO 8601)
+        ExpiredObjectDeleteMarker:
+          type: boolean
+          description: Indicates whether to remove expired delete markers
+
+    S3LifecycleNoncurrentVersionExpiration:
+      type: object
+      properties:
+        NoncurrentDays:
+          type: integer
+          format: int32
+          description: Number of days after objects become noncurrent
+
+    S3LifecycleTransition:
+      type: object
+      description: Transition action for lifecycle rule
+      properties:
+        Days:
+          type: integer
+          format: int32
+          description: Number of days after creation when objects transition
+        Date:
+          type: string
+          format: date-time
+          description: Date when objects transition (ISO 8601)
+        StorageClass:
+          type: string
+          enum: [GLACIER, DEEP_ARCHIVE, INTELLIGENT_TIERING, ONEZONE_IA, STANDARD_IA, GLACIER_IR]
+          description: Storage class to transition to
+
+    S3LifecycleNoncurrentVersionTransition:
+      type: object
+      properties:
+        NoncurrentDays:
+          type: integer
+          format: int32
+          description: Number of days after objects become noncurrent
+        StorageClass:
+          type: string
+          enum: [GLACIER, DEEP_ARCHIVE, INTELLIGENT_TIERING, ONEZONE_IA, STANDARD_IA, GLACIER_IR]
+          description: Storage class to transition to
+
+    S3LifecycleRule:
+      type: object
+      required: [Status]
+      properties:
+        ID:
+          type: string
+          description: Unique identifier for the rule
+        Status:
+          type: string
+          enum: [Enabled, Disabled]
+          description: Whether the rule is active
+        Filter:
+          $ref: '#/components/schemas/S3LifecycleRuleFilter'
+        Expiration:
+          $ref: '#/components/schemas/S3LifecycleExpiration'
+        NoncurrentVersionExpiration:
+          $ref: '#/components/schemas/S3LifecycleNoncurrentVersionExpiration'
+        Transitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/S3LifecycleTransition'
+        NoncurrentVersionTransitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/S3LifecycleNoncurrentVersionTransition'
+        AbortIncompleteMultipartUpload:
+          type: object
+          properties:
+            DaysAfterInitiation:
+              type: integer
+              format: int32
+
+    S3GetBucketLifecycleConfigurationOutput:
+      type: object
+      properties:
+        Rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/S3LifecycleRule'
+          description: List of lifecycle rules for the bucket
+
+    S3PutBucketLifecycleConfigurationInput:
+      type: object
+      required: [Bucket, LifecycleConfiguration]
+      properties:
+        Bucket:
+          type: string
+        LifecycleConfiguration:
+          type: object
+          required: [Rules]
+          properties:
+            Rules:
+              type: array
+              items:
+                $ref: '#/components/schemas/S3LifecycleRule'
+
+    S3PutBucketLifecycleConfigurationOutput:
+      type: object
+      properties: {}
+
+    S3DeleteBucketLifecycleConfigurationOutput:
+      type: object
+      properties: {}
+
     # --- Lambda SDK Expanded Types ---
 
     LambdaFunctionConfiguration:

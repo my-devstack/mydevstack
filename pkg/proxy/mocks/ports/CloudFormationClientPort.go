@@ -81,9 +81,9 @@ type CloudFormationClientPort_CreateStack_Call struct {
 //   - ctx context.Context
 //   - input *cloudformation.CreateStackInput
 //   - opts ...func(*cloudformation.Options)
-func (_e *CloudFormationClientPort_Expecter) CreateStack(ctx interface{}, input interface{}, opts ...interface{}) *CloudFormationClientPort_CreateStack_Call {
+func (_e *CloudFormationClientPort_Expecter) CreateStack(ctx any, input any, opts ...any) *CloudFormationClientPort_CreateStack_Call {
 	return &CloudFormationClientPort_CreateStack_Call{Call: _e.mock.On("CreateStack",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudFormationClientPort_CreateStack_Call) Run(run func(ctx context.Context, input *cloudformation.CreateStackInput, opts ...func(*cloudformation.Options))) *CloudFormationClientPort_CreateStack_Call {
@@ -164,9 +164,9 @@ type CloudFormationClientPort_DeleteStack_Call struct {
 //   - ctx context.Context
 //   - input *cloudformation.DeleteStackInput
 //   - opts ...func(*cloudformation.Options)
-func (_e *CloudFormationClientPort_Expecter) DeleteStack(ctx interface{}, input interface{}, opts ...interface{}) *CloudFormationClientPort_DeleteStack_Call {
+func (_e *CloudFormationClientPort_Expecter) DeleteStack(ctx any, input any, opts ...any) *CloudFormationClientPort_DeleteStack_Call {
 	return &CloudFormationClientPort_DeleteStack_Call{Call: _e.mock.On("DeleteStack",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudFormationClientPort_DeleteStack_Call) Run(run func(ctx context.Context, input *cloudformation.DeleteStackInput, opts ...func(*cloudformation.Options))) *CloudFormationClientPort_DeleteStack_Call {
@@ -247,9 +247,9 @@ type CloudFormationClientPort_DescribeStacks_Call struct {
 //   - ctx context.Context
 //   - input *cloudformation.DescribeStacksInput
 //   - opts ...func(*cloudformation.Options)
-func (_e *CloudFormationClientPort_Expecter) DescribeStacks(ctx interface{}, input interface{}, opts ...interface{}) *CloudFormationClientPort_DescribeStacks_Call {
+func (_e *CloudFormationClientPort_Expecter) DescribeStacks(ctx any, input any, opts ...any) *CloudFormationClientPort_DescribeStacks_Call {
 	return &CloudFormationClientPort_DescribeStacks_Call{Call: _e.mock.On("DescribeStacks",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudFormationClientPort_DescribeStacks_Call) Run(run func(ctx context.Context, input *cloudformation.DescribeStacksInput, opts ...func(*cloudformation.Options))) *CloudFormationClientPort_DescribeStacks_Call {
@@ -330,9 +330,9 @@ type CloudFormationClientPort_GetTemplate_Call struct {
 //   - ctx context.Context
 //   - input *cloudformation.GetTemplateInput
 //   - opts ...func(*cloudformation.Options)
-func (_e *CloudFormationClientPort_Expecter) GetTemplate(ctx interface{}, input interface{}, opts ...interface{}) *CloudFormationClientPort_GetTemplate_Call {
+func (_e *CloudFormationClientPort_Expecter) GetTemplate(ctx any, input any, opts ...any) *CloudFormationClientPort_GetTemplate_Call {
 	return &CloudFormationClientPort_GetTemplate_Call{Call: _e.mock.On("GetTemplate",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudFormationClientPort_GetTemplate_Call) Run(run func(ctx context.Context, input *cloudformation.GetTemplateInput, opts ...func(*cloudformation.Options))) *CloudFormationClientPort_GetTemplate_Call {
@@ -413,9 +413,9 @@ type CloudFormationClientPort_ListStackResources_Call struct {
 //   - ctx context.Context
 //   - input *cloudformation.ListStackResourcesInput
 //   - opts ...func(*cloudformation.Options)
-func (_e *CloudFormationClientPort_Expecter) ListStackResources(ctx interface{}, input interface{}, opts ...interface{}) *CloudFormationClientPort_ListStackResources_Call {
+func (_e *CloudFormationClientPort_Expecter) ListStackResources(ctx any, input any, opts ...any) *CloudFormationClientPort_ListStackResources_Call {
 	return &CloudFormationClientPort_ListStackResources_Call{Call: _e.mock.On("ListStackResources",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudFormationClientPort_ListStackResources_Call) Run(run func(ctx context.Context, input *cloudformation.ListStackResourcesInput, opts ...func(*cloudformation.Options))) *CloudFormationClientPort_ListStackResources_Call {
@@ -496,9 +496,9 @@ type CloudFormationClientPort_ListStacks_Call struct {
 //   - ctx context.Context
 //   - input *cloudformation.ListStacksInput
 //   - opts ...func(*cloudformation.Options)
-func (_e *CloudFormationClientPort_Expecter) ListStacks(ctx interface{}, input interface{}, opts ...interface{}) *CloudFormationClientPort_ListStacks_Call {
+func (_e *CloudFormationClientPort_Expecter) ListStacks(ctx any, input any, opts ...any) *CloudFormationClientPort_ListStacks_Call {
 	return &CloudFormationClientPort_ListStacks_Call{Call: _e.mock.On("ListStacks",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *CloudFormationClientPort_ListStacks_Call) Run(run func(ctx context.Context, input *cloudformation.ListStacksInput, opts ...func(*cloudformation.Options))) *CloudFormationClientPort_ListStacks_Call {

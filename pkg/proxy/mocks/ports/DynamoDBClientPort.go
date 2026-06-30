@@ -81,9 +81,9 @@ type DynamoDBClientPort_BatchGetItem_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.BatchGetItemInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) BatchGetItem(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_BatchGetItem_Call {
+func (_e *DynamoDBClientPort_Expecter) BatchGetItem(ctx any, input any, opts ...any) *DynamoDBClientPort_BatchGetItem_Call {
 	return &DynamoDBClientPort_BatchGetItem_Call{Call: _e.mock.On("BatchGetItem",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_BatchGetItem_Call) Run(run func(ctx context.Context, input *dynamodb.BatchGetItemInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_BatchGetItem_Call {
@@ -164,9 +164,9 @@ type DynamoDBClientPort_BatchWriteItem_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.BatchWriteItemInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) BatchWriteItem(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_BatchWriteItem_Call {
+func (_e *DynamoDBClientPort_Expecter) BatchWriteItem(ctx any, input any, opts ...any) *DynamoDBClientPort_BatchWriteItem_Call {
 	return &DynamoDBClientPort_BatchWriteItem_Call{Call: _e.mock.On("BatchWriteItem",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_BatchWriteItem_Call) Run(run func(ctx context.Context, input *dynamodb.BatchWriteItemInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_BatchWriteItem_Call {
@@ -247,9 +247,9 @@ type DynamoDBClientPort_CreateTable_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.CreateTableInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) CreateTable(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_CreateTable_Call {
+func (_e *DynamoDBClientPort_Expecter) CreateTable(ctx any, input any, opts ...any) *DynamoDBClientPort_CreateTable_Call {
 	return &DynamoDBClientPort_CreateTable_Call{Call: _e.mock.On("CreateTable",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_CreateTable_Call) Run(run func(ctx context.Context, input *dynamodb.CreateTableInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_CreateTable_Call {
@@ -330,9 +330,9 @@ type DynamoDBClientPort_DeleteItem_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.DeleteItemInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) DeleteItem(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_DeleteItem_Call {
+func (_e *DynamoDBClientPort_Expecter) DeleteItem(ctx any, input any, opts ...any) *DynamoDBClientPort_DeleteItem_Call {
 	return &DynamoDBClientPort_DeleteItem_Call{Call: _e.mock.On("DeleteItem",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_DeleteItem_Call) Run(run func(ctx context.Context, input *dynamodb.DeleteItemInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_DeleteItem_Call {
@@ -413,9 +413,9 @@ type DynamoDBClientPort_DeleteTable_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.DeleteTableInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) DeleteTable(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_DeleteTable_Call {
+func (_e *DynamoDBClientPort_Expecter) DeleteTable(ctx any, input any, opts ...any) *DynamoDBClientPort_DeleteTable_Call {
 	return &DynamoDBClientPort_DeleteTable_Call{Call: _e.mock.On("DeleteTable",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_DeleteTable_Call) Run(run func(ctx context.Context, input *dynamodb.DeleteTableInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_DeleteTable_Call {
@@ -496,9 +496,9 @@ type DynamoDBClientPort_DescribeTable_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.DescribeTableInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) DescribeTable(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_DescribeTable_Call {
+func (_e *DynamoDBClientPort_Expecter) DescribeTable(ctx any, input any, opts ...any) *DynamoDBClientPort_DescribeTable_Call {
 	return &DynamoDBClientPort_DescribeTable_Call{Call: _e.mock.On("DescribeTable",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_DescribeTable_Call) Run(run func(ctx context.Context, input *dynamodb.DescribeTableInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_DescribeTable_Call {
@@ -579,9 +579,9 @@ type DynamoDBClientPort_DescribeTimeToLive_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.DescribeTimeToLiveInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) DescribeTimeToLive(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_DescribeTimeToLive_Call {
+func (_e *DynamoDBClientPort_Expecter) DescribeTimeToLive(ctx any, input any, opts ...any) *DynamoDBClientPort_DescribeTimeToLive_Call {
 	return &DynamoDBClientPort_DescribeTimeToLive_Call{Call: _e.mock.On("DescribeTimeToLive",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_DescribeTimeToLive_Call) Run(run func(ctx context.Context, input *dynamodb.DescribeTimeToLiveInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_DescribeTimeToLive_Call {
@@ -662,9 +662,9 @@ type DynamoDBClientPort_GetItem_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.GetItemInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) GetItem(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_GetItem_Call {
+func (_e *DynamoDBClientPort_Expecter) GetItem(ctx any, input any, opts ...any) *DynamoDBClientPort_GetItem_Call {
 	return &DynamoDBClientPort_GetItem_Call{Call: _e.mock.On("GetItem",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_GetItem_Call) Run(run func(ctx context.Context, input *dynamodb.GetItemInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_GetItem_Call {
@@ -745,9 +745,9 @@ type DynamoDBClientPort_ListTables_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.ListTablesInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) ListTables(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_ListTables_Call {
+func (_e *DynamoDBClientPort_Expecter) ListTables(ctx any, input any, opts ...any) *DynamoDBClientPort_ListTables_Call {
 	return &DynamoDBClientPort_ListTables_Call{Call: _e.mock.On("ListTables",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_ListTables_Call) Run(run func(ctx context.Context, input *dynamodb.ListTablesInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_ListTables_Call {
@@ -828,9 +828,9 @@ type DynamoDBClientPort_PutItem_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.PutItemInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) PutItem(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_PutItem_Call {
+func (_e *DynamoDBClientPort_Expecter) PutItem(ctx any, input any, opts ...any) *DynamoDBClientPort_PutItem_Call {
 	return &DynamoDBClientPort_PutItem_Call{Call: _e.mock.On("PutItem",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_PutItem_Call) Run(run func(ctx context.Context, input *dynamodb.PutItemInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_PutItem_Call {
@@ -911,9 +911,9 @@ type DynamoDBClientPort_Query_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.QueryInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) Query(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_Query_Call {
+func (_e *DynamoDBClientPort_Expecter) Query(ctx any, input any, opts ...any) *DynamoDBClientPort_Query_Call {
 	return &DynamoDBClientPort_Query_Call{Call: _e.mock.On("Query",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_Query_Call) Run(run func(ctx context.Context, input *dynamodb.QueryInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_Query_Call {
@@ -994,9 +994,9 @@ type DynamoDBClientPort_Scan_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.ScanInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) Scan(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_Scan_Call {
+func (_e *DynamoDBClientPort_Expecter) Scan(ctx any, input any, opts ...any) *DynamoDBClientPort_Scan_Call {
 	return &DynamoDBClientPort_Scan_Call{Call: _e.mock.On("Scan",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_Scan_Call) Run(run func(ctx context.Context, input *dynamodb.ScanInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_Scan_Call {
@@ -1077,9 +1077,9 @@ type DynamoDBClientPort_UpdateItem_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.UpdateItemInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) UpdateItem(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_UpdateItem_Call {
+func (_e *DynamoDBClientPort_Expecter) UpdateItem(ctx any, input any, opts ...any) *DynamoDBClientPort_UpdateItem_Call {
 	return &DynamoDBClientPort_UpdateItem_Call{Call: _e.mock.On("UpdateItem",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_UpdateItem_Call) Run(run func(ctx context.Context, input *dynamodb.UpdateItemInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_UpdateItem_Call {
@@ -1160,9 +1160,9 @@ type DynamoDBClientPort_UpdateTable_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.UpdateTableInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) UpdateTable(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_UpdateTable_Call {
+func (_e *DynamoDBClientPort_Expecter) UpdateTable(ctx any, input any, opts ...any) *DynamoDBClientPort_UpdateTable_Call {
 	return &DynamoDBClientPort_UpdateTable_Call{Call: _e.mock.On("UpdateTable",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_UpdateTable_Call) Run(run func(ctx context.Context, input *dynamodb.UpdateTableInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_UpdateTable_Call {
@@ -1243,9 +1243,9 @@ type DynamoDBClientPort_UpdateTimeToLive_Call struct {
 //   - ctx context.Context
 //   - input *dynamodb.UpdateTimeToLiveInput
 //   - opts ...func(*dynamodb.Options)
-func (_e *DynamoDBClientPort_Expecter) UpdateTimeToLive(ctx interface{}, input interface{}, opts ...interface{}) *DynamoDBClientPort_UpdateTimeToLive_Call {
+func (_e *DynamoDBClientPort_Expecter) UpdateTimeToLive(ctx any, input any, opts ...any) *DynamoDBClientPort_UpdateTimeToLive_Call {
 	return &DynamoDBClientPort_UpdateTimeToLive_Call{Call: _e.mock.On("UpdateTimeToLive",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *DynamoDBClientPort_UpdateTimeToLive_Call) Run(run func(ctx context.Context, input *dynamodb.UpdateTimeToLiveInput, opts ...func(*dynamodb.Options))) *DynamoDBClientPort_UpdateTimeToLive_Call {

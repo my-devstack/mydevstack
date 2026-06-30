@@ -74,7 +74,7 @@ type CloudWatchPort_DeleteAlarms_Call struct {
 // DeleteAlarms is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatch.DeleteAlarmsInput
-func (_e *CloudWatchPort_Expecter) DeleteAlarms(ctx interface{}, input interface{}) *CloudWatchPort_DeleteAlarms_Call {
+func (_e *CloudWatchPort_Expecter) DeleteAlarms(ctx any, input any) *CloudWatchPort_DeleteAlarms_Call {
 	return &CloudWatchPort_DeleteAlarms_Call{Call: _e.mock.On("DeleteAlarms", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type CloudWatchPort_DescribeAlarmHistory_Call struct {
 // DescribeAlarmHistory is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatch.DescribeAlarmHistoryInput
-func (_e *CloudWatchPort_Expecter) DescribeAlarmHistory(ctx interface{}, input interface{}) *CloudWatchPort_DescribeAlarmHistory_Call {
+func (_e *CloudWatchPort_Expecter) DescribeAlarmHistory(ctx any, input any) *CloudWatchPort_DescribeAlarmHistory_Call {
 	return &CloudWatchPort_DescribeAlarmHistory_Call{Call: _e.mock.On("DescribeAlarmHistory", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type CloudWatchPort_DescribeAlarms_Call struct {
 // DescribeAlarms is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatch.DescribeAlarmsInput
-func (_e *CloudWatchPort_Expecter) DescribeAlarms(ctx interface{}, input interface{}) *CloudWatchPort_DescribeAlarms_Call {
+func (_e *CloudWatchPort_Expecter) DescribeAlarms(ctx any, input any) *CloudWatchPort_DescribeAlarms_Call {
 	return &CloudWatchPort_DescribeAlarms_Call{Call: _e.mock.On("DescribeAlarms", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type CloudWatchPort_GetMetricData_Call struct {
 // GetMetricData is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatch.GetMetricDataInput
-func (_e *CloudWatchPort_Expecter) GetMetricData(ctx interface{}, input interface{}) *CloudWatchPort_GetMetricData_Call {
+func (_e *CloudWatchPort_Expecter) GetMetricData(ctx any, input any) *CloudWatchPort_GetMetricData_Call {
 	return &CloudWatchPort_GetMetricData_Call{Call: _e.mock.On("GetMetricData", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type CloudWatchPort_GetMetricStatistics_Call struct {
 // GetMetricStatistics is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatch.GetMetricStatisticsInput
-func (_e *CloudWatchPort_Expecter) GetMetricStatistics(ctx interface{}, input interface{}) *CloudWatchPort_GetMetricStatistics_Call {
+func (_e *CloudWatchPort_Expecter) GetMetricStatistics(ctx any, input any) *CloudWatchPort_GetMetricStatistics_Call {
 	return &CloudWatchPort_GetMetricStatistics_Call{Call: _e.mock.On("GetMetricStatistics", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type CloudWatchPort_ListMetrics_Call struct {
 // ListMetrics is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatch.ListMetricsInput
-func (_e *CloudWatchPort_Expecter) ListMetrics(ctx interface{}, input interface{}) *CloudWatchPort_ListMetrics_Call {
+func (_e *CloudWatchPort_Expecter) ListMetrics(ctx any, input any) *CloudWatchPort_ListMetrics_Call {
 	return &CloudWatchPort_ListMetrics_Call{Call: _e.mock.On("ListMetrics", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type CloudWatchPort_PutMetricAlarm_Call struct {
 // PutMetricAlarm is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatch.PutMetricAlarmInput
-func (_e *CloudWatchPort_Expecter) PutMetricAlarm(ctx interface{}, input interface{}) *CloudWatchPort_PutMetricAlarm_Call {
+func (_e *CloudWatchPort_Expecter) PutMetricAlarm(ctx any, input any) *CloudWatchPort_PutMetricAlarm_Call {
 	return &CloudWatchPort_PutMetricAlarm_Call{Call: _e.mock.On("PutMetricAlarm", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type CloudWatchPort_PutMetricData_Call struct {
 // PutMetricData is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatch.PutMetricDataInput
-func (_e *CloudWatchPort_Expecter) PutMetricData(ctx interface{}, input interface{}) *CloudWatchPort_PutMetricData_Call {
+func (_e *CloudWatchPort_Expecter) PutMetricData(ctx any, input any) *CloudWatchPort_PutMetricData_Call {
 	return &CloudWatchPort_PutMetricData_Call{Call: _e.mock.On("PutMetricData", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type CloudWatchPort_SetAlarmState_Call struct {
 // SetAlarmState is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *cloudwatch.SetAlarmStateInput
-func (_e *CloudWatchPort_Expecter) SetAlarmState(ctx interface{}, input interface{}) *CloudWatchPort_SetAlarmState_Call {
+func (_e *CloudWatchPort_Expecter) SetAlarmState(ctx any, input any) *CloudWatchPort_SetAlarmState_Call {
 	return &CloudWatchPort_SetAlarmState_Call{Call: _e.mock.On("SetAlarmState", ctx, input)}
 }
 

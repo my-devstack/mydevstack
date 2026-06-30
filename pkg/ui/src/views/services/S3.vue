@@ -5,8 +5,9 @@ import { useContentReload } from '@/composables/useContentReload'
 import { useToast } from '@/composables/useToast'
 import { usePagination } from '@/composables/usePagination'
 import { useS3 } from '@/composables/useS3'
-import { ArchiveBoxIcon } from '@heroicons/vue/24/outline'
-import { S3BucketsList, S3ObjectsList, S3CreateModal, S3ViewModal, S3DeleteModal, S3CodeExamples, S3TriggerModal, S3PolicyModal } from '@/components/s3'
+import { ArchiveBoxIcon, CalendarDaysIcon } from '@heroicons/vue/24/outline'
+import { S3BucketsList, S3ObjectsList, S3CreateModal, S3ViewModal, S3DeleteModal, S3CodeExamples, S3TriggerModal, S3PolicyModal, S3LifecycleModal } from '@/components/s3'
+import type { LifecycleRule } from '@/api/services/s3'
 
 const { reloadTrigger } = useContentReload()
 
@@ -31,6 +32,10 @@ const {
   getObject,
   getPresignedUrl,
   configureLambdaTrigger,
+  loadLifecycleRules,
+  saveLifecycleRules,
+  deleteLifecycleRule,
+  toggleVersioning,
 } = useS3()
 
 // Pagination via composable
@@ -54,6 +59,9 @@ const showTriggerModal = ref(false)
 const showPolicyModal = ref(false)
 const triggerBucketName = ref('')
 const policyBucketName = ref('')
+const showLifecycleModal = ref(false)
+const lifecycleBucketName = ref('')
+const lifecycleRules = ref<LifecycleRule[]>([])
 
 // View modal state
 const viewFileName = ref('')
@@ -215,6 +223,28 @@ async function handleSaveTrigger(config: { functionName: string; events: string[
   }
 }
 
+// Lifecycle handlers
+async function handleManageLifecycle(bucketName: string) {
+  lifecycleBucketName.value = bucketName
+  lifecycleRules.value = await loadLifecycleRules(bucketName)
+  showLifecycleModal.value = true
+}
+
+async function handleSaveLifecycle(rules: LifecycleRule[]) {
+  await saveLifecycleRules(lifecycleBucketName.value, rules)
+  lifecycleRules.value = rules
+  showLifecycleModal.value = false
+}
+
+async function handleDeleteLifecycle(bucketName: string) {
+  await deleteLifecycleRule(bucketName)
+  lifecycleRules.value = []
+}
+
+async function handleToggleVersioning(bucketName: string, enable: boolean) {
+  await toggleVersioning(bucketName, enable)
+}
+
 // Modal handlers
 function confirmDeleteBucket(name: string) {
   itemToDelete.value = { type: 'bucket', name }
@@ -363,6 +393,8 @@ watch(reloadTrigger, () => {
       @expand-bucket="loadBucketDetails"
       @add-trigger="(name) => { triggerBucketName = name; showTriggerModal = true }"
       @view-policy="(name) => { policyBucketName = name; showPolicyModal = true }"
+      @manage-lifecycle="handleManageLifecycle"
+      @toggle-versioning="handleToggleVersioning"
     />
 
     <!-- Pagination -->
@@ -474,6 +506,16 @@ watch(reloadTrigger, () => {
       :open="showPolicyModal"
       :bucket-name="policyBucketName"
       @update:open="showPolicyModal = $event"
+    />
+
+    <!-- Lifecycle Modal -->
+    <S3LifecycleModal
+      :open="showLifecycleModal"
+      :bucket-name="lifecycleBucketName"
+      :rules="lifecycleRules"
+      @update:open="showLifecycleModal = $event"
+      @save="handleSaveLifecycle"
+      @delete="handleDeleteLifecycle"
     />
 
     <!-- Usage Examples Section -->

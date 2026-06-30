@@ -74,7 +74,7 @@ type APIGatewayV2Port_CreateApi_Call struct {
 // CreateApi is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.CreateApiInput
-func (_e *APIGatewayV2Port_Expecter) CreateApi(ctx interface{}, input interface{}) *APIGatewayV2Port_CreateApi_Call {
+func (_e *APIGatewayV2Port_Expecter) CreateApi(ctx any, input any) *APIGatewayV2Port_CreateApi_Call {
 	return &APIGatewayV2Port_CreateApi_Call{Call: _e.mock.On("CreateApi", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type APIGatewayV2Port_CreateIntegration_Call struct {
 // CreateIntegration is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.CreateIntegrationInput
-func (_e *APIGatewayV2Port_Expecter) CreateIntegration(ctx interface{}, input interface{}) *APIGatewayV2Port_CreateIntegration_Call {
+func (_e *APIGatewayV2Port_Expecter) CreateIntegration(ctx any, input any) *APIGatewayV2Port_CreateIntegration_Call {
 	return &APIGatewayV2Port_CreateIntegration_Call{Call: _e.mock.On("CreateIntegration", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type APIGatewayV2Port_CreateRoute_Call struct {
 // CreateRoute is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.CreateRouteInput
-func (_e *APIGatewayV2Port_Expecter) CreateRoute(ctx interface{}, input interface{}) *APIGatewayV2Port_CreateRoute_Call {
+func (_e *APIGatewayV2Port_Expecter) CreateRoute(ctx any, input any) *APIGatewayV2Port_CreateRoute_Call {
 	return &APIGatewayV2Port_CreateRoute_Call{Call: _e.mock.On("CreateRoute", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type APIGatewayV2Port_CreateStage_Call struct {
 // CreateStage is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.CreateStageInput
-func (_e *APIGatewayV2Port_Expecter) CreateStage(ctx interface{}, input interface{}) *APIGatewayV2Port_CreateStage_Call {
+func (_e *APIGatewayV2Port_Expecter) CreateStage(ctx any, input any) *APIGatewayV2Port_CreateStage_Call {
 	return &APIGatewayV2Port_CreateStage_Call{Call: _e.mock.On("CreateStage", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type APIGatewayV2Port_DeleteApi_Call struct {
 // DeleteApi is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.DeleteApiInput
-func (_e *APIGatewayV2Port_Expecter) DeleteApi(ctx interface{}, input interface{}) *APIGatewayV2Port_DeleteApi_Call {
+func (_e *APIGatewayV2Port_Expecter) DeleteApi(ctx any, input any) *APIGatewayV2Port_DeleteApi_Call {
 	return &APIGatewayV2Port_DeleteApi_Call{Call: _e.mock.On("DeleteApi", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type APIGatewayV2Port_DeleteIntegration_Call struct {
 // DeleteIntegration is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.DeleteIntegrationInput
-func (_e *APIGatewayV2Port_Expecter) DeleteIntegration(ctx interface{}, input interface{}) *APIGatewayV2Port_DeleteIntegration_Call {
+func (_e *APIGatewayV2Port_Expecter) DeleteIntegration(ctx any, input any) *APIGatewayV2Port_DeleteIntegration_Call {
 	return &APIGatewayV2Port_DeleteIntegration_Call{Call: _e.mock.On("DeleteIntegration", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type APIGatewayV2Port_DeleteRoute_Call struct {
 // DeleteRoute is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.DeleteRouteInput
-func (_e *APIGatewayV2Port_Expecter) DeleteRoute(ctx interface{}, input interface{}) *APIGatewayV2Port_DeleteRoute_Call {
+func (_e *APIGatewayV2Port_Expecter) DeleteRoute(ctx any, input any) *APIGatewayV2Port_DeleteRoute_Call {
 	return &APIGatewayV2Port_DeleteRoute_Call{Call: _e.mock.On("DeleteRoute", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type APIGatewayV2Port_DeleteStage_Call struct {
 // DeleteStage is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.DeleteStageInput
-func (_e *APIGatewayV2Port_Expecter) DeleteStage(ctx interface{}, input interface{}) *APIGatewayV2Port_DeleteStage_Call {
+func (_e *APIGatewayV2Port_Expecter) DeleteStage(ctx any, input any) *APIGatewayV2Port_DeleteStage_Call {
 	return &APIGatewayV2Port_DeleteStage_Call{Call: _e.mock.On("DeleteStage", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type APIGatewayV2Port_GetApi_Call struct {
 // GetApi is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.GetApiInput
-func (_e *APIGatewayV2Port_Expecter) GetApi(ctx interface{}, input interface{}) *APIGatewayV2Port_GetApi_Call {
+func (_e *APIGatewayV2Port_Expecter) GetApi(ctx any, input any) *APIGatewayV2Port_GetApi_Call {
 	return &APIGatewayV2Port_GetApi_Call{Call: _e.mock.On("GetApi", ctx, input)}
 }
 
@@ -686,7 +686,7 @@ type APIGatewayV2Port_GetApis_Call struct {
 // GetApis is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.GetApisInput
-func (_e *APIGatewayV2Port_Expecter) GetApis(ctx interface{}, input interface{}) *APIGatewayV2Port_GetApis_Call {
+func (_e *APIGatewayV2Port_Expecter) GetApis(ctx any, input any) *APIGatewayV2Port_GetApis_Call {
 	return &APIGatewayV2Port_GetApis_Call{Call: _e.mock.On("GetApis", ctx, input)}
 }
 
@@ -754,7 +754,7 @@ type APIGatewayV2Port_GetIntegrations_Call struct {
 // GetIntegrations is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.GetIntegrationsInput
-func (_e *APIGatewayV2Port_Expecter) GetIntegrations(ctx interface{}, input interface{}) *APIGatewayV2Port_GetIntegrations_Call {
+func (_e *APIGatewayV2Port_Expecter) GetIntegrations(ctx any, input any) *APIGatewayV2Port_GetIntegrations_Call {
 	return &APIGatewayV2Port_GetIntegrations_Call{Call: _e.mock.On("GetIntegrations", ctx, input)}
 }
 
@@ -822,7 +822,7 @@ type APIGatewayV2Port_GetInvokeUrl_Call struct {
 //   - apiId string
 //   - stageName string
 //   - protocolType string
-func (_e *APIGatewayV2Port_Expecter) GetInvokeUrl(ctx interface{}, apiId interface{}, stageName interface{}, protocolType interface{}) *APIGatewayV2Port_GetInvokeUrl_Call {
+func (_e *APIGatewayV2Port_Expecter) GetInvokeUrl(ctx any, apiId any, stageName any, protocolType any) *APIGatewayV2Port_GetInvokeUrl_Call {
 	return &APIGatewayV2Port_GetInvokeUrl_Call{Call: _e.mock.On("GetInvokeUrl", ctx, apiId, stageName, protocolType)}
 }
 
@@ -900,7 +900,7 @@ type APIGatewayV2Port_GetRoutes_Call struct {
 // GetRoutes is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.GetRoutesInput
-func (_e *APIGatewayV2Port_Expecter) GetRoutes(ctx interface{}, input interface{}) *APIGatewayV2Port_GetRoutes_Call {
+func (_e *APIGatewayV2Port_Expecter) GetRoutes(ctx any, input any) *APIGatewayV2Port_GetRoutes_Call {
 	return &APIGatewayV2Port_GetRoutes_Call{Call: _e.mock.On("GetRoutes", ctx, input)}
 }
 
@@ -968,7 +968,7 @@ type APIGatewayV2Port_GetStage_Call struct {
 // GetStage is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.GetStageInput
-func (_e *APIGatewayV2Port_Expecter) GetStage(ctx interface{}, input interface{}) *APIGatewayV2Port_GetStage_Call {
+func (_e *APIGatewayV2Port_Expecter) GetStage(ctx any, input any) *APIGatewayV2Port_GetStage_Call {
 	return &APIGatewayV2Port_GetStage_Call{Call: _e.mock.On("GetStage", ctx, input)}
 }
 
@@ -1036,7 +1036,7 @@ type APIGatewayV2Port_GetStages_Call struct {
 // GetStages is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.GetStagesInput
-func (_e *APIGatewayV2Port_Expecter) GetStages(ctx interface{}, input interface{}) *APIGatewayV2Port_GetStages_Call {
+func (_e *APIGatewayV2Port_Expecter) GetStages(ctx any, input any) *APIGatewayV2Port_GetStages_Call {
 	return &APIGatewayV2Port_GetStages_Call{Call: _e.mock.On("GetStages", ctx, input)}
 }
 
@@ -1104,7 +1104,7 @@ type APIGatewayV2Port_UpdateIntegration_Call struct {
 // UpdateIntegration is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.UpdateIntegrationInput
-func (_e *APIGatewayV2Port_Expecter) UpdateIntegration(ctx interface{}, input interface{}) *APIGatewayV2Port_UpdateIntegration_Call {
+func (_e *APIGatewayV2Port_Expecter) UpdateIntegration(ctx any, input any) *APIGatewayV2Port_UpdateIntegration_Call {
 	return &APIGatewayV2Port_UpdateIntegration_Call{Call: _e.mock.On("UpdateIntegration", ctx, input)}
 }
 
@@ -1172,7 +1172,7 @@ type APIGatewayV2Port_UpdateRoute_Call struct {
 // UpdateRoute is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.UpdateRouteInput
-func (_e *APIGatewayV2Port_Expecter) UpdateRoute(ctx interface{}, input interface{}) *APIGatewayV2Port_UpdateRoute_Call {
+func (_e *APIGatewayV2Port_Expecter) UpdateRoute(ctx any, input any) *APIGatewayV2Port_UpdateRoute_Call {
 	return &APIGatewayV2Port_UpdateRoute_Call{Call: _e.mock.On("UpdateRoute", ctx, input)}
 }
 
@@ -1240,7 +1240,7 @@ type APIGatewayV2Port_UpdateStage_Call struct {
 // UpdateStage is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *apigatewayv2.UpdateStageInput
-func (_e *APIGatewayV2Port_Expecter) UpdateStage(ctx interface{}, input interface{}) *APIGatewayV2Port_UpdateStage_Call {
+func (_e *APIGatewayV2Port_Expecter) UpdateStage(ctx any, input any) *APIGatewayV2Port_UpdateStage_Call {
 	return &APIGatewayV2Port_UpdateStage_Call{Call: _e.mock.On("UpdateStage", ctx, input)}
 }
 

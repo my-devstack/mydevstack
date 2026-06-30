@@ -81,9 +81,9 @@ type LambdaClientPort_CreateEventSourceMapping_Call struct {
 //   - ctx context.Context
 //   - input *lambda.CreateEventSourceMappingInput
 //   - opts ...func(*lambda.Options)
-func (_e *LambdaClientPort_Expecter) CreateEventSourceMapping(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_CreateEventSourceMapping_Call {
+func (_e *LambdaClientPort_Expecter) CreateEventSourceMapping(ctx any, input any, opts ...any) *LambdaClientPort_CreateEventSourceMapping_Call {
 	return &LambdaClientPort_CreateEventSourceMapping_Call{Call: _e.mock.On("CreateEventSourceMapping",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *LambdaClientPort_CreateEventSourceMapping_Call) Run(run func(ctx context.Context, input *lambda.CreateEventSourceMappingInput, opts ...func(*lambda.Options))) *LambdaClientPort_CreateEventSourceMapping_Call {
@@ -164,9 +164,9 @@ type LambdaClientPort_CreateFunction_Call struct {
 //   - ctx context.Context
 //   - input *lambda.CreateFunctionInput
 //   - opts ...func(*lambda.Options)
-func (_e *LambdaClientPort_Expecter) CreateFunction(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_CreateFunction_Call {
+func (_e *LambdaClientPort_Expecter) CreateFunction(ctx any, input any, opts ...any) *LambdaClientPort_CreateFunction_Call {
 	return &LambdaClientPort_CreateFunction_Call{Call: _e.mock.On("CreateFunction",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *LambdaClientPort_CreateFunction_Call) Run(run func(ctx context.Context, input *lambda.CreateFunctionInput, opts ...func(*lambda.Options))) *LambdaClientPort_CreateFunction_Call {
@@ -247,9 +247,9 @@ type LambdaClientPort_DeleteEventSourceMapping_Call struct {
 //   - ctx context.Context
 //   - input *lambda.DeleteEventSourceMappingInput
 //   - opts ...func(*lambda.Options)
-func (_e *LambdaClientPort_Expecter) DeleteEventSourceMapping(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_DeleteEventSourceMapping_Call {
+func (_e *LambdaClientPort_Expecter) DeleteEventSourceMapping(ctx any, input any, opts ...any) *LambdaClientPort_DeleteEventSourceMapping_Call {
 	return &LambdaClientPort_DeleteEventSourceMapping_Call{Call: _e.mock.On("DeleteEventSourceMapping",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *LambdaClientPort_DeleteEventSourceMapping_Call) Run(run func(ctx context.Context, input *lambda.DeleteEventSourceMappingInput, opts ...func(*lambda.Options))) *LambdaClientPort_DeleteEventSourceMapping_Call {
@@ -330,9 +330,9 @@ type LambdaClientPort_DeleteFunction_Call struct {
 //   - ctx context.Context
 //   - input *lambda.DeleteFunctionInput
 //   - opts ...func(*lambda.Options)
-func (_e *LambdaClientPort_Expecter) DeleteFunction(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_DeleteFunction_Call {
+func (_e *LambdaClientPort_Expecter) DeleteFunction(ctx any, input any, opts ...any) *LambdaClientPort_DeleteFunction_Call {
 	return &LambdaClientPort_DeleteFunction_Call{Call: _e.mock.On("DeleteFunction",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *LambdaClientPort_DeleteFunction_Call) Run(run func(ctx context.Context, input *lambda.DeleteFunctionInput, opts ...func(*lambda.Options))) *LambdaClientPort_DeleteFunction_Call {
@@ -413,9 +413,9 @@ type LambdaClientPort_GetEventSourceMapping_Call struct {
 //   - ctx context.Context
 //   - input *lambda.GetEventSourceMappingInput
 //   - opts ...func(*lambda.Options)
-func (_e *LambdaClientPort_Expecter) GetEventSourceMapping(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_GetEventSourceMapping_Call {
+func (_e *LambdaClientPort_Expecter) GetEventSourceMapping(ctx any, input any, opts ...any) *LambdaClientPort_GetEventSourceMapping_Call {
 	return &LambdaClientPort_GetEventSourceMapping_Call{Call: _e.mock.On("GetEventSourceMapping",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *LambdaClientPort_GetEventSourceMapping_Call) Run(run func(ctx context.Context, input *lambda.GetEventSourceMappingInput, opts ...func(*lambda.Options))) *LambdaClientPort_GetEventSourceMapping_Call {
@@ -496,9 +496,9 @@ type LambdaClientPort_GetFunction_Call struct {
 //   - ctx context.Context
 //   - input *lambda.GetFunctionInput
 //   - opts ...func(*lambda.Options)
-func (_e *LambdaClientPort_Expecter) GetFunction(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_GetFunction_Call {
+func (_e *LambdaClientPort_Expecter) GetFunction(ctx any, input any, opts ...any) *LambdaClientPort_GetFunction_Call {
 	return &LambdaClientPort_GetFunction_Call{Call: _e.mock.On("GetFunction",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *LambdaClientPort_GetFunction_Call) Run(run func(ctx context.Context, input *lambda.GetFunctionInput, opts ...func(*lambda.Options))) *LambdaClientPort_GetFunction_Call {
@@ -579,9 +579,9 @@ type LambdaClientPort_GetFunctionConfiguration_Call struct {
 //   - ctx context.Context
 //   - input *lambda.GetFunctionConfigurationInput
 //   - opts ...func(*lambda.Options)
-func (_e *LambdaClientPort_Expecter) GetFunctionConfiguration(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_GetFunctionConfiguration_Call {
+func (_e *LambdaClientPort_Expecter) GetFunctionConfiguration(ctx any, input any, opts ...any) *LambdaClientPort_GetFunctionConfiguration_Call {
 	return &LambdaClientPort_GetFunctionConfiguration_Call{Call: _e.mock.On("GetFunctionConfiguration",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *LambdaClientPort_GetFunctionConfiguration_Call) Run(run func(ctx context.Context, input *lambda.GetFunctionConfigurationInput, opts ...func(*lambda.Options))) *LambdaClientPort_GetFunctionConfiguration_Call {
@@ -662,9 +662,9 @@ type LambdaClientPort_Invoke_Call struct {
 //   - ctx context.Context
 //   - input *lambda.InvokeInput
 //   - opts ...func(*lambda.Options)
-func (_e *LambdaClientPort_Expecter) Invoke(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_Invoke_Call {
+func (_e *LambdaClientPort_Expecter) Invoke(ctx any, input any, opts ...any) *LambdaClientPort_Invoke_Call {
 	return &LambdaClientPort_Invoke_Call{Call: _e.mock.On("Invoke",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *LambdaClientPort_Invoke_Call) Run(run func(ctx context.Context, input *lambda.InvokeInput, opts ...func(*lambda.Options))) *LambdaClientPort_Invoke_Call {
@@ -745,9 +745,9 @@ type LambdaClientPort_ListEventSourceMappings_Call struct {
 //   - ctx context.Context
 //   - input *lambda.ListEventSourceMappingsInput
 //   - opts ...func(*lambda.Options)
-func (_e *LambdaClientPort_Expecter) ListEventSourceMappings(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_ListEventSourceMappings_Call {
+func (_e *LambdaClientPort_Expecter) ListEventSourceMappings(ctx any, input any, opts ...any) *LambdaClientPort_ListEventSourceMappings_Call {
 	return &LambdaClientPort_ListEventSourceMappings_Call{Call: _e.mock.On("ListEventSourceMappings",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *LambdaClientPort_ListEventSourceMappings_Call) Run(run func(ctx context.Context, input *lambda.ListEventSourceMappingsInput, opts ...func(*lambda.Options))) *LambdaClientPort_ListEventSourceMappings_Call {
@@ -828,9 +828,9 @@ type LambdaClientPort_ListFunctions_Call struct {
 //   - ctx context.Context
 //   - input *lambda.ListFunctionsInput
 //   - opts ...func(*lambda.Options)
-func (_e *LambdaClientPort_Expecter) ListFunctions(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_ListFunctions_Call {
+func (_e *LambdaClientPort_Expecter) ListFunctions(ctx any, input any, opts ...any) *LambdaClientPort_ListFunctions_Call {
 	return &LambdaClientPort_ListFunctions_Call{Call: _e.mock.On("ListFunctions",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *LambdaClientPort_ListFunctions_Call) Run(run func(ctx context.Context, input *lambda.ListFunctionsInput, opts ...func(*lambda.Options))) *LambdaClientPort_ListFunctions_Call {
@@ -911,9 +911,9 @@ type LambdaClientPort_UpdateFunctionCode_Call struct {
 //   - ctx context.Context
 //   - input *lambda.UpdateFunctionCodeInput
 //   - opts ...func(*lambda.Options)
-func (_e *LambdaClientPort_Expecter) UpdateFunctionCode(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_UpdateFunctionCode_Call {
+func (_e *LambdaClientPort_Expecter) UpdateFunctionCode(ctx any, input any, opts ...any) *LambdaClientPort_UpdateFunctionCode_Call {
 	return &LambdaClientPort_UpdateFunctionCode_Call{Call: _e.mock.On("UpdateFunctionCode",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *LambdaClientPort_UpdateFunctionCode_Call) Run(run func(ctx context.Context, input *lambda.UpdateFunctionCodeInput, opts ...func(*lambda.Options))) *LambdaClientPort_UpdateFunctionCode_Call {
@@ -994,9 +994,9 @@ type LambdaClientPort_UpdateFunctionConfiguration_Call struct {
 //   - ctx context.Context
 //   - input *lambda.UpdateFunctionConfigurationInput
 //   - opts ...func(*lambda.Options)
-func (_e *LambdaClientPort_Expecter) UpdateFunctionConfiguration(ctx interface{}, input interface{}, opts ...interface{}) *LambdaClientPort_UpdateFunctionConfiguration_Call {
+func (_e *LambdaClientPort_Expecter) UpdateFunctionConfiguration(ctx any, input any, opts ...any) *LambdaClientPort_UpdateFunctionConfiguration_Call {
 	return &LambdaClientPort_UpdateFunctionConfiguration_Call{Call: _e.mock.On("UpdateFunctionConfiguration",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *LambdaClientPort_UpdateFunctionConfiguration_Call) Run(run func(ctx context.Context, input *lambda.UpdateFunctionConfigurationInput, opts ...func(*lambda.Options))) *LambdaClientPort_UpdateFunctionConfiguration_Call {

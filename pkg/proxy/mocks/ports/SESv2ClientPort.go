@@ -81,9 +81,9 @@ type SESv2ClientPort_CreateContactList_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.CreateContactListInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) CreateContactList(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_CreateContactList_Call {
+func (_e *SESv2ClientPort_Expecter) CreateContactList(ctx any, input any, opts ...any) *SESv2ClientPort_CreateContactList_Call {
 	return &SESv2ClientPort_CreateContactList_Call{Call: _e.mock.On("CreateContactList",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_CreateContactList_Call) Run(run func(ctx context.Context, input *sesv2.CreateContactListInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_CreateContactList_Call {
@@ -164,9 +164,9 @@ type SESv2ClientPort_CreateEmailIdentity_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.CreateEmailIdentityInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) CreateEmailIdentity(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_CreateEmailIdentity_Call {
+func (_e *SESv2ClientPort_Expecter) CreateEmailIdentity(ctx any, input any, opts ...any) *SESv2ClientPort_CreateEmailIdentity_Call {
 	return &SESv2ClientPort_CreateEmailIdentity_Call{Call: _e.mock.On("CreateEmailIdentity",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_CreateEmailIdentity_Call) Run(run func(ctx context.Context, input *sesv2.CreateEmailIdentityInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_CreateEmailIdentity_Call {
@@ -247,9 +247,9 @@ type SESv2ClientPort_CreateEmailTemplate_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.CreateEmailTemplateInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) CreateEmailTemplate(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_CreateEmailTemplate_Call {
+func (_e *SESv2ClientPort_Expecter) CreateEmailTemplate(ctx any, input any, opts ...any) *SESv2ClientPort_CreateEmailTemplate_Call {
 	return &SESv2ClientPort_CreateEmailTemplate_Call{Call: _e.mock.On("CreateEmailTemplate",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_CreateEmailTemplate_Call) Run(run func(ctx context.Context, input *sesv2.CreateEmailTemplateInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_CreateEmailTemplate_Call {
@@ -330,9 +330,9 @@ type SESv2ClientPort_DeleteContactList_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.DeleteContactListInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) DeleteContactList(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_DeleteContactList_Call {
+func (_e *SESv2ClientPort_Expecter) DeleteContactList(ctx any, input any, opts ...any) *SESv2ClientPort_DeleteContactList_Call {
 	return &SESv2ClientPort_DeleteContactList_Call{Call: _e.mock.On("DeleteContactList",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_DeleteContactList_Call) Run(run func(ctx context.Context, input *sesv2.DeleteContactListInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_DeleteContactList_Call {
@@ -413,9 +413,9 @@ type SESv2ClientPort_DeleteEmailIdentity_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.DeleteEmailIdentityInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) DeleteEmailIdentity(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_DeleteEmailIdentity_Call {
+func (_e *SESv2ClientPort_Expecter) DeleteEmailIdentity(ctx any, input any, opts ...any) *SESv2ClientPort_DeleteEmailIdentity_Call {
 	return &SESv2ClientPort_DeleteEmailIdentity_Call{Call: _e.mock.On("DeleteEmailIdentity",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_DeleteEmailIdentity_Call) Run(run func(ctx context.Context, input *sesv2.DeleteEmailIdentityInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_DeleteEmailIdentity_Call {
@@ -496,9 +496,9 @@ type SESv2ClientPort_DeleteEmailTemplate_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.DeleteEmailTemplateInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) DeleteEmailTemplate(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_DeleteEmailTemplate_Call {
+func (_e *SESv2ClientPort_Expecter) DeleteEmailTemplate(ctx any, input any, opts ...any) *SESv2ClientPort_DeleteEmailTemplate_Call {
 	return &SESv2ClientPort_DeleteEmailTemplate_Call{Call: _e.mock.On("DeleteEmailTemplate",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_DeleteEmailTemplate_Call) Run(run func(ctx context.Context, input *sesv2.DeleteEmailTemplateInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_DeleteEmailTemplate_Call {
@@ -579,9 +579,9 @@ type SESv2ClientPort_GetAccount_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.GetAccountInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) GetAccount(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_GetAccount_Call {
+func (_e *SESv2ClientPort_Expecter) GetAccount(ctx any, input any, opts ...any) *SESv2ClientPort_GetAccount_Call {
 	return &SESv2ClientPort_GetAccount_Call{Call: _e.mock.On("GetAccount",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_GetAccount_Call) Run(run func(ctx context.Context, input *sesv2.GetAccountInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_GetAccount_Call {
@@ -662,9 +662,9 @@ type SESv2ClientPort_GetEmailIdentity_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.GetEmailIdentityInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) GetEmailIdentity(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_GetEmailIdentity_Call {
+func (_e *SESv2ClientPort_Expecter) GetEmailIdentity(ctx any, input any, opts ...any) *SESv2ClientPort_GetEmailIdentity_Call {
 	return &SESv2ClientPort_GetEmailIdentity_Call{Call: _e.mock.On("GetEmailIdentity",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_GetEmailIdentity_Call) Run(run func(ctx context.Context, input *sesv2.GetEmailIdentityInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_GetEmailIdentity_Call {
@@ -745,9 +745,9 @@ type SESv2ClientPort_GetEmailTemplate_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.GetEmailTemplateInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) GetEmailTemplate(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_GetEmailTemplate_Call {
+func (_e *SESv2ClientPort_Expecter) GetEmailTemplate(ctx any, input any, opts ...any) *SESv2ClientPort_GetEmailTemplate_Call {
 	return &SESv2ClientPort_GetEmailTemplate_Call{Call: _e.mock.On("GetEmailTemplate",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_GetEmailTemplate_Call) Run(run func(ctx context.Context, input *sesv2.GetEmailTemplateInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_GetEmailTemplate_Call {
@@ -828,9 +828,9 @@ type SESv2ClientPort_ListContactLists_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.ListContactListsInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) ListContactLists(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_ListContactLists_Call {
+func (_e *SESv2ClientPort_Expecter) ListContactLists(ctx any, input any, opts ...any) *SESv2ClientPort_ListContactLists_Call {
 	return &SESv2ClientPort_ListContactLists_Call{Call: _e.mock.On("ListContactLists",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_ListContactLists_Call) Run(run func(ctx context.Context, input *sesv2.ListContactListsInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_ListContactLists_Call {
@@ -911,9 +911,9 @@ type SESv2ClientPort_ListCustomVerificationEmailTemplates_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.ListCustomVerificationEmailTemplatesInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) ListCustomVerificationEmailTemplates(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_ListCustomVerificationEmailTemplates_Call {
+func (_e *SESv2ClientPort_Expecter) ListCustomVerificationEmailTemplates(ctx any, input any, opts ...any) *SESv2ClientPort_ListCustomVerificationEmailTemplates_Call {
 	return &SESv2ClientPort_ListCustomVerificationEmailTemplates_Call{Call: _e.mock.On("ListCustomVerificationEmailTemplates",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_ListCustomVerificationEmailTemplates_Call) Run(run func(ctx context.Context, input *sesv2.ListCustomVerificationEmailTemplatesInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_ListCustomVerificationEmailTemplates_Call {
@@ -994,9 +994,9 @@ type SESv2ClientPort_ListEmailIdentities_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.ListEmailIdentitiesInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) ListEmailIdentities(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_ListEmailIdentities_Call {
+func (_e *SESv2ClientPort_Expecter) ListEmailIdentities(ctx any, input any, opts ...any) *SESv2ClientPort_ListEmailIdentities_Call {
 	return &SESv2ClientPort_ListEmailIdentities_Call{Call: _e.mock.On("ListEmailIdentities",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_ListEmailIdentities_Call) Run(run func(ctx context.Context, input *sesv2.ListEmailIdentitiesInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_ListEmailIdentities_Call {
@@ -1077,9 +1077,9 @@ type SESv2ClientPort_ListEmailTemplates_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.ListEmailTemplatesInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) ListEmailTemplates(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_ListEmailTemplates_Call {
+func (_e *SESv2ClientPort_Expecter) ListEmailTemplates(ctx any, input any, opts ...any) *SESv2ClientPort_ListEmailTemplates_Call {
 	return &SESv2ClientPort_ListEmailTemplates_Call{Call: _e.mock.On("ListEmailTemplates",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_ListEmailTemplates_Call) Run(run func(ctx context.Context, input *sesv2.ListEmailTemplatesInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_ListEmailTemplates_Call {
@@ -1160,9 +1160,9 @@ type SESv2ClientPort_ListSuppressedDestinations_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.ListSuppressedDestinationsInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) ListSuppressedDestinations(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_ListSuppressedDestinations_Call {
+func (_e *SESv2ClientPort_Expecter) ListSuppressedDestinations(ctx any, input any, opts ...any) *SESv2ClientPort_ListSuppressedDestinations_Call {
 	return &SESv2ClientPort_ListSuppressedDestinations_Call{Call: _e.mock.On("ListSuppressedDestinations",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_ListSuppressedDestinations_Call) Run(run func(ctx context.Context, input *sesv2.ListSuppressedDestinationsInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_ListSuppressedDestinations_Call {
@@ -1243,9 +1243,9 @@ type SESv2ClientPort_PutAccountSuppressionAttributes_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.PutAccountSuppressionAttributesInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) PutAccountSuppressionAttributes(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_PutAccountSuppressionAttributes_Call {
+func (_e *SESv2ClientPort_Expecter) PutAccountSuppressionAttributes(ctx any, input any, opts ...any) *SESv2ClientPort_PutAccountSuppressionAttributes_Call {
 	return &SESv2ClientPort_PutAccountSuppressionAttributes_Call{Call: _e.mock.On("PutAccountSuppressionAttributes",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_PutAccountSuppressionAttributes_Call) Run(run func(ctx context.Context, input *sesv2.PutAccountSuppressionAttributesInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_PutAccountSuppressionAttributes_Call {
@@ -1326,9 +1326,9 @@ type SESv2ClientPort_SendBulkEmail_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.SendBulkEmailInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) SendBulkEmail(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_SendBulkEmail_Call {
+func (_e *SESv2ClientPort_Expecter) SendBulkEmail(ctx any, input any, opts ...any) *SESv2ClientPort_SendBulkEmail_Call {
 	return &SESv2ClientPort_SendBulkEmail_Call{Call: _e.mock.On("SendBulkEmail",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_SendBulkEmail_Call) Run(run func(ctx context.Context, input *sesv2.SendBulkEmailInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_SendBulkEmail_Call {
@@ -1409,9 +1409,9 @@ type SESv2ClientPort_SendEmail_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.SendEmailInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) SendEmail(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_SendEmail_Call {
+func (_e *SESv2ClientPort_Expecter) SendEmail(ctx any, input any, opts ...any) *SESv2ClientPort_SendEmail_Call {
 	return &SESv2ClientPort_SendEmail_Call{Call: _e.mock.On("SendEmail",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_SendEmail_Call) Run(run func(ctx context.Context, input *sesv2.SendEmailInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_SendEmail_Call {
@@ -1492,9 +1492,9 @@ type SESv2ClientPort_UpdateEmailTemplate_Call struct {
 //   - ctx context.Context
 //   - input *sesv2.UpdateEmailTemplateInput
 //   - opts ...func(*sesv2.Options)
-func (_e *SESv2ClientPort_Expecter) UpdateEmailTemplate(ctx interface{}, input interface{}, opts ...interface{}) *SESv2ClientPort_UpdateEmailTemplate_Call {
+func (_e *SESv2ClientPort_Expecter) UpdateEmailTemplate(ctx any, input any, opts ...any) *SESv2ClientPort_UpdateEmailTemplate_Call {
 	return &SESv2ClientPort_UpdateEmailTemplate_Call{Call: _e.mock.On("UpdateEmailTemplate",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *SESv2ClientPort_UpdateEmailTemplate_Call) Run(run func(ctx context.Context, input *sesv2.UpdateEmailTemplateInput, opts ...func(*sesv2.Options))) *SESv2ClientPort_UpdateEmailTemplate_Call {

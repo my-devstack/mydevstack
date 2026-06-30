@@ -74,7 +74,7 @@ type IAMPort_AddUserToGroup_Call struct {
 // AddUserToGroup is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.AddUserToGroupInput
-func (_e *IAMPort_Expecter) AddUserToGroup(ctx interface{}, input interface{}) *IAMPort_AddUserToGroup_Call {
+func (_e *IAMPort_Expecter) AddUserToGroup(ctx any, input any) *IAMPort_AddUserToGroup_Call {
 	return &IAMPort_AddUserToGroup_Call{Call: _e.mock.On("AddUserToGroup", ctx, input)}
 }
 
@@ -142,7 +142,7 @@ type IAMPort_AttachRolePolicy_Call struct {
 // AttachRolePolicy is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.AttachRolePolicyInput
-func (_e *IAMPort_Expecter) AttachRolePolicy(ctx interface{}, input interface{}) *IAMPort_AttachRolePolicy_Call {
+func (_e *IAMPort_Expecter) AttachRolePolicy(ctx any, input any) *IAMPort_AttachRolePolicy_Call {
 	return &IAMPort_AttachRolePolicy_Call{Call: _e.mock.On("AttachRolePolicy", ctx, input)}
 }
 
@@ -210,7 +210,7 @@ type IAMPort_CreateAccessKey_Call struct {
 // CreateAccessKey is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.CreateAccessKeyInput
-func (_e *IAMPort_Expecter) CreateAccessKey(ctx interface{}, input interface{}) *IAMPort_CreateAccessKey_Call {
+func (_e *IAMPort_Expecter) CreateAccessKey(ctx any, input any) *IAMPort_CreateAccessKey_Call {
 	return &IAMPort_CreateAccessKey_Call{Call: _e.mock.On("CreateAccessKey", ctx, input)}
 }
 
@@ -278,7 +278,7 @@ type IAMPort_CreateGroup_Call struct {
 // CreateGroup is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.CreateGroupInput
-func (_e *IAMPort_Expecter) CreateGroup(ctx interface{}, input interface{}) *IAMPort_CreateGroup_Call {
+func (_e *IAMPort_Expecter) CreateGroup(ctx any, input any) *IAMPort_CreateGroup_Call {
 	return &IAMPort_CreateGroup_Call{Call: _e.mock.On("CreateGroup", ctx, input)}
 }
 
@@ -346,7 +346,7 @@ type IAMPort_CreatePolicy_Call struct {
 // CreatePolicy is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.CreatePolicyInput
-func (_e *IAMPort_Expecter) CreatePolicy(ctx interface{}, input interface{}) *IAMPort_CreatePolicy_Call {
+func (_e *IAMPort_Expecter) CreatePolicy(ctx any, input any) *IAMPort_CreatePolicy_Call {
 	return &IAMPort_CreatePolicy_Call{Call: _e.mock.On("CreatePolicy", ctx, input)}
 }
 
@@ -414,7 +414,7 @@ type IAMPort_CreateRole_Call struct {
 // CreateRole is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.CreateRoleInput
-func (_e *IAMPort_Expecter) CreateRole(ctx interface{}, input interface{}) *IAMPort_CreateRole_Call {
+func (_e *IAMPort_Expecter) CreateRole(ctx any, input any) *IAMPort_CreateRole_Call {
 	return &IAMPort_CreateRole_Call{Call: _e.mock.On("CreateRole", ctx, input)}
 }
 
@@ -482,7 +482,7 @@ type IAMPort_CreateUser_Call struct {
 // CreateUser is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.CreateUserInput
-func (_e *IAMPort_Expecter) CreateUser(ctx interface{}, input interface{}) *IAMPort_CreateUser_Call {
+func (_e *IAMPort_Expecter) CreateUser(ctx any, input any) *IAMPort_CreateUser_Call {
 	return &IAMPort_CreateUser_Call{Call: _e.mock.On("CreateUser", ctx, input)}
 }
 
@@ -550,7 +550,7 @@ type IAMPort_DeleteAccessKey_Call struct {
 // DeleteAccessKey is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.DeleteAccessKeyInput
-func (_e *IAMPort_Expecter) DeleteAccessKey(ctx interface{}, input interface{}) *IAMPort_DeleteAccessKey_Call {
+func (_e *IAMPort_Expecter) DeleteAccessKey(ctx any, input any) *IAMPort_DeleteAccessKey_Call {
 	return &IAMPort_DeleteAccessKey_Call{Call: _e.mock.On("DeleteAccessKey", ctx, input)}
 }
 
@@ -618,7 +618,7 @@ type IAMPort_DeleteGroup_Call struct {
 // DeleteGroup is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.DeleteGroupInput
-func (_e *IAMPort_Expecter) DeleteGroup(ctx interface{}, input interface{}) *IAMPort_DeleteGroup_Call {
+func (_e *IAMPort_Expecter) DeleteGroup(ctx any, input any) *IAMPort_DeleteGroup_Call {
 	return &IAMPort_DeleteGroup_Call{Call: _e.mock.On("DeleteGroup", ctx, input)}
 }
 
@@ -686,7 +686,7 @@ type IAMPort_DeletePolicy_Call struct {
 // DeletePolicy is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.DeletePolicyInput
-func (_e *IAMPort_Expecter) DeletePolicy(ctx interface{}, input interface{}) *IAMPort_DeletePolicy_Call {
+func (_e *IAMPort_Expecter) DeletePolicy(ctx any, input any) *IAMPort_DeletePolicy_Call {
 	return &IAMPort_DeletePolicy_Call{Call: _e.mock.On("DeletePolicy", ctx, input)}
 }
 
@@ -754,7 +754,7 @@ type IAMPort_DeleteRole_Call struct {
 // DeleteRole is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.DeleteRoleInput
-func (_e *IAMPort_Expecter) DeleteRole(ctx interface{}, input interface{}) *IAMPort_DeleteRole_Call {
+func (_e *IAMPort_Expecter) DeleteRole(ctx any, input any) *IAMPort_DeleteRole_Call {
 	return &IAMPort_DeleteRole_Call{Call: _e.mock.On("DeleteRole", ctx, input)}
 }
 
@@ -822,7 +822,7 @@ type IAMPort_DeleteUser_Call struct {
 // DeleteUser is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.DeleteUserInput
-func (_e *IAMPort_Expecter) DeleteUser(ctx interface{}, input interface{}) *IAMPort_DeleteUser_Call {
+func (_e *IAMPort_Expecter) DeleteUser(ctx any, input any) *IAMPort_DeleteUser_Call {
 	return &IAMPort_DeleteUser_Call{Call: _e.mock.On("DeleteUser", ctx, input)}
 }
 
@@ -890,7 +890,7 @@ type IAMPort_DetachRolePolicy_Call struct {
 // DetachRolePolicy is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.DetachRolePolicyInput
-func (_e *IAMPort_Expecter) DetachRolePolicy(ctx interface{}, input interface{}) *IAMPort_DetachRolePolicy_Call {
+func (_e *IAMPort_Expecter) DetachRolePolicy(ctx any, input any) *IAMPort_DetachRolePolicy_Call {
 	return &IAMPort_DetachRolePolicy_Call{Call: _e.mock.On("DetachRolePolicy", ctx, input)}
 }
 
@@ -958,7 +958,7 @@ type IAMPort_GetGroup_Call struct {
 // GetGroup is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.GetGroupInput
-func (_e *IAMPort_Expecter) GetGroup(ctx interface{}, input interface{}) *IAMPort_GetGroup_Call {
+func (_e *IAMPort_Expecter) GetGroup(ctx any, input any) *IAMPort_GetGroup_Call {
 	return &IAMPort_GetGroup_Call{Call: _e.mock.On("GetGroup", ctx, input)}
 }
 
@@ -1026,7 +1026,7 @@ type IAMPort_GetPolicy_Call struct {
 // GetPolicy is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.GetPolicyInput
-func (_e *IAMPort_Expecter) GetPolicy(ctx interface{}, input interface{}) *IAMPort_GetPolicy_Call {
+func (_e *IAMPort_Expecter) GetPolicy(ctx any, input any) *IAMPort_GetPolicy_Call {
 	return &IAMPort_GetPolicy_Call{Call: _e.mock.On("GetPolicy", ctx, input)}
 }
 
@@ -1094,7 +1094,7 @@ type IAMPort_GetRole_Call struct {
 // GetRole is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.GetRoleInput
-func (_e *IAMPort_Expecter) GetRole(ctx interface{}, input interface{}) *IAMPort_GetRole_Call {
+func (_e *IAMPort_Expecter) GetRole(ctx any, input any) *IAMPort_GetRole_Call {
 	return &IAMPort_GetRole_Call{Call: _e.mock.On("GetRole", ctx, input)}
 }
 
@@ -1162,7 +1162,7 @@ type IAMPort_GetRolePolicy_Call struct {
 // GetRolePolicy is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.GetRolePolicyInput
-func (_e *IAMPort_Expecter) GetRolePolicy(ctx interface{}, input interface{}) *IAMPort_GetRolePolicy_Call {
+func (_e *IAMPort_Expecter) GetRolePolicy(ctx any, input any) *IAMPort_GetRolePolicy_Call {
 	return &IAMPort_GetRolePolicy_Call{Call: _e.mock.On("GetRolePolicy", ctx, input)}
 }
 
@@ -1230,7 +1230,7 @@ type IAMPort_GetUser_Call struct {
 // GetUser is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.GetUserInput
-func (_e *IAMPort_Expecter) GetUser(ctx interface{}, input interface{}) *IAMPort_GetUser_Call {
+func (_e *IAMPort_Expecter) GetUser(ctx any, input any) *IAMPort_GetUser_Call {
 	return &IAMPort_GetUser_Call{Call: _e.mock.On("GetUser", ctx, input)}
 }
 
@@ -1298,7 +1298,7 @@ type IAMPort_ListAccessKeys_Call struct {
 // ListAccessKeys is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.ListAccessKeysInput
-func (_e *IAMPort_Expecter) ListAccessKeys(ctx interface{}, input interface{}) *IAMPort_ListAccessKeys_Call {
+func (_e *IAMPort_Expecter) ListAccessKeys(ctx any, input any) *IAMPort_ListAccessKeys_Call {
 	return &IAMPort_ListAccessKeys_Call{Call: _e.mock.On("ListAccessKeys", ctx, input)}
 }
 
@@ -1366,7 +1366,7 @@ type IAMPort_ListAttachedRolePolicies_Call struct {
 // ListAttachedRolePolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.ListAttachedRolePoliciesInput
-func (_e *IAMPort_Expecter) ListAttachedRolePolicies(ctx interface{}, input interface{}) *IAMPort_ListAttachedRolePolicies_Call {
+func (_e *IAMPort_Expecter) ListAttachedRolePolicies(ctx any, input any) *IAMPort_ListAttachedRolePolicies_Call {
 	return &IAMPort_ListAttachedRolePolicies_Call{Call: _e.mock.On("ListAttachedRolePolicies", ctx, input)}
 }
 
@@ -1434,7 +1434,7 @@ type IAMPort_ListGroups_Call struct {
 // ListGroups is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.ListGroupsInput
-func (_e *IAMPort_Expecter) ListGroups(ctx interface{}, input interface{}) *IAMPort_ListGroups_Call {
+func (_e *IAMPort_Expecter) ListGroups(ctx any, input any) *IAMPort_ListGroups_Call {
 	return &IAMPort_ListGroups_Call{Call: _e.mock.On("ListGroups", ctx, input)}
 }
 
@@ -1502,7 +1502,7 @@ type IAMPort_ListGroupsForUser_Call struct {
 // ListGroupsForUser is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.ListGroupsForUserInput
-func (_e *IAMPort_Expecter) ListGroupsForUser(ctx interface{}, input interface{}) *IAMPort_ListGroupsForUser_Call {
+func (_e *IAMPort_Expecter) ListGroupsForUser(ctx any, input any) *IAMPort_ListGroupsForUser_Call {
 	return &IAMPort_ListGroupsForUser_Call{Call: _e.mock.On("ListGroupsForUser", ctx, input)}
 }
 
@@ -1570,7 +1570,7 @@ type IAMPort_ListPolicies_Call struct {
 // ListPolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.ListPoliciesInput
-func (_e *IAMPort_Expecter) ListPolicies(ctx interface{}, input interface{}) *IAMPort_ListPolicies_Call {
+func (_e *IAMPort_Expecter) ListPolicies(ctx any, input any) *IAMPort_ListPolicies_Call {
 	return &IAMPort_ListPolicies_Call{Call: _e.mock.On("ListPolicies", ctx, input)}
 }
 
@@ -1638,7 +1638,7 @@ type IAMPort_ListRolePolicies_Call struct {
 // ListRolePolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.ListRolePoliciesInput
-func (_e *IAMPort_Expecter) ListRolePolicies(ctx interface{}, input interface{}) *IAMPort_ListRolePolicies_Call {
+func (_e *IAMPort_Expecter) ListRolePolicies(ctx any, input any) *IAMPort_ListRolePolicies_Call {
 	return &IAMPort_ListRolePolicies_Call{Call: _e.mock.On("ListRolePolicies", ctx, input)}
 }
 
@@ -1706,7 +1706,7 @@ type IAMPort_ListRoles_Call struct {
 // ListRoles is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.ListRolesInput
-func (_e *IAMPort_Expecter) ListRoles(ctx interface{}, input interface{}) *IAMPort_ListRoles_Call {
+func (_e *IAMPort_Expecter) ListRoles(ctx any, input any) *IAMPort_ListRoles_Call {
 	return &IAMPort_ListRoles_Call{Call: _e.mock.On("ListRoles", ctx, input)}
 }
 
@@ -1774,7 +1774,7 @@ type IAMPort_ListUserPolicies_Call struct {
 // ListUserPolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.ListUserPoliciesInput
-func (_e *IAMPort_Expecter) ListUserPolicies(ctx interface{}, input interface{}) *IAMPort_ListUserPolicies_Call {
+func (_e *IAMPort_Expecter) ListUserPolicies(ctx any, input any) *IAMPort_ListUserPolicies_Call {
 	return &IAMPort_ListUserPolicies_Call{Call: _e.mock.On("ListUserPolicies", ctx, input)}
 }
 
@@ -1842,7 +1842,7 @@ type IAMPort_ListUsers_Call struct {
 // ListUsers is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.ListUsersInput
-func (_e *IAMPort_Expecter) ListUsers(ctx interface{}, input interface{}) *IAMPort_ListUsers_Call {
+func (_e *IAMPort_Expecter) ListUsers(ctx any, input any) *IAMPort_ListUsers_Call {
 	return &IAMPort_ListUsers_Call{Call: _e.mock.On("ListUsers", ctx, input)}
 }
 
@@ -1910,7 +1910,7 @@ type IAMPort_RemoveUserFromGroup_Call struct {
 // RemoveUserFromGroup is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.RemoveUserFromGroupInput
-func (_e *IAMPort_Expecter) RemoveUserFromGroup(ctx interface{}, input interface{}) *IAMPort_RemoveUserFromGroup_Call {
+func (_e *IAMPort_Expecter) RemoveUserFromGroup(ctx any, input any) *IAMPort_RemoveUserFromGroup_Call {
 	return &IAMPort_RemoveUserFromGroup_Call{Call: _e.mock.On("RemoveUserFromGroup", ctx, input)}
 }
 
@@ -1978,7 +1978,7 @@ type IAMPort_UpdateAccessKeyStatus_Call struct {
 // UpdateAccessKeyStatus is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input *iam.UpdateAccessKeyInput
-func (_e *IAMPort_Expecter) UpdateAccessKeyStatus(ctx interface{}, input interface{}) *IAMPort_UpdateAccessKeyStatus_Call {
+func (_e *IAMPort_Expecter) UpdateAccessKeyStatus(ctx any, input any) *IAMPort_UpdateAccessKeyStatus_Call {
 	return &IAMPort_UpdateAccessKeyStatus_Call{Call: _e.mock.On("UpdateAccessKeyStatus", ctx, input)}
 }
 

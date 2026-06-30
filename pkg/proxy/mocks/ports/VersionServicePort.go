@@ -149,7 +149,7 @@ type VersionServicePort_StartScheduler_Call struct {
 // StartScheduler is a helper method to define mock.On call
 //   - context1 context.Context
 //   - ticker *time.Ticker
-func (_e *VersionServicePort_Expecter) StartScheduler(context1 interface{}, ticker interface{}) *VersionServicePort_StartScheduler_Call {
+func (_e *VersionServicePort_Expecter) StartScheduler(context1 any, ticker any) *VersionServicePort_StartScheduler_Call {
 	return &VersionServicePort_StartScheduler_Call{Call: _e.mock.On("StartScheduler", context1, ticker)}
 }
 

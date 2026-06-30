@@ -81,9 +81,9 @@ type MSKClientPort_CreateClusterV2_Call struct {
 //   - ctx context.Context
 //   - input *kafka.CreateClusterV2Input
 //   - opts ...func(*kafka.Options)
-func (_e *MSKClientPort_Expecter) CreateClusterV2(ctx interface{}, input interface{}, opts ...interface{}) *MSKClientPort_CreateClusterV2_Call {
+func (_e *MSKClientPort_Expecter) CreateClusterV2(ctx any, input any, opts ...any) *MSKClientPort_CreateClusterV2_Call {
 	return &MSKClientPort_CreateClusterV2_Call{Call: _e.mock.On("CreateClusterV2",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *MSKClientPort_CreateClusterV2_Call) Run(run func(ctx context.Context, input *kafka.CreateClusterV2Input, opts ...func(*kafka.Options))) *MSKClientPort_CreateClusterV2_Call {
@@ -164,9 +164,9 @@ type MSKClientPort_DeleteCluster_Call struct {
 //   - ctx context.Context
 //   - input *kafka.DeleteClusterInput
 //   - opts ...func(*kafka.Options)
-func (_e *MSKClientPort_Expecter) DeleteCluster(ctx interface{}, input interface{}, opts ...interface{}) *MSKClientPort_DeleteCluster_Call {
+func (_e *MSKClientPort_Expecter) DeleteCluster(ctx any, input any, opts ...any) *MSKClientPort_DeleteCluster_Call {
 	return &MSKClientPort_DeleteCluster_Call{Call: _e.mock.On("DeleteCluster",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *MSKClientPort_DeleteCluster_Call) Run(run func(ctx context.Context, input *kafka.DeleteClusterInput, opts ...func(*kafka.Options))) *MSKClientPort_DeleteCluster_Call {
@@ -247,9 +247,9 @@ type MSKClientPort_DescribeClusterV2_Call struct {
 //   - ctx context.Context
 //   - input *kafka.DescribeClusterV2Input
 //   - opts ...func(*kafka.Options)
-func (_e *MSKClientPort_Expecter) DescribeClusterV2(ctx interface{}, input interface{}, opts ...interface{}) *MSKClientPort_DescribeClusterV2_Call {
+func (_e *MSKClientPort_Expecter) DescribeClusterV2(ctx any, input any, opts ...any) *MSKClientPort_DescribeClusterV2_Call {
 	return &MSKClientPort_DescribeClusterV2_Call{Call: _e.mock.On("DescribeClusterV2",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *MSKClientPort_DescribeClusterV2_Call) Run(run func(ctx context.Context, input *kafka.DescribeClusterV2Input, opts ...func(*kafka.Options))) *MSKClientPort_DescribeClusterV2_Call {
@@ -330,9 +330,9 @@ type MSKClientPort_GetBootstrapBrokers_Call struct {
 //   - ctx context.Context
 //   - input *kafka.GetBootstrapBrokersInput
 //   - opts ...func(*kafka.Options)
-func (_e *MSKClientPort_Expecter) GetBootstrapBrokers(ctx interface{}, input interface{}, opts ...interface{}) *MSKClientPort_GetBootstrapBrokers_Call {
+func (_e *MSKClientPort_Expecter) GetBootstrapBrokers(ctx any, input any, opts ...any) *MSKClientPort_GetBootstrapBrokers_Call {
 	return &MSKClientPort_GetBootstrapBrokers_Call{Call: _e.mock.On("GetBootstrapBrokers",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *MSKClientPort_GetBootstrapBrokers_Call) Run(run func(ctx context.Context, input *kafka.GetBootstrapBrokersInput, opts ...func(*kafka.Options))) *MSKClientPort_GetBootstrapBrokers_Call {
@@ -413,9 +413,9 @@ type MSKClientPort_ListClustersV2_Call struct {
 //   - ctx context.Context
 //   - input *kafka.ListClustersV2Input
 //   - opts ...func(*kafka.Options)
-func (_e *MSKClientPort_Expecter) ListClustersV2(ctx interface{}, input interface{}, opts ...interface{}) *MSKClientPort_ListClustersV2_Call {
+func (_e *MSKClientPort_Expecter) ListClustersV2(ctx any, input any, opts ...any) *MSKClientPort_ListClustersV2_Call {
 	return &MSKClientPort_ListClustersV2_Call{Call: _e.mock.On("ListClustersV2",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *MSKClientPort_ListClustersV2_Call) Run(run func(ctx context.Context, input *kafka.ListClustersV2Input, opts ...func(*kafka.Options))) *MSKClientPort_ListClustersV2_Call {

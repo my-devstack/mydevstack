@@ -81,9 +81,9 @@ type IAMClientPort_AddUserToGroup_Call struct {
 //   - ctx context.Context
 //   - input *iam.AddUserToGroupInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) AddUserToGroup(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_AddUserToGroup_Call {
+func (_e *IAMClientPort_Expecter) AddUserToGroup(ctx any, input any, opts ...any) *IAMClientPort_AddUserToGroup_Call {
 	return &IAMClientPort_AddUserToGroup_Call{Call: _e.mock.On("AddUserToGroup",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_AddUserToGroup_Call) Run(run func(ctx context.Context, input *iam.AddUserToGroupInput, opts ...func(*iam.Options))) *IAMClientPort_AddUserToGroup_Call {
@@ -164,9 +164,9 @@ type IAMClientPort_AttachRolePolicy_Call struct {
 //   - ctx context.Context
 //   - input *iam.AttachRolePolicyInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) AttachRolePolicy(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_AttachRolePolicy_Call {
+func (_e *IAMClientPort_Expecter) AttachRolePolicy(ctx any, input any, opts ...any) *IAMClientPort_AttachRolePolicy_Call {
 	return &IAMClientPort_AttachRolePolicy_Call{Call: _e.mock.On("AttachRolePolicy",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_AttachRolePolicy_Call) Run(run func(ctx context.Context, input *iam.AttachRolePolicyInput, opts ...func(*iam.Options))) *IAMClientPort_AttachRolePolicy_Call {
@@ -247,9 +247,9 @@ type IAMClientPort_CreateAccessKey_Call struct {
 //   - ctx context.Context
 //   - input *iam.CreateAccessKeyInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) CreateAccessKey(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_CreateAccessKey_Call {
+func (_e *IAMClientPort_Expecter) CreateAccessKey(ctx any, input any, opts ...any) *IAMClientPort_CreateAccessKey_Call {
 	return &IAMClientPort_CreateAccessKey_Call{Call: _e.mock.On("CreateAccessKey",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_CreateAccessKey_Call) Run(run func(ctx context.Context, input *iam.CreateAccessKeyInput, opts ...func(*iam.Options))) *IAMClientPort_CreateAccessKey_Call {
@@ -330,9 +330,9 @@ type IAMClientPort_CreateGroup_Call struct {
 //   - ctx context.Context
 //   - input *iam.CreateGroupInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) CreateGroup(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_CreateGroup_Call {
+func (_e *IAMClientPort_Expecter) CreateGroup(ctx any, input any, opts ...any) *IAMClientPort_CreateGroup_Call {
 	return &IAMClientPort_CreateGroup_Call{Call: _e.mock.On("CreateGroup",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_CreateGroup_Call) Run(run func(ctx context.Context, input *iam.CreateGroupInput, opts ...func(*iam.Options))) *IAMClientPort_CreateGroup_Call {
@@ -413,9 +413,9 @@ type IAMClientPort_CreatePolicy_Call struct {
 //   - ctx context.Context
 //   - input *iam.CreatePolicyInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) CreatePolicy(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_CreatePolicy_Call {
+func (_e *IAMClientPort_Expecter) CreatePolicy(ctx any, input any, opts ...any) *IAMClientPort_CreatePolicy_Call {
 	return &IAMClientPort_CreatePolicy_Call{Call: _e.mock.On("CreatePolicy",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_CreatePolicy_Call) Run(run func(ctx context.Context, input *iam.CreatePolicyInput, opts ...func(*iam.Options))) *IAMClientPort_CreatePolicy_Call {
@@ -496,9 +496,9 @@ type IAMClientPort_CreateRole_Call struct {
 //   - ctx context.Context
 //   - input *iam.CreateRoleInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) CreateRole(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_CreateRole_Call {
+func (_e *IAMClientPort_Expecter) CreateRole(ctx any, input any, opts ...any) *IAMClientPort_CreateRole_Call {
 	return &IAMClientPort_CreateRole_Call{Call: _e.mock.On("CreateRole",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_CreateRole_Call) Run(run func(ctx context.Context, input *iam.CreateRoleInput, opts ...func(*iam.Options))) *IAMClientPort_CreateRole_Call {
@@ -579,9 +579,9 @@ type IAMClientPort_CreateUser_Call struct {
 //   - ctx context.Context
 //   - input *iam.CreateUserInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) CreateUser(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_CreateUser_Call {
+func (_e *IAMClientPort_Expecter) CreateUser(ctx any, input any, opts ...any) *IAMClientPort_CreateUser_Call {
 	return &IAMClientPort_CreateUser_Call{Call: _e.mock.On("CreateUser",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_CreateUser_Call) Run(run func(ctx context.Context, input *iam.CreateUserInput, opts ...func(*iam.Options))) *IAMClientPort_CreateUser_Call {
@@ -662,9 +662,9 @@ type IAMClientPort_DeleteAccessKey_Call struct {
 //   - ctx context.Context
 //   - input *iam.DeleteAccessKeyInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) DeleteAccessKey(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_DeleteAccessKey_Call {
+func (_e *IAMClientPort_Expecter) DeleteAccessKey(ctx any, input any, opts ...any) *IAMClientPort_DeleteAccessKey_Call {
 	return &IAMClientPort_DeleteAccessKey_Call{Call: _e.mock.On("DeleteAccessKey",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_DeleteAccessKey_Call) Run(run func(ctx context.Context, input *iam.DeleteAccessKeyInput, opts ...func(*iam.Options))) *IAMClientPort_DeleteAccessKey_Call {
@@ -745,9 +745,9 @@ type IAMClientPort_DeleteGroup_Call struct {
 //   - ctx context.Context
 //   - input *iam.DeleteGroupInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) DeleteGroup(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_DeleteGroup_Call {
+func (_e *IAMClientPort_Expecter) DeleteGroup(ctx any, input any, opts ...any) *IAMClientPort_DeleteGroup_Call {
 	return &IAMClientPort_DeleteGroup_Call{Call: _e.mock.On("DeleteGroup",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_DeleteGroup_Call) Run(run func(ctx context.Context, input *iam.DeleteGroupInput, opts ...func(*iam.Options))) *IAMClientPort_DeleteGroup_Call {
@@ -828,9 +828,9 @@ type IAMClientPort_DeletePolicy_Call struct {
 //   - ctx context.Context
 //   - input *iam.DeletePolicyInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) DeletePolicy(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_DeletePolicy_Call {
+func (_e *IAMClientPort_Expecter) DeletePolicy(ctx any, input any, opts ...any) *IAMClientPort_DeletePolicy_Call {
 	return &IAMClientPort_DeletePolicy_Call{Call: _e.mock.On("DeletePolicy",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_DeletePolicy_Call) Run(run func(ctx context.Context, input *iam.DeletePolicyInput, opts ...func(*iam.Options))) *IAMClientPort_DeletePolicy_Call {
@@ -911,9 +911,9 @@ type IAMClientPort_DeleteRole_Call struct {
 //   - ctx context.Context
 //   - input *iam.DeleteRoleInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) DeleteRole(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_DeleteRole_Call {
+func (_e *IAMClientPort_Expecter) DeleteRole(ctx any, input any, opts ...any) *IAMClientPort_DeleteRole_Call {
 	return &IAMClientPort_DeleteRole_Call{Call: _e.mock.On("DeleteRole",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_DeleteRole_Call) Run(run func(ctx context.Context, input *iam.DeleteRoleInput, opts ...func(*iam.Options))) *IAMClientPort_DeleteRole_Call {
@@ -994,9 +994,9 @@ type IAMClientPort_DeleteUser_Call struct {
 //   - ctx context.Context
 //   - input *iam.DeleteUserInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) DeleteUser(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_DeleteUser_Call {
+func (_e *IAMClientPort_Expecter) DeleteUser(ctx any, input any, opts ...any) *IAMClientPort_DeleteUser_Call {
 	return &IAMClientPort_DeleteUser_Call{Call: _e.mock.On("DeleteUser",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_DeleteUser_Call) Run(run func(ctx context.Context, input *iam.DeleteUserInput, opts ...func(*iam.Options))) *IAMClientPort_DeleteUser_Call {
@@ -1077,9 +1077,9 @@ type IAMClientPort_DetachRolePolicy_Call struct {
 //   - ctx context.Context
 //   - input *iam.DetachRolePolicyInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) DetachRolePolicy(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_DetachRolePolicy_Call {
+func (_e *IAMClientPort_Expecter) DetachRolePolicy(ctx any, input any, opts ...any) *IAMClientPort_DetachRolePolicy_Call {
 	return &IAMClientPort_DetachRolePolicy_Call{Call: _e.mock.On("DetachRolePolicy",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_DetachRolePolicy_Call) Run(run func(ctx context.Context, input *iam.DetachRolePolicyInput, opts ...func(*iam.Options))) *IAMClientPort_DetachRolePolicy_Call {
@@ -1160,9 +1160,9 @@ type IAMClientPort_GetGroup_Call struct {
 //   - ctx context.Context
 //   - input *iam.GetGroupInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) GetGroup(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_GetGroup_Call {
+func (_e *IAMClientPort_Expecter) GetGroup(ctx any, input any, opts ...any) *IAMClientPort_GetGroup_Call {
 	return &IAMClientPort_GetGroup_Call{Call: _e.mock.On("GetGroup",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_GetGroup_Call) Run(run func(ctx context.Context, input *iam.GetGroupInput, opts ...func(*iam.Options))) *IAMClientPort_GetGroup_Call {
@@ -1243,9 +1243,9 @@ type IAMClientPort_GetPolicy_Call struct {
 //   - ctx context.Context
 //   - input *iam.GetPolicyInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) GetPolicy(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_GetPolicy_Call {
+func (_e *IAMClientPort_Expecter) GetPolicy(ctx any, input any, opts ...any) *IAMClientPort_GetPolicy_Call {
 	return &IAMClientPort_GetPolicy_Call{Call: _e.mock.On("GetPolicy",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_GetPolicy_Call) Run(run func(ctx context.Context, input *iam.GetPolicyInput, opts ...func(*iam.Options))) *IAMClientPort_GetPolicy_Call {
@@ -1326,9 +1326,9 @@ type IAMClientPort_GetRole_Call struct {
 //   - ctx context.Context
 //   - input *iam.GetRoleInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) GetRole(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_GetRole_Call {
+func (_e *IAMClientPort_Expecter) GetRole(ctx any, input any, opts ...any) *IAMClientPort_GetRole_Call {
 	return &IAMClientPort_GetRole_Call{Call: _e.mock.On("GetRole",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_GetRole_Call) Run(run func(ctx context.Context, input *iam.GetRoleInput, opts ...func(*iam.Options))) *IAMClientPort_GetRole_Call {
@@ -1409,9 +1409,9 @@ type IAMClientPort_GetRolePolicy_Call struct {
 //   - ctx context.Context
 //   - input *iam.GetRolePolicyInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) GetRolePolicy(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_GetRolePolicy_Call {
+func (_e *IAMClientPort_Expecter) GetRolePolicy(ctx any, input any, opts ...any) *IAMClientPort_GetRolePolicy_Call {
 	return &IAMClientPort_GetRolePolicy_Call{Call: _e.mock.On("GetRolePolicy",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_GetRolePolicy_Call) Run(run func(ctx context.Context, input *iam.GetRolePolicyInput, opts ...func(*iam.Options))) *IAMClientPort_GetRolePolicy_Call {
@@ -1492,9 +1492,9 @@ type IAMClientPort_GetUser_Call struct {
 //   - ctx context.Context
 //   - input *iam.GetUserInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) GetUser(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_GetUser_Call {
+func (_e *IAMClientPort_Expecter) GetUser(ctx any, input any, opts ...any) *IAMClientPort_GetUser_Call {
 	return &IAMClientPort_GetUser_Call{Call: _e.mock.On("GetUser",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_GetUser_Call) Run(run func(ctx context.Context, input *iam.GetUserInput, opts ...func(*iam.Options))) *IAMClientPort_GetUser_Call {
@@ -1575,9 +1575,9 @@ type IAMClientPort_ListAccessKeys_Call struct {
 //   - ctx context.Context
 //   - input *iam.ListAccessKeysInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) ListAccessKeys(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_ListAccessKeys_Call {
+func (_e *IAMClientPort_Expecter) ListAccessKeys(ctx any, input any, opts ...any) *IAMClientPort_ListAccessKeys_Call {
 	return &IAMClientPort_ListAccessKeys_Call{Call: _e.mock.On("ListAccessKeys",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_ListAccessKeys_Call) Run(run func(ctx context.Context, input *iam.ListAccessKeysInput, opts ...func(*iam.Options))) *IAMClientPort_ListAccessKeys_Call {
@@ -1658,9 +1658,9 @@ type IAMClientPort_ListAttachedRolePolicies_Call struct {
 //   - ctx context.Context
 //   - input *iam.ListAttachedRolePoliciesInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) ListAttachedRolePolicies(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_ListAttachedRolePolicies_Call {
+func (_e *IAMClientPort_Expecter) ListAttachedRolePolicies(ctx any, input any, opts ...any) *IAMClientPort_ListAttachedRolePolicies_Call {
 	return &IAMClientPort_ListAttachedRolePolicies_Call{Call: _e.mock.On("ListAttachedRolePolicies",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_ListAttachedRolePolicies_Call) Run(run func(ctx context.Context, input *iam.ListAttachedRolePoliciesInput, opts ...func(*iam.Options))) *IAMClientPort_ListAttachedRolePolicies_Call {
@@ -1741,9 +1741,9 @@ type IAMClientPort_ListGroups_Call struct {
 //   - ctx context.Context
 //   - input *iam.ListGroupsInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) ListGroups(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_ListGroups_Call {
+func (_e *IAMClientPort_Expecter) ListGroups(ctx any, input any, opts ...any) *IAMClientPort_ListGroups_Call {
 	return &IAMClientPort_ListGroups_Call{Call: _e.mock.On("ListGroups",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_ListGroups_Call) Run(run func(ctx context.Context, input *iam.ListGroupsInput, opts ...func(*iam.Options))) *IAMClientPort_ListGroups_Call {
@@ -1824,9 +1824,9 @@ type IAMClientPort_ListGroupsForUser_Call struct {
 //   - ctx context.Context
 //   - input *iam.ListGroupsForUserInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) ListGroupsForUser(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_ListGroupsForUser_Call {
+func (_e *IAMClientPort_Expecter) ListGroupsForUser(ctx any, input any, opts ...any) *IAMClientPort_ListGroupsForUser_Call {
 	return &IAMClientPort_ListGroupsForUser_Call{Call: _e.mock.On("ListGroupsForUser",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_ListGroupsForUser_Call) Run(run func(ctx context.Context, input *iam.ListGroupsForUserInput, opts ...func(*iam.Options))) *IAMClientPort_ListGroupsForUser_Call {
@@ -1907,9 +1907,9 @@ type IAMClientPort_ListPolicies_Call struct {
 //   - ctx context.Context
 //   - input *iam.ListPoliciesInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) ListPolicies(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_ListPolicies_Call {
+func (_e *IAMClientPort_Expecter) ListPolicies(ctx any, input any, opts ...any) *IAMClientPort_ListPolicies_Call {
 	return &IAMClientPort_ListPolicies_Call{Call: _e.mock.On("ListPolicies",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_ListPolicies_Call) Run(run func(ctx context.Context, input *iam.ListPoliciesInput, opts ...func(*iam.Options))) *IAMClientPort_ListPolicies_Call {
@@ -1990,9 +1990,9 @@ type IAMClientPort_ListRolePolicies_Call struct {
 //   - ctx context.Context
 //   - input *iam.ListRolePoliciesInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) ListRolePolicies(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_ListRolePolicies_Call {
+func (_e *IAMClientPort_Expecter) ListRolePolicies(ctx any, input any, opts ...any) *IAMClientPort_ListRolePolicies_Call {
 	return &IAMClientPort_ListRolePolicies_Call{Call: _e.mock.On("ListRolePolicies",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_ListRolePolicies_Call) Run(run func(ctx context.Context, input *iam.ListRolePoliciesInput, opts ...func(*iam.Options))) *IAMClientPort_ListRolePolicies_Call {
@@ -2073,9 +2073,9 @@ type IAMClientPort_ListRoles_Call struct {
 //   - ctx context.Context
 //   - input *iam.ListRolesInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) ListRoles(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_ListRoles_Call {
+func (_e *IAMClientPort_Expecter) ListRoles(ctx any, input any, opts ...any) *IAMClientPort_ListRoles_Call {
 	return &IAMClientPort_ListRoles_Call{Call: _e.mock.On("ListRoles",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_ListRoles_Call) Run(run func(ctx context.Context, input *iam.ListRolesInput, opts ...func(*iam.Options))) *IAMClientPort_ListRoles_Call {
@@ -2156,9 +2156,9 @@ type IAMClientPort_ListUserPolicies_Call struct {
 //   - ctx context.Context
 //   - input *iam.ListUserPoliciesInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) ListUserPolicies(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_ListUserPolicies_Call {
+func (_e *IAMClientPort_Expecter) ListUserPolicies(ctx any, input any, opts ...any) *IAMClientPort_ListUserPolicies_Call {
 	return &IAMClientPort_ListUserPolicies_Call{Call: _e.mock.On("ListUserPolicies",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_ListUserPolicies_Call) Run(run func(ctx context.Context, input *iam.ListUserPoliciesInput, opts ...func(*iam.Options))) *IAMClientPort_ListUserPolicies_Call {
@@ -2239,9 +2239,9 @@ type IAMClientPort_ListUsers_Call struct {
 //   - ctx context.Context
 //   - input *iam.ListUsersInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) ListUsers(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_ListUsers_Call {
+func (_e *IAMClientPort_Expecter) ListUsers(ctx any, input any, opts ...any) *IAMClientPort_ListUsers_Call {
 	return &IAMClientPort_ListUsers_Call{Call: _e.mock.On("ListUsers",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_ListUsers_Call) Run(run func(ctx context.Context, input *iam.ListUsersInput, opts ...func(*iam.Options))) *IAMClientPort_ListUsers_Call {
@@ -2322,9 +2322,9 @@ type IAMClientPort_RemoveUserFromGroup_Call struct {
 //   - ctx context.Context
 //   - input *iam.RemoveUserFromGroupInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) RemoveUserFromGroup(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_RemoveUserFromGroup_Call {
+func (_e *IAMClientPort_Expecter) RemoveUserFromGroup(ctx any, input any, opts ...any) *IAMClientPort_RemoveUserFromGroup_Call {
 	return &IAMClientPort_RemoveUserFromGroup_Call{Call: _e.mock.On("RemoveUserFromGroup",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_RemoveUserFromGroup_Call) Run(run func(ctx context.Context, input *iam.RemoveUserFromGroupInput, opts ...func(*iam.Options))) *IAMClientPort_RemoveUserFromGroup_Call {
@@ -2405,9 +2405,9 @@ type IAMClientPort_UpdateAccessKey_Call struct {
 //   - ctx context.Context
 //   - input *iam.UpdateAccessKeyInput
 //   - opts ...func(*iam.Options)
-func (_e *IAMClientPort_Expecter) UpdateAccessKey(ctx interface{}, input interface{}, opts ...interface{}) *IAMClientPort_UpdateAccessKey_Call {
+func (_e *IAMClientPort_Expecter) UpdateAccessKey(ctx any, input any, opts ...any) *IAMClientPort_UpdateAccessKey_Call {
 	return &IAMClientPort_UpdateAccessKey_Call{Call: _e.mock.On("UpdateAccessKey",
-		append([]interface{}{ctx, input}, opts...)...)}
+		append([]any{ctx, input}, opts...)...)}
 }
 
 func (_c *IAMClientPort_UpdateAccessKey_Call) Run(run func(ctx context.Context, input *iam.UpdateAccessKeyInput, opts ...func(*iam.Options))) *IAMClientPort_UpdateAccessKey_Call {

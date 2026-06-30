@@ -33,7 +33,7 @@ services:
       - "7001-7099:7001-7099" # RDS proxy ports
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - .dev/data/floci:/app/data
+      - .dev/data/floci-aws:/app/data
     environment:
       FLOCI_STORAGE_MODE: hybrid
       FLOCI_STORAGE_PERSISTENT_PATH: /app/data
