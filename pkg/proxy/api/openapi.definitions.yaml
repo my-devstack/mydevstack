@@ -59,6 +59,8 @@ tags:
     description: Amazon ElastiCache
   - name: RDS
     description: Amazon Relational Database Service
+  - name: EC2
+    description: Amazon Elastic Compute Cloud
 
 services:
   - services/_management.yaml
@@ -76,6 +78,7 @@ services:
   - services/kms.yaml
   - services/secrets-manager.yaml
   - services/sesv2.yaml
+  - services/ec2.yaml
   - services/elasticache.yaml
   - services/rds.yaml
   - services/opensearch.yaml
