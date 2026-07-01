@@ -19,6 +19,7 @@ describe('Router', () => {
     'CloudFormation',
     'SSM',
     'ElastiCache',
+    'EC2',
     'RDS',
     'StepFunctions',
     'OpenSearch',
@@ -279,6 +280,11 @@ describe('Router', () => {
     it('handles navigation to ElastiCache route', async () => {
       await router.push('/services/elasticache')
       expect(document.title).toBe('ElastiCache - MyDevStack')
+    })
+
+    it('handles navigation to EC2 route', async () => {
+      await router.push('/services/ec2')
+      expect(document.title).toBe('EC2 - MyDevStack')
     })
 
     it('handles navigation to RDS route', async () => {

@@ -108,6 +108,7 @@ func (h *ProxyHandler) RegisterServiceRoutes(r chi.Router) {
 	h.registerCloudWatchLogsRoutes(r)
 	h.registerDynamoDBRoutes(r)
 	h.registerDynamoDBStreamsRoutes(r)
+	h.registerEC2Routes(r)
 	h.registerIAMRoutes(r)
 	h.registerKinesisRoutes(r)
 	h.registerKMSRoutes(r)

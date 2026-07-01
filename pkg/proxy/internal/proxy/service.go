@@ -36,6 +36,7 @@ type ProxyService struct {
 	cloudwatch      ports.CloudWatchPort
 	cloudwatchlogs  ports.CloudWatchLogsPort
 	sesv2           ports.SESv2Port
+	ec2             ports.EC2Port
 	mu              sync.RWMutex
 	ctx             context.Context
 }
@@ -108,6 +109,7 @@ func (s *ProxyService) SetServices() error {
 	s.cloudwatch = awsadapter.NewCloudWatchAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.cloudwatchlogs = awsadapter.NewCloudWatchLogsAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.sesv2 = awsadapter.NewSESv2Adapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.ec2 = awsadapter.NewEC2Adapter(awsCfg, s.cfg.AWS.Endpoint)
 	return nil
 }
 
@@ -189,6 +191,10 @@ func (s *ProxyService) CloudFormation() ports.CloudFormationPort {
 
 func (s *ProxyService) SESv2() ports.SESv2Port {
 	return s.sesv2
+}
+
+func (s *ProxyService) EC2() ports.EC2Port {
+	return s.ec2
 }
 
 func (s *ProxyService) CloudWatch() ports.CloudWatchPort {

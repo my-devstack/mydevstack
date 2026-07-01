@@ -1036,3 +1036,58 @@ export interface SESTemplate {
   TemplateContent?: { Subject: string; Html?: string; Text?: string }
   CreatedTimestamp?: string
 }
+
+// EC2 Types
+export interface EC2Instance {
+  InstanceId: string
+  ImageId: string
+  InstanceType: string
+  KeyName?: string
+  State?: { Name: string; Code: number }
+  LaunchTime?: string
+  Placement?: { AvailabilityZone: string }
+  SecurityGroups?: Array<{ GroupId: string; GroupName: string }>
+  SubnetId?: string
+  VpcId?: string
+  Tags?: Array<{ Key: string; Value: string }>
+  PublicIpAddress?: string
+  PrivateIpAddress?: string
+}
+
+export interface EC2KeyPair {
+  KeyName: string
+  KeyFingerprint: string
+  KeyPairId?: string
+  KeyType?: string
+}
+
+export interface EC2SecurityGroup {
+  GroupId: string
+  GroupName: string
+  Description: string
+  VpcId: string
+  IpPermissions?: Array<{
+    IpProtocol: string
+    FromPort?: number
+    ToPort?: number
+    IpRanges?: Array<{ CidrIp: string; Description?: string }>
+  }>
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2Vpc {
+  VpcId: string
+  CidrBlock: string
+  IsDefault: boolean
+  State: string
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2Subnet {
+  SubnetId: string
+  VpcId: string
+  CidrBlock: string
+  AvailabilityZone: string
+  State: string
+  Tags?: Array<{ Key: string; Value: string }>
+}

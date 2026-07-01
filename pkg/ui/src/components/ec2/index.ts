@@ -1,0 +1,5 @@
+export { default as EC2CreateInstanceModal } from './EC2CreateInstanceModal.vue'
+export { default as EC2KeyPairModal } from './EC2KeyPairModal.vue'
+export { default as EC2SecurityGroupModal } from './EC2SecurityGroupModal.vue'
+export { default as EC2DeleteModal } from './EC2DeleteModal.vue'
+export { default as EC2CodeExamples } from './EC2CodeExamples.vue'
