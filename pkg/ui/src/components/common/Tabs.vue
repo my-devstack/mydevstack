@@ -15,6 +15,7 @@ interface Props {
   size?: 'sm' | 'md' | 'lg'
   align?: 'left' | 'center' | 'right'
   fullWidth?: boolean
+  scrollable?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -22,6 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'md',
   align: 'left',
   fullWidth: false,
+  scrollable: true,
 })
 
 const emit = defineEmits<{
@@ -36,7 +38,9 @@ function selectTab(tabId: string) {
 }
 
 const containerClasses = computed(() => {
-  const base = 'flex flex-nowrap overflow-x-auto'
+  const base = props.scrollable
+    ? 'flex flex-nowrap overflow-x-auto'
+    : 'flex flex-wrap'
   const alignment = {
     left: 'justify-start',
     center: 'justify-center',

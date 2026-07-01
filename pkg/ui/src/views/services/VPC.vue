@@ -250,12 +250,6 @@ const naclCount = computed(() => networkAcls.value.length)
 const flowLogCount = computed(() => flowLogs.value.length)
 const eipCount = computed(() => elasticIps.value.length)
 
-// Format helper
-function formatDate(dateStr?: string): string {
-  if (!dateStr) return '-'
-  return new Date(dateStr).toLocaleString()
-}
-
 // Lifecycle
 onMounted(() => {
   loadAll()

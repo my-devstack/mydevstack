@@ -78,6 +78,24 @@ describe('Tabs', () => {
     })
   })
 
+  it('should not have overflow-x-auto when scrollable is false', () => {
+    const wrapper = mount(Tabs, {
+      props: { tabs: testTabs, activeTab: 'tab1', scrollable: false }
+    })
+    const container = wrapper.find('[role="tablist"]')
+    expect(container.classes()).not.toContain('overflow-x-auto')
+    expect(container.classes()).toContain('flex-wrap')
+  })
+
+  it('should have overflow-x-auto when scrollable is true (default)', () => {
+    const wrapper = mount(Tabs, {
+      props: { tabs: testTabs, activeTab: 'tab1' }
+    })
+    const container = wrapper.find('[role="tablist"]')
+    expect(container.classes()).toContain('overflow-x-auto')
+    expect(container.classes()).toContain('flex-nowrap')
+  })
+
   it('should not emit when clicking disabled tab', async () => {
     const tabsWithDisabled = [
       { id: 'tab1', label: 'Tab 1' },
