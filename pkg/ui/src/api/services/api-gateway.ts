@@ -7,7 +7,7 @@
 import { PROXY_BACKEND } from '@/config'
 
 // APIError is imported for consistent error handling across services
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 import { APIError } from '../client'
 
 async function restRequest<T = any>(method: string, path: string, body?: object): Promise<T> {

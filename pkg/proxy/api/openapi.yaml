@@ -9038,6 +9038,9 @@ components:
           description: A forward slash followed by the name of the created bucket
           type: string
       type: object
+    S3DeleteBucketLifecycleConfigurationOutput:
+      properties: {}
+      type: object
     S3DeleteBucketOutput:
       properties: {}
       type: object
@@ -9069,6 +9072,14 @@ components:
                 type: object
               type: array
           type: object
+      type: object
+    S3GetBucketLifecycleConfigurationOutput:
+      properties:
+        Rules:
+          description: List of lifecycle rules for the bucket
+          items:
+            $ref: '#/components/schemas/S3LifecycleRule'
+          type: array
       type: object
     S3GetBucketNotificationConfigurationOutput:
       properties:
@@ -9205,6 +9216,139 @@ components:
         WebsiteRedirectLocation:
           type: string
       type: object
+    S3LifecycleExpiration:
+      description: Expiration actions for lifecycle rule
+      properties:
+        Date:
+          description: Date when objects expire (ISO 8601)
+          format: date-time
+          type: string
+        Days:
+          description: Number of days after creation when objects expire
+          format: int32
+          type: integer
+        ExpiredObjectDeleteMarker:
+          description: Indicates whether to remove expired delete markers
+          type: boolean
+      type: object
+    S3LifecycleNoncurrentVersionExpiration:
+      properties:
+        NoncurrentDays:
+          description: Number of days after objects become noncurrent
+          format: int32
+          type: integer
+      type: object
+    S3LifecycleNoncurrentVersionTransition:
+      properties:
+        NoncurrentDays:
+          description: Number of days after objects become noncurrent
+          format: int32
+          type: integer
+        StorageClass:
+          description: Storage class to transition to
+          enum:
+            - GLACIER
+            - DEEP_ARCHIVE
+            - INTELLIGENT_TIERING
+            - ONEZONE_IA
+            - STANDARD_IA
+            - GLACIER_IR
+          type: string
+      type: object
+    S3LifecycleRule:
+      properties:
+        AbortIncompleteMultipartUpload:
+          properties:
+            DaysAfterInitiation:
+              format: int32
+              type: integer
+          type: object
+        Expiration:
+          $ref: '#/components/schemas/S3LifecycleExpiration'
+        Filter:
+          $ref: '#/components/schemas/S3LifecycleRuleFilter'
+        ID:
+          description: Unique identifier for the rule
+          type: string
+        NoncurrentVersionExpiration:
+          $ref: '#/components/schemas/S3LifecycleNoncurrentVersionExpiration'
+        NoncurrentVersionTransitions:
+          items:
+            $ref: '#/components/schemas/S3LifecycleNoncurrentVersionTransition'
+          type: array
+        Status:
+          description: Whether the rule is active
+          enum:
+            - Enabled
+            - Disabled
+          type: string
+        Transitions:
+          items:
+            $ref: '#/components/schemas/S3LifecycleTransition'
+          type: array
+      required:
+        - Status
+      type: object
+    S3LifecycleRuleFilter:
+      description: Filter for lifecycle rule (prefix and/or tags)
+      properties:
+        And:
+          description: AND combination of multiple filters
+          properties:
+            Prefix:
+              type: string
+            Tags:
+              items:
+                properties:
+                  Key:
+                    type: string
+                  Value:
+                    type: string
+                type: object
+              type: array
+          type: object
+        ObjectSizeGreaterThan:
+          description: Minimum object size in bytes
+          format: int64
+          type: integer
+        ObjectSizeLessThan:
+          description: Maximum object size in bytes
+          format: int64
+          type: integer
+        Prefix:
+          description: Object key prefix filter
+          type: string
+        Tag:
+          description: Tag-based filter
+          properties:
+            Key:
+              type: string
+            Value:
+              type: string
+          type: object
+      type: object
+    S3LifecycleTransition:
+      description: Transition action for lifecycle rule
+      properties:
+        Date:
+          description: Date when objects transition (ISO 8601)
+          format: date-time
+          type: string
+        Days:
+          description: Number of days after creation when objects transition
+          format: int32
+          type: integer
+        StorageClass:
+          description: Storage class to transition to
+          enum:
+            - GLACIER
+            - DEEP_ARCHIVE
+            - INTELLIGENT_TIERING
+            - ONEZONE_IA
+            - STANDARD_IA
+            - GLACIER_IR
+          type: string
+      type: object
     S3ListBucketsOutput:
       properties:
         Buckets:
@@ -9324,6 +9468,26 @@ components:
         - ServerSideEncryptionConfiguration
       type: object
     S3PutBucketEncryptionOutput:
+      properties: {}
+      type: object
+    S3PutBucketLifecycleConfigurationInput:
+      properties:
+        Bucket:
+          type: string
+        LifecycleConfiguration:
+          properties:
+            Rules:
+              items:
+                $ref: '#/components/schemas/S3LifecycleRule'
+              type: array
+          required:
+            - Rules
+          type: object
+      required:
+        - Bucket
+        - LifecycleConfiguration
+      type: object
+    S3PutBucketLifecycleConfigurationOutput:
       properties: {}
       type: object
     S3PutBucketNotificationConfigurationInput:
@@ -14232,6 +14396,1707 @@ paths:
       summary: Update Time To Live
       tags:
         - DynamoDB
+  /ec2/elastic-ips:
+    get:
+      description: |
+        Returns a list of Elastic IP addresses. Supports optional filtering
+        by allocation IDs, tags, and other criteria.
+      operationId: describeElasticIps
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DescribeAddresses
+                (e.g., AllocationIds, PublicIps, Filters).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: List of Elastic IPs (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List Elastic IPs
+      tags:
+        - EC2
+    post:
+      description: |
+        Allocates a new Elastic IP address. Optionally specify Domain
+        (standard or vpc) and TagSpecifications.
+      operationId: allocateElasticIp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for AllocateAddress
+                (e.g., Domain, Address, TagSpecifications).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Elastic IP allocated (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Allocate Elastic IP
+      tags:
+        - EC2
+  /ec2/elastic-ips/{allocationId}:
+    delete:
+      description: |
+        Releases the specified Elastic IP address. After release, it is
+        returned to the EC2 pool and cannot be reused.
+      operationId: releaseElasticIp
+      parameters:
+        - description: Allocation ID of the Elastic IP to release
+          example: eipalloc-1234567890abcdef0
+          in: path
+          name: allocationId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for ReleaseAddress
+                (e.g., AllocationId — current allocationId used if not specified).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Elastic IP released (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Release Elastic IP
+      tags:
+        - EC2
+  /ec2/flow-logs:
+    get:
+      description: |
+        Returns a list of flow logs. Supports optional filtering by
+        flow log IDs, resource ID, tags, and other criteria.
+      operationId: describeFlowLogs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DescribeFlowLogs
+                (e.g., FlowLogIds, Filter, NextToken, MaxResults).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: List of flow logs (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List flow logs
+      tags:
+        - EC2
+    post:
+      description: |
+        Creates a flow log for the specified resource (VPC, subnet,
+        or network interface). Requires ResourceId, LogGroupName,
+        TrafficType, and DeliverLogsPermissionArn.
+      operationId: createFlowLogs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for CreateFlowLogs
+                (e.g., ResourceIds, LogGroupName, TrafficType,
+                DeliverLogsPermissionArn, LogDestinationType).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Flow logs created (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Create flow logs
+      tags:
+        - EC2
+  /ec2/flow-logs/{flowLogId}:
+    delete:
+      description: |
+        Deletes the specified flow log.
+      operationId: deleteFlowLogs
+      parameters:
+        - description: Flow log ID to delete
+          example: fl-1234567890abcdef0
+          in: path
+          name: flowLogId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DeleteFlowLogs
+                (e.g., FlowLogIds — current flowLogId used if not specified).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Flow logs deleted (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete flow logs
+      tags:
+        - EC2
+  /ec2/instances:
+    get:
+      description: |
+        Returns a list of EC2 instances. Supports optional filtering
+        by instance IDs, tags, and other criteria passed in the request body.
+      operationId: describeInstances
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DescribeInstances
+                (e.g., InstanceIds, Filters, MaxResults, NextToken).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: List of EC2 instances (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Describe EC2 instances
+      tags:
+        - EC2
+    post:
+      description: |
+        Launches a new EC2 instance. Requires ImageId and InstanceType.
+        Accepts additional parameters like KeyName, SecurityGroupIds,
+        SubnetId, and UserData.
+      operationId: runInstance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for RunInstances
+                (e.g., ImageId, InstanceType, KeyName, MinCount, MaxCount,
+                SecurityGroupIds, SubnetId, UserData).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: EC2 instance launched (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Run EC2 instance
+      tags:
+        - EC2
+  /ec2/instances/{instanceId}:
+    delete:
+      description: |
+        Terminates the specified EC2 instance.
+      operationId: terminateInstance
+      parameters:
+        - description: EC2 instance ID to terminate
+          example: i-1234567890abcdef0
+          in: path
+          name: instanceId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for TerminateInstances
+                (e.g., InstanceIds — current instanceId used if not specified).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Instance terminated (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Terminate EC2 instance
+      tags:
+        - EC2
+    get:
+      description: |
+        Returns detailed information about a specific EC2 instance.
+      operationId: describeInstance
+      parameters:
+        - description: EC2 instance ID (e.g., i-1234567890abcdef0)
+          example: i-1234567890abcdef0
+          in: path
+          name: instanceId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Additional parameters for DescribeInstances
+                (e.g., Filters).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: EC2 instance details (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Get EC2 instance
+      tags:
+        - EC2
+  /ec2/instances/{instanceId}/start:
+    post:
+      description: |
+        Starts the specified EC2 instance (transition from stopped to running).
+      operationId: startInstance
+      parameters:
+        - description: EC2 instance ID to start
+          example: i-1234567890abcdef0
+          in: path
+          name: instanceId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for StartInstances
+                (e.g., InstanceIds — current instanceId used if not specified).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Instance started (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Start EC2 instance
+      tags:
+        - EC2
+  /ec2/instances/{instanceId}/stop:
+    post:
+      description: |
+        Stops the specified EC2 instance (transition from running to stopped).
+      operationId: stopInstance
+      parameters:
+        - description: EC2 instance ID to stop
+          example: i-1234567890abcdef0
+          in: path
+          name: instanceId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for StopInstances
+                (e.g., InstanceIds — current instanceId used if not specified, Force).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Instance stopped (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Stop EC2 instance
+      tags:
+        - EC2
+  /ec2/internet-gateways:
+    get:
+      description: |
+        Returns a list of internet gateways. Supports optional filtering
+        by gateway IDs, VPC ID, tags, and other criteria.
+      operationId: describeInternetGateways
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DescribeInternetGateways
+                (e.g., InternetGatewayIds, Filters, NextToken, MaxResults).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: List of internet gateways (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List internet gateways
+      tags:
+        - EC2
+    post:
+      description: |
+        Creates a new internet gateway. Optionally specify tags.
+      operationId: createInternetGateway
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for CreateInternetGateway
+                (e.g., TagSpecifications).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Internet gateway created (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Create internet gateway
+      tags:
+        - EC2
+  /ec2/internet-gateways/{igwId}:
+    delete:
+      description: |
+        Deletes the specified internet gateway. The gateway must not
+        be attached to any VPC.
+      operationId: deleteInternetGateway
+      parameters:
+        - description: Internet gateway ID to delete
+          example: igw-1234567890abcdef0
+          in: path
+          name: igwId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DeleteInternetGateway
+                (e.g., InternetGatewayId — current igwId used if not specified).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Internet gateway deleted (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete internet gateway
+      tags:
+        - EC2
+  /ec2/internet-gateways/{igwId}/attach:
+    post:
+      description: |
+        Attaches an internet gateway to the specified VPC. Requires VpcId.
+      operationId: attachInternetGateway
+      parameters:
+        - description: Internet gateway ID
+          example: igw-1234567890abcdef0
+          in: path
+          name: igwId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for AttachInternetGateway
+                (e.g., InternetGatewayId, VpcId).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Internet gateway attached (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Attach internet gateway
+      tags:
+        - EC2
+  /ec2/internet-gateways/{igwId}/detach:
+    post:
+      description: |
+        Detaches an internet gateway from the specified VPC. Requires VpcId.
+      operationId: detachInternetGateway
+      parameters:
+        - description: Internet gateway ID
+          example: igw-1234567890abcdef0
+          in: path
+          name: igwId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DetachInternetGateway
+                (e.g., InternetGatewayId, VpcId).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Internet gateway detached (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Detach internet gateway
+      tags:
+        - EC2
+  /ec2/key-pairs:
+    get:
+      description: |
+        Returns a list of EC2 key pairs. Supports optional filtering
+        by key names and tags.
+      operationId: describeKeyPairs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DescribeKeyPairs
+                (e.g., KeyNames, Filters).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: List of key pairs (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List key pairs
+      tags:
+        - EC2
+    post:
+      description: |
+        Creates a new EC2 key pair with the specified name.
+        Returns the private key material (pem or ppk format).
+      operationId: createKeyPair
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for CreateKeyPair
+                (e.g., KeyName, KeyType, KeyFormat, TagSpecifications).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Key pair created (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Create key pair
+      tags:
+        - EC2
+  /ec2/key-pairs/{keyName}:
+    delete:
+      description: |
+        Deletes the specified EC2 key pair.
+      operationId: deleteKeyPair
+      parameters:
+        - description: Name of the key pair to delete
+          example: my-key-pair
+          in: path
+          name: keyName
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DeleteKeyPair
+                (e.g., KeyName — current keyName used if not specified).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Key pair deleted (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete key pair
+      tags:
+        - EC2
+  /ec2/key-pairs/import:
+    post:
+      description: |
+        Imports an existing public key to create a new EC2 key pair.
+        Requires PublicKeyMaterial (base64-encoded SSH public key).
+      operationId: importKeyPair
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for ImportKeyPair
+                (e.g., KeyName, PublicKeyMaterial, TagSpecifications).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Key pair imported (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Import key pair
+      tags:
+        - EC2
+  /ec2/nat-gateways:
+    get:
+      description: |
+        Returns a list of NAT gateways. Supports optional filtering
+        by gateway IDs, VPC ID, subnet ID, state, tags, and other criteria.
+      operationId: describeNatGateways
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DescribeNatGateways
+                (e.g., NatGatewayIds, Filters, NextToken, MaxResults).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: List of NAT gateways (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List NAT gateways
+      tags:
+        - EC2
+    post:
+      description: |
+        Creates a new NAT gateway in the specified subnet. Requires SubnetId
+        and AllocationId (Elastic IP allocation ID).
+      operationId: createNatGateway
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for CreateNatGateway
+                (e.g., SubnetId, AllocationId, TagSpecifications).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: NAT gateway created (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Create NAT gateway
+      tags:
+        - EC2
+  /ec2/nat-gateways/{natGwId}:
+    delete:
+      description: |
+        Deletes the specified NAT gateway.
+      operationId: deleteNatGateway
+      parameters:
+        - description: NAT gateway ID to delete
+          example: nat-1234567890abcdef0
+          in: path
+          name: natGwId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DeleteNatGateway
+                (e.g., NatGatewayId — current natGwId used if not specified).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: NAT gateway deleted (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete NAT gateway
+      tags:
+        - EC2
+  /ec2/network-acls:
+    get:
+      description: |
+        Returns a list of network ACLs. Supports optional filtering
+        by ACL IDs, VPC ID, tags, and other criteria.
+      operationId: describeNetworkAcls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DescribeNetworkAcls
+                (e.g., NetworkAclIds, Filters, NextToken, MaxResults).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: List of network ACLs (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List network ACLs
+      tags:
+        - EC2
+    post:
+      description: |
+        Creates a new network ACL in the specified VPC. Requires VpcId.
+      operationId: createNetworkAcl
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for CreateNetworkAcl
+                (e.g., VpcId, TagSpecifications).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Network ACL created (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Create network ACL
+      tags:
+        - EC2
+  /ec2/network-acls/{naclId}:
+    delete:
+      description: |
+        Deletes the specified network ACL. The default network ACL for
+        a VPC cannot be deleted.
+      operationId: deleteNetworkAcl
+      parameters:
+        - description: Network ACL ID to delete
+          example: acl-1234567890abcdef0
+          in: path
+          name: naclId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DeleteNetworkAcl
+                (e.g., NetworkAclId — current naclId used if not specified).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Network ACL deleted (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete network ACL
+      tags:
+        - EC2
+  /ec2/network-acls/{naclId}/entries:
+    post:
+      description: |
+        Creates a new entry (rule) in the specified network ACL.
+        Requires RuleNumber, Protocol, RuleAction, Egress flag, and
+        CidrBlock or Ipv6CidrBlock.
+      operationId: createNetworkAclEntry
+      parameters:
+        - description: Network ACL ID
+          example: acl-1234567890abcdef0
+          in: path
+          name: naclId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for CreateNetworkAclEntry
+                (e.g., NetworkAclId, RuleNumber, Protocol, RuleAction,
+                Egress, CidrBlock, PortRange, IcmpTypeCode).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Network ACL entry created (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Create network ACL entry
+      tags:
+        - EC2
+  /ec2/network-acls/{naclId}/entries/{ruleNumber}:
+    delete:
+      description: |
+        Deletes a network ACL entry by rule number. Requires specifying
+        whether it is an egress or ingress rule.
+      operationId: deleteNetworkAclEntry
+      parameters:
+        - description: Network ACL ID
+          example: acl-1234567890abcdef0
+          in: path
+          name: naclId
+          required: true
+          schema:
+            type: string
+        - description: Rule number of the entry to delete
+          example: 100
+          in: path
+          name: ruleNumber
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DeleteNetworkAclEntry
+                (e.g., NetworkAclId, RuleNumber, Egress).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Network ACL entry deleted (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete network ACL entry
+      tags:
+        - EC2
+  /ec2/route-tables:
+    get:
+      description: |
+        Returns a list of route tables. Supports optional filtering by
+        route table IDs, VPC ID, tags, and other criteria.
+      operationId: describeRouteTables
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DescribeRouteTables
+                (e.g., RouteTableIds, Filters, NextToken, MaxResults).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: List of route tables (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List route tables
+      tags:
+        - EC2
+    post:
+      description: |
+        Creates a new route table in the specified VPC. Requires VpcId.
+      operationId: createRouteTable
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for CreateRouteTable
+                (e.g., VpcId, TagSpecifications).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Route table created (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Create route table
+      tags:
+        - EC2
+  /ec2/route-tables/{rtbId}:
+    delete:
+      description: |
+        Deletes the specified route table. The route table must not have
+        any associated subnets or non-main routes.
+      operationId: deleteRouteTable
+      parameters:
+        - description: Route table ID to delete
+          example: rtb-1234567890abcdef0
+          in: path
+          name: rtbId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DeleteRouteTable
+                (e.g., RouteTableId — current rtbId used if not specified).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Route table deleted (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete route table
+      tags:
+        - EC2
+  /ec2/route-tables/{rtbId}/associate:
+    post:
+      description: |
+        Associates a route table with a subnet. Requires SubnetId.
+      operationId: associateRouteTable
+      parameters:
+        - description: Route table ID
+          example: rtb-1234567890abcdef0
+          in: path
+          name: rtbId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for AssociateRouteTable
+                (e.g., RouteTableId, SubnetId).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Route table associated (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Associate route table
+      tags:
+        - EC2
+  /ec2/route-tables/{rtbId}/disassociate:
+    post:
+      description: |
+        Disassociates a route table from a subnet. Requires AssociationId.
+      operationId: disassociateRouteTable
+      parameters:
+        - description: Route table ID
+          example: rtb-1234567890abcdef0
+          in: path
+          name: rtbId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DisassociateRouteTable
+                (e.g., AssociationId).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Route table disassociated (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Disassociate route table
+      tags:
+        - EC2
+  /ec2/route-tables/{rtbId}/routes:
+    post:
+      description: |
+        Creates a new route in the specified route table. Requires a
+        destination CIDR block and one of the following targets:
+        internet gateway ID, NAT gateway ID, or other target type.
+      operationId: createRoute
+      parameters:
+        - description: Route table ID
+          example: rtb-1234567890abcdef0
+          in: path
+          name: rtbId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for CreateRoute
+                (e.g., RouteTableId, DestinationCidrBlock,
+                GatewayId, NatGatewayId, NetworkInterfaceId, VpcPeeringConnectionId).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Route created (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Create route
+      tags:
+        - EC2
+  /ec2/route-tables/{rtbId}/routes/{cidr}:
+    delete:
+      description: |
+        Deletes a route from the specified route table by destination CIDR.
+      operationId: deleteRoute
+      parameters:
+        - description: Route table ID
+          example: rtb-1234567890abcdef0
+          in: path
+          name: rtbId
+          required: true
+          schema:
+            type: string
+        - description: Destination CIDR block
+          example: 10.0.0.0/16
+          in: path
+          name: cidr
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DeleteRoute
+                (e.g., RouteTableId, DestinationCidrBlock).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Route deleted (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete route
+      tags:
+        - EC2
+  /ec2/security-groups:
+    get:
+      description: |
+        Returns a list of EC2 security groups. Supports optional filtering
+        by group IDs, names, and VPC ID.
+      operationId: describeSecurityGroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DescribeSecurityGroups
+                (e.g., GroupIds, GroupNames, Filters, NextToken, MaxResults).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: List of security groups (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List security groups
+      tags:
+        - EC2
+    post:
+      description: |
+        Creates a new EC2 security group. Requires GroupName and Description.
+        Optionally specify VpcId to create the group in a specific VPC.
+      operationId: createSecurityGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for CreateSecurityGroup
+                (e.g., GroupName, Description, VpcId, TagSpecifications).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Security group created (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Create security group
+      tags:
+        - EC2
+  /ec2/security-groups/{groupId}:
+    delete:
+      description: |
+        Deletes the specified EC2 security group. The group must not
+        be referenced by any other security group rules.
+      operationId: deleteSecurityGroup
+      parameters:
+        - description: Security group ID to delete
+          example: sg-1234567890abcdef0
+          in: path
+          name: groupId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DeleteSecurityGroup
+                (e.g., GroupId — current groupId used if not specified).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Security group deleted (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete security group
+      tags:
+        - EC2
+  /ec2/security-groups/{groupId}/ingress:
+    post:
+      description: |
+        Adds inbound rules to a security group. Requires specification
+        of IpPermissions including protocol, port ranges, and source
+        CIDR or security group references.
+      operationId: authorizeSecurityGroupIngress
+      parameters:
+        - description: Security group ID
+          example: sg-1234567890abcdef0
+          in: path
+          name: groupId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for AuthorizeSecurityGroupIngress
+                (e.g., GroupId, IpPermissions with IpProtocol, FromPort,
+                ToPort, IpRanges, UserIdGroupPairs).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Ingress rule added (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Authorize security group ingress
+      tags:
+        - EC2
+  /ec2/subnets:
+    get:
+      description: |
+        Returns a list of subnets. Supports optional filtering by subnet IDs,
+        VPC ID, tags, and other criteria.
+      operationId: describeSubnets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DescribeSubnets
+                (e.g., SubnetIds, Filters, NextToken, MaxResults).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: List of subnets (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List subnets
+      tags:
+        - EC2
+    post:
+      description: |
+        Creates a new subnet in the specified VPC. Requires VpcId, CidrBlock.
+        Optionally specify AvailabilityZone or AvailabilityZoneId.
+      operationId: createSubnet
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for CreateSubnet
+                (e.g., VpcId, CidrBlock, AvailabilityZone, AvailabilityZoneId,
+                TagSpecifications).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Subnet created (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Create subnet
+      tags:
+        - EC2
+  /ec2/subnets/{subnetId}:
+    delete:
+      description: |
+        Deletes the specified subnet. The subnet must not have any
+        running EC2 instances or network interfaces.
+      operationId: deleteSubnet
+      parameters:
+        - description: Subnet ID to delete
+          example: subnet-1234567890abcdef0
+          in: path
+          name: subnetId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DeleteSubnet
+                (e.g., SubnetId — current subnetId used if not specified).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Subnet deleted (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete subnet
+      tags:
+        - EC2
+  /ec2/vpcs:
+    get:
+      description: |
+        Returns a list of VPCs. Supports optional filtering by VPC IDs,
+        tags, and other criteria.
+      operationId: describeVpcs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DescribeVpcs
+                (e.g., VpcIds, Filters, NextToken, MaxResults).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: List of VPCs (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List VPCs
+      tags:
+        - EC2
+    post:
+      description: |
+        Creates a new VPC with the specified CIDR block.
+        Optionally specify AmazonProvidedIpv6CidrBlock and Tenancy.
+      operationId: createVpc
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for CreateVpc
+                (e.g., CidrBlock, AmazonProvidedIpv6CidrBlock, InstanceTenancy,
+                TagSpecifications).
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: VPC created (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Create VPC
+      tags:
+        - EC2
+  /ec2/vpcs/{vpcId}:
+    delete:
+      description: |
+        Deletes the specified VPC. The VPC must be empty (no subnets,
+        security groups, route tables, internet gateways, etc.).
+      operationId: deleteVpc
+      parameters:
+        - description: VPC ID to delete
+          example: vpc-1234567890abcdef0
+          in: path
+          name: vpcId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              description: |
+                Parameters for DeleteVpc
+                (e.g., VpcId — current vpcId used if not specified).
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: VPC deleted (passthrough from emulator)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete VPC
+      tags:
+        - EC2
   /elasticache/cache-clusters:
     get:
       description: |
@@ -17931,6 +19796,87 @@ paths:
       summary: Set bucket encryption
       tags:
         - S3
+  /s3/buckets/{bucket}/lifecycle:
+    delete:
+      description: |
+        Removes all lifecycle configuration rules from a bucket.
+      operationId: deleteBucketLifecycleConfiguration
+      parameters:
+        - $ref: ../common/_parameters.yaml#/components/parameters/BucketPath
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/S3DeleteBucketLifecycleConfigurationOutput
+          description: Lifecycle configuration deleted
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete bucket lifecycle configuration
+      tags:
+        - S3
+    get:
+      description: |
+        Returns the lifecycle configuration rules for a bucket.
+        Returns an empty Rules array if no lifecycle configuration exists.
+      operationId: getBucketLifecycleConfiguration
+      parameters:
+        - $ref: ../common/_parameters.yaml#/components/parameters/BucketPath
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/S3GetBucketLifecycleConfigurationOutput
+          description: Lifecycle configuration
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Get bucket lifecycle configuration
+      tags:
+        - S3
+    put:
+      description: |
+        Sets the lifecycle configuration for a bucket. Replaces all existing rules.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putBucketLifecycleConfiguration
+      parameters:
+        - $ref: ../common/_parameters.yaml#/components/parameters/BucketPath
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ../common/_components.yaml#/components/schemas/S3PutBucketLifecycleConfigurationInput
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/S3PutBucketLifecycleConfigurationOutput
+          description: Lifecycle configuration updated
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Set bucket lifecycle configuration
+      tags:
+        - S3
   /s3/buckets/{bucket}/notification:
     get:
       description: |
@@ -20560,3 +22506,5 @@ tags:
     name: ElastiCache
   - description: Amazon Relational Database Service
     name: RDS
+  - description: Amazon Elastic Compute Cloud
+    name: EC2

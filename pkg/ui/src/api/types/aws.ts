@@ -1036,3 +1036,137 @@ export interface SESTemplate {
   TemplateContent?: { Subject: string; Html?: string; Text?: string }
   CreatedTimestamp?: string
 }
+
+// EC2 Types
+export interface EC2Instance {
+  InstanceId: string
+  ImageId: string
+  InstanceType: string
+  KeyName?: string
+  State?: { Name: string; Code: number }
+  LaunchTime?: string
+  Placement?: { AvailabilityZone: string }
+  SecurityGroups?: Array<{ GroupId: string; GroupName: string }>
+  SubnetId?: string
+  VpcId?: string
+  Tags?: Array<{ Key: string; Value: string }>
+  PublicIpAddress?: string
+  PrivateIpAddress?: string
+}
+
+export interface EC2KeyPair {
+  KeyName: string
+  KeyFingerprint: string
+  KeyPairId?: string
+  KeyType?: string
+}
+
+export interface EC2SecurityGroup {
+  GroupId: string
+  GroupName: string
+  Description: string
+  VpcId: string
+  IpPermissions?: Array<{
+    IpProtocol: string
+    FromPort?: number
+    ToPort?: number
+    IpRanges?: Array<{ CidrIp: string; Description?: string }>
+  }>
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2Vpc {
+  VpcId: string
+  CidrBlock: string
+  IsDefault: boolean
+  State: string
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2Subnet {
+  SubnetId: string
+  VpcId: string
+  CidrBlock: string
+  AvailabilityZone: string
+  State: string
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2RouteTable {
+  RouteTableId: string
+  VpcId: string
+  Routes?: Array<{
+    DestinationCidrBlock?: string
+    GatewayId?: string
+    NatGatewayId?: string
+    NetworkInterfaceId?: string
+    State: string
+    Origin?: string
+  }>
+  Associations?: Array<{
+    RouteTableAssociationId: string
+    SubnetId?: string
+    Main: boolean
+    AssociationState?: { State: string }
+  }>
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2InternetGateway {
+  InternetGatewayId: string
+  Attachments?: Array<{
+    VpcId: string
+    State: string
+  }>
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2NatGateway {
+  NatGatewayId: string
+  State: string
+  SubnetId: string
+  NatGatewayAddresses?: Array<{
+    AllocationId: string
+    NetworkInterfaceId: string
+    PrivateIp: string
+    PublicIp: string
+  }>
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2NetworkAcl {
+  NetworkAclId: string
+  VpcId: string
+  IsDefault: boolean
+  Entries?: Array<{
+    RuleNumber: number
+    Protocol: string
+    PortRange?: { From: number; To: number }
+    CidrBlock: string
+    Egress: boolean
+    RuleAction: 'allow' | 'deny'
+  }>
+  Associations?: Array<{
+    NetworkAclAssociationId: string
+    SubnetId: string
+  }>
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2FlowLog {
+  FlowLogId: string
+  ResourceId: string
+  LogDestination: string
+  LogGroupName?: string
+  TrafficType: string
+  LogDestinationType?: string
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2ElasticIp {
+  AllocationId: string
+  PublicIp: string
+  Domain: string
+  InstanceId?: string
+  Tags?: Array<{ Key: string; Value: string }>
+}

@@ -154,6 +154,7 @@ jobs:
           docker run -d --name floci -p 4566:4566 \
             -e FLOCI_SERVICES_OPENSEARCH_MOCK=true \
             -e FLOCI_SERVICES_MSK_MOCK=true \
+            -e FLOCI_SERVICES_EC2_MOCK=true \
             floci/floci:latest
           sleep 5
           for i in {1..30}; do

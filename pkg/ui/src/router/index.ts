@@ -105,6 +105,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/services/ElastiCache.vue'),
     meta: { title: 'ElastiCache', service: 'elasticache' },
   },
+  // EC2
+  {
+    path: '/services/ec2',
+    name: 'EC2',
+    component: () => import('@/views/services/EC2.vue'),
+    meta: { title: 'EC2', service: 'ec2' },
+  },
   // RDS
   {
     path: '/services/rds',

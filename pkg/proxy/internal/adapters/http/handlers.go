@@ -108,6 +108,7 @@ func (h *ProxyHandler) RegisterServiceRoutes(r chi.Router) {
 	h.registerCloudWatchLogsRoutes(r)
 	h.registerDynamoDBRoutes(r)
 	h.registerDynamoDBStreamsRoutes(r)
+	h.registerEC2Routes(r)
 	h.registerIAMRoutes(r)
 	h.registerKinesisRoutes(r)
 	h.registerKMSRoutes(r)
@@ -263,6 +264,16 @@ func isNotFoundError(err error) bool {
 		return true
 	}
 	return false
+}
+
+// isUnsupportedError checks if the error is an AWS "UnsupportedOperation" type error
+// indicating the emulator does not support this operation.
+func isUnsupportedError(err error) bool {
+	var apiErr smithy.APIError
+	if !errors.As(err, &apiErr) {
+		return false
+	}
+	return apiErr.ErrorCode() == "UnsupportedOperation"
 }
 
 // sendErrorWithStatus sends an error response with a status derived from the error type.
