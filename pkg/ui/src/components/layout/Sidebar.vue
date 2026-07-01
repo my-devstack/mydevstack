@@ -102,6 +102,7 @@ const services: Service[] = [
   { name: 'ElastiCache', path: '/services/elasticache', icon: 'elasticache', color: 'service-elasticache' },
   { name: 'OpenSearch', path: '/services/opensearch', icon: 'opensearch', color: 'service-opensearch' },
   { name: 'EC2', path: '/services/ec2', icon: 'ec2', color: 'service-ec2' },
+  { name: 'VPC', path: '/services/vpc', icon: 'vpc', color: 'service-vpc' },
   { name: 'RDS', path: '/services/rds', icon: 'rds', color: 'service-rds' },
   { name: 'MSK', path: '/services/msk', icon: 'msk', color: 'service-msk' },
 ]
@@ -594,6 +595,20 @@ onUnmounted(() => {
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+              />
+            </svg>
+            <svg
+              v-else-if="service.icon === 'vpc'"
+              class="w-5 h-5 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
               />
             </svg>
             <svg

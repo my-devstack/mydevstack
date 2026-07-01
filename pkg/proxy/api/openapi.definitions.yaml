@@ -59,6 +59,8 @@ tags:
     description: Amazon ElastiCache
   - name: RDS
     description: Amazon Relational Database Service
+  - name: VPC
+    description: Amazon Virtual Private Cloud
   - name: EC2
     description: Amazon Elastic Compute Cloud
 
@@ -79,6 +81,7 @@ services:
   - services/secrets-manager.yaml
   - services/sesv2.yaml
   - services/ec2.yaml
+  - services/vpc.yaml
   - services/elasticache.yaml
   - services/rds.yaml
   - services/opensearch.yaml

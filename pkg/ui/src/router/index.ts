@@ -112,6 +112,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/services/EC2.vue'),
     meta: { title: 'EC2', service: 'ec2' },
   },
+  // VPC
+  {
+    path: '/services/vpc',
+    name: 'VPC',
+    component: () => import('@/views/services/VPC.vue'),
+    meta: { title: 'VPC', service: 'vpc' },
+  },
   // RDS
   {
     path: '/services/rds',

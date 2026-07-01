@@ -26,6 +26,7 @@ export const SERVICE_COLORS: Record<string, { text: string; bg: string }> = {
   sns: { text: 'text-purple-500', bg: 'bg-purple-500' },
   iam: { text: 'text-green-500', bg: 'bg-green-500' },
   ec2: { text: 'text-cyan-500', bg: 'bg-cyan-500' },
+  vpc: { text: 'text-purple-500', bg: 'bg-purple-500' },
   rds: { text: 'text-pink-500', bg: 'bg-pink-500' },
   apigateway: { text: 'text-indigo-500', bg: 'bg-indigo-500' },
   kinesis: { text: 'text-teal-500', bg: 'bg-teal-500' },

@@ -59,6 +59,7 @@ func main() {
 	log.Printf("  CloudWatch Logs:  http://localhost:%s/cloudwatchlogs/", cfg.Port)
 	log.Printf("  ElastiCache:      http://localhost:%s/elasticache/", cfg.Port)
 	log.Printf("  EC2:              http://localhost:%s/ec2/", cfg.Port)
+	log.Printf("  VPC:              http://localhost:%s/vpc/", cfg.Port)
 	log.Printf("  IAM:              http://localhost:%s/iam/", cfg.Port)
 	log.Printf("  Kinesis:          http://localhost:%s/kinesis/", cfg.Port)
 	log.Printf("  Step Functions:   http://localhost:%s/stepfunctions/", cfg.Port)

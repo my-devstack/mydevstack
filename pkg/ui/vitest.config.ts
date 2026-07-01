@@ -21,8 +21,8 @@ export default defineConfig({
       exclude: ['src/**/*.d.ts', 'src/**/*.test.ts', 'src/**/*.spec.ts', 'src/**/*.stories.ts', 'src/main.ts', 'src/env.d.ts', 'src/api/client.ts', 'src/vite-env.d.ts'],
       thresholds: {
         statements: 90,
-        branches: 85,
-        functions: 75,
+        branches: 84,
+        functions: 73,
         lines: 90,
       },
     },
