@@ -147,6 +147,8 @@ mydevstack/
 | Lambda | ✅ | Functions, Invocations |
 | DynamoDB | ✅ | Tables, Items |
 | DynamoDB Streams | ✅ | Stream records, shards |
+| EC2 | ✅ | Instances, Key Pairs, Security Groups, Elastic IPs |
+| VPC | ✅ | VPCs, Subnets, Route Tables, Internet Gateways, NAT Gateways, Network ACLs, Flow Logs |
 | SQS | ✅ | Queues, Messages |
 | SNS | ✅ | Topics, Subscriptions, Publishing |
 | IAM | ✅ | Users, Roles, Groups, Policies |

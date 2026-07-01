@@ -143,6 +143,17 @@ const SERVICE_CONFIGS: ServiceConfig[] = [
     enabled: true,
   },
   {
+    id: 'vpc',
+    name: 'VPC',
+    category: 'networking',
+    icon: 'Squares2X2Icon',
+    route: '/services/vpc',
+    color: SERVICE_COLORS.vpc.text,
+    bgColor: SERVICE_COLORS.vpc.bg,
+    statsFetcher: async () => 0,
+    enabled: true,
+  },
+  {
     id: 'rds',
     name: 'RDS Instances',
     category: 'database',

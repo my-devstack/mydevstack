@@ -20,6 +20,7 @@ describe('Router', () => {
     'SSM',
     'ElastiCache',
     'EC2',
+    'VPC',
     'RDS',
     'StepFunctions',
     'OpenSearch',

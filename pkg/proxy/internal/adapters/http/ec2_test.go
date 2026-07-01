@@ -383,56 +383,6 @@ func TestEC2_AuthorizeIngress_Error(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// ListVpcs
-// ---------------------------------------------------------------------------
-
-func TestEC2_ListVpcs_Success(t *testing.T) {
-	t.Parallel()
-	_, mp, handler := setupVpcTest(t)
-	mp.EXPECT().DescribeVpcs(mock.Anything, mock.Anything).Return(&ec2.DescribeVpcsOutput{}, nil)
-
-	w := performEC2Request(handler, "GET", "/ec2/vpcs", []byte(`{}`))
-	assert.Equal(t, http.StatusOK, w.Code)
-}
-
-func TestEC2_ListVpcs_Error(t *testing.T) {
-	t.Parallel()
-	_, mp, handler := setupVpcTest(t)
-	mp.EXPECT().DescribeVpcs(mock.Anything, mock.Anything).Return(nil, errors.New("list vpcs error"))
-
-	w := performEC2Request(handler, "GET", "/ec2/vpcs", []byte(`{}`))
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
-	var resp map[string]interface{}
-	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
-	assert.Contains(t, resp["error"], "Failed to list VPCs")
-}
-
-// ---------------------------------------------------------------------------
-// ListSubnets
-// ---------------------------------------------------------------------------
-
-func TestEC2_ListSubnets_Success(t *testing.T) {
-	t.Parallel()
-	_, mp, handler := setupVpcTest(t)
-	mp.EXPECT().DescribeSubnets(mock.Anything, mock.Anything).Return(&ec2.DescribeSubnetsOutput{}, nil)
-
-	w := performEC2Request(handler, "GET", "/ec2/subnets", []byte(`{}`))
-	assert.Equal(t, http.StatusOK, w.Code)
-}
-
-func TestEC2_ListSubnets_Error(t *testing.T) {
-	t.Parallel()
-	_, mp, handler := setupVpcTest(t)
-	mp.EXPECT().DescribeSubnets(mock.Anything, mock.Anything).Return(nil, errors.New("list subnets error"))
-
-	w := performEC2Request(handler, "GET", "/ec2/subnets", []byte(`{}`))
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
-	var resp map[string]interface{}
-	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
-	assert.Contains(t, resp["error"], "Failed to list subnets")
-}
-
-// ---------------------------------------------------------------------------
 // Parse error — invalid JSON body returns 400 for actions that call parseBody
 // ---------------------------------------------------------------------------
 
