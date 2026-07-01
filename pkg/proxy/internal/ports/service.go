@@ -43,6 +43,7 @@ type ProxyService interface {
 	DynamoDB() DynamoDBPort
 	DynamoDBStreams() DynamoDBStreamsPort
 	EC2() EC2Port
+	Vpc() VpcPort
 	APIGateway() APIGatewayPort
 	APIGatewayV2() APIGatewayV2Port
 	SSM() SSMPort
@@ -235,6 +236,41 @@ type EC2Port interface {
 	AuthorizeSecurityGroupIngress(ctx context.Context, input *ec2.AuthorizeSecurityGroupIngressInput) (*ec2.AuthorizeSecurityGroupIngressOutput, error)
 	DescribeVpcs(ctx context.Context, input *ec2.DescribeVpcsInput) (*ec2.DescribeVpcsOutput, error)
 	DescribeSubnets(ctx context.Context, input *ec2.DescribeSubnetsInput) (*ec2.DescribeSubnetsOutput, error)
+}
+
+type VpcPort interface {
+	CreateVpc(ctx context.Context, input *ec2.CreateVpcInput) (*ec2.CreateVpcOutput, error)
+	DescribeVpcs(ctx context.Context, input *ec2.DescribeVpcsInput) (*ec2.DescribeVpcsOutput, error)
+	DeleteVpc(ctx context.Context, input *ec2.DeleteVpcInput) (*ec2.DeleteVpcOutput, error)
+	CreateSubnet(ctx context.Context, input *ec2.CreateSubnetInput) (*ec2.CreateSubnetOutput, error)
+	DescribeSubnets(ctx context.Context, input *ec2.DescribeSubnetsInput) (*ec2.DescribeSubnetsOutput, error)
+	DeleteSubnet(ctx context.Context, input *ec2.DeleteSubnetInput) (*ec2.DeleteSubnetOutput, error)
+	CreateRouteTable(ctx context.Context, input *ec2.CreateRouteTableInput) (*ec2.CreateRouteTableOutput, error)
+	DescribeRouteTables(ctx context.Context, input *ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error)
+	DeleteRouteTable(ctx context.Context, input *ec2.DeleteRouteTableInput) (*ec2.DeleteRouteTableOutput, error)
+	AssociateRouteTable(ctx context.Context, input *ec2.AssociateRouteTableInput) (*ec2.AssociateRouteTableOutput, error)
+	DisassociateRouteTable(ctx context.Context, input *ec2.DisassociateRouteTableInput) (*ec2.DisassociateRouteTableOutput, error)
+	CreateRoute(ctx context.Context, input *ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error)
+	DeleteRoute(ctx context.Context, input *ec2.DeleteRouteInput) (*ec2.DeleteRouteOutput, error)
+	CreateInternetGateway(ctx context.Context, input *ec2.CreateInternetGatewayInput) (*ec2.CreateInternetGatewayOutput, error)
+	DescribeInternetGateways(ctx context.Context, input *ec2.DescribeInternetGatewaysInput) (*ec2.DescribeInternetGatewaysOutput, error)
+	DeleteInternetGateway(ctx context.Context, input *ec2.DeleteInternetGatewayInput) (*ec2.DeleteInternetGatewayOutput, error)
+	AttachInternetGateway(ctx context.Context, input *ec2.AttachInternetGatewayInput) (*ec2.AttachInternetGatewayOutput, error)
+	DetachInternetGateway(ctx context.Context, input *ec2.DetachInternetGatewayInput) (*ec2.DetachInternetGatewayOutput, error)
+	CreateNatGateway(ctx context.Context, input *ec2.CreateNatGatewayInput) (*ec2.CreateNatGatewayOutput, error)
+	DescribeNatGateways(ctx context.Context, input *ec2.DescribeNatGatewaysInput) (*ec2.DescribeNatGatewaysOutput, error)
+	DeleteNatGateway(ctx context.Context, input *ec2.DeleteNatGatewayInput) (*ec2.DeleteNatGatewayOutput, error)
+	CreateNetworkAcl(ctx context.Context, input *ec2.CreateNetworkAclInput) (*ec2.CreateNetworkAclOutput, error)
+	DescribeNetworkAcls(ctx context.Context, input *ec2.DescribeNetworkAclsInput) (*ec2.DescribeNetworkAclsOutput, error)
+	DeleteNetworkAcl(ctx context.Context, input *ec2.DeleteNetworkAclInput) (*ec2.DeleteNetworkAclOutput, error)
+	CreateNetworkAclEntry(ctx context.Context, input *ec2.CreateNetworkAclEntryInput) (*ec2.CreateNetworkAclEntryOutput, error)
+	DeleteNetworkAclEntry(ctx context.Context, input *ec2.DeleteNetworkAclEntryInput) (*ec2.DeleteNetworkAclEntryOutput, error)
+	CreateFlowLogs(ctx context.Context, input *ec2.CreateFlowLogsInput) (*ec2.CreateFlowLogsOutput, error)
+	DescribeFlowLogs(ctx context.Context, input *ec2.DescribeFlowLogsInput) (*ec2.DescribeFlowLogsOutput, error)
+	DeleteFlowLogs(ctx context.Context, input *ec2.DeleteFlowLogsInput) (*ec2.DeleteFlowLogsOutput, error)
+	AllocateAddress(ctx context.Context, input *ec2.AllocateAddressInput) (*ec2.AllocateAddressOutput, error)
+	DescribeAddresses(ctx context.Context, input *ec2.DescribeAddressesInput) (*ec2.DescribeAddressesOutput, error)
+	ReleaseAddress(ctx context.Context, input *ec2.ReleaseAddressInput) (*ec2.ReleaseAddressOutput, error)
 }
 
 type APIGatewayPort interface {

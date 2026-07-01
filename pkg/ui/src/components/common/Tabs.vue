@@ -36,7 +36,7 @@ function selectTab(tabId: string) {
 }
 
 const containerClasses = computed(() => {
-  const base = 'flex'
+  const base = 'flex flex-nowrap overflow-x-auto'
   const alignment = {
     left: 'justify-start',
     center: 'justify-center',

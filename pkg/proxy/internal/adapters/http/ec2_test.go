@@ -388,7 +388,7 @@ func TestEC2_AuthorizeIngress_Error(t *testing.T) {
 
 func TestEC2_ListVpcs_Success(t *testing.T) {
 	t.Parallel()
-	_, mp, handler := setupEC2Test(t)
+	_, mp, handler := setupVpcTest(t)
 	mp.EXPECT().DescribeVpcs(mock.Anything, mock.Anything).Return(&ec2.DescribeVpcsOutput{}, nil)
 
 	w := performEC2Request(handler, "GET", "/ec2/vpcs", []byte(`{}`))
@@ -397,7 +397,7 @@ func TestEC2_ListVpcs_Success(t *testing.T) {
 
 func TestEC2_ListVpcs_Error(t *testing.T) {
 	t.Parallel()
-	_, mp, handler := setupEC2Test(t)
+	_, mp, handler := setupVpcTest(t)
 	mp.EXPECT().DescribeVpcs(mock.Anything, mock.Anything).Return(nil, errors.New("list vpcs error"))
 
 	w := performEC2Request(handler, "GET", "/ec2/vpcs", []byte(`{}`))
@@ -413,7 +413,7 @@ func TestEC2_ListVpcs_Error(t *testing.T) {
 
 func TestEC2_ListSubnets_Success(t *testing.T) {
 	t.Parallel()
-	_, mp, handler := setupEC2Test(t)
+	_, mp, handler := setupVpcTest(t)
 	mp.EXPECT().DescribeSubnets(mock.Anything, mock.Anything).Return(&ec2.DescribeSubnetsOutput{}, nil)
 
 	w := performEC2Request(handler, "GET", "/ec2/subnets", []byte(`{}`))
@@ -422,7 +422,7 @@ func TestEC2_ListSubnets_Success(t *testing.T) {
 
 func TestEC2_ListSubnets_Error(t *testing.T) {
 	t.Parallel()
-	_, mp, handler := setupEC2Test(t)
+	_, mp, handler := setupVpcTest(t)
 	mp.EXPECT().DescribeSubnets(mock.Anything, mock.Anything).Return(nil, errors.New("list subnets error"))
 
 	w := performEC2Request(handler, "GET", "/ec2/subnets", []byte(`{}`))
@@ -452,8 +452,6 @@ func TestEC2_ParseError(t *testing.T) {
 		{name: "ListSecurityGroups", method: "GET", path: "/ec2/security-groups"},
 		{name: "CreateSecurityGroup", method: "POST", path: "/ec2/security-groups"},
 		{name: "AuthorizeIngress", method: "POST", path: "/ec2/security-groups/sg-123/ingress"},
-		{name: "ListVpcs", method: "GET", path: "/ec2/vpcs"},
-		{name: "ListSubnets", method: "GET", path: "/ec2/subnets"},
 	}
 
 	for _, ra := range routerActions {

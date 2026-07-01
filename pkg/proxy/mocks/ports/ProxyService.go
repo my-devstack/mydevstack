@@ -1279,3 +1279,49 @@ func (_c *ProxyService_StepFunctions_Call) RunAndReturn(run func() ports.StepFun
 	_c.Call.Return(run)
 	return _c
 }
+
+// Vpc provides a mock function for the type ProxyService
+func (_mock *ProxyService) Vpc() ports.VpcPort {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Vpc")
+	}
+
+	var r0 ports.VpcPort
+	if returnFunc, ok := ret.Get(0).(func() ports.VpcPort); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ports.VpcPort)
+		}
+	}
+	return r0
+}
+
+// ProxyService_Vpc_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Vpc'
+type ProxyService_Vpc_Call struct {
+	*mock.Call
+}
+
+// Vpc is a helper method to define mock.On call
+func (_e *ProxyService_Expecter) Vpc() *ProxyService_Vpc_Call {
+	return &ProxyService_Vpc_Call{Call: _e.mock.On("Vpc")}
+}
+
+func (_c *ProxyService_Vpc_Call) Run(run func()) *ProxyService_Vpc_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ProxyService_Vpc_Call) Return(vpcPort ports.VpcPort) *ProxyService_Vpc_Call {
+	_c.Call.Return(vpcPort)
+	return _c
+}
+
+func (_c *ProxyService_Vpc_Call) RunAndReturn(run func() ports.VpcPort) *ProxyService_Vpc_Call {
+	_c.Call.Return(run)
+	return _c
+}

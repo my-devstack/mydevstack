@@ -1091,3 +1091,82 @@ export interface EC2Subnet {
   State: string
   Tags?: Array<{ Key: string; Value: string }>
 }
+
+export interface EC2RouteTable {
+  RouteTableId: string
+  VpcId: string
+  Routes?: Array<{
+    DestinationCidrBlock?: string
+    GatewayId?: string
+    NatGatewayId?: string
+    NetworkInterfaceId?: string
+    State: string
+    Origin?: string
+  }>
+  Associations?: Array<{
+    RouteTableAssociationId: string
+    SubnetId?: string
+    Main: boolean
+    AssociationState?: { State: string }
+  }>
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2InternetGateway {
+  InternetGatewayId: string
+  Attachments?: Array<{
+    VpcId: string
+    State: string
+  }>
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2NatGateway {
+  NatGatewayId: string
+  State: string
+  SubnetId: string
+  NatGatewayAddresses?: Array<{
+    AllocationId: string
+    NetworkInterfaceId: string
+    PrivateIp: string
+    PublicIp: string
+  }>
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2NetworkAcl {
+  NetworkAclId: string
+  VpcId: string
+  IsDefault: boolean
+  Entries?: Array<{
+    RuleNumber: number
+    Protocol: string
+    PortRange?: { From: number; To: number }
+    CidrBlock: string
+    Egress: boolean
+    RuleAction: 'allow' | 'deny'
+  }>
+  Associations?: Array<{
+    NetworkAclAssociationId: string
+    SubnetId: string
+  }>
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2FlowLog {
+  FlowLogId: string
+  ResourceId: string
+  LogDestination: string
+  LogGroupName?: string
+  TrafficType: string
+  LogDestinationType?: string
+  Tags?: Array<{ Key: string; Value: string }>
+}
+
+export interface EC2ElasticIp {
+  AllocationId: string
+  PublicIp: string
+  Domain: string
+  InstanceId?: string
+  Tags?: Array<{ Key: string; Value: string }>
+}

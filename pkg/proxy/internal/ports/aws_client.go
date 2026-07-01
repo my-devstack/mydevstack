@@ -118,6 +118,42 @@ type DynamoDBStreamsClientPort interface {
 	GetRecords(ctx context.Context, input *dynamodbstreams.GetRecordsInput, opts ...func(*dynamodbstreams.Options)) (*dynamodbstreams.GetRecordsOutput, error)
 }
 
+// VpcClientPort defines the interface for the AWS EC2 client (VPC operations)
+type VpcClientPort interface {
+	CreateVpc(ctx context.Context, input *ec2.CreateVpcInput, opts ...func(*ec2.Options)) (*ec2.CreateVpcOutput, error)
+	DescribeVpcs(ctx context.Context, input *ec2.DescribeVpcsInput, opts ...func(*ec2.Options)) (*ec2.DescribeVpcsOutput, error)
+	DeleteVpc(ctx context.Context, input *ec2.DeleteVpcInput, opts ...func(*ec2.Options)) (*ec2.DeleteVpcOutput, error)
+	CreateSubnet(ctx context.Context, input *ec2.CreateSubnetInput, opts ...func(*ec2.Options)) (*ec2.CreateSubnetOutput, error)
+	DescribeSubnets(ctx context.Context, input *ec2.DescribeSubnetsInput, opts ...func(*ec2.Options)) (*ec2.DescribeSubnetsOutput, error)
+	DeleteSubnet(ctx context.Context, input *ec2.DeleteSubnetInput, opts ...func(*ec2.Options)) (*ec2.DeleteSubnetOutput, error)
+	CreateRouteTable(ctx context.Context, input *ec2.CreateRouteTableInput, opts ...func(*ec2.Options)) (*ec2.CreateRouteTableOutput, error)
+	DescribeRouteTables(ctx context.Context, input *ec2.DescribeRouteTablesInput, opts ...func(*ec2.Options)) (*ec2.DescribeRouteTablesOutput, error)
+	DeleteRouteTable(ctx context.Context, input *ec2.DeleteRouteTableInput, opts ...func(*ec2.Options)) (*ec2.DeleteRouteTableOutput, error)
+	AssociateRouteTable(ctx context.Context, input *ec2.AssociateRouteTableInput, opts ...func(*ec2.Options)) (*ec2.AssociateRouteTableOutput, error)
+	DisassociateRouteTable(ctx context.Context, input *ec2.DisassociateRouteTableInput, opts ...func(*ec2.Options)) (*ec2.DisassociateRouteTableOutput, error)
+	CreateRoute(ctx context.Context, input *ec2.CreateRouteInput, opts ...func(*ec2.Options)) (*ec2.CreateRouteOutput, error)
+	DeleteRoute(ctx context.Context, input *ec2.DeleteRouteInput, opts ...func(*ec2.Options)) (*ec2.DeleteRouteOutput, error)
+	CreateInternetGateway(ctx context.Context, input *ec2.CreateInternetGatewayInput, opts ...func(*ec2.Options)) (*ec2.CreateInternetGatewayOutput, error)
+	DescribeInternetGateways(ctx context.Context, input *ec2.DescribeInternetGatewaysInput, opts ...func(*ec2.Options)) (*ec2.DescribeInternetGatewaysOutput, error)
+	DeleteInternetGateway(ctx context.Context, input *ec2.DeleteInternetGatewayInput, opts ...func(*ec2.Options)) (*ec2.DeleteInternetGatewayOutput, error)
+	AttachInternetGateway(ctx context.Context, input *ec2.AttachInternetGatewayInput, opts ...func(*ec2.Options)) (*ec2.AttachInternetGatewayOutput, error)
+	DetachInternetGateway(ctx context.Context, input *ec2.DetachInternetGatewayInput, opts ...func(*ec2.Options)) (*ec2.DetachInternetGatewayOutput, error)
+	CreateNatGateway(ctx context.Context, input *ec2.CreateNatGatewayInput, opts ...func(*ec2.Options)) (*ec2.CreateNatGatewayOutput, error)
+	DescribeNatGateways(ctx context.Context, input *ec2.DescribeNatGatewaysInput, opts ...func(*ec2.Options)) (*ec2.DescribeNatGatewaysOutput, error)
+	DeleteNatGateway(ctx context.Context, input *ec2.DeleteNatGatewayInput, opts ...func(*ec2.Options)) (*ec2.DeleteNatGatewayOutput, error)
+	CreateNetworkAcl(ctx context.Context, input *ec2.CreateNetworkAclInput, opts ...func(*ec2.Options)) (*ec2.CreateNetworkAclOutput, error)
+	DescribeNetworkAcls(ctx context.Context, input *ec2.DescribeNetworkAclsInput, opts ...func(*ec2.Options)) (*ec2.DescribeNetworkAclsOutput, error)
+	DeleteNetworkAcl(ctx context.Context, input *ec2.DeleteNetworkAclInput, opts ...func(*ec2.Options)) (*ec2.DeleteNetworkAclOutput, error)
+	CreateNetworkAclEntry(ctx context.Context, input *ec2.CreateNetworkAclEntryInput, opts ...func(*ec2.Options)) (*ec2.CreateNetworkAclEntryOutput, error)
+	DeleteNetworkAclEntry(ctx context.Context, input *ec2.DeleteNetworkAclEntryInput, opts ...func(*ec2.Options)) (*ec2.DeleteNetworkAclEntryOutput, error)
+	CreateFlowLogs(ctx context.Context, input *ec2.CreateFlowLogsInput, opts ...func(*ec2.Options)) (*ec2.CreateFlowLogsOutput, error)
+	DescribeFlowLogs(ctx context.Context, input *ec2.DescribeFlowLogsInput, opts ...func(*ec2.Options)) (*ec2.DescribeFlowLogsOutput, error)
+	DeleteFlowLogs(ctx context.Context, input *ec2.DeleteFlowLogsInput, opts ...func(*ec2.Options)) (*ec2.DeleteFlowLogsOutput, error)
+	AllocateAddress(ctx context.Context, input *ec2.AllocateAddressInput, opts ...func(*ec2.Options)) (*ec2.AllocateAddressOutput, error)
+	DescribeAddresses(ctx context.Context, input *ec2.DescribeAddressesInput, opts ...func(*ec2.Options)) (*ec2.DescribeAddressesOutput, error)
+	ReleaseAddress(ctx context.Context, input *ec2.ReleaseAddressInput, opts ...func(*ec2.Options)) (*ec2.ReleaseAddressOutput, error)
+}
+
 // EC2ClientPort defines the interface for the AWS EC2 client
 type EC2ClientPort interface {
 	DescribeInstances(ctx context.Context, input *ec2.DescribeInstancesInput, opts ...func(*ec2.Options)) (*ec2.DescribeInstancesOutput, error)

@@ -266,6 +266,16 @@ func isNotFoundError(err error) bool {
 	return false
 }
 
+// isUnsupportedError checks if the error is an AWS "UnsupportedOperation" type error
+// indicating the emulator does not support this operation.
+func isUnsupportedError(err error) bool {
+	var apiErr smithy.APIError
+	if !errors.As(err, &apiErr) {
+		return false
+	}
+	return apiErr.ErrorCode() == "UnsupportedOperation"
+}
+
 // sendErrorWithStatus sends an error response with a status derived from the error type.
 // Returns 404 for "not found" errors, 500 otherwise.
 func sendErrorWithStatus(w http.ResponseWriter, message string, err error) {
