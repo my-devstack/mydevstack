@@ -73,6 +73,22 @@ describe('Lambda Service', () => {
       expect(body.FunctionName).toBe('new-func')
     })
 
+    it('passes VpcConfig through to request body', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ FunctionName: 'fn' }))
+      await createFunction({
+        FunctionName: 'fn',
+        Runtime: 'nodejs22.x',
+        Handler: 'index.handler',
+        Role: 'arn:aws:iam::role/test',
+        VpcConfig: { SubnetIds: ['subnet-1', 'subnet-2'], SecurityGroupIds: ['sg-1'] },
+      })
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.VpcConfig).toEqual({
+        SubnetIds: ['subnet-1', 'subnet-2'],
+        SecurityGroupIds: ['sg-1'],
+      })
+    })
+
     it('converts Uint8Array ZipFile to base64', async () => {
       mockFetch.mockResolvedValue(mockResponse({ FunctionName: 'new-func' }))
       const code = new Uint8Array([104, 101, 108, 108, 111]) // 'hello'

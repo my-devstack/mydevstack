@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { useToast } from '@/composables/useToast'
 import { useSettingsStore } from '@/stores/settings'
 import * as mskApi from '@/api/services/msk'
+import type { VpcSelection } from '@/types/vpc'
 
 // Types
 export interface MSKClusterSummary {
@@ -77,7 +78,7 @@ export function useMSK() {
     brokerCount: 2,
     instanceType: 'kafka.m5.large',
     storagePerBroker: 100,
-    clientSubnets: 'subnet-123456',
+    vpcSelection: null as VpcSelection | null,
   })
 
   // Computed
@@ -166,20 +167,22 @@ export function useMSK() {
       return
     }
 
+    if (!newCluster.value.vpcSelection || !newCluster.value.vpcSelection.vpcId) {
+      toast.warning('VPC configuration is required for MSK clusters')
+      return
+    }
+
     isLoading.value = true
     try {
-      const subnets = newCluster.value.clientSubnets
-        .split(',')
-        .map((s: string) => s.trim())
-        .filter((s: string) => s.length > 0)
-      const params = {
+      const vpcSelection = newCluster.value.vpcSelection
+      const params: Record<string, any> = {
         ClusterName: newCluster.value.name,
         Provisioned: {
           KafkaVersion: newCluster.value.kafkaVersion,
           NumberOfBrokerNodes: newCluster.value.brokerCount,
           BrokerNodeGroupInfo: {
             InstanceType: newCluster.value.instanceType,
-            ClientSubnets: subnets,
+            BrokerAZDistribution: 'DEFAULT',
             StorageInfo: {
               EbsStorageInfo: {
                 VolumeSize: newCluster.value.storagePerBroker,
@@ -187,6 +190,10 @@ export function useMSK() {
             },
           },
         },
+      }
+      if (vpcSelection) {
+        params.Provisioned.BrokerNodeGroupInfo.ClientSubnets = vpcSelection.subnetIds
+        params.Provisioned.BrokerNodeGroupInfo.SecurityGroups = vpcSelection.securityGroupIds
       }
       await mskApi.createClusterV2(params)
       toast.success(`Cluster ${newCluster.value.name} creation initiated`)
@@ -197,7 +204,7 @@ export function useMSK() {
         brokerCount: 2,
         instanceType: 'kafka.m5.large',
         storagePerBroker: 100,
-        clientSubnets: 'subnet-123456',
+        vpcSelection: null,
       }
       await loadClusters()
     } catch (err: any) {

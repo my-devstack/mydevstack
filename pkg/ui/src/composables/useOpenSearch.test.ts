@@ -38,13 +38,14 @@ describe('useOpenSearch', () => {
   })
 
   it('initializes with empty state', () => {
-    const { domains, loading, isAvailable, expandedDomains, showCreateModal, showDeleteConfirm } = useOpenSearch()
+    const { domains, loading, isAvailable, expandedDomains, showCreateModal, showDeleteConfirm, vpcSelection } = useOpenSearch()
     expect(domains.value).toEqual([])
     expect(loading.value).toBe(false)
     expect(isAvailable.value).toBe(true)
     expect(expandedDomains.value).toEqual(new Set())
     expect(showCreateModal.value).toBe(false)
     expect(showDeleteConfirm.value).toBe(false)
+    expect(vpcSelection.value).toBeNull()
   })
 
   it('loadDomains success', async () => {
@@ -131,6 +132,57 @@ describe('useOpenSearch', () => {
     })
     expect(openSearchApi.listDomainNames).toHaveBeenCalled()
     expect(creating.value).toBe(false)
+  })
+
+  it('createDomain includes VPCOptions when vpcSelection is set', async () => {
+    vi.mocked(openSearchApi.createDomain).mockResolvedValue({})
+    vi.mocked(openSearchApi.listDomainNames).mockResolvedValue([])
+
+    const { createDomain, createForm, creating, vpcSelection } = useOpenSearch()
+    createForm.value.DomainName = 'test-domain'
+    vpcSelection.value = {
+      vpcId: 'vpc-123',
+      subnetIds: ['subnet-a', 'subnet-b'],
+      securityGroupIds: ['sg-1'],
+    }
+    creating.value = false
+
+    await createDomain()
+
+    expect(openSearchApi.createDomain).toHaveBeenCalledWith({
+      DomainName: 'test-domain',
+      EngineVersion: 'OpenSearch_2.13',
+      ClusterConfig: {
+        InstanceType: 't3.medium.search',
+        InstanceCount: 1,
+        DedicatedMasterEnabled: false,
+        ZoneAwarenessEnabled: false,
+      },
+      EBSOptions: {
+        EBSEnabled: true,
+        VolumeType: 'gp2',
+        VolumeSize: 10,
+      },
+      VPCOptions: {
+        SubnetIds: ['subnet-a', 'subnet-b'],
+        SecurityGroupIds: ['sg-1'],
+      },
+    })
+  })
+
+  it('createDomain excludes VPCOptions when vpcSelection is null', async () => {
+    vi.mocked(openSearchApi.createDomain).mockResolvedValue({})
+    vi.mocked(openSearchApi.listDomainNames).mockResolvedValue([])
+
+    const { createDomain, createForm, creating, vpcSelection } = useOpenSearch()
+    createForm.value.DomainName = 'test-domain'
+    vpcSelection.value = null
+    creating.value = false
+
+    await createDomain()
+
+    const callArgs = vi.mocked(openSearchApi.createDomain).mock.calls[0][0]
+    expect(callArgs.VPCOptions).toBeUndefined()
   })
 
   it('deleteDomain calls API and removes from list', async () => {
@@ -330,11 +382,12 @@ describe('useOpenSearch', () => {
     expect(showDeleteConfirm.value).toBe(true)
   })
 
-  it('resetForm resets createForm', () => {
-    const { resetForm, createForm } = useOpenSearch()
+  it('resetForm resets createForm and vpcSelection', () => {
+    const { resetForm, createForm, vpcSelection } = useOpenSearch()
     createForm.value.DomainName = 'test-domain'
     createForm.value.EngineVersion = 'OpenSearch_2.11'
     createForm.value.ClusterConfig = { InstanceType: 'm5.large.search', InstanceCount: 3, DedicatedMasterEnabled: true, ZoneAwarenessEnabled: true }
+    vpcSelection.value = { vpcId: 'vpc-123', subnetIds: ['subnet-a'], securityGroupIds: ['sg-1'] }
 
     resetForm()
 
@@ -342,6 +395,7 @@ describe('useOpenSearch', () => {
     expect(createForm.value.EngineVersion).toBe('OpenSearch_2.13')
     expect(createForm.value.ClusterConfig?.InstanceType).toBe('t3.medium.search')
     expect(createForm.value.ClusterConfig?.InstanceCount).toBe(1)
+    expect(vpcSelection.value).toBeNull()
   })
 
   describe('getStatus', () => {

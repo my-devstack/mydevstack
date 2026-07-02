@@ -168,6 +168,34 @@ function getBrokerString(brokers: string[]): string {
             {{ details.Provisioned?.BrokerNodeGroupInfo?.StorageInfo?.EbsStorageInfo?.VolumeSize || '-' }} GB
           </p>
         </div>
+        <div>
+          <p
+            class="text-xs font-medium uppercase tracking-wider"
+            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+          >
+            Client Subnets
+          </p>
+          <p
+            class="text-sm font-mono"
+            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+          >
+            {{ details.Provisioned?.BrokerNodeGroupInfo?.ClientSubnets?.join(', ') || '-' }}
+          </p>
+        </div>
+        <div>
+          <p
+            class="text-xs font-medium uppercase tracking-wider"
+            :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+          >
+            Security Groups
+          </p>
+          <p
+            class="text-sm font-mono"
+            :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+          >
+            {{ details.Provisioned?.BrokerNodeGroupInfo?.SecurityGroups?.join(', ') || '-' }}
+          </p>
+        </div>
       </div>
     </div>
 

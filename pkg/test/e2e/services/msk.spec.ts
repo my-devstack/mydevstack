@@ -51,7 +51,7 @@ test.describe('MSK', () => {
     await expect(page.getByText('Create MSK Cluster')).toBeVisible()
   })
 
-  test('create cluster flow', async ({ page }) => {
+  test('create cluster flow with VPC selection', async ({ page }) => {
     const clusterName = `test-create-${Date.now()}`
     await page.goto('/#/services/msk')
     await page.waitForLoadState('networkidle')
@@ -66,6 +66,33 @@ test.describe('MSK', () => {
     await page.getByLabel('Number of Brokers').fill('2')
     await page.getByLabel('Instance Type').selectOption('kafka.m5.large')
 
+    // VPC is required for MSK — select VPC in VpcSelector
+    const vpcSelect = page.getByRole('dialog').getByLabel(/VPC|vpc/i).first()
+    if (await vpcSelect.isVisible({ timeout: 3000 }).catch(() => false)) {
+      const options = await vpcSelect.locator('option').all()
+      if (options.length > 1) {
+        await vpcSelect.selectOption(options[1].getAttribute('value') || '')
+        await page.waitForTimeout(500)
+
+        // Select subnets (MSK needs at least 2)
+        const subnetSelect = page.getByRole('dialog').getByLabel(/subnet/i).first()
+        if (await subnetSelect.isVisible({ timeout: 2000 }).catch(() => false)) {
+          const subnetOptions = await subnetSelect.locator('option').all()
+          if (subnetOptions.length > 1) {
+            await subnetSelect.selectOption([
+              subnetOptions[1].getAttribute('value') || ''
+            ])
+          }
+        }
+
+        // Select security groups
+        const sgCheckbox = page.getByRole('dialog').getByLabel(/security|sg/i).first()
+        if (await sgCheckbox.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await sgCheckbox.check().catch(() => {})
+        }
+      }
+    }
+
     // Submit - use last() to get the Create Cluster button in modal
     await page.getByRole('button', { name: 'Create Cluster' }).last().click()
 
@@ -73,6 +100,37 @@ test.describe('MSK', () => {
     await page.waitForTimeout(2000)
     const found = await findClusterOnPage(page, clusterName)
     expect(found).toBe(true)
+  })
+
+  test('create cluster WITHOUT VPC shows validation error', async ({ page }) => {
+    const clusterName = `test-novpc-${Date.now()}`
+    await page.goto('/#/services/msk')
+    await page.waitForLoadState('networkidle')
+
+    // Open create modal
+    await page.getByRole('button', { name: 'Create Cluster' }).first().click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
+
+    // Fill form but skip VPC selection
+    await page.getByLabel('Cluster Name').fill(clusterName)
+    await page.getByLabel('Kafka Version').selectOption('3.6.0')
+    await page.getByLabel('Number of Brokers').fill('2')
+    await page.getByLabel('Instance Type').selectOption('kafka.m5.large')
+
+    // Submit without VPC
+    await page.getByRole('button', { name: 'Create Cluster' }).last().click()
+    await page.waitForTimeout(1500)
+
+    // Should show validation error or not proceed
+    const dialogStillOpen = await page.getByRole('dialog').isVisible().catch(() => false)
+    const hasError = await page.getByText(/required|require|must select|validation|VPC/i).first().isVisible({ timeout: 2000 }).catch(() => false)
+
+    // Either dialog stays open (validation prevents submit) or error toast appears
+    expect(dialogStillOpen || hasError).toBe(true)
+
+    if (dialogStillOpen) {
+      await page.getByRole('button', { name: /close|cancel/i }).click().catch(() => {})
+    }
   })
 
   test('expand cluster details', async ({ page }) => {

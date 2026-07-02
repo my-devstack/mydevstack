@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { useToast } from '@/composables/useToast'
 import type { LambdaFunction } from '@/api/types/aws'
+import type { VpcSelection } from '@/types/vpc'
 import * as lambdaApi from '@/api/services/lambda'
 
 export function useLambda() {
@@ -37,6 +38,7 @@ export function useLambda() {
     zipFile: File | null
     architecture: string
     environment: string
+    vpcSelection?: VpcSelection | null
   }) {
     creating.value = true
     try {
@@ -55,6 +57,13 @@ export function useLambda() {
         }
       }
 
+      const vpcConfig = data.vpcSelection?.vpcId
+        ? {
+            SubnetIds: data.vpcSelection.subnetIds,
+            SecurityGroupIds: data.vpcSelection.securityGroupIds,
+          }
+        : undefined
+
       await lambdaApi.createFunction({
         FunctionName: data.functionName,
         Runtime: data.runtime,
@@ -65,6 +74,7 @@ export function useLambda() {
         Code: zipFileData ? { ZipFile: zipFileData } : undefined,
         Architectures: [data.architecture],
         Environment: environment,
+        VpcConfig: vpcConfig,
       })
 
       toast.success(`Function "${data.functionName}" created successfully`)

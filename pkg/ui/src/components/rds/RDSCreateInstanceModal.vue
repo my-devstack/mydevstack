@@ -3,6 +3,7 @@ import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
 import FormSelect from '@/components/common/FormSelect.vue'
+import VpcSelector from '@/components/vpc/VpcSelector.vue'
 
 const props = defineProps<{
   open: boolean
@@ -111,6 +112,25 @@ function handleClose() {
         type="number"
         placeholder="20"
       />
+
+      <!-- VPC Configuration (collapsible) -->
+      <details class="mt-4 rounded-lg border border-light-border dark:border-dark-border overflow-hidden">
+        <summary
+          class="px-3 py-2 cursor-pointer text-sm font-medium select-none text-light-text dark:text-dark-text hover:bg-light-hover dark:hover:bg-dark-hover"
+        >
+          VPC Configuration
+          <span class="text-light-muted dark:text-dark-muted font-normal ml-1">(optional)</span>
+        </summary>
+        <div class="px-3 pb-3 pt-1">
+          <VpcSelector
+            v-model="form.vpcSelection"
+            resource-type="rds"
+            :required="false"
+            show-subnet
+            show-security-group
+          />
+        </div>
+      </details>
     </div>
     
     <template #footer>

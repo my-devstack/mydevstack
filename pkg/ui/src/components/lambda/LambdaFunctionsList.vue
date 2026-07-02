@@ -309,6 +309,51 @@ defineExpose({ updateInvokeResult })
           </div>
         </div>
 
+        <!-- VPC Configuration -->
+        <div
+          v-if="func.VpcConfig"
+          class="mt-4 pt-4 border-t"
+          :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
+        >
+          <h4 class="text-sm font-medium mb-3 text-light-text dark:text-dark-text">
+            VPC Configuration
+          </h4>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">VPC ID</label>
+              <p class="text-sm text-light-text dark:text-dark-text font-mono">
+                {{ func.VpcConfig.VpcId || 'N/A' }}
+              </p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Subnets</label>
+              <div class="flex flex-wrap gap-1">
+                <span
+                  v-for="subnetId in func.VpcConfig.SubnetIds"
+                  :key="subnetId"
+                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono"
+                  :class="settingsStore.darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'"
+                >
+                  {{ subnetId }}
+                </span>
+              </div>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase mb-1">Security Groups</label>
+              <div class="flex flex-wrap gap-1">
+                <span
+                  v-for="sgId in func.VpcConfig.SecurityGroupIds"
+                  :key="sgId"
+                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono"
+                  :class="settingsStore.darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'"
+                >
+                  {{ sgId }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Invoke Section -->
         <div
           class="mt-4 pt-4 border-t"

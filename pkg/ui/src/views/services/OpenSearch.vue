@@ -39,6 +39,7 @@ const {
   createDomain,
   createForm,
   creating,
+  vpcSelection,
   domainDetails,
   loadingDomainDetails,
   compatibleVersions,
@@ -438,6 +439,70 @@ watch(reloadTrigger, () => {
                 </div>
               </div>
 
+              <!-- VPC Configuration Section -->
+              <div
+                v-if="domainDetails[domain.DomainName]?.VPCOptions"
+                class="mt-4 border-t pt-4"
+                :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
+              >
+                <h4
+                  class="text-sm font-semibold mb-2 uppercase tracking-wider"
+                  :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                >
+                  VPC Configuration
+                </h4>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <p
+                      class="text-xs"
+                      :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                    >
+                      VPC ID
+                    </p>
+                    <p
+                      class="mt-1 text-sm font-mono"
+                      :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                    >
+                      {{ domainDetails[domain.DomainName].VPCOptions.VPCId || '-' }}
+                    </p>
+                  </div>
+                  <div v-if="domainDetails[domain.DomainName].VPCOptions.SubnetIds?.length">
+                    <p
+                      class="text-xs"
+                      :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                    >
+                      Subnets
+                    </p>
+                    <div class="mt-1 flex flex-wrap gap-1">
+                      <span
+                        v-for="(subnetId, sIdx) in domainDetails[domain.DomainName].VPCOptions.SubnetIds"
+                        :key="sIdx"
+                        class="inline-block px-2 py-0.5 text-xs font-mono rounded bg-light-border dark:bg-dark-border text-light-text dark:text-dark-text"
+                      >
+                        {{ subnetId }}
+                      </span>
+                    </div>
+                  </div>
+                  <div v-if="domainDetails[domain.DomainName].VPCOptions.SecurityGroupIds?.length">
+                    <p
+                      class="text-xs"
+                      :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                    >
+                      Security Groups
+                    </p>
+                    <div class="mt-1 flex flex-wrap gap-1">
+                      <span
+                        v-for="(sgId, sgIdx) in domainDetails[domain.DomainName].VPCOptions.SecurityGroupIds"
+                        :key="sgIdx"
+                        class="inline-block px-2 py-0.5 text-xs font-mono rounded bg-light-border dark:bg-dark-border text-light-text dark:text-dark-text"
+                      >
+                        {{ sgId }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Tags Section -->
               <div
                 class="mt-4 border-t pt-4"
@@ -574,6 +639,7 @@ watch(reloadTrigger, () => {
     <OpenSearchCreateDomainModal
       v-model:open="showCreateModal"
       v-model:form="createForm"
+      v-model:vpc-selection="vpcSelection"
       :creating="creating"
       @create="createDomain"
     />

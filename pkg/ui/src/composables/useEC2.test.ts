@@ -27,6 +27,11 @@ vi.mock('@/api/services/ec2', () => ({
   authorizeSecurityGroupIngress: vi.fn(),
 }))
 
+vi.mock('@/api/services/vpc', () => ({
+  describeVpcs: vi.fn(),
+  describeSubnets: vi.fn(),
+}))
+
 import * as ec2Api from '@/api/services/ec2'
 
 describe('useEC2', () => {
@@ -118,6 +123,44 @@ describe('useEC2', () => {
       expect(ec2Api.runInstances).toHaveBeenCalled()
       expect(ec2Api.describeInstances).toHaveBeenCalled()
       expect(creating.value).toBe(false)
+    })
+
+    it('runInstance uses vpcSelection when set', async () => {
+      vi.mocked(ec2Api.runInstances).mockResolvedValue({ Instances: [] })
+      vi.mocked(ec2Api.describeInstances).mockResolvedValue({ Reservations: [] })
+
+      const { runInstance, createForm } = useEC2()
+      createForm.value.ImageId = 'ami-abc'
+      createForm.value.vpcSelection = {
+        vpcId: 'vpc-123',
+        subnetIds: ['subnet-456'],
+        securityGroupIds: ['sg-789'],
+      }
+      await runInstance()
+      expect(ec2Api.runInstances).toHaveBeenCalledWith(
+        expect.objectContaining({
+          SubnetId: 'subnet-456',
+          SecurityGroupIds: ['sg-789'],
+        }),
+      )
+    })
+
+    it('runInstance does not include SubnetId/SecurityGroupIds when vpcSelection is null', async () => {
+      vi.mocked(ec2Api.runInstances).mockResolvedValue({ Instances: [] })
+      vi.mocked(ec2Api.describeInstances).mockResolvedValue({ Reservations: [] })
+
+      const { runInstance, createForm } = useEC2()
+      createForm.value.ImageId = 'ami-abc'
+      createForm.value.vpcSelection = null
+      createForm.value.SubnetId = ''
+      createForm.value.SecurityGroupIds = []
+      await runInstance()
+      expect(ec2Api.runInstances).toHaveBeenCalledWith(
+        expect.objectContaining({
+          SubnetId: undefined,
+          SecurityGroupIds: undefined,
+        }),
+      )
     })
 
     it('terminateInstance removes from list', async () => {
@@ -292,11 +335,13 @@ describe('useEC2', () => {
       const { resetForm, createForm } = useEC2()
       createForm.value.ImageId = 'changed'
       createForm.value.InstanceType = 't3.large'
+      createForm.value.vpcSelection = { vpcId: 'vpc-1', subnetIds: ['sn-1'], securityGroupIds: ['sg-1'] }
       resetForm()
       expect(createForm.value.ImageId).toBe('ami-0abcdef1234567890')
       expect(createForm.value.InstanceType).toBe('t2.micro')
       expect(createForm.value.MinCount).toBe(1)
       expect(createForm.value.MaxCount).toBe(1)
+      expect(createForm.value.vpcSelection).toBeNull()
     })
   })
 

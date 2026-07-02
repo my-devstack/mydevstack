@@ -4,7 +4,9 @@ import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
 import FormSelect from '@/components/common/FormSelect.vue'
-import type { EC2KeyPair, EC2SecurityGroup, EC2Vpc, EC2Subnet } from '@/api/types/aws'
+import { VpcSelector } from '@/components/vpc'
+import type { EC2KeyPair, EC2SecurityGroup } from '@/api/types/aws'
+import type { VpcSelection } from '@/types/vpc'
 
 interface CreateForm {
   ImageId: string
@@ -21,14 +23,10 @@ const props = withDefaults(defineProps<{
   creating?: boolean
   keyPairs?: EC2KeyPair[]
   securityGroups?: EC2SecurityGroup[]
-  vpcList?: EC2Vpc[]
-  subnetList?: EC2Subnet[]
 }>(), {
   creating: false,
   keyPairs: () => [],
   securityGroups: () => [],
-  vpcList: () => [],
-  subnetList: () => [],
 })
 
 const emit = defineEmits<{
@@ -66,17 +64,15 @@ const keyPairOptions = computed(() => [
   ...props.keyPairs.map((kp) => ({ value: kp.KeyName, label: kp.KeyName })),
 ])
 
-const securityGroupOptions = computed(() =>
-  props.securityGroups.map((sg) => ({ value: sg.GroupId, label: `${sg.GroupName} (${sg.GroupId})` })),
-)
-
-const subnetOptions = computed(() => [
-  { value: '', label: 'Default subnet' },
-  ...props.subnetList.map((sn) => ({
-    value: sn.SubnetId,
-    label: `${sn.SubnetId} (${sn.AvailabilityZone})`,
-  })),
-])
+function onVpcSelectionChange(selection: VpcSelection | null) {
+  if (selection) {
+    form.value.SecurityGroupIds = selection.securityGroupIds
+    form.value.SubnetId = selection.subnetIds[0] || ''
+  } else {
+    form.value.SecurityGroupIds = []
+    form.value.SubnetId = ''
+  }
+}
 
 function handleClose() {
   emit('update:open', false)
@@ -111,45 +107,12 @@ function handleClose() {
         :options="keyPairOptions"
       />
 
-      <div>
-        <label class="block text-sm font-medium text-light-text dark:text-dark-text mb-1.5">
-          Security Groups
-        </label>
-        <div class="space-y-2 max-h-32 overflow-y-auto border border-light-border dark:border-dark-border rounded-md p-2">
-          <label
-            v-for="sg in props.securityGroups"
-            :key="sg.GroupId"
-            class="flex items-center gap-2 text-sm"
-          >
-            <input
-              type="checkbox"
-              :checked="form.SecurityGroupIds.includes(sg.GroupId)"
-              :value="sg.GroupId"
-              class="rounded border-light-border"
-              @change="(e: Event) => {
-                const target = e.target as HTMLInputElement
-                if (target.checked) {
-                  form.SecurityGroupIds = [...form.SecurityGroupIds, sg.GroupId]
-                } else {
-                  form.SecurityGroupIds = form.SecurityGroupIds.filter((id: string) => id !== sg.GroupId)
-                }
-              }"
-            >
-            {{ sg.GroupName }} ({{ sg.GroupId }})
-          </label>
-          <p
-            v-if="props.securityGroups.length === 0"
-            class="text-sm text-light-muted dark:text-dark-muted"
-          >
-            No security groups available
-          </p>
-        </div>
-      </div>
-
-      <FormSelect
-        v-model="form.SubnetId"
-        label="Subnet"
-        :options="subnetOptions"
+      <VpcSelector
+        resource-type="ec2"
+        :required="false"
+        show-subnet
+        show-security-group
+        @update:model-value="onVpcSelectionChange"
       />
 
       <div class="grid grid-cols-2 gap-4">

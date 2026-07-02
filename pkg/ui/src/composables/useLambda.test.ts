@@ -95,6 +95,93 @@ describe('useLambda', () => {
     expect(creating.value).toBe(false)
   })
 
+  it('createFunction includes VpcConfig when vpcSelection set', async () => {
+    const mockFile = new File(['test'], 'index.js', { type: 'application/javascript' })
+    vi.mocked(lambdaApi.createFunction).mockResolvedValue({})
+    vi.mocked(lambdaApi.listFunctions).mockResolvedValue({ functions: [] })
+
+    const { createFunction, creating } = useLambda()
+
+    await createFunction({
+      functionName: 'test-func',
+      runtime: 'nodejs18.x',
+      handler: 'index.handler',
+      memory: 128,
+      timeout: 30,
+      roleArn: 'arn:aws:iam::123456789012:role/test',
+      zipFile: mockFile,
+      architecture: 'x86_64',
+      environment: '{}',
+      vpcSelection: {
+        vpcId: 'vpc-123',
+        subnetIds: ['subnet-1', 'subnet-2'],
+        securityGroupIds: ['sg-1'],
+      },
+    })
+
+    expect(lambdaApi.createFunction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        VpcConfig: {
+          SubnetIds: ['subnet-1', 'subnet-2'],
+          SecurityGroupIds: ['sg-1'],
+        },
+      })
+    )
+    expect(creating.value).toBe(false)
+  })
+
+  it('createFunction excludes VpcConfig when vpcSelection is null', async () => {
+    vi.mocked(lambdaApi.createFunction).mockResolvedValue({})
+    vi.mocked(lambdaApi.listFunctions).mockResolvedValue({ functions: [] })
+
+    const { createFunction } = useLambda()
+
+    await createFunction({
+      functionName: 'test-func',
+      runtime: 'nodejs18.x',
+      handler: 'index.handler',
+      memory: 128,
+      timeout: 30,
+      roleArn: '',
+      zipFile: null,
+      architecture: 'x86_64',
+      environment: '',
+      vpcSelection: null,
+    })
+
+    expect(lambdaApi.createFunction).toHaveBeenCalledWith(
+      expect.not.objectContaining({ VpcConfig: expect.anything() })
+    )
+  })
+
+  it('createFunction excludes VpcConfig when vpcSelection has no vpcId', async () => {
+    vi.mocked(lambdaApi.createFunction).mockResolvedValue({})
+    vi.mocked(lambdaApi.listFunctions).mockResolvedValue({ functions: [] })
+
+    const { createFunction } = useLambda()
+
+    await createFunction({
+      functionName: 'test-func',
+      runtime: 'nodejs18.x',
+      handler: 'index.handler',
+      memory: 128,
+      timeout: 30,
+      roleArn: '',
+      zipFile: null,
+      architecture: 'x86_64',
+      environment: '',
+      vpcSelection: {
+        vpcId: '',
+        subnetIds: [],
+        securityGroupIds: [],
+      },
+    })
+
+    expect(lambdaApi.createFunction).toHaveBeenCalledWith(
+      expect.not.objectContaining({ VpcConfig: expect.anything() })
+    )
+  })
+
   it('createFunction with invalid environment JSON shows error', async () => {
     vi.mocked(lambdaApi.createFunction).mockResolvedValue({})
 

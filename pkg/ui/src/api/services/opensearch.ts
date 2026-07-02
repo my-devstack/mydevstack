@@ -37,7 +37,11 @@ export interface DomainInfo {
   LogPublishingOptions?: Record<string, any>
   AccessPolicies?: string
   SnapshotOptions?: { AutomatedSnapshotStartHour?: number }
-  VPCOptions?: { VPCId?: string }
+  VPCOptions?: {
+    VPCId?: string
+    SubnetIds?: string[]
+    SecurityGroupIds?: string[]
+  }
   TagList?: { Key: string; Value: string }[]
 }
 
@@ -54,6 +58,10 @@ export interface CreateDomainInput {
     EBSEnabled?: boolean
     VolumeType?: string
     VolumeSize?: number
+  }
+  VPCOptions?: {
+    SubnetIds: string[]
+    SecurityGroupIds: string[]
   }
   EncryptionAtRestOptions?: { Enabled?: boolean }
   NodeToNodeEncryptionOptions?: { Enabled?: boolean }

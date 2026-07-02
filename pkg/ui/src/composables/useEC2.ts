@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { useToast } from '@/composables/useToast'
 import { useSettingsStore } from '@/stores/settings'
 import type { EC2Instance, EC2KeyPair, EC2SecurityGroup } from '@/api/types/aws'
+import type { VpcSelection } from '@/types/vpc'
 import * as ec2Api from '@/api/services/ec2'
 
 export function useEC2() {
@@ -39,6 +40,7 @@ export function useEC2() {
     SubnetId: '',
     MinCount: 1,
     MaxCount: 1,
+    vpcSelection: null as VpcSelection | null,
   })
 
   // Load functions
@@ -101,12 +103,16 @@ export function useEC2() {
 
     creating.value = true
     try {
+      const vpcSelection = createForm.value.vpcSelection
+      // Prefer vpcSelection as source of truth; fall back to form fields for backward compat
+      const subnetId = vpcSelection ? vpcSelection.subnetIds[0] || '' : createForm.value.SubnetId
+      const securityGroupIds = vpcSelection ? vpcSelection.securityGroupIds : createForm.value.SecurityGroupIds
       await ec2Api.runInstances({
         ImageId: createForm.value.ImageId,
         InstanceType: createForm.value.InstanceType,
         KeyName: createForm.value.KeyName || undefined,
-        SecurityGroupIds: createForm.value.SecurityGroupIds.length > 0 ? createForm.value.SecurityGroupIds : undefined,
-        SubnetId: createForm.value.SubnetId || undefined,
+        SecurityGroupIds: securityGroupIds.length > 0 ? securityGroupIds : undefined,
+        SubnetId: subnetId || undefined,
         MinCount: createForm.value.MinCount,
         MaxCount: createForm.value.MaxCount,
       })
@@ -322,6 +328,7 @@ export function useEC2() {
       SubnetId: '',
       MinCount: 1,
       MaxCount: 1,
+      vpcSelection: null,
     }
   }
 

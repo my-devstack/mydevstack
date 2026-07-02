@@ -117,6 +117,11 @@ export interface LambdaFunction {
   TracingConfig?: {
     Mode: 'PassThrough' | 'Active'
   }
+  VpcConfig?: {
+    SubnetIds: string[]
+    SecurityGroupIds: string[]
+    VpcId?: string
+  }
 }
 
 export interface LambdaListFunctionsResponse {
@@ -144,6 +149,10 @@ export interface LambdaCreateFunctionRequest {
   }
   TracingConfig?: {
     Mode: 'PassThrough' | 'Active'
+  }
+  VpcConfig?: {
+    SubnetIds: string[]
+    SecurityGroupIds: string[]
   }
   Layers?: string[]
 }
@@ -915,6 +924,13 @@ export interface RDSInstance {
   AvailabilityZone?: string
   MultiAZ: boolean
   PubliclyAccessible: boolean
+  VpcSecurityGroups?: { VpcSecurityGroupId: string; Status: string }[]
+  DBSubnetGroup?: {
+    DBSubnetGroupName: string
+    DBSubnetGroupDescription?: string
+    VpcId: string
+    SubnetGroupStatus?: string
+  }
 }
 
 // Create DB Instance Input
@@ -931,6 +947,8 @@ export interface CreateDBInstanceInput {
   StorageType?: string
   MultiAZ?: boolean
   PubliclyAccessible?: boolean
+  VpcSecurityGroupIds?: string[]
+  DBSubnetGroupName?: string
 }
 
 // Describe DB Engine Versions Output

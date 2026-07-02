@@ -3,6 +3,7 @@ import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
 import * as rdsApi from '@/api/services/rds'
 import type { RDSInstance, CreateDBInstanceInput } from '@/api/types/aws'
+import type { VpcSelection } from '@/types/vpc'
 
 // Types
 export interface RDSForm {
@@ -14,6 +15,7 @@ export interface RDSForm {
   instanceClass: string
   port: string
   allocatedStorage: string
+  vpcSelection: VpcSelection | null
 }
 
 export function useRDS() {
@@ -45,6 +47,7 @@ export function useRDS() {
     instanceClass: 'db.t3.micro',
     port: '3306',
     allocatedStorage: '20',
+    vpcSelection: null,
   })
 
   // Confirmation instances
@@ -91,7 +94,7 @@ export function useRDS() {
 
     creating.value = true
     try {
-      await rdsApi.createDBInstance({
+      const apiInput: CreateDBInstanceInput = {
         DBInstanceIdentifier: createForm.value.instanceId,
         DBInstanceClass: createForm.value.instanceClass,
         Engine: createForm.value.dbEngine,
@@ -100,7 +103,17 @@ export function useRDS() {
         MasterUserPassword: createForm.value.masterPassword,
         Port: Number(createForm.value.port),
         AllocatedStorage: Number(createForm.value.allocatedStorage),
-      })
+      }
+
+      // Map VPC selection if set
+      if (createForm.value.vpcSelection) {
+        apiInput.DBSubnetGroupName = createForm.value.vpcSelection.subnetIds[0]
+        if (createForm.value.vpcSelection.securityGroupIds.length > 0) {
+          apiInput.VpcSecurityGroupIds = createForm.value.vpcSelection.securityGroupIds
+        }
+      }
+
+      await rdsApi.createDBInstance(apiInput)
 
       await loadInstances()
       toast.success(`Instance ${createForm.value.instanceId} is being created`)
@@ -177,6 +190,7 @@ export function useRDS() {
       instanceClass: 'db.t3.micro',
       port: '3306',
       allocatedStorage: '20',
+      vpcSelection: null,
     }
   }
 

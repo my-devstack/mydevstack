@@ -80,6 +80,11 @@ const createStubs = () => ({
     props: ['modelValue', 'label', 'options'],
     emits: ['update:modelValue'],
   },
+  VpcSelector: {
+    template: '<div class="vpc-selector-stub"><slot /></div>',
+    props: ['modelValue', 'resourceType', 'required', 'showSubnet', 'showSecurityGroup', 'label'],
+    emits: ['update:modelValue'],
+  },
 })
 
 describe('EC2 Components Integration', () => {

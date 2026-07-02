@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { useToast } from '@/composables/useToast'
 import { useSettingsStore } from '@/stores/settings'
 import * as elasticacheApi from '@/api/services/elasticache'
+import type { VpcSelection } from '@/types/vpc'
 
 export interface ReplicationGroup {
   ReplicationGroupId: string
@@ -18,6 +19,8 @@ export interface ReplicationGroup {
   EngineVersion?: string
   MultiAZ?: string
   AutomaticFailover?: string
+  CacheSubnetGroupName?: string
+  SecurityGroupIds?: string[]
 }
 
 export interface CreateGroupInput {
@@ -27,6 +30,7 @@ export interface CreateGroupInput {
   Engine?: string
   NumNodeGroups?: number
   Port?: number
+  vpcSelection?: VpcSelection | null
 }
 
 export function useElastiCache() {
@@ -49,6 +53,7 @@ export function useElastiCache() {
     Engine: 'valkey',
     NumNodeGroups: 1,
     Port: 6379,
+    vpcSelection: null,
   })
 
   async function loadGroups() {
@@ -73,6 +78,7 @@ export function useElastiCache() {
 
     creating.value = true
     try {
+      const vpc = createForm.value.vpcSelection
       await elasticacheApi.createReplicationGroup({
         ReplicationGroupId: createForm.value.ReplicationGroupId,
         ReplicationGroupDescription: createForm.value.ReplicationGroupDescription || 'My cache cluster',
@@ -80,6 +86,8 @@ export function useElastiCache() {
         Engine: createForm.value.Engine,
         NumNodeGroups: createForm.value.NumNodeGroups,
         Port: createForm.value.Port,
+        CacheSubnetGroupName: vpc?.subnetIds[0] || undefined,
+        SecurityGroupIds: vpc?.securityGroupIds || undefined,
       })
       
       await loadGroups()
@@ -130,6 +138,7 @@ export function useElastiCache() {
       Engine: 'valkey',
       NumNodeGroups: 1,
       Port: 6379,
+      vpcSelection: null,
     }
   }
 

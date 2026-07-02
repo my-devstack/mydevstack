@@ -3,6 +3,8 @@ import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
 import FormSelect from '@/components/common/FormSelect.vue'
+import { VpcSelector } from '@/components/vpc'
+import type { VpcSelection } from '@/types/vpc'
 
 const props = defineProps<{
   open: boolean
@@ -13,7 +15,7 @@ const props = defineProps<{
     brokerCount: number
     instanceType: string
     storagePerBroker: number
-    clientSubnets: string
+    vpcSelection: VpcSelection | null
   }
 }>()
 
@@ -38,7 +40,7 @@ const instanceTypeOptions = [
   { value: 'kafka.m5.2xlarge', label: 'kafka.m5.2xlarge' },
 ]
 
-function updateField(field: string, value: string | number) {
+function updateField(field: string, value: string | number | VpcSelection | null) {
   emit('update:newCluster', { ...props.newCluster, [field]: value })
 }
 </script>
@@ -93,12 +95,13 @@ function updateField(field: string, value: string | number) {
         @update:model-value="updateField('storagePerBroker', Number($event))"
       />
 
-      <FormInput
-        :model-value="newCluster.clientSubnets"
-        label="Client Subnets"
-        placeholder="subnet-123456,subnet-789012"
-        help-text="Comma-separated subnet IDs. At least one required."
-        @update:model-value="updateField('clientSubnets', $event)"
+      <VpcSelector
+        :model-value="newCluster.vpcSelection"
+        resource-type="msk"
+        :required="true"
+        show-subnet
+        show-security-group
+        @update:model-value="updateField('vpcSelection', $event)"
       />
     </div>
 

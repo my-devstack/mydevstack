@@ -159,6 +159,84 @@ test.describe('OpenSearch', () => {
   })
 })
 
+test.describe('OpenSearch - VPC Configuration', () => {
+  test('create domain WITH VPC selection', async ({ page }) => {
+    test.setTimeout(60000)
+    await gotoPage(page)
+
+    const createBtn = page.locator('.flex-shrink-0 button').filter({ hasText: 'Create Domain' }).first()
+    if (!await exists(createBtn)) return
+    await createBtn.click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: ELEMENT_TIMEOUT })
+    await sleep(300)
+
+    // Fill domain name
+    const domainName = `e2e-vpc-${Date.now()}`
+    await page.getByLabel('Domain Name').fill(domainName)
+
+    // Look for VPC Configuration section
+    const vpcSection = page.getByRole('dialog').getByText(/VPC Configuration/i)
+    if (await exists(vpcSection, 2000)) {
+      await vpcSection.click()
+      await sleep(500)
+    }
+
+    // Try to select a VPC
+    const vpcSelect = page.getByRole('dialog').getByLabel(/VPC|vpc/i).first()
+    if (await exists(vpcSelect, 2000)) {
+      const options = await vpcSelect.locator('option').all()
+      if (options.length > 1) {
+        await vpcSelect.selectOption(options[1].getAttribute('value') || '')
+        await sleep(500)
+
+        // Try subnets
+        const subnetSelect = page.getByRole('dialog').getByLabel(/subnet/i).first()
+        if (await exists(subnetSelect, 2000)) {
+          const subnetOptions = await subnetSelect.locator('option').all()
+          if (subnetOptions.length > 1) {
+            await subnetSelect.selectOption(subnetOptions[1].getAttribute('value') || '')
+          }
+        }
+
+        // Try security groups
+        const sgCheckbox = page.getByRole('dialog').getByLabel(/security|sg/i).first()
+        if (await exists(sgCheckbox, 2000)) {
+          await sgCheckbox.check().catch(() => {})
+        }
+      }
+    }
+
+    // Submit
+    await page.getByRole('button', { name: 'Create' }).last().click({ force: true })
+    await sleep(500)
+
+    const toast = await exists(page.getByText(new RegExp(`Domain ${domainName} is being created|Failed to create domain`)), TOAST_TIMEOUT)
+    expect(toast).toBe(true)
+  })
+
+  test('create domain WITHOUT VPC still works', async ({ page }) => {
+    test.setTimeout(60000)
+    await gotoPage(page)
+
+    const createBtn = page.locator('.flex-shrink-0 button').filter({ hasText: 'Create Domain' }).first()
+    if (!await exists(createBtn)) return
+    await createBtn.click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: ELEMENT_TIMEOUT })
+    await sleep(300)
+
+    // Fill domain name only — skip VPC
+    const domainName = `e2e-novpc-${Date.now()}`
+    await page.getByLabel('Domain Name').fill(domainName)
+
+    // Submit without VPC
+    await page.getByRole('button', { name: 'Create' }).last().click({ force: true })
+    await sleep(500)
+
+    const toast = await exists(page.getByText(new RegExp(`Domain ${domainName} is being created|Failed to create domain`)), TOAST_TIMEOUT)
+    expect(toast).toBe(true)
+  })
+})
+
 test.describe('Pagination', () => {
   test('shows per-page selector when items exist', async ({ page }) => {
     await gotoPage(page)

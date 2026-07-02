@@ -3,6 +3,7 @@ import { useToast } from '@/composables/useToast'
 import { useSettingsStore } from '@/stores/settings'
 import * as openSearchApi from '@/api/services/opensearch'
 import type { DomainInfo, CreateDomainInput } from '@/api/services/opensearch'
+import type { VpcSelection } from '@/types/vpc'
 
 export function useOpenSearch() {
   const toast = useToast()
@@ -42,6 +43,7 @@ export function useOpenSearch() {
     },
     TagList: [],
   })
+  const vpcSelection = ref<VpcSelection | null>(null)
 
   async function loadDomains() {
     loading.value = true
@@ -80,6 +82,12 @@ export function useOpenSearch() {
       }
       if (createForm.value.TagList?.length) {
         createInput.TagList = createForm.value.TagList
+      }
+      if (vpcSelection.value) {
+        createInput.VPCOptions = {
+          SubnetIds: vpcSelection.value.subnetIds,
+          SecurityGroupIds: vpcSelection.value.securityGroupIds,
+        }
       }
       await openSearchApi.createDomain(createInput)
 
@@ -235,6 +243,7 @@ export function useOpenSearch() {
       },
       TagList: [],
     }
+    vpcSelection.value = null
   }
 
   function getDomainDetailsStatus(domainName: string): string {
@@ -416,6 +425,7 @@ client.DeleteDomain(context.Background(), &opensearch.DeleteDomainInput{
     expandedDomains,
     showCreateModal,
     creating,
+    vpcSelection,
     showDeleteConfirm,
     domainToDelete,
     createForm,

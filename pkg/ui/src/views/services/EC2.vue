@@ -820,8 +820,6 @@ watch(reloadTrigger, () => {
       :creating="creating"
       :key-pairs="keyPairs"
       :security-groups="securityGroups"
-      :vpc-list="[]"
-      :subnet-list="[]"
       @create="runInstance"
     />
 

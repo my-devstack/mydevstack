@@ -73,6 +73,29 @@ describe('RDS Service', () => {
       expect(url).toContain('/rds/db-instances')
       expect(mockFetch.mock.calls[0][1].method).toBe('GET')
     })
+
+    it('maps VpcSecurityGroups and DBSubnetGroup from response', async () => {
+      mockFetch.mockResolvedValue(mockResponse({
+        DBInstances: [{
+          DBInstanceIdentifier: 'db1',
+          Engine: 'mysql',
+          VpcSecurityGroups: [
+            { VpcSecurityGroupId: 'sg-123', Status: 'active' },
+          ],
+          DBSubnetGroup: {
+            DBSubnetGroupName: 'default-vpc',
+            DBSubnetGroupDescription: 'Default VPC subnet group',
+            VpcId: 'vpc-456',
+            SubnetGroupStatus: 'Complete',
+          },
+        }],
+      }))
+      const result = await describeDBInstances()
+      expect(result[0].VpcSecurityGroups).toHaveLength(1)
+      expect(result[0].VpcSecurityGroups![0].VpcSecurityGroupId).toBe('sg-123')
+      expect(result[0].DBSubnetGroup?.DBSubnetGroupName).toBe('default-vpc')
+      expect(result[0].DBSubnetGroup?.VpcId).toBe('vpc-456')
+    })
   })
 
   describe('createDBInstance', () => {
@@ -101,6 +124,32 @@ describe('RDS Service', () => {
       expect(mockFetch.mock.calls[0][1].method).toBe('POST')
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.DBInstanceIdentifier).toBe('new-db')
+    })
+
+    it('sends VpcSecurityGroupIds and DBSubnetGroupName when provided', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ DBInstance: { DBInstanceIdentifier: 'vpc-db' } }))
+      await createDBInstance({
+        DBInstanceIdentifier: 'vpc-db',
+        DBInstanceClass: 'db.t3.micro',
+        Engine: 'mysql',
+        VpcSecurityGroupIds: ['sg-abc', 'sg-def'],
+        DBSubnetGroupName: 'default-vpc-123',
+      })
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.VpcSecurityGroupIds).toEqual(['sg-abc', 'sg-def'])
+      expect(body.DBSubnetGroupName).toBe('default-vpc-123')
+    })
+
+    it('omits VpcSecurityGroupIds and DBSubnetGroupName when not provided', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ DBInstance: { DBInstanceIdentifier: 'no-vpc-db' } }))
+      await createDBInstance({
+        DBInstanceIdentifier: 'no-vpc-db',
+        DBInstanceClass: 'db.t3.micro',
+        Engine: 'mysql',
+      })
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.VpcSecurityGroupIds).toBeUndefined()
+      expect(body.DBSubnetGroupName).toBeUndefined()
     })
   })
 
@@ -169,8 +218,56 @@ describe('RDS Service', () => {
   })
 
   describe('describeDBSubnetGroups', () => {
-    it('throws APIError (not implemented by backend)', async () => {
-      await expect(describeDBSubnetGroups()).rejects.toThrow(APIError)
+    it('returns mapped subnet groups with subnets', async () => {
+      mockFetch.mockResolvedValue(mockResponse({
+        DBSubnetGroups: [{
+          DBSubnetGroupName: 'default',
+          DBSubnetGroupDescription: 'Default subnet group',
+          VpcId: 'vpc-12345',
+          SubnetGroupStatus: 'Complete',
+          Subnets: [
+            { SubnetIdentifier: 'subnet-abc', SubnetAvailabilityZone: 'us-east-1a', SubnetStatus: 'Active' },
+            { SubnetIdentifier: 'subnet-def', SubnetAvailabilityZone: 'us-east-1b', SubnetStatus: 'Active' },
+          ],
+        }],
+      }))
+      const result = await describeDBSubnetGroups()
+      expect(result).toHaveLength(1)
+      expect(result[0].DBSubnetGroupName).toBe('default')
+      expect(result[0].VpcId).toBe('vpc-12345')
+      expect(result[0].Subnets).toHaveLength(2)
+      expect(result[0].Subnets![0].SubnetIdentifier).toBe('subnet-abc')
+      expect(result[0].Subnets![0].SubnetAvailabilityZone).toBe('us-east-1a')
+    })
+
+    it('handles group without subnets', async () => {
+      mockFetch.mockResolvedValue(mockResponse({
+        DBSubnetGroups: [{
+          DBSubnetGroupName: 'default',
+          DBSubnetGroupDescription: 'No subnets yet',
+        }],
+      }))
+      const result = await describeDBSubnetGroups()
+      expect(result[0].Subnets).toEqual([])
+    })
+
+    it('handles empty response', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      const result = await describeDBSubnetGroups()
+      expect(result).toEqual([])
+    })
+
+    it('uses GET /rds/db-subnet-groups', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      await describeDBSubnetGroups()
+      const url = mockFetch.mock.calls[0][0]
+      expect(url).toContain('/rds/db-subnet-groups')
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+    })
+
+    it('throws APIError on server error', async () => {
+      mockFetch.mockResolvedValue(mockResponse('Error', 500))
+      await expect(describeDBSubnetGroups()).rejects.toThrow(/RDS request failed/)
     })
   })
 

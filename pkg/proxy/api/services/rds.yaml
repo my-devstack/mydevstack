@@ -222,6 +222,34 @@ paths:
                 $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
 
   # ============================================================
+  # DB Subnet Groups
+  # ============================================================
+  /rds/db-subnet-groups:
+    get:
+      tags: [RDS]
+      summary: Describe DB subnet groups
+      description: |
+        Returns a list of RDS DB subnet groups.
+
+        Request params are forwarded to the emulator with
+        `Action=DescribeDBSubnetGroups` and `Version=2014-10-31`.
+        The XML response is converted to JSON.
+      operationId: describeDBSubnetGroups
+      responses:
+        "200":
+          description: List of DB subnet groups
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/RDSDBSubnetGroupsResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ============================================================
   # Engine Versions
   # ============================================================
   /rds/engine-versions:
