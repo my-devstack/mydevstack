@@ -197,6 +197,7 @@ function handleClose() {
             v-model="vpcSelectionModel"
             resource-type="opensearch"
             :required="false"
+            label=""
             show-subnet
             show-security-group
           />

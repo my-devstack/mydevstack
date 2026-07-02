@@ -216,7 +216,7 @@ describe('useMSK', () => {
       expect(mockToastSuccess).toHaveBeenCalledWith('Cluster test-cluster creation initiated')
     })
 
-    it('shows warning when VPC selection is missing (VPC required for MSK)', async () => {
+    it('creates cluster without VPC (emulator — VPC optional for MSK)', async () => {
       vi.mocked(mskApi.createClusterV2).mockResolvedValue({})
       vi.mocked(mskApi.listClustersV2).mockResolvedValue({ ClusterInfoList: [] })
 
@@ -233,8 +233,10 @@ describe('useMSK', () => {
 
       await createCluster()
 
-      expect(mskApi.createClusterV2).not.toHaveBeenCalled()
-      expect(mockToastWarning).toHaveBeenCalledWith('VPC configuration is required for MSK clusters')
+      expect(mskApi.createClusterV2).toHaveBeenCalled()
+      const callParams = vi.mocked(mskApi.createClusterV2).mock.calls[0][0]
+      expect(callParams.Provisioned.BrokerNodeGroupInfo.ClientSubnets).toEqual(['subnet-default'])
+      expect(mockToastWarning).not.toHaveBeenCalled()
     })
 
     it('validates cluster name required', async () => {

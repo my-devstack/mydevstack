@@ -126,6 +126,7 @@ function handleClose() {
             v-model="form.vpcSelection"
             resource-type="rds"
             :required="false"
+            label=""
             show-subnet
             show-security-group
           />

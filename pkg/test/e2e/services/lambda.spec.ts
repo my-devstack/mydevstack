@@ -67,23 +67,18 @@ test.describe('Lambda - VPC Configuration', () => {
       // Try to select a VPC if VpcSelector is present
       const vpcSelect = page.getByLabel(/VPC|vpc/i).first()
       if (await vpcSelect.isVisible({ timeout: 2000 }).catch(() => false)) {
-        const options = await vpcSelect.locator('option').all()
-        if (options.length > 1) {
-          await vpcSelect.selectOption(options[1].getAttribute('value') || '')
-          await page.waitForTimeout(500)
+        // Select first real VPC option (index=0 is disabled placeholder, Vue sets DOM property not attr)
+        await vpcSelect.selectOption({ index: 1 }).catch(() => {})
+        await page.waitForTimeout(500)
 
-          const subnetSelect = page.getByLabel(/subnet/i).first()
-          if (await subnetSelect.isVisible({ timeout: 2000 }).catch(() => false)) {
-            const subnetOptions = await subnetSelect.locator('option').all()
-            if (subnetOptions.length > 1) {
-              await subnetSelect.selectOption(subnetOptions[1].getAttribute('value') || '')
-            }
-          }
+        const subnetSelect = page.getByLabel(/subnet/i).first()
+        if (await subnetSelect.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await subnetSelect.selectOption({ index: 1 }).catch(() => {})
+        }
 
-          const sgCheckbox = page.getByLabel(/security|sg/i).first()
-          if (await sgCheckbox.isVisible({ timeout: 2000 }).catch(() => false)) {
-            await sgCheckbox.check().catch(() => {})
-          }
+        const sgCheckbox = page.getByLabel(/security|sg/i).first()
+        if (await sgCheckbox.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await sgCheckbox.check().catch(() => {})
         }
       }
     }

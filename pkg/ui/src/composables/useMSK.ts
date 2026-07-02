@@ -167,11 +167,6 @@ export function useMSK() {
       return
     }
 
-    if (!newCluster.value.vpcSelection || !newCluster.value.vpcSelection.vpcId) {
-      toast.warning('VPC configuration is required for MSK clusters')
-      return
-    }
-
     isLoading.value = true
     try {
       const vpcSelection = newCluster.value.vpcSelection
@@ -194,6 +189,9 @@ export function useMSK() {
       if (vpcSelection) {
         params.Provisioned.BrokerNodeGroupInfo.ClientSubnets = vpcSelection.subnetIds
         params.Provisioned.BrokerNodeGroupInfo.SecurityGroups = vpcSelection.securityGroupIds
+      } else {
+        // MSK always requires ClientSubnets (even in emulator). Use fallback when no VPC selected.
+        params.Provisioned.BrokerNodeGroupInfo.ClientSubnets = ['subnet-default']
       }
       await mskApi.createClusterV2(params)
       toast.success(`Cluster ${newCluster.value.name} creation initiated`)

@@ -98,7 +98,7 @@ function updateField(field: string, value: string | number | VpcSelection | null
       <VpcSelector
         :model-value="newCluster.vpcSelection"
         resource-type="msk"
-        :required="true"
+        :required="false"
         show-subnet
         show-security-group
         @update:model-value="updateField('vpcSelection', $event)"

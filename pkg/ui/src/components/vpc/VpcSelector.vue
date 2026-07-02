@@ -171,8 +171,11 @@ const subnetPlaceholder = computed(() => {
 
 <template>
   <div class="space-y-4">
-    <!-- Section Label -->
-    <div class="flex items-center justify-between">
+    <!-- Section Label (hidden when label is empty — for modals that wrap in <details>/<summary>) -->
+    <div
+      v-if="label"
+      class="flex items-center justify-between"
+    >
       <h4 class="text-sm font-medium text-light-text dark:text-dark-text">
         {{ label }}
         <span

@@ -184,25 +184,20 @@ test.describe('OpenSearch - VPC Configuration', () => {
     // Try to select a VPC
     const vpcSelect = page.getByRole('dialog').getByLabel(/VPC|vpc/i).first()
     if (await exists(vpcSelect, 2000)) {
-      const options = await vpcSelect.locator('option').all()
-      if (options.length > 1) {
-        await vpcSelect.selectOption(options[1].getAttribute('value') || '')
-        await sleep(500)
+      // Select first real VPC option (index=0 is disabled placeholder, Vue sets DOM property not attr)
+      await vpcSelect.selectOption({ index: 1 }).catch(() => {})
+      await sleep(500)
 
-        // Try subnets
-        const subnetSelect = page.getByRole('dialog').getByLabel(/subnet/i).first()
-        if (await exists(subnetSelect, 2000)) {
-          const subnetOptions = await subnetSelect.locator('option').all()
-          if (subnetOptions.length > 1) {
-            await subnetSelect.selectOption(subnetOptions[1].getAttribute('value') || '')
-          }
-        }
+      // Try subnets
+      const subnetSelect = page.getByRole('dialog').getByLabel(/subnet/i).first()
+      if (await exists(subnetSelect, 2000)) {
+        await subnetSelect.selectOption({ index: 1 }).catch(() => {})
+      }
 
-        // Try security groups
-        const sgCheckbox = page.getByRole('dialog').getByLabel(/security|sg/i).first()
-        if (await exists(sgCheckbox, 2000)) {
-          await sgCheckbox.check().catch(() => {})
-        }
+      // Try security groups
+      const sgCheckbox = page.getByRole('dialog').getByLabel(/security|sg/i).first()
+      if (await exists(sgCheckbox, 2000)) {
+        await sgCheckbox.check().catch(() => {})
       }
     }
 

@@ -102,6 +102,7 @@ function handleClose() {
             v-model="form.vpcSelection"
             resource-type="elasticache"
             :required="false"
+            label=""
             :show-subnet="true"
             :show-security-group="true"
           />

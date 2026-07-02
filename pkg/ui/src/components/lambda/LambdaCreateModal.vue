@@ -207,6 +207,7 @@ function handleClose() {
             v-model="form.vpcSelection"
             resource-type="lambda"
             :required="false"
+            label=""
             show-subnet
             show-security-group
           />
