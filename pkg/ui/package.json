@@ -42,7 +42,7 @@
     "@aws-sdk/xhr-http-handler": "^3.1023.0",
     "@headlessui/vue": "^1.7.0",
     "@heroicons/vue": "^2.0.0",
-    "@smithy/fetch-http-handler": "^5.3.15",
+    "@smithy/fetch-http-handler": "^5.6.5",
     "@storybook/addon-a11y": "^8.6.0",
     "@storybook/addon-docs": "^8.6.0",
     "@storybook/addon-essentials": "^8.6.0",
