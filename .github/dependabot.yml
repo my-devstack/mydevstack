@@ -7,19 +7,3 @@ updates:
       interval: "weekly"
     assignees:
       - "beabys"
-
-  # Configuration for Vue / npm dependencies
-  - package-ecosystem: "npm"
-    directory: "/pkg/ui"
-    schedule:
-      interval: "weekly"
-    assignees:
-      - "beabys"
-  
-    # Configuration for integration Playwright / npm dependencies
-  - package-ecosystem: "npm"
-    directory: "/pkg/test"
-    schedule:
-      interval: "weekly"
-    assignees:
-      - "beabys"
