@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.32.29
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.28
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.41.0
-	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.36.0
+	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.36.1
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.74.0
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.63.0
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.79.0
