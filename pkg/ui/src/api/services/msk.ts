@@ -10,6 +10,29 @@ import { APIError } from '../client'
 
 type ServiceName = 'msk'
 
+/**
+ * MSK CreateClusterV2 params matching AWS SDK shape.
+ * Provisioned.BrokerNodeGroupInfo is required for MSK.
+ */
+export interface CreateClusterV2Params {
+  ClusterName: string
+  Provisioned: {
+    KafkaVersion: string
+    NumberOfBrokerNodes: number
+    BrokerNodeGroupInfo: {
+      ClientSubnets: string[]
+      SecurityGroups?: string[]
+      BrokerAZDistribution?: string
+      InstanceType: string
+      StorageInfo: {
+        EbsStorageInfo: {
+          VolumeSize: number
+        }
+      }
+    }
+  }
+}
+
 async function request<T = any>(url: string, options: RequestInit = {}): Promise<T> {
   const endpoint = PROXY_BACKEND.replace(/\/$/, '')
   const fullUrl = `${endpoint}${url}`
@@ -50,7 +73,7 @@ export class MSKService {
     return request(`/msk/clusters/${encodeURIComponent(clusterArn)}`, { method: 'GET' })
   }
 
-  async createClusterV2(params: any): Promise<any> {
+  async createClusterV2(params: CreateClusterV2Params): Promise<any> {
     return request('/msk/clusters', {
       method: 'POST',
       body: JSON.stringify(params),

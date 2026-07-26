@@ -80,6 +80,9 @@ func (h *ProxyHandler) registerRDSRoutes(r chi.Router) {
 		r.Get("/engine-versions", func(w http.ResponseWriter, r *http.Request) {
 			h.rdsOperation(w, r, "DescribeDBEngineVersions")
 		})
+		r.Get("/db-subnet-groups", func(w http.ResponseWriter, r *http.Request) {
+			h.rdsOperation(w, r, "DescribeDBSubnetGroups")
+		})
 	})
 }
 
@@ -150,6 +153,12 @@ func parseRDSXMLResponse(xmlBody, operation string) (map[string]interface{}, err
 	if strings.Contains(xmlBody, "DescribeDBEngineVersionsResponse") {
 		versions := extractDBEngineVersions(xmlBody)
 		result["EngineVersions"] = versions
+	}
+
+	// Handle DescribeDBSubnetGroups response
+	if strings.Contains(xmlBody, "DescribeDBSubnetGroupsResponse") {
+		subnetGroups := extractDBSubnetGroups(xmlBody)
+		result["DBSubnetGroups"] = subnetGroups
 	}
 
 	return result, nil
@@ -357,6 +366,248 @@ func extractInstanceFields(content string) map[string]interface{} {
 
 	if len(instance) > 0 {
 		return instance
+	}
+	return nil
+}
+
+func extractDBSubnetGroups(xmlBody string) []map[string]interface{} {
+	var groups []map[string]interface{}
+
+	// First try MiniStack format: <DBSubnetGroup> tags
+	marker := 0
+	for {
+		groupTag := "<DBSubnetGroup>"
+		nextGroup := strings.Index(xmlBody[marker:], groupTag)
+		if nextGroup == -1 {
+			break
+		}
+		marker += nextGroup
+
+		groupEnd := strings.Index(xmlBody[marker:], "</DBSubnetGroup>")
+		if groupEnd == -1 {
+			break
+		}
+		groupEnd += marker
+
+		groupContent := xmlBody[marker:groupEnd]
+		group := extractDBSubnetGroupFields(groupContent)
+		if group != nil {
+			groups = append(groups, group)
+		}
+
+		marker = groupEnd + len("</DBSubnetGroup>")
+	}
+
+	// If no groups found, try Floci format: <member> tags (depth-aware for nesting)
+	if len(groups) == 0 {
+		// First locate <DBSubnetGroups> section to constrain member search
+		sectionStart := strings.Index(xmlBody, "<DBSubnetGroups>")
+		if sectionStart == -1 {
+			return groups
+		}
+		sectionStart += len("<DBSubnetGroups>")
+
+		// Find matching </DBSubnetGroups> with depth awareness (unlikely nested but be safe)
+		depth := 1
+		sectionEnd := sectionStart
+		for depth > 0 && sectionEnd < len(xmlBody) {
+			nextOpen := strings.Index(xmlBody[sectionEnd:], "<DBSubnetGroups>")
+			nextClose := strings.Index(xmlBody[sectionEnd:], "</DBSubnetGroups>")
+			if nextClose == -1 {
+				sectionEnd = len(xmlBody)
+				break
+			}
+			if nextOpen != -1 && nextOpen < nextClose {
+				depth++
+				sectionEnd += nextOpen + len("<DBSubnetGroups>")
+			} else {
+				depth--
+				sectionEnd += nextClose + len("</DBSubnetGroups>")
+			}
+		}
+
+		sectionContent := xmlBody[sectionStart:sectionEnd]
+		marker = 0
+		for {
+			nextMember := strings.Index(sectionContent[marker:], "<member>")
+			if nextMember == -1 {
+				break
+			}
+			marker += nextMember + len("<member>")
+
+			// Depth-aware search for matching </member>
+			memberDepth := 1
+			memberEnd := marker
+			for memberDepth > 0 && memberEnd < len(sectionContent) {
+				nextOpen := strings.Index(sectionContent[memberEnd:], "<member>")
+				nextClose := strings.Index(sectionContent[memberEnd:], "</member>")
+				if nextClose == -1 {
+					memberEnd = len(sectionContent)
+					break
+				}
+				if nextOpen != -1 && nextOpen < nextClose {
+					memberDepth++
+					memberEnd += nextOpen + len("<member>")
+				} else {
+					memberDepth--
+					memberEnd += nextClose + len("</member>")
+				}
+			}
+
+			memberContent := sectionContent[marker : memberEnd-len("</member>")]
+			group := extractDBSubnetGroupFields(memberContent)
+			if group != nil {
+				groups = append(groups, group)
+			}
+
+			marker = memberEnd
+		}
+	}
+
+	return groups
+}
+
+func extractDBSubnetGroupFields(content string) map[string]interface{} {
+	group := make(map[string]interface{})
+
+	fields := []string{
+		"DBSubnetGroupName", "DBSubnetGroupDescription", "VpcId", "SubnetGroupStatus",
+	}
+
+	for _, field := range fields {
+		tag := "<" + field + ">"
+		start := strings.Index(content, tag)
+		if start == -1 {
+			continue
+		}
+		start += len(tag)
+		end := strings.Index(content, "</"+field+">")
+		if end == -1 || end < start {
+			continue
+		}
+		group[field] = content[start:end]
+	}
+
+	// Extract Subnets
+	if strings.Contains(content, "<Subnets>") {
+		subnetsStart := strings.Index(content, "<Subnets>") + len("<Subnets>")
+		subnetsEnd := strings.Index(content, "</Subnets>")
+		if subnetsEnd > subnetsStart {
+			subnetsContent := content[subnetsStart:subnetsEnd]
+			var subnets []map[string]interface{}
+
+			// Support both <Subnet> and <member> within Subnets
+			marker := 0
+			for {
+				nextSubnet := strings.Index(subnetsContent[marker:], "<Subnet>")
+				if nextSubnet == -1 {
+					break
+				}
+				marker += nextSubnet + len("<Subnet>")
+
+				subnetEnd := strings.Index(subnetsContent[marker:], "</Subnet>")
+				if subnetEnd == -1 {
+					break
+				}
+				subnetEnd += marker
+
+				subnetContent := subnetsContent[marker:subnetEnd]
+				subnet := extractSubnetFields(subnetContent)
+				if subnet != nil {
+					subnets = append(subnets, subnet)
+				}
+
+				marker = subnetEnd + len("</Subnet>")
+			}
+
+			// Try Floci member format within Subnets (depth-aware)
+			if len(subnets) == 0 {
+				marker = 0
+				for {
+					nextMember := strings.Index(subnetsContent[marker:], "<member>")
+					if nextMember == -1 {
+						break
+					}
+					marker += nextMember + len("<member>")
+
+					// Depth-aware search for matching </member>
+					memberDepth := 1
+					memberEnd := marker
+					for memberDepth > 0 && memberEnd < len(subnetsContent) {
+						nextOpen := strings.Index(subnetsContent[memberEnd:], "<member>")
+						nextClose := strings.Index(subnetsContent[memberEnd:], "</member>")
+						if nextClose == -1 {
+							memberEnd = len(subnetsContent)
+							break
+						}
+						if nextOpen != -1 && nextOpen < nextClose {
+							memberDepth++
+							memberEnd += nextOpen + len("<member>")
+						} else {
+							memberDepth--
+							memberEnd += nextClose + len("</member>")
+						}
+					}
+
+					memberContent := subnetsContent[marker : memberEnd-len("</member>")]
+					subnet := extractSubnetFields(memberContent)
+					if subnet != nil {
+						subnets = append(subnets, subnet)
+					}
+
+					marker = memberEnd
+				}
+			}
+
+			if len(subnets) > 0 {
+				group["Subnets"] = subnets
+			}
+		}
+	}
+
+	if len(group) > 0 {
+		return group
+	}
+	return nil
+}
+
+func extractSubnetFields(content string) map[string]interface{} {
+	subnet := make(map[string]interface{})
+
+	if idStart := strings.Index(content, "<SubnetIdentifier>"); idStart != -1 {
+		idStart += len("<SubnetIdentifier>")
+		idEnd := strings.Index(content, "</SubnetIdentifier>")
+		if idEnd != -1 {
+			subnet["SubnetIdentifier"] = content[idStart:idEnd]
+		}
+	}
+
+	if azStart := strings.Index(content, "<SubnetAvailabilityZone>"); azStart != -1 {
+		azStart += len("<SubnetAvailabilityZone>")
+		azEnd := strings.Index(content, "</SubnetAvailabilityZone>")
+		if azEnd != -1 {
+			azContent := content[azStart:azEnd]
+			// SubnetAvailabilityZone contains <Name> child tag
+			nameStart := strings.Index(azContent, "<Name>")
+			nameEnd := strings.Index(azContent, "</Name>")
+			if nameStart != -1 && nameEnd != -1 {
+				subnet["SubnetAvailabilityZone"] = azContent[nameStart+len("<Name>") : nameEnd]
+			} else {
+				subnet["SubnetAvailabilityZone"] = azContent
+			}
+		}
+	}
+
+	if statusStart := strings.Index(content, "<SubnetStatus>"); statusStart != -1 {
+		statusStart += len("<SubnetStatus>")
+		statusEnd := strings.Index(content, "</SubnetStatus>")
+		if statusEnd != -1 {
+			subnet["SubnetStatus"] = content[statusStart:statusEnd]
+		}
+	}
+
+	if len(subnet) > 0 {
+		return subnet
 	}
 	return nil
 }

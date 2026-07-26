@@ -16,11 +16,11 @@ vi.mock('@/stores/ui', () => ({
   })),
 }))
 
-vi.mock('@/stores/settings', () => ({
-  useSettingsStore: vi.fn(() => ({
-    region: 'us-east-1',
-    accessKey: 'test-key',
-    secretKey: 'test-secret',
+vi.mock('@/composables/useToast', () => ({
+  useToast: vi.fn(() => ({
+    success: vi.fn(),
+    error: vi.fn(),
+    warning: vi.fn(),
   })),
 }))
 
@@ -33,12 +33,13 @@ describe('useElastiCache', () => {
   })
 
   it('initializes with empty state', () => {
-    const { groups, loading, expandedGroups, showCreateModal, showDeleteConfirm } = useElastiCache()
+    const { groups, loading, expandedGroups, showCreateModal, showDeleteConfirm, createForm } = useElastiCache()
     expect(groups.value).toEqual([])
     expect(loading.value).toBe(false)
     expect(expandedGroups.value).toEqual(new Set())
     expect(showCreateModal.value).toBe(false)
     expect(showDeleteConfirm.value).toBe(false)
+    expect(createForm.value.vpcSelection).toBeNull()
   })
 
   it('loadGroups success', async () => {
@@ -101,6 +102,51 @@ describe('useElastiCache', () => {
     expect(creating.value).toBe(false)
   })
 
+  it('createGroup includes VPC fields when vpcSelection is set', async () => {
+    vi.mocked(elasticacheApi.createReplicationGroup).mockResolvedValue({})
+    vi.mocked(elasticacheApi.describeReplicationGroups).mockResolvedValue([])
+
+    const { createGroup, createForm, creating } = useElastiCache()
+    createForm.value.ReplicationGroupId = 'test-cache-vpc'
+    createForm.value.vpcSelection = {
+      vpcId: 'vpc-123',
+      subnetIds: ['my-cache-subnet-group'],
+      securityGroupIds: ['sg-456', 'sg-789'],
+    }
+    creating.value = false
+
+    await createGroup()
+
+    expect(elasticacheApi.createReplicationGroup).toHaveBeenCalledWith({
+      ReplicationGroupId: 'test-cache-vpc',
+      ReplicationGroupDescription: 'My cache cluster',
+      CacheNodeType: 'cache.t3.micro',
+      Engine: 'valkey',
+      NumNodeGroups: 1,
+      Port: 6379,
+      CacheSubnetGroupName: 'my-cache-subnet-group',
+      SecurityGroupIds: ['sg-456', 'sg-789'],
+    })
+    expect(creating.value).toBe(false)
+  })
+
+  it('createGroup excludes VPC fields when vpcSelection is null', async () => {
+    vi.mocked(elasticacheApi.createReplicationGroup).mockResolvedValue({})
+    vi.mocked(elasticacheApi.describeReplicationGroups).mockResolvedValue([])
+
+    const { createGroup, createForm, creating } = useElastiCache()
+    createForm.value.ReplicationGroupId = 'test-cache-no-vpc'
+    createForm.value.vpcSelection = null
+    creating.value = false
+
+    await createGroup()
+
+    const calledWith = vi.mocked(elasticacheApi.createReplicationGroup).mock.calls[0][0]
+    expect(calledWith.CacheSubnetGroupName).toBeUndefined()
+    expect(calledWith.SecurityGroupIds).toBeUndefined()
+    expect(creating.value).toBe(false)
+  })
+
   it('deleteGroup calls API and removes from list', async () => {
     vi.mocked(elasticacheApi.deleteReplicationGroup).mockResolvedValue({})
     vi.mocked(elasticacheApi.describeReplicationGroups).mockResolvedValue([])
@@ -158,12 +204,18 @@ describe('useElastiCache', () => {
     createForm.value.ReplicationGroupId = 'test-cache'
     createForm.value.Engine = 'redis'
     createForm.value.NumNodeGroups = 5
+    createForm.value.vpcSelection = {
+      vpcId: 'vpc-123',
+      subnetIds: ['my-subnet'],
+      securityGroupIds: ['sg-456'],
+    }
     
     resetForm()
     
     expect(createForm.value.ReplicationGroupId).toBe('')
     expect(createForm.value.Engine).toBe('valkey')
     expect(createForm.value.NumNodeGroups).toBe(1)
+    expect(createForm.value.vpcSelection).toBeNull()
   })
 
   describe('getStatus', () => {

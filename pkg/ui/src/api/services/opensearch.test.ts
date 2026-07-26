@@ -86,6 +86,22 @@ describe('OpenSearch Service', () => {
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.DomainName).toBe('new-domain')
     })
+
+    it('sends VPCOptions when provided', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ DomainStatus: { DomainName: 'new-domain' } }))
+      await createDomain({
+        DomainName: 'new-domain',
+        VPCOptions: {
+          SubnetIds: ['subnet-a', 'subnet-b'],
+          SecurityGroupIds: ['sg-1'],
+        },
+      })
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.VPCOptions).toEqual({
+        SubnetIds: ['subnet-a', 'subnet-b'],
+        SecurityGroupIds: ['sg-1'],
+      })
+    })
   })
 
   describe('deleteDomain', () => {

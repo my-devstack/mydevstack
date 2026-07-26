@@ -3,6 +3,7 @@ import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
 import FormSelect from '@/components/common/FormSelect.vue'
+import { VpcSelector } from '@/components/vpc'
 import type { CreateGroupInput } from '@/composables/useElastiCache'
 
 const props = withDefaults(defineProps<{
@@ -89,6 +90,24 @@ function handleClose() {
         type="number"
         placeholder="6379"
       />
+
+      <!-- VPC Configuration -->
+      <details class="border border-light-border dark:border-dark-border rounded-lg">
+        <summary class="px-4 py-3 cursor-pointer text-sm font-medium text-light-text dark:text-dark-text hover:bg-light-hover dark:hover:bg-dark-hover rounded-lg">
+          VPC Configuration
+          <span class="text-light-muted dark:text-dark-muted font-normal ml-1">(optional)</span>
+        </summary>
+        <div class="px-4 pb-4 pt-2">
+          <VpcSelector
+            v-model="form.vpcSelection"
+            resource-type="elasticache"
+            :required="false"
+            label=""
+            :show-subnet="true"
+            :show-security-group="true"
+          />
+        </div>
+      </details>
     </div>
     
     <template #footer>

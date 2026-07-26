@@ -4,6 +4,8 @@ import { useSettingsStore } from '@/stores/settings'
 import FormInput from '@/components/common/FormInput.vue'
 import FormSelect from '@/components/common/FormSelect.vue'
 import Button from '@/components/common/Button.vue'
+import VpcSelector from '@/components/vpc/VpcSelector.vue'
+import type { VpcSelection } from '@/types/vpc'
 
 const props = defineProps<{
   open: boolean
@@ -22,6 +24,7 @@ const emit = defineEmits<{
     zipFile: File | null
     architecture: string
     environment: string
+    vpcSelection: VpcSelection | null
   }]
 }>()
 
@@ -39,6 +42,7 @@ const form = ref({
   zipFile: null as File | null,
   architecture: 'amd64',
   environment: '',
+  vpcSelection: null as VpcSelection | null,
 })
 
 const runtimeOptions = [
@@ -82,6 +86,7 @@ function handleClose() {
     zipFile: null,
     architecture: 'amd64',
     environment: '',
+    vpcSelection: null,
   }
   emit('update:open', false)
 }
@@ -172,6 +177,42 @@ function handleClose() {
         placeholder="{&quot;KEY&quot;: &quot;value&quot;}"
         class="mt-4"
       />
+
+      <!-- VPC Configuration (collapsible) -->
+      <details class="mt-4 group">
+        <summary
+          class="cursor-pointer text-sm font-medium text-light-text dark:text-dark-text hover:text-light-muted dark:hover:text-dark-muted select-none"
+          :class="settingsStore.darkMode ? 'text-gray-300' : 'text-gray-700'"
+        >
+          <span class="inline-flex items-center gap-1">
+            <svg
+              class="w-3 h-3 transition-transform group-open:rotate-90"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+            VPC Configuration
+            <span class="text-light-muted dark:text-dark-muted font-normal ml-1">(optional)</span>
+          </span>
+        </summary>
+        <div class="mt-3 pl-2 border-l-2 border-light-border dark:border-dark-border">
+          <VpcSelector
+            v-model="form.vpcSelection"
+            resource-type="lambda"
+            :required="false"
+            label=""
+            show-subnet
+            show-security-group
+          />
+        </div>
+      </details>
 
       <div class="flex gap-2 justify-end mt-6">
         <Button

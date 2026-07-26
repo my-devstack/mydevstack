@@ -31,6 +31,8 @@ export interface CreateReplicationGroupInput {
   NumNodeGroups?: number
   ReplicasPerNodeGroup?: number
   Port?: number
+  CacheSubnetGroupName?: string
+  SecurityGroupIds?: string[]
 }
 
 // Parse XML response - works with Floci and MiniStack
@@ -119,14 +121,21 @@ export class ElastiCacheService {
   }
 
   async createReplicationGroup(input: CreateReplicationGroupInput): Promise<ReplicationGroup> {
-    const response = await this.request('POST', '/elasticache/replication-groups', 'CreateReplicationGroup', {
+    const body: Record<string, any> = {
       ReplicationGroupId: input.ReplicationGroupId,
       ReplicationGroupDescription: input.ReplicationGroupDescription,
       Engine: input.Engine || 'valkey',
       CacheNodeType: input.CacheNodeType || 'cache.t3.micro',
       NumNodeGroups: input.NumNodeGroups || 1,
       Port: input.Port || 6379,
-    })
+    }
+    if (input.CacheSubnetGroupName) {
+      body.CacheSubnetGroupName = input.CacheSubnetGroupName
+    }
+    if (input.SecurityGroupIds && input.SecurityGroupIds.length > 0) {
+      body.SecurityGroupIds = input.SecurityGroupIds
+    }
+    const response = await this.request('POST', '/elasticache/replication-groups', 'CreateReplicationGroup', body)
     return response.ReplicationGroup
   }
 
@@ -145,5 +154,31 @@ export const elasticacheService = new ElastiCacheService()
 export const describeReplicationGroups = () => elasticacheService.describeReplicationGroups()
 export const createReplicationGroup = (input: CreateReplicationGroupInput) => elasticacheService.createReplicationGroup(input)
 export const deleteReplicationGroup = (id: string) => elasticacheService.deleteReplicationGroup(id)
+
+// Cache Subnet Groups (stub - not yet implemented by proxy backend)
+export interface DescribeCacheSubnetGroupsResponse {
+  CacheSubnetGroups: Array<{
+    CacheSubnetGroupName: string
+    VpcId: string
+    CacheSubnetGroupDescription?: string
+  }>
+}
+
+export async function describeCacheSubnetGroups(): Promise<DescribeCacheSubnetGroupsResponse> {
+  return { CacheSubnetGroups: [] }
+}
+
+// Cache Security Groups (stub - not yet implemented by proxy backend)
+export interface DescribeCacheSecurityGroupsResponse {
+  CacheSecurityGroups: Array<{
+    CacheSecurityGroupId: string
+    CacheSecurityGroupName: string
+    VpcId?: string
+  }>
+}
+
+export async function describeCacheSecurityGroups(): Promise<DescribeCacheSecurityGroupsResponse> {
+  return { CacheSecurityGroups: [] }
+}
 
 export default elasticacheService

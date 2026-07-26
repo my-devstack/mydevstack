@@ -6,6 +6,7 @@ import { LambdaCreateModal, LambdaDeleteModal, LambdaEditModal, LambdaInvokeModa
 vi.mock('@/stores/settings', () => ({
   useSettingsStore: vi.fn(() => ({
     darkMode: false,
+    region: 'us-east-1',
   })),
 }))
 
@@ -48,6 +49,12 @@ vi.mock('@/stores/ui', () => ({
 }))
 
 const createStubs = () => ({
+  VpcSelector: {
+    name: 'VpcSelector',
+    template: '<div class="vpc-selector-stub" data-testid="vpc-selector"><slot /></div>',
+    props: ['modelValue', 'resourceType', 'required', 'showSubnet', 'showSecurityGroup'],
+    emits: ['update:modelValue'],
+  },
   Modal: {
     template: `
       <div v-if="open" class="modal">
@@ -170,6 +177,91 @@ describe('Lambda Components Integration', () => {
       })
 
       expect(wrapper.html()).toContain('Creating...')
+    })
+
+    it('renders VPC Configuration section as collapsible details', () => {
+      const wrapper = mount(LambdaCreateModal, {
+        props: {
+          open: true,
+          loading: false,
+        },
+        global: {
+          stubs: createStubs(),
+        },
+      })
+
+      // Should have a details/summary for VPC config
+      const details = wrapper.find('details')
+      expect(details.exists()).toBe(true)
+      expect(details.text()).toContain('VPC Configuration')
+      expect(details.text()).toContain('(optional)')
+    })
+
+    it('renders VpcSelector stub inside the collapsible section', () => {
+      const wrapper = mount(LambdaCreateModal, {
+        props: {
+          open: true,
+          loading: false,
+        },
+        global: {
+          stubs: createStubs(),
+        },
+      })
+
+      // The VpcSelector stub renders with class vpc-selector-stub
+      expect(wrapper.find('.vpc-selector-stub').exists()).toBe(true)
+    })
+
+    it('includes vpcSelection in create emit when VPC is selected', () => {
+      const wrapper = mount(LambdaCreateModal, {
+        props: {
+          open: true,
+          loading: false,
+        },
+        global: {
+          stubs: createStubs(),
+        },
+      })
+
+      // Set VPC selection directly on form
+      wrapper.vm.form.vpcSelection = {
+        vpcId: 'vpc-123',
+        subnetIds: ['subnet-1'],
+        securityGroupIds: ['sg-1'],
+      }
+
+      wrapper.vm.form.functionName = 'my-test-function'
+      wrapper.vm.handleCreate()
+      const emitted = wrapper.emitted('create')
+      expect(emitted).toBeTruthy()
+      if (emitted) {
+        expect(emitted[0][0].vpcSelection).toEqual({
+          vpcId: 'vpc-123',
+          subnetIds: ['subnet-1'],
+          securityGroupIds: ['sg-1'],
+        })
+      }
+    })
+
+    it('includes null vpcSelection in create emit when no VPC selected', () => {
+      const wrapper = mount(LambdaCreateModal, {
+        props: {
+          open: true,
+          loading: false,
+        },
+        global: {
+          stubs: createStubs(),
+        },
+      })
+
+      wrapper.vm.form.functionName = 'my-test-function'
+      wrapper.vm.form.vpcSelection = null
+      wrapper.vm.handleCreate()
+      const emitted = wrapper.emitted('create')
+      expect(emitted).toBeTruthy()
+      if (emitted) {
+        expect(emitted[0][0].vpcSelection).toBeNull()
+      }
     })
 
     describe('handleCreate', () => {

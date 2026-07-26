@@ -54,7 +54,7 @@ describe('MSK Integration Flow', () => {
         brokerCount: 3,
         instanceType: 'kafka.m5.xlarge',
         storagePerBroker: 200,
-        clientSubnets: 'subnet-123456',
+        vpcSelection: { vpcId: 'vpc-123', subnetIds: ['subnet-1', 'subnet-2'], securityGroupIds: ['sg-1'] },
       }
       expect(newCluster.value.name).toBe('test-cluster')
 
@@ -80,7 +80,14 @@ describe('MSK Integration Flow', () => {
 
       const { newCluster, createCluster } = useMSK()
 
-      newCluster.value.name = 'bad-cluster'
+      newCluster.value = {
+        name: 'bad-cluster',
+        kafkaVersion: '3.6.0',
+        brokerCount: 2,
+        instanceType: 'kafka.m5.large',
+        storagePerBroker: 100,
+        vpcSelection: { vpcId: 'vpc-123', subnetIds: ['subnet-1'], securityGroupIds: ['sg-1'] },
+      }
       await createCluster()
 
       expect(mockToastError).toHaveBeenCalled()

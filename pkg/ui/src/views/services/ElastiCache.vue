@@ -232,6 +232,49 @@ watch(reloadTrigger, () => {
                   </p>
                 </div>
               </div>
+              <!-- VPC Info (if available) -->
+              <div
+                v-if="group.CacheSubnetGroupName || group.SecurityGroupIds?.length"
+                class="mt-4 pt-4 border-t"
+                :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
+              >
+                <h4
+                  class="text-sm font-medium mb-3"
+                  :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                >
+                  VPC Configuration
+                </h4>
+                <div class="grid grid-cols-2 gap-4">
+                  <div v-if="group.CacheSubnetGroupName">
+                    <p
+                      class="text-sm"
+                      :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                    >
+                      Cache Subnet Group
+                    </p>
+                    <p
+                      class="mt-1 font-medium"
+                      :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                    >
+                      {{ group.CacheSubnetGroupName }}
+                    </p>
+                  </div>
+                  <div v-if="group.SecurityGroupIds?.length">
+                    <p
+                      class="text-sm"
+                      :class="settingsStore.darkMode ? 'text-dark-muted' : 'text-light-muted'"
+                    >
+                      Cache Security Groups
+                    </p>
+                    <p
+                      class="mt-1 font-medium"
+                      :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+                    >
+                      {{ group.SecurityGroupIds.join(', ') }}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

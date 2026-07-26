@@ -203,6 +203,41 @@ watch(reloadTrigger, () => {
                   </div>
                 </div>
               </div>
+
+              <!-- VPC Configuration -->
+              <div class="mt-4 pt-4 border-t border-light-border dark:border-dark-border">
+                <h4 class="font-medium mb-2">
+                  VPC Configuration
+                </h4>
+                <div class="grid grid-cols-2 gap-2">
+                  <template v-if="instance.DBSubnetGroup">
+                    <span>DB Subnet Group: {{ instance.DBSubnetGroup.DBSubnetGroupName }}</span>
+                    <span>VPC ID: {{ instance.DBSubnetGroup.VpcId }}</span>
+                  </template>
+                  <template v-if="instance.VpcSecurityGroups && instance.VpcSecurityGroups.length > 0">
+                    <div class="col-span-2">
+                      <span class="font-medium">Security Groups:</span>
+                      <div class="mt-1 space-y-1">
+                        <div
+                          v-for="sg in instance.VpcSecurityGroups"
+                          :key="sg.VpcSecurityGroupId"
+                          class="flex items-center gap-2 text-xs"
+                        >
+                          <span class="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                            {{ sg.VpcSecurityGroupId }}
+                          </span>
+                          <span class="text-light-muted dark:text-dark-muted">{{ sg.Status }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                  <template v-if="!instance.DBSubnetGroup && (!instance.VpcSecurityGroups || instance.VpcSecurityGroups.length === 0)">
+                    <span class="col-span-2 text-light-muted dark:text-dark-muted">
+                      No VPC configuration available
+                    </span>
+                  </template>
+                </div>
+              </div>
             </div>
           </div>
         </div>

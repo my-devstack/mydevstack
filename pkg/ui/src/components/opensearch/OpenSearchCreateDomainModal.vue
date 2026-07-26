@@ -3,7 +3,9 @@ import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
 import FormSelect from '@/components/common/FormSelect.vue'
+import VpcSelector from '@/components/vpc/VpcSelector.vue'
 import type { CreateDomainInput } from '@/api/services/opensearch'
+import type { VpcSelection } from '@/types/vpc'
 
 const props = withDefaults(defineProps<{
   open: boolean
@@ -32,6 +34,8 @@ const form = defineModel<CreateDomainInput>('form', { default: {
     VolumeSize: 10,
   },
 }})
+
+const vpcSelectionModel = defineModel<VpcSelection | null>('vpcSelection', { default: null })
 
 const engineOptions = [
   { value: 'OpenSearch_2.3', label: 'OpenSearch 2.3' },
@@ -169,6 +173,36 @@ function handleClose() {
           Add Tag
         </button>
       </div>
+
+      <!-- VPC Configuration Section -->
+      <details class="group border border-light-border dark:border-dark-border rounded-lg">
+        <summary class="flex items-center justify-between px-4 py-3 cursor-pointer text-sm font-medium text-light-text dark:text-dark-text hover:bg-light-hover dark:hover:bg-dark-hover rounded-lg transition-colors">
+          <span>VPC Configuration <span class="text-light-muted dark:text-dark-muted font-normal">(optional)</span></span>
+          <svg
+            class="w-4 h-4 text-light-muted dark:text-dark-muted group-open:rotate-180 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </summary>
+        <div class="px-4 pb-4">
+          <VpcSelector
+            v-model="vpcSelectionModel"
+            resource-type="opensearch"
+            :required="false"
+            label=""
+            show-subnet
+            show-security-group
+          />
+        </div>
+      </details>
     </div>
 
     <template #footer>

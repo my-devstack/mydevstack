@@ -173,11 +173,11 @@ describe('useMSK', () => {
   })
 
   describe('createCluster', () => {
-    it('creates cluster successfully', async () => {
+    it('creates cluster successfully with VPC selection', async () => {
       vi.mocked(mskApi.createClusterV2).mockResolvedValue({})
       vi.mocked(mskApi.listClustersV2).mockResolvedValue({ ClusterInfoList: [] })
 
-      const { createCluster, newCluster, showCreateModal, isLoading } = useMSK()
+      const { createCluster, newCluster, showCreateModal } = useMSK()
 
       newCluster.value = {
         name: 'test-cluster',
@@ -185,14 +185,58 @@ describe('useMSK', () => {
         brokerCount: 3,
         instanceType: 'kafka.m5.xlarge',
         storagePerBroker: 200,
-        clientSubnets: 'subnet-123456',
+        vpcSelection: {
+          vpcId: 'vpc-123',
+          subnetIds: ['subnet-abc', 'subnet-def'],
+          securityGroupIds: ['sg-456'],
+        },
+      }
+
+      await createCluster()
+
+      expect(mskApi.createClusterV2).toHaveBeenCalledWith({
+        ClusterName: 'test-cluster',
+        Provisioned: {
+          KafkaVersion: '3.6.0',
+          NumberOfBrokerNodes: 3,
+          BrokerNodeGroupInfo: {
+            InstanceType: 'kafka.m5.xlarge',
+            BrokerAZDistribution: 'DEFAULT',
+            ClientSubnets: ['subnet-abc', 'subnet-def'],
+            SecurityGroups: ['sg-456'],
+            StorageInfo: {
+              EbsStorageInfo: {
+                VolumeSize: 200,
+              },
+            },
+          },
+        },
+      })
+      expect(showCreateModal.value).toBe(false)
+      expect(mockToastSuccess).toHaveBeenCalledWith('Cluster test-cluster creation initiated')
+    })
+
+    it('creates cluster without VPC (emulator — VPC optional for MSK)', async () => {
+      vi.mocked(mskApi.createClusterV2).mockResolvedValue({})
+      vi.mocked(mskApi.listClustersV2).mockResolvedValue({ ClusterInfoList: [] })
+
+      const { createCluster, newCluster } = useMSK()
+
+      newCluster.value = {
+        name: 'test-cluster-no-vpc',
+        kafkaVersion: '3.6.0',
+        brokerCount: 2,
+        instanceType: 'kafka.m5.large',
+        storagePerBroker: 100,
+        vpcSelection: null,
       }
 
       await createCluster()
 
       expect(mskApi.createClusterV2).toHaveBeenCalled()
-      expect(showCreateModal.value).toBe(false)
-      expect(mockToastSuccess).toHaveBeenCalledWith('Cluster test-cluster creation initiated')
+      const callParams = vi.mocked(mskApi.createClusterV2).mock.calls[0][0]
+      expect(callParams.Provisioned.BrokerNodeGroupInfo.ClientSubnets).toEqual(['subnet-default'])
+      expect(mockToastWarning).not.toHaveBeenCalled()
     })
 
     it('validates cluster name required', async () => {
@@ -209,7 +253,14 @@ describe('useMSK', () => {
 
       const { createCluster, newCluster } = useMSK()
 
-      newCluster.value.name = 'bad-cluster'
+      newCluster.value = {
+        name: 'bad-cluster',
+        kafkaVersion: '3.6.0',
+        brokerCount: 2,
+        instanceType: 'kafka.m5.large',
+        storagePerBroker: 100,
+        vpcSelection: { vpcId: 'vpc-123', subnetIds: ['subnet-1', 'subnet-2'], securityGroupIds: ['sg-1'] },
+      }
       await createCluster()
 
       expect(mockToastError).toHaveBeenCalled()

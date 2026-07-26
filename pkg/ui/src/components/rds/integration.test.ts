@@ -82,6 +82,10 @@ const createStubs = () => ({
     props: ['modelValue', 'label', 'options'],
     emits: ['update:modelValue'],
   },
+  VpcSelector: {
+    template: '<div class="vpc-selector-stub" :data-resource-type="resourceType"><span>VPC Configuration</span></div>',
+    props: ['modelValue', 'resourceType', 'required', 'showSubnet', 'showSecurityGroup'],
+  },
 })
 
 describe('RDS Components Integration', () => {
@@ -202,6 +206,38 @@ describe('RDS Components Integration', () => {
 
       const selects = wrapper.findAll('select')
       expect(selects.length).toBeGreaterThanOrEqual(2)
+    })
+
+    it('renders VpcSelector with resourceType=rds', () => {
+      const wrapper = mount(RDSCreateInstanceModal, {
+        props: {
+          open: true,
+          creating: false,
+        },
+        global: {
+          stubs: createStubs(),
+        },
+      })
+
+      const vpcSelector = wrapper.find('.vpc-selector-stub')
+      expect(vpcSelector.exists()).toBe(true)
+      expect(vpcSelector.attributes('data-resource-type')).toBe('rds')
+    })
+
+    it('renders VPC Configuration collapsible section', () => {
+      const wrapper = mount(RDSCreateInstanceModal, {
+        props: {
+          open: true,
+          creating: false,
+        },
+        global: {
+          stubs: createStubs(),
+        },
+      })
+
+      expect(wrapper.find('details').exists()).toBe(true)
+      expect(wrapper.text()).toContain('VPC Configuration')
+      expect(wrapper.text()).toContain('optional')
     })
   })
 

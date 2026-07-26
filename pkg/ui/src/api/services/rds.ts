@@ -9,6 +9,18 @@ import { PROXY_BACKEND } from '@/config'
 import { APIError } from '../client'
 import type { RDSInstance, CreateDBInstanceInput, DescribeDBEngineVersionsOutput } from '../types/aws'
 
+export interface DBSubnetGroup {
+  DBSubnetGroupName: string
+  DBSubnetGroupDescription?: string
+  VpcId?: string
+  SubnetGroupStatus?: string
+  Subnets?: Array<{
+    SubnetIdentifier: string
+    SubnetAvailabilityZone: string
+    SubnetStatus: string
+  }>
+}
+
 async function request<T = any>(url: string, options: RequestInit = {}): Promise<T> {
   const endpoint = PROXY_BACKEND.replace(/\/$/, '')
   const fullUrl = `${endpoint}${url}`
@@ -56,6 +68,8 @@ export class RDSService {
       AvailabilityZone: instance.AvailabilityZone,
       MultiAZ: instance.MultiAZ || false,
       PubliclyAccessible: instance.PubliclyAccessible || false,
+      VpcSecurityGroups: instance.VpcSecurityGroups,
+      DBSubnetGroup: instance.DBSubnetGroup,
     }))
   }
 
@@ -83,6 +97,8 @@ export class RDSService {
       AvailabilityZone: instance.AvailabilityZone,
       MultiAZ: instance.MultiAZ || false,
       PubliclyAccessible: instance.PubliclyAccessible || false,
+      VpcSecurityGroups: instance.VpcSecurityGroups,
+      DBSubnetGroup: instance.DBSubnetGroup,
     }
   }
 
@@ -127,8 +143,19 @@ export class RDSService {
     throw new APIError('RDS parameters not implemented by proxy backend', 501, 'rds')
   }
 
-  async describeDBSubnetGroups(): Promise<any> {
-    throw new APIError('RDS subnet groups not implemented by proxy backend', 501, 'rds')
+  async describeDBSubnetGroups(): Promise<DBSubnetGroup[]> {
+    const response = await request<{ DBSubnetGroups?: any[] }>('/rds/db-subnet-groups', { method: 'GET' })
+    return (response.DBSubnetGroups || []).map((group: any) => ({
+      DBSubnetGroupName: group.DBSubnetGroupName || '',
+      DBSubnetGroupDescription: group.DBSubnetGroupDescription,
+      VpcId: group.VpcId,
+      SubnetGroupStatus: group.SubnetGroupStatus,
+      Subnets: (group.Subnets || []).map((subnet: any) => ({
+        SubnetIdentifier: subnet.SubnetIdentifier || '',
+        SubnetAvailabilityZone: subnet.SubnetAvailabilityZone || '',
+        SubnetStatus: subnet.SubnetStatus || '',
+      })),
+    }))
   }
 
   async listTagsForResource(resourceArn: string): Promise<any> {

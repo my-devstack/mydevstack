@@ -1,3 +1,4 @@
+export { default as VpcSelector } from './VpcSelector.vue'
 export { default as VPCCreateVpcModal } from './VPCCreateVpcModal.vue'
 export { default as VPCCreateSubnetModal } from './VPCCreateSubnetModal.vue'
 export { default as VPCCreateRouteTableModal } from './VPCCreateRouteTableModal.vue'

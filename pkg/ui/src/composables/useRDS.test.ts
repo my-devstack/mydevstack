@@ -76,6 +76,7 @@ describe('useRDS', () => {
         instanceClass: 'db.t3.micro',
         port: '3306',
         allocatedStorage: '20',
+        vpcSelection: null,
       })
       expect(instanceToDelete.value).toBeNull()
       expect(instanceCount.value).toBe(0)
@@ -183,6 +184,7 @@ describe('useRDS', () => {
         instanceClass: 'db.t3.micro',
         port: '3306',
         allocatedStorage: '20',
+        vpcSelection: null,
       }
       showCreateModal.value = true
 
@@ -256,6 +258,7 @@ describe('useRDS', () => {
         instanceClass: 'db.t3.small',
         port: '5432',
         allocatedStorage: '50',
+        vpcSelection: null,
       }
 
       await createInstance()
@@ -263,6 +266,94 @@ describe('useRDS', () => {
       expect(createForm.value.instanceId).toBe('')
       expect(createForm.value.dbEngine).toBe('mysql')
       expect(createForm.value.masterPassword).toBe('')
+    })
+
+    it('includes VpcSecurityGroupIds and DBSubnetGroupName when vpcSelection is set', async () => {
+      vi.mocked(rdsApi.createDBInstance).mockResolvedValue({} as RDSInstance)
+      vi.mocked(rdsApi.describeDBInstances).mockResolvedValue([])
+
+      const { createInstance, createForm } = useRDS()
+
+      createForm.value = {
+        instanceId: 'vpc-db',
+        dbEngine: 'mysql',
+        dbVersion: '8.0.36',
+        masterUsername: 'root',
+        masterPassword: 'password123',
+        instanceClass: 'db.t3.micro',
+        port: '3306',
+        allocatedStorage: '20',
+        vpcSelection: {
+          vpcId: 'vpc-123',
+          subnetIds: ['default-vpc-123'],
+          securityGroupIds: ['sg-abc', 'sg-def'],
+        },
+      }
+
+      await createInstance()
+
+      expect(rdsApi.createDBInstance).toHaveBeenCalledWith(
+        expect.objectContaining({
+          DBInstanceIdentifier: 'vpc-db',
+          DBSubnetGroupName: 'default-vpc-123',
+          VpcSecurityGroupIds: ['sg-abc', 'sg-def'],
+        }),
+      )
+    })
+
+    it('excludes VPC fields when vpcSelection is null', async () => {
+      vi.mocked(rdsApi.createDBInstance).mockResolvedValue({} as RDSInstance)
+      vi.mocked(rdsApi.describeDBInstances).mockResolvedValue([])
+
+      const { createInstance, createForm } = useRDS()
+
+      createForm.value = {
+        instanceId: 'no-vpc-db',
+        dbEngine: 'mysql',
+        dbVersion: '8.0.36',
+        masterUsername: 'root',
+        masterPassword: 'password123',
+        instanceClass: 'db.t3.micro',
+        port: '3306',
+        allocatedStorage: '20',
+        vpcSelection: null,
+      }
+
+      await createInstance()
+
+      const callArgs = vi.mocked(rdsApi.createDBInstance).mock.calls[0][0]
+      expect(callArgs.DBInstanceIdentifier).toBe('no-vpc-db')
+      expect(callArgs.DBSubnetGroupName).toBeUndefined()
+      expect(callArgs.VpcSecurityGroupIds).toBeUndefined()
+    })
+
+    it('excludes VpcSecurityGroupIds when securityGroupIds is empty', async () => {
+      vi.mocked(rdsApi.createDBInstance).mockResolvedValue({} as RDSInstance)
+      vi.mocked(rdsApi.describeDBInstances).mockResolvedValue([])
+
+      const { createInstance, createForm } = useRDS()
+
+      createForm.value = {
+        instanceId: 'sg-empty-db',
+        dbEngine: 'mysql',
+        dbVersion: '8.0.36',
+        masterUsername: 'root',
+        masterPassword: 'password123',
+        instanceClass: 'db.t3.micro',
+        port: '3306',
+        allocatedStorage: '20',
+        vpcSelection: {
+          vpcId: 'vpc-123',
+          subnetIds: ['default-subnet'],
+          securityGroupIds: [],
+        },
+      }
+
+      await createInstance()
+
+      const callArgs = vi.mocked(rdsApi.createDBInstance).mock.calls[0][0]
+      expect(callArgs.DBSubnetGroupName).toBe('default-subnet')
+      expect(callArgs.VpcSecurityGroupIds).toBeUndefined()
     })
   })
 
@@ -516,6 +607,11 @@ describe('useRDS', () => {
         instanceClass: 'db.t3.small',
         port: '5432',
         allocatedStorage: '50',
+        vpcSelection: {
+          vpcId: 'vpc-test',
+          subnetIds: ['sg-test'],
+          securityGroupIds: ['sg-test'],
+        },
       }
 
       resetForm()
@@ -529,6 +625,7 @@ describe('useRDS', () => {
         instanceClass: 'db.t3.micro',
         port: '3306',
         allocatedStorage: '20',
+        vpcSelection: null,
       })
     })
   })

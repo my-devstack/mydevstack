@@ -8525,6 +8525,33 @@ components:
               type: string
           type: object
       type: object
+    RDSDBSubnetGroupsResponse:
+      properties:
+        DBSubnetGroups:
+          items:
+            properties:
+              DBSubnetGroupDescription:
+                type: string
+              DBSubnetGroupName:
+                type: string
+              SubnetGroupStatus:
+                type: string
+              Subnets:
+                items:
+                  properties:
+                    SubnetAvailabilityZone:
+                      type: string
+                    SubnetIdentifier:
+                      type: string
+                    SubnetStatus:
+                      type: string
+                  type: object
+                type: array
+              VpcId:
+                type: string
+            type: object
+          type: array
+      type: object
     ReceiveMessageOutput:
       properties:
         Messages:
@@ -18412,6 +18439,31 @@ paths:
                 $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
           description: Internal server error
       summary: Describe DB engine versions
+      tags:
+        - RDS
+  /rds/db-subnet-groups:
+    get:
+      description: |
+        Returns a list of RDS DB subnet groups.
+
+        Request params are forwarded to the emulator with
+        `Action=DescribeDBSubnetGroups` and `Version=2014-10-31`.
+        The XML response is converted to JSON.
+      operationId: describeDBSubnetGroups
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/RDSDBSubnetGroupsResponse
+          description: List of DB subnet groups
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Describe DB subnet groups
       tags:
         - RDS
   /s3/buckets:

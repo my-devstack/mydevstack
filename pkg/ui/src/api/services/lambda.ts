@@ -71,6 +71,7 @@ export class LambdaService {
     Code?: { ZipFile?: Uint8Array | string }
     Architectures?: string[]
     Environment?: { Variables?: Record<string, string> }
+    VpcConfig?: { SubnetIds: string[]; SecurityGroupIds: string[] }
   }): Promise<any> {
     const code = params.Code
     if (code?.ZipFile && code.ZipFile instanceof Uint8Array) {

@@ -208,6 +208,27 @@ components:
             status:
               type: string
 
+    RDSDBSubnetGroupsResponse:
+      type: object
+      properties:
+        DBSubnetGroups:
+          type: array
+          items:
+            type: object
+            properties:
+              DBSubnetGroupName:        { type: string }
+              DBSubnetGroupDescription: { type: string }
+              VpcId:                    { type: string }
+              SubnetGroupStatus:        { type: string }
+              Subnets:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    SubnetIdentifier:        { type: string }
+                    SubnetAvailabilityZone:  { type: string }
+                    SubnetStatus:            { type: string }
+
     # --- S3 SDK Expanded Types ---
 
     S3Owner:

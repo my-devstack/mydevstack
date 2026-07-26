@@ -338,6 +338,247 @@ func TestExtractInstanceFields(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
+// TestDescribeDBSubnetGroups - handler integration
+// ---------------------------------------------------------------------------
+
+func TestHandleRDS_DBSubnetGroups(t *testing.T) {
+	t.Parallel()
+
+	t.Run("endpoint unreachable returns 500", func(t *testing.T) {
+		t.Parallel()
+		cfg := &configloader.Config{
+			AWS: configloader.AWSProxyConfig{
+				Endpoint: "http://127.0.0.1:1",
+			},
+		}
+		svc := createMockSvc(t, cfg)
+		versionSvc := createTestVersionService(t)
+		handler := createHandler(svc, versionSvc)
+		r := setupTestRouter(handler)
+
+		w := performRequest(r, "GET", "/rds/db-subnet-groups", nil)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+}
+
+// ---------------------------------------------------------------------------
+// TestParseRDSXMLResponse - DescribeDBSubnetGroupsResponse
+// ---------------------------------------------------------------------------
+
+func TestParseRDSXMLResponse_DBSubnetGroups(t *testing.T) {
+	t.Parallel()
+
+	t.Run("MiniStack format", func(t *testing.T) {
+		t.Parallel()
+		xmlBody := `<DescribeDBSubnetGroupsResponse>
+			<DescribeDBSubnetGroupsResult>
+				<DBSubnetGroups>
+					<DBSubnetGroup>
+						<DBSubnetGroupName>default</DBSubnetGroupName>
+						<DBSubnetGroupDescription>Default subnet group</DBSubnetGroupDescription>
+						<VpcId>vpc-123</VpcId>
+						<SubnetGroupStatus>Complete</SubnetGroupStatus>
+						<Subnets>
+							<Subnet>
+								<SubnetIdentifier>subnet-123</SubnetIdentifier>
+								<SubnetAvailabilityZone><Name>us-east-1a</Name></SubnetAvailabilityZone>
+								<SubnetStatus>Active</SubnetStatus>
+							</Subnet>
+							<Subnet>
+								<SubnetIdentifier>subnet-456</SubnetIdentifier>
+								<SubnetAvailabilityZone><Name>us-east-1b</Name></SubnetAvailabilityZone>
+								<SubnetStatus>Active</SubnetStatus>
+							</Subnet>
+						</Subnets>
+					</DBSubnetGroup>
+					<DBSubnetGroup>
+						<DBSubnetGroupName>custom-vpc</DBSubnetGroupName>
+						<DBSubnetGroupDescription>Custom VPC group</DBSubnetGroupDescription>
+						<VpcId>vpc-456</VpcId>
+						<SubnetGroupStatus>Complete</SubnetGroupStatus>
+					</DBSubnetGroup>
+				</DBSubnetGroups>
+			</DescribeDBSubnetGroupsResult>
+		</DescribeDBSubnetGroupsResponse>`
+		result, err := parseRDSXMLResponse(xmlBody, "DescribeDBSubnetGroups")
+		assert.NoError(t, err)
+		assert.Contains(t, result, "DBSubnetGroups")
+		groups, ok := result["DBSubnetGroups"].([]map[string]interface{})
+		assert.True(t, ok)
+		assert.Len(t, groups, 2)
+
+		// First group
+		g0 := groups[0]
+		assert.Equal(t, "default", g0["DBSubnetGroupName"])
+		assert.Equal(t, "Default subnet group", g0["DBSubnetGroupDescription"])
+		assert.Equal(t, "vpc-123", g0["VpcId"])
+		assert.Equal(t, "Complete", g0["SubnetGroupStatus"])
+		subnets, ok := g0["Subnets"].([]map[string]interface{})
+		assert.True(t, ok)
+		assert.Len(t, subnets, 2)
+		assert.Equal(t, "subnet-123", subnets[0]["SubnetIdentifier"])
+		assert.Equal(t, "us-east-1a", subnets[0]["SubnetAvailabilityZone"])
+		assert.Equal(t, "Active", subnets[0]["SubnetStatus"])
+
+		// Second group (no subnets)
+		g1 := groups[1]
+		assert.Equal(t, "custom-vpc", g1["DBSubnetGroupName"])
+		_, hasSubnets := g1["Subnets"]
+		assert.False(t, hasSubnets)
+	})
+
+	t.Run("Floci format with member tags", func(t *testing.T) {
+		t.Parallel()
+		xmlBody := `<DescribeDBSubnetGroupsResponse>
+			<DescribeDBSubnetGroupsResult>
+				<DBSubnetGroups>
+					<member>
+						<DBSubnetGroupName>default</DBSubnetGroupName>
+						<DBSubnetGroupDescription>Default subnet group</DBSubnetGroupDescription>
+						<VpcId>vpc-123</VpcId>
+						<SubnetGroupStatus>Complete</SubnetGroupStatus>
+						<Subnets>
+							<member>
+								<SubnetIdentifier>subnet-111</SubnetIdentifier>
+								<SubnetAvailabilityZone><Name>us-east-1a</Name></SubnetAvailabilityZone>
+								<SubnetStatus>Active</SubnetStatus>
+							</member>
+						</Subnets>
+					</member>
+				</DBSubnetGroups>
+			</DescribeDBSubnetGroupsResult>
+		</DescribeDBSubnetGroupsResponse>`
+		result, err := parseRDSXMLResponse(xmlBody, "DescribeDBSubnetGroups")
+		assert.NoError(t, err)
+		assert.Contains(t, result, "DBSubnetGroups")
+		groups, ok := result["DBSubnetGroups"].([]map[string]interface{})
+		assert.True(t, ok)
+		assert.Len(t, groups, 1)
+		assert.Equal(t, "default", groups[0]["DBSubnetGroupName"])
+		subnets, ok := groups[0]["Subnets"].([]map[string]interface{})
+		assert.True(t, ok)
+		assert.Len(t, subnets, 1)
+		assert.Equal(t, "subnet-111", subnets[0]["SubnetIdentifier"])
+		assert.Equal(t, "us-east-1a", subnets[0]["SubnetAvailabilityZone"])
+	})
+
+	t.Run("empty response returns empty slice", func(t *testing.T) {
+		t.Parallel()
+		xmlBody := `<DescribeDBSubnetGroupsResponse>
+			<DescribeDBSubnetGroupsResult>
+				<DBSubnetGroups></DBSubnetGroups>
+			</DescribeDBSubnetGroupsResult>
+		</DescribeDBSubnetGroupsResponse>`
+		result, err := parseRDSXMLResponse(xmlBody, "DescribeDBSubnetGroups")
+		assert.NoError(t, err)
+		groups, ok := result["DBSubnetGroups"].([]map[string]interface{})
+		assert.True(t, ok)
+		assert.Empty(t, groups)
+	})
+
+	t.Run("no DBSubnetGroups tag returns empty slice", func(t *testing.T) {
+		t.Parallel()
+		xmlBody := `<DescribeDBSubnetGroupsResponse>
+			<DescribeDBSubnetGroupsResult>
+			</DescribeDBSubnetGroupsResult>
+		</DescribeDBSubnetGroupsResponse>`
+		result, err := parseRDSXMLResponse(xmlBody, "DescribeDBSubnetGroups")
+		assert.NoError(t, err)
+		groups, ok := result["DBSubnetGroups"].([]map[string]interface{})
+		assert.True(t, ok)
+		assert.Empty(t, groups)
+	})
+}
+
+// ---------------------------------------------------------------------------
+// TestExtractDBSubnetGroups
+// ---------------------------------------------------------------------------
+
+func TestExtractDBSubnetGroups(t *testing.T) {
+	t.Parallel()
+
+	t.Run("MiniStack format uses DBSubnetGroup tags", func(t *testing.T) {
+		t.Parallel()
+		xmlBody := `<DBSubnetGroups>
+			<DBSubnetGroup>
+				<DBSubnetGroupName>group1</DBSubnetGroupName>
+			</DBSubnetGroup>
+			<DBSubnetGroup>
+				<DBSubnetGroupName>group2</DBSubnetGroupName>
+			</DBSubnetGroup>
+		</DBSubnetGroups>`
+		groups := extractDBSubnetGroups(xmlBody)
+		assert.Len(t, groups, 2)
+		assert.Equal(t, "group1", groups[0]["DBSubnetGroupName"])
+		assert.Equal(t, "group2", groups[1]["DBSubnetGroupName"])
+	})
+
+	t.Run("Floci format uses member tags", func(t *testing.T) {
+		t.Parallel()
+		xmlBody := `<DBSubnetGroups>
+			<member>
+				<DBSubnetGroupName>group1</DBSubnetGroupName>
+			</member>
+			<member>
+				<DBSubnetGroupName>group2</DBSubnetGroupName>
+			</member>
+		</DBSubnetGroups>`
+		groups := extractDBSubnetGroups(xmlBody)
+		assert.Len(t, groups, 2)
+		assert.Equal(t, "group1", groups[0]["DBSubnetGroupName"])
+		assert.Equal(t, "group2", groups[1]["DBSubnetGroupName"])
+	})
+
+	t.Run("no groups returns empty slice", func(t *testing.T) {
+		t.Parallel()
+		groups := extractDBSubnetGroups("<DBSubnetGroups></DBSubnetGroups>")
+		assert.Empty(t, groups)
+	})
+}
+
+// ---------------------------------------------------------------------------
+// TestExtractDBSubnetGroupFields
+// ---------------------------------------------------------------------------
+
+func TestExtractDBSubnetGroupFields(t *testing.T) {
+	t.Parallel()
+
+	t.Run("all fields including Subnets", func(t *testing.T) {
+		t.Parallel()
+		content := `<DBSubnetGroupName>default</DBSubnetGroupName>
+<DBSubnetGroupDescription>Default group</DBSubnetGroupDescription>
+<VpcId>vpc-12345</VpcId>
+<SubnetGroupStatus>Complete</SubnetGroupStatus>
+<Subnets>
+	<Subnet>
+		<SubnetIdentifier>subnet-abc</SubnetIdentifier>
+		<SubnetAvailabilityZone><Name>us-east-1a</Name></SubnetAvailabilityZone>
+		<SubnetStatus>Active</SubnetStatus>
+	</Subnet>
+</Subnets>`
+		group := extractDBSubnetGroupFields(content)
+		assert.NotNil(t, group)
+		assert.Equal(t, "default", group["DBSubnetGroupName"])
+		assert.Equal(t, "Default group", group["DBSubnetGroupDescription"])
+		assert.Equal(t, "vpc-12345", group["VpcId"])
+		assert.Equal(t, "Complete", group["SubnetGroupStatus"])
+
+		subnets, ok := group["Subnets"].([]map[string]interface{})
+		assert.True(t, ok)
+		assert.Len(t, subnets, 1)
+		assert.Equal(t, "subnet-abc", subnets[0]["SubnetIdentifier"])
+		assert.Equal(t, "us-east-1a", subnets[0]["SubnetAvailabilityZone"])
+		assert.Equal(t, "Active", subnets[0]["SubnetStatus"])
+	})
+
+	t.Run("empty content returns nil", func(t *testing.T) {
+		t.Parallel()
+		group := extractDBSubnetGroupFields("")
+		assert.Nil(t, group)
+	})
+}
+
+// ---------------------------------------------------------------------------
 // TestExtractEngineVersionFields
 // ---------------------------------------------------------------------------
 
