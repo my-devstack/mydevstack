@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import CodeSnippet from '@/components/common/CodeSnippet.vue'
+import { useSettingsStore } from '@/stores/settings'
 
 const props = defineProps<{
   region: string
@@ -8,30 +9,32 @@ const props = defineProps<{
   secretKey: string
 }>()
 
+const settingsStore = useSettingsStore()
+
 const codeExamples = computed(() => [
   {
     language: 'aws-cli',
     label: 'AWS CLI',
     code: `# List buckets
-aws s3 ls --endpoint-url http://127.0.0.1:4566
+aws s3 ls --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create bucket
-aws s3 mb s3://my-bucket --endpoint-url http://127.0.0.1:4566
+aws s3 mb s3://my-bucket --endpoint-url ${settingsStore.publicEndpoint}
 
 # List objects in bucket
-aws s3 ls s3://my-bucket/ --endpoint-url http://127.0.0.1:4566
+aws s3 ls s3://my-bucket/ --endpoint-url ${settingsStore.publicEndpoint}
 
 # Upload file
-aws s3 cp my-file.txt s3://my-bucket/ --endpoint-url http://127.0.0.1:4566
+aws s3 cp my-file.txt s3://my-bucket/ --endpoint-url ${settingsStore.publicEndpoint}
 
 # Download file
-aws s3 cp s3://my-bucket/my-file.txt ./my-file.txt --endpoint-url http://127.0.0.1:4566
+aws s3 cp s3://my-bucket/my-file.txt ./my-file.txt --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete object
-aws s3 rm s3://my-bucket/my-file.txt --endpoint-url http://127.0.0.1:4566
+aws s3 rm s3://my-bucket/my-file.txt --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete bucket
-aws s3 rb s3://my-bucket --endpoint-url http://127.0.0.1:4566`
+aws s3 rb s3://my-bucket --endpoint-url ${settingsStore.publicEndpoint}`
   },
   {
     language: 'javascript',
@@ -41,7 +44,7 @@ import { S3Client, ListBucketsCommand, PutObjectCommand, GetObjectCommand, Delet
 
 const client = new S3Client({
   region: '${props.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${props.accessKey}',
     secretAccessKey: '${props.secretKey}',
@@ -84,7 +87,7 @@ import boto3
 client = boto3.client(
     's3',
     region_name='${props.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${props.accessKey}',
     aws_secret_access_key='${props.secretKey}',
 )
@@ -127,7 +130,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 
 client := s3.New(s3.Options{
     Region: "${props.region}",
-    BaseURL: aws.String("http://127.0.0.1:4566"),
+    BaseURL: aws.String("${settingsStore.publicEndpoint}"),
     Credentials: aws.CredentialsProviderFunc(
         func(ctx context.Context) (aws.Credentials, error) {
             return aws.Credentials{

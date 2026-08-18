@@ -10,57 +10,57 @@ const snippets = computed(() => [
     language: 'aws-cli',
     label: 'AWS CLI',
     code: `# List SNS topics
-aws sns list-topics --endpoint-url http://127.0.0.1:4566
+aws sns list-topics --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create topic
 aws sns create-topic \\
   --name my-topic \\
   --display-name "My Topic" \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create FIFO topic
 aws sns create-topic \\
   --name my-topic.fifo \\
   --attributes "FifoTopic=true,ContentBasedDeduplication=true" \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Subscribe to topic (HTTPS)
 aws sns subscribe \\
   --topic-arn arn:aws:sns:us-east-1:000000000000:my-topic \\
   --protocol https \\
   --notification-endpoint https://my-app.com/webhook \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Subscribe to topic (Email)
 aws sns subscribe \\
   --topic-arn arn:aws:sns:us-east-1:000000000000:my-topic \\
   --protocol email \\
   --notification-endpoint your@email.com \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # List subscriptions by topic
 aws sns list-subscriptions-by-topic \\
   --topic-arn arn:aws:sns:us-east-1:000000000000:my-topic \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Publish message
 aws sns publish \\
   --topic-arn arn:aws:sns:us-east-1:000000000000:my-topic \\
   --message "Hello World" \\
   --subject "Notification" \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Publish JSON message
 aws sns publish \\
   --topic-arn arn:aws:sns:us-east-1:000000000000:my-topic \\
   --message '{"default": "Hello via SNS"}' \\
   --message-structure json \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete topic
 aws sns delete-topic \\
   --topic-arn arn:aws:sns:us-east-1:000000000000:my-topic \\
-  --endpoint-url http://127.0.0.1:4566`,
+  --endpoint-url ${settingsStore.publicEndpoint}`,
   },
   {
     language: 'javascript',
@@ -70,7 +70,7 @@ import { SNSClient, ListTopicsCommand, CreateTopicCommand, SubscribeCommand, Pub
 
 const client = new SNSClient({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${settingsStore.accessKey}',
     secretAccessKey: '${settingsStore.secretKey}',
@@ -130,7 +130,7 @@ import json
 client = boto3.client(
     'sns',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}',
 )
@@ -195,7 +195,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 client := sns.NewFromConfig(cfg, func(o *sns.Options) {
-    o.BaseURL = aws.String("http://127.0.0.1:4566")
+    o.BaseURL = aws.String("${settingsStore.publicEndpoint}")
 })
 
 // List topics

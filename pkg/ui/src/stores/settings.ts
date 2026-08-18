@@ -35,6 +35,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const provider = ref<Provider>(
     (localStorage.getItem('provider') as Provider) || 'localstack'
   )
+  const publicEndpoint = ref<string>(localStorage.getItem('publicEndpoint') || 'http://127.0.0.1:4566')
 
   // State - Appearance
   const darkMode = ref<boolean>(
@@ -102,6 +103,7 @@ export const useSettingsStore = defineStore('settings', () => {
   watch(requestTimeout, (val) => localStorage.setItem('requestTimeout', String(val)))
   watch(maxRetries, (val) => localStorage.setItem('maxRetries', String(val)))
   watch(debugMode, (val) => localStorage.setItem('debugMode', String(val)))
+  watch(publicEndpoint, (val) => localStorage.setItem('publicEndpoint', val))
 
   // Actions
   function setRegion(newRegion: string) {
@@ -119,6 +121,10 @@ export const useSettingsStore = defineStore('settings', () => {
 
   function setProvider(newProvider: Provider) {
     provider.value = newProvider
+  }
+
+  function setPublicEndpoint(newEndpoint: string) {
+    publicEndpoint.value = newEndpoint
   }
 
   function toggleDarkMode() {
@@ -191,6 +197,7 @@ export const useSettingsStore = defineStore('settings', () => {
     maxRetries.value = 3
     debugMode.value = false
     darkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+    publicEndpoint.value = 'http://127.0.0.1:4566'
   }
 
   function resetSettings() {
@@ -208,6 +215,7 @@ export const useSettingsStore = defineStore('settings', () => {
     maxRetries.value = 3
     debugMode.value = false
     darkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+    publicEndpoint.value = 'http://127.0.0.1:4566'
   }
 
   return {
@@ -218,6 +226,7 @@ export const useSettingsStore = defineStore('settings', () => {
     accessKey,
     secretKey,
     provider,
+    publicEndpoint,
     // State - Appearance
     darkMode,
     theme,
@@ -239,6 +248,7 @@ export const useSettingsStore = defineStore('settings', () => {
     setEmulator,
     setCredentials,
     setProvider,
+    setPublicEndpoint,
     // Actions - Appearance
     toggleDarkMode,
     setDarkMode,

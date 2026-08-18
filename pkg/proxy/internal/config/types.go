@@ -11,7 +11,8 @@ type Config struct {
 }
 
 type AWSProxyConfig struct {
-	Endpoint  string `mapstructure:"endpoint"`
-	AccessKey string `mapstructure:"access_key"`
-	SecretKey string `mapstructure:"secret_key"`
+	Endpoint         string `mapstructure:"endpoint"`
+	AccessKey        string `mapstructure:"access_key"`
+	SecretKey        string `mapstructure:"secret_key"`
+	EndpointOverride string `mapstructure:"endpoint_override"`
 }

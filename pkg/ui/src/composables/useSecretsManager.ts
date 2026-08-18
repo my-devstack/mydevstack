@@ -1,6 +1,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
+import { useSettingsStore } from '@/stores/settings'
 import * as secretsManager from '@/api/services/secrets-manager'
 
 export interface SecretItem {
@@ -18,6 +19,7 @@ export interface SecretDetails {
 
 export function useSecretsManager() {
   const toast = useToast()
+  const settingsStore = useSettingsStore()
   const { reloadTrigger } = useContentReload()
 
   // State
@@ -55,19 +57,19 @@ export function useSecretsManager() {
       language: 'aws-cli',
       label: 'AWS CLI',
       code: `# List secrets
-aws secretsmanager list-secrets --endpoint-url http://127.0.0.1:4566
+aws secretsmanager list-secrets --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get secret value
-aws secretsmanager get-secret-value --secret-id my-secret --endpoint-url http://127.0.0.1:4566
+aws secretsmanager get-secret-value --secret-id my-secret --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create secret
 aws secretsmanager create-secret \\
   --name my-secret \\
   --secret-string '{"username":"admin","password":"secret123"}' \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete secret
-aws secretsmanager delete-secret --secret-id my-secret --endpoint-url http://127.0.0.1:4566`
+aws secretsmanager delete-secret --secret-id my-secret --endpoint-url ${settingsStore.publicEndpoint}`
     },
     {
       language: 'javascript',
@@ -77,7 +79,7 @@ import { SecretsManagerClient, ListSecretsCommand, GetSecretValueCommand } from 
 
 const client = new SecretsManagerClient({
   region: 'us-east-1',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: 'test',
     secretAccessKey: 'test',
@@ -103,7 +105,7 @@ import boto3
 client = boto3.client(
     'secretsmanager',
     region_name='us-east-1',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='test',
     aws_secret_access_key='test',
 )
@@ -136,7 +138,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
                 aws.Endpoint, error,
             ) {
                 return aws.Endpoint{
-                    URL: "http://127.0.0.1:4566",
+                    URL: "${settingsStore.publicEndpoint}",
                 }, nil
             },
         ),

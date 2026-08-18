@@ -247,70 +247,70 @@ export function useIAM() {
       language: 'aws-cli',
       label: 'AWS CLI',
       code: `# List IAM users
-aws iam list-users --endpoint-url http://127.0.0.1:4566
+aws iam list-users --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create IAM user
 aws iam create-user \\
   --user-name alice \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create access key for user
 aws iam create-access-key \\
   --user-name alice \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # List access keys for user
 aws iam list-access-keys \\
   --user-name alice \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete IAM user
 aws iam delete-user \\
   --user-name alice \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # List IAM roles
-aws iam list-roles --endpoint-url http://127.0.0.1:4566
+aws iam list-roles --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create IAM role
 aws iam create-role \\
   --role-name ec2-role \\
   --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"ec2.amazonaws.com"},"Action":"sts:AssumeRole"}]}' \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # List IAM policies
-aws iam list-policies --endpoint-url http://127.0.0.1:4566
+aws iam list-policies --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create IAM policy
 aws iam create-policy \\
   --policy-name my-s3-policy \\
   --policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:ListBucket","Resource":"arn:aws:s3:::my-bucket"}]}' \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Attach policy to role
 aws iam attach-role-policy \\
   --role-name ec2-role \\
   --policy-arn arn:aws:iam::000000000000:policy/my-s3-policy \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # List IAM groups
-aws iam list-groups --endpoint-url http://127.0.0.1:4566
+aws iam list-groups --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create IAM group
 aws iam create-group \\
   --group-name developers \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Add user to group
 aws iam add-user-to-group \\
   --user-name alice \\
   --group-name developers \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # List users in group
 aws iam get-group \\
   --group-name developers \\
-  --endpoint-url http://127.0.0.1:4566`
+  --endpoint-url ${settingsStore.publicEndpoint}`
     },
     {
       language: 'javascript',
@@ -320,7 +320,7 @@ import { IAMClient, ListUsersCommand, CreateUserCommand, CreateAccessKeyCommand,
 
 const client = new IAMClient({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${settingsStore.accessKey}',
     secretAccessKey: '${settingsStore.secretKey}',
@@ -397,7 +397,7 @@ import json
 client = boto3.client(
     'iam',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}',
 )
@@ -480,7 +480,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 client := iam.NewFromConfig(cfg, func(o *iam.Options) {
-    o.BaseEndpoint = "http://127.0.0.1:4566"
+    o.BaseEndpoint = "${settingsStore.publicEndpoint}"
 })
 
 ctx := context.Background()

@@ -160,11 +160,11 @@ export function useElastiCache() {
       language: 'aws-cli',
       label: 'AWS CLI',
       code: `# Describe all replication groups
-aws elasticache describe-replication-groups --endpoint-url http://127.0.0.1:4566
+aws elasticache describe-replication-groups --endpoint-url ${settingsStore.publicEndpoint}
 
 # Describe specific group
 aws elasticache describe-replication-group \\
-  --replication-group-id my-cache --endpoint-url http://127.0.0.1:4566
+  --replication-group-id my-cache --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create replication group (starts Valkey container)
 aws elasticache create-replication-group \\
@@ -174,12 +174,12 @@ aws elasticache create-replication-group \\
   --cache-node-type cache.t3.micro \\
   --num-node-groups 1 \\
   --port 6379 \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete replication group
 aws elasticache delete-replication-group \\
   --replication-group-id my-cache \\
-  --endpoint-url http://127.0.0.1:4566`,
+  --endpoint-url ${settingsStore.publicEndpoint}`,
     },
     {
       language: 'javascript',
@@ -189,7 +189,7 @@ import { ElastiCacheClient, DescribeReplicationGroupsCommand, CreateReplicationG
 
 const client = new ElastiCacheClient({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${settingsStore.accessKey}',
     secretAccessKey: '${settingsStore.secretKey}',
@@ -218,7 +218,7 @@ console.log(createResponse.ReplicationGroup);`,
 # Create ElastiCache client
 elasticache = boto3.client('elasticache',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}'
 )
@@ -264,7 +264,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 client := elasticache.NewFromConfig(cfg, func(o *elasticache.Options) {
-    o.BaseEndpoint = aws.String("http://127.0.0.1:4566")
+    o.BaseEndpoint = aws.String("${settingsStore.publicEndpoint}")
 })
 
 // Describe replication groups

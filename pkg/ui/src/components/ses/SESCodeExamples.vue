@@ -10,61 +10,61 @@ const snippets = computed(() => [
     language: 'aws-cli',
     label: 'AWS CLI',
     code: `# List email identities
-aws sesv2 list-email-identities --endpoint-url http://127.0.0.1:4566
+aws sesv2 list-email-identities --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create email identity
 aws sesv2 create-email-identity \
   --email-identity sender@example.com \
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create email identity with tags
 aws sesv2 create-email-identity \
   --email-identity sender@example.com \
   --tags Key=env,Value=test \
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create domain identity
 aws sesv2 create-email-identity \\
   --email-identity example.com \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get email identity details
 aws sesv2 get-email-identity \\
   --email-identity sender@example.com \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Send email
 aws sesv2 send-email \
   --from-email-address sender@example.com \
   --destination '{"ToAddresses":["recipient@example.com"]}' \
   --content '{"Simple":{"Subject":{"Data":"Hello"},"Body":{"Text":{"Data":"Hello from SES"}}}}' \
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Send email with template
 aws sesv2 send-email \
   --from-email-address sender@example.com \
   --destination '{"ToAddresses":["recipient@example.com"]}' \
   --content '{"Template":{"TemplateName":"my-template","TemplateData":"{\\"name\\":\\"John\\"}"}}' \
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # List templates
-aws sesv2 list-email-templates --endpoint-url http://127.0.0.1:4566
+aws sesv2 list-email-templates --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create template
 aws sesv2 create-email-template \
   --template-name my-template \
   --template-content '{"Subject":"Hello","Html":"<h1>Hello</h1>","Text":"Hello"}' \
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete identity
 aws sesv2 delete-email-identity \
   --email-identity sender@example.com \
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete template
 aws sesv2 delete-email-template \
   --template-name my-template \
-  --endpoint-url http://127.0.0.1:4566`,
+  --endpoint-url ${settingsStore.publicEndpoint}`,
   },
   {
     language: 'javascript',
@@ -74,7 +74,7 @@ import { SESv2Client, ListEmailIdentitiesCommand, CreateEmailIdentityCommand, Se
 
 const client = new SESv2Client({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${settingsStore.accessKey}',
     secretAccessKey: '${settingsStore.secretKey}',
@@ -156,7 +156,7 @@ import json
 client = boto3.client(
     'sesv2',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}',
 )
@@ -240,7 +240,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 client := sesv2.NewFromConfig(cfg, func(o *sesv2.Options) {
-    o.BaseEndpoint = aws.String("http://127.0.0.1:4566")
+    o.BaseEndpoint = aws.String("${settingsStore.publicEndpoint}")
 })
 
 // List email identities

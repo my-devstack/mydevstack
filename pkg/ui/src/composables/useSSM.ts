@@ -1,6 +1,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useToast } from '@/composables/useToast'
 import { useContentReload } from '@/composables/useContentReload'
+import { useSettingsStore } from '@/stores/settings'
 import * as ssmApi from '@/api/services/ssm'
 
 // Types
@@ -26,6 +27,7 @@ export interface SSMParameterHistoryItem {
 
 export function useSSM() {
   const toast = useToast()
+  const settingsStore = useSettingsStore()
   const { reloadTrigger } = useContentReload()
 
   // State
@@ -235,29 +237,29 @@ export function useSSM() {
       language: 'aws-cli',
       label: 'AWS CLI',
       code: `# List parameters
-aws ssm describe-parameters --endpoint-url http://localhost:4566
+aws ssm describe-parameters --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get parameter
 aws ssm get-parameter \\
   --name /my-app/config \\
-  --endpoint-url http://localhost:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Put parameter
 aws ssm put-parameter \\
   --name /my-app/config \\
   --value "my-value" \\
   --type String \\
-  --endpoint-url http://localhost:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get parameters by path
 aws ssm get-parameters-by-path \\
   --path /my-app/ \\
-  --endpoint-url http://localhost:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete parameter
 aws ssm delete-parameter \\
   --name /my-app/config \\
-  --endpoint-url http://localhost:4566`
+  --endpoint-url ${settingsStore.publicEndpoint}`
     },
     {
       language: 'javascript',
@@ -267,7 +269,7 @@ import { SSMClient, PutParameterCommand, GetParameterCommand } from "@aws-sdk/cl
 
 const client = new SSMClient({
   region: 'us-east-1',
-  endpoint: 'http://localhost:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: 'test',
     secretAccessKey: 'test',
@@ -296,7 +298,7 @@ import boto3
 client = boto3.client(
     'ssm',
     region_name='us-east-1',
-    endpoint_url='http://localhost:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='test',
     aws_secret_access_key='test',
 )
@@ -332,7 +334,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 client := ssm.NewFromConfig(cfg, func(o *ssm.Options) {
-    o.BaseEndpoint = aws.String("http://localhost:4566")
+    o.BaseEndpoint = aws.String("${settingsStore.publicEndpoint}")
 })
 
 // Put parameter (String type)

@@ -3,4 +3,5 @@ aws:
   endpoint: ${AWS_ENDPOINT}
   access_key: ${AWS_ACCESS_KEY}
   secret_key: ${AWS_SECRET_KEY}
+  endpoint_override: ${AWS_ENDPOINT_OVERRIDE}
 emulator: ${EMULATOR}

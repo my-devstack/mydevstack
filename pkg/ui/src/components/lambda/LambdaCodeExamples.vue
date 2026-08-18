@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import CodeSnippet from '@/components/common/CodeSnippet.vue'
+import { useSettingsStore } from '@/stores/settings'
 
 const props = defineProps<{
   region: string
@@ -8,12 +9,14 @@ const props = defineProps<{
   secretKey: string
 }>()
 
+const settingsStore = useSettingsStore()
+
 const codeExamples = computed(() => [
   {
     language: 'aws-cli',
     label: 'AWS CLI',
     code: `# List Lambda functions
-aws lambda list-functions --endpoint-url http://127.0.0.1:4566
+aws lambda list-functions --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create function
 aws lambda create-function \\
@@ -22,18 +25,18 @@ aws lambda create-function \\
   --handler index.handler \\
   --role arn:aws:iam::123456789012:role/lambda-role \\
   --zip-file fileb://function.zip \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Invoke function
 aws lambda invoke \\
   --function-name my-function \\
   --payload '{"key": "value"}' \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete function
 aws lambda delete-function \\
   --function-name my-function \\
-  --endpoint-url http://127.0.0.1:4566`
+  --endpoint-url ${settingsStore.publicEndpoint}`
   },
   {
     language: 'javascript',
@@ -43,7 +46,7 @@ import { LambdaClient, ListFunctionsCommand, InvokeCommand } from "@aws-sdk/clie
 
 const client = new LambdaClient({
   region: '${props.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${props.accessKey}',
     secretAccessKey: '${props.secretKey}',
@@ -71,7 +74,7 @@ import json
 client = boto3.client(
     'lambda',
     region_name='${props.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${props.accessKey}',
     aws_secret_access_key='${props.secretKey}',
 )
@@ -114,7 +117,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 client := lambda.NewFromConfig(cfg, func(o *lambda.Options) {
-    o.BaseURL = aws.String("http://127.0.0.1:4566")
+    o.BaseURL = aws.String("${settingsStore.publicEndpoint}")
 })
 
 // List functions

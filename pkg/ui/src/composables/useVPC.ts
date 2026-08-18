@@ -570,32 +570,32 @@ export function useVPC() {
       language: 'aws-cli',
       label: 'AWS CLI',
       code: `# Create VPC
-aws ec2 create-vpc --cidr-block 10.0.0.0/16 --endpoint-url http://127.0.0.1:4566
+aws ec2 create-vpc --cidr-block 10.0.0.0/16 --endpoint-url ${settingsStore.publicEndpoint}
 
 # Describe VPCs
-aws ec2 describe-vpcs --endpoint-url http://127.0.0.1:4566
+aws ec2 describe-vpcs --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create subnet
-aws ec2 create-subnet --vpc-id vpc-xxxxx --cidr-block 10.0.1.0/24 --endpoint-url http://127.0.0.1:4566
+aws ec2 create-subnet --vpc-id vpc-xxxxx --cidr-block 10.0.1.0/24 --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create route table
-aws ec2 create-route-table --vpc-id vpc-xxxxx --endpoint-url http://127.0.0.1:4566
+aws ec2 create-route-table --vpc-id vpc-xxxxx --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create internet gateway and attach
-aws ec2 create-internet-gateway --endpoint-url http://127.0.0.1:4566
-aws ec2 attach-internet-gateway --internet-gateway-id igw-xxxxx --vpc-id vpc-xxxxx --endpoint-url http://127.0.0.1:4566
+aws ec2 create-internet-gateway --endpoint-url ${settingsStore.publicEndpoint}
+aws ec2 attach-internet-gateway --internet-gateway-id igw-xxxxx --vpc-id vpc-xxxxx --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create NAT gateway
-aws ec2 create-nat-gateway --subnet-id subnet-xxxxx --allocation-id eipalloc-xxxxx --endpoint-url http://127.0.0.1:4566
+aws ec2 create-nat-gateway --subnet-id subnet-xxxxx --allocation-id eipalloc-xxxxx --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create network ACL
-aws ec2 create-network-acl --vpc-id vpc-xxxxx --endpoint-url http://127.0.0.1:4566
+aws ec2 create-network-acl --vpc-id vpc-xxxxx --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create flow logs
-aws ec2 create-flow-logs --resource-id vpc-xxxxx --resource-type VPC --traffic-type ALL --log-destination-type cloud-watch-logs --log-group-name my-flow-logs --endpoint-url http://127.0.0.1:4566
+aws ec2 create-flow-logs --resource-id vpc-xxxxx --resource-type VPC --traffic-type ALL --log-destination-type cloud-watch-logs --log-group-name my-flow-logs --endpoint-url ${settingsStore.publicEndpoint}
 
 # Allocate elastic IP
-aws ec2 allocate-address --domain vpc --endpoint-url http://127.0.0.1:4566`,
+aws ec2 allocate-address --domain vpc --endpoint-url ${settingsStore.publicEndpoint}`,
     },
     {
       language: 'javascript',
@@ -605,7 +605,7 @@ import { EC2Client, CreateVpcCommand, DescribeVpcsCommand, CreateSubnetCommand, 
 
 const client = new EC2Client({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${settingsStore.accessKey}',
     secretAccessKey: '${settingsStore.secretKey}',
@@ -652,7 +652,7 @@ await client.send(new CreateNatGatewayCommand({
 
 ec2 = boto3.client('ec2',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}'
 )
@@ -704,7 +704,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 client := ec2.NewFromConfig(cfg, func(o *ec2.Options) {
-    o.BaseEndpoint = "http://127.0.0.1:4566"
+    o.BaseEndpoint = "${settingsStore.publicEndpoint}"
 })
 
 ctx := context.Background()
