@@ -234,4 +234,115 @@ describe('APIGatewayInvokeUrlModal', () => {
       expect(wrapper.text()).toContain('http://localhost:4566/restapis/')
     })
   })
+
+  describe('V2 Floci emulator URL', () => {
+    it('shows execute-api host for V2 HTTP API with FLOCI and normal stage', async () => {
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: {
+          ...defaultProps,
+          apiType: 'http',
+          stages: [],
+          api: { apiId: 'xyz789', name: 'my-http-api' },
+        },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      await wrapper.setProps({ stages: mockStages })
+      await wrapper.vm.$nextTick()
+      expect(wrapper.text()).toContain('http://xyz789.execute-api.localhost.floci.io:4566/prod')
+    })
+
+    it('shows execute-api host without stage segment for V2 HTTP API with FLOCI and $default stage', async () => {
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: {
+          ...defaultProps,
+          apiType: 'http',
+          stages: [],
+          api: { apiId: 'xyz789', name: 'my-http-api' },
+        },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      await wrapper.setProps({ stages: [{ stageName: '$default' }] })
+      await wrapper.vm.$nextTick()
+      expect(wrapper.text()).toContain('http://xyz789.execute-api.localhost.floci.io:4566')
+      expect(wrapper.text()).not.toContain('http://xyz789.execute-api.localhost.floci.io:4566/')
+    })
+
+    it('shows WebSocket execute-api host for V2 HTTP API with FLOCI and normal stage', async () => {
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: {
+          ...defaultProps,
+          apiType: 'http',
+          stages: [],
+          api: { apiId: 'xyz789', name: 'my-http-api', protocolType: 'WEBSOCKET' },
+        },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      await wrapper.setProps({ stages: mockStages })
+      await wrapper.vm.$nextTick()
+      expect(wrapper.text()).toContain('ws://xyz789.execute-api.localhost.floci.io:4566/prod')
+    })
+
+    it('shows WebSocket execute-api host without stage segment for V2 HTTP API with FLOCI and $default stage', async () => {
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: {
+          ...defaultProps,
+          apiType: 'http',
+          stages: [],
+          api: { apiId: 'xyz789', name: 'my-http-api', protocolType: 'WEBSOCKET' },
+        },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      await wrapper.setProps({ stages: [{ stageName: '$default' }] })
+      await wrapper.vm.$nextTick()
+      expect(wrapper.text()).toContain('ws://xyz789.execute-api.localhost.floci.io:4566')
+      expect(wrapper.text()).not.toContain('ws://xyz789.execute-api.localhost.floci.io:4566/')
+    })
+
+    it('keeps restapis format for V1 REST API with FLOCI', async () => {
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: {
+          ...defaultProps,
+          apiType: 'rest',
+          stages: [],
+          api: { id: 'api-123', name: 'My API' },
+        },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      await wrapper.setProps({ stages: mockStages })
+      await wrapper.vm.$nextTick()
+      expect(wrapper.text()).toContain('http://localhost:4566/restapis/api-123/prod/_user_request_/')
+    })
+
+    it('keeps restapis format for V2 HTTP API with LOCALSTACK', async () => {
+      mockSettings.mockReturnValue({ darkMode: false, emulator: 'localstack' })
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: {
+          ...defaultProps,
+          apiType: 'http',
+          stages: [],
+          api: { apiId: 'xyz789', name: 'my-http-api' },
+        },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      await wrapper.setProps({ stages: mockStages })
+      await wrapper.vm.$nextTick()
+      expect(wrapper.text()).toContain('http://localhost:4566/restapis/xyz789/prod/_user_request_/')
+    })
+
+    it('keeps _aws/execute-api format for V2 HTTP API with MINISTACK WebSocket', async () => {
+      mockSettings.mockReturnValue({ darkMode: false, emulator: 'ministack' })
+      const wrapper = mount(APIGatewayInvokeUrlModal, {
+        props: {
+          ...defaultProps,
+          apiType: 'http',
+          stages: [],
+          api: { apiId: 'xyz789', name: 'my-http-api', protocolType: 'WEBSOCKET' },
+        },
+        global: { stubs: { Modal: modalStub, Button: buttonStub, FormSelect: formSelectStub } },
+      })
+      await wrapper.setProps({ stages: mockStages })
+      await wrapper.vm.$nextTick()
+      expect(wrapper.text()).toContain('ws://localhost:4566/_aws/execute-api/xyz789/prod')
+    })
+  })
 })

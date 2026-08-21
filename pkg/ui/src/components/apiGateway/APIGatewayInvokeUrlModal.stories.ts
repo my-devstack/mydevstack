@@ -35,9 +35,23 @@ export const HTTPApi: Story = {
     open: true,
     api: { apiId: 'xyz789', name: 'my-http-api' },
     apiType: 'http',
-    invokeUrl: 'http://localhost:4566/httpapis/xyz789/prod',
+    invokeUrl: 'http://xyz789.execute-api.localhost.floci.io:4566/prod',
     loading: false,
     stages: [
+      { stageName: 'prod' },
+    ],
+  },
+}
+
+export const HTTPApiFlociDefault: Story = {
+  args: {
+    open: true,
+    api: { apiId: 'xyz789', name: 'my-http-api' },
+    apiType: 'http',
+    invokeUrl: 'http://xyz789.execute-api.localhost.floci.io:4566',
+    loading: false,
+    stages: [
+      { stageName: '$default' },
       { stageName: 'prod' },
     ],
   },
