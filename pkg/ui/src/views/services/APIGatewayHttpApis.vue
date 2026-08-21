@@ -277,34 +277,31 @@ async function confirmUpdateStage(description: string, autoDeploy: boolean) {
   }
 }
 
-async function handleDeleteRoute(route: any) {
-  if (!selectedApi.value) return
+async function handleDeleteRoute(apiId: string, route: any) {
   try {
-    await apigateway.deleteHttpRoute(selectedApi.value.apiId, route.routeId)
+    await apigateway.deleteHttpRoute(apiId, route.routeId)
     toast.success('Route deleted')
-    await loadDetailsForApi(selectedApi.value.apiId)
+    await loadDetailsForApi(apiId)
   } catch (e: any) {
     toast.error(e?.message || 'Failed to delete route')
   }
 }
 
-async function handleDeleteIntegration(integration: any) {
-  if (!selectedApi.value) return
+async function handleDeleteIntegration(apiId: string, integration: any) {
   try {
-    await apigateway.deleteHttpApiIntegration(selectedApi.value.apiId, integration.integrationId)
+    await apigateway.deleteHttpApiIntegration(apiId, integration.integrationId)
     toast.success('Integration deleted')
-    await loadDetailsForApi(selectedApi.value.apiId)
+    await loadDetailsForApi(apiId)
   } catch (e: any) {
     toast.error(e?.message || 'Failed to delete integration')
   }
 }
 
-async function handleDeleteStage(stage: any) {
-  if (!selectedApi.value) return
+async function handleDeleteStage(apiId: string, stage: any) {
   try {
-    await apigateway.deleteHttpApiStage(selectedApi.value.apiId, stage.stageName)
+    await apigateway.deleteHttpApiStage(apiId, stage.stageName)
     toast.success('Stage deleted')
-    await loadDetailsForApi(selectedApi.value.apiId)
+    await loadDetailsForApi(apiId)
   } catch (e: any) {
     toast.error(e?.message || 'Failed to delete stage')
   }

@@ -410,3 +410,123 @@ test.describe('API Gateway', () => {
     })
   })
 })
+
+test.describe('API Gateway V2 (HTTP API) delete', () => {
+  test('delete route, integration, and stage from an expanded HTTP API', async ({ page }) => {
+    test.setTimeout(180000)
+
+    const suffix = Date.now()
+    const apiName = 'qa-del-api-' + suffix
+    const integrationUri = 'https://qa-del-' + suffix + '.example.com'
+    const routeKey = 'GET /qa-del-' + suffix
+    const stageName = 'qa-stage-' + suffix
+
+    // Collect console errors during the whole flow
+    const consoleErrors: string[] = []
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') consoleErrors.push(msg.text())
+    })
+    page.on('pageerror', (err) => consoleErrors.push(err.message))
+
+    // Setup: create an HTTP API via the UI
+    await createHttpApi(page, apiName, 'QA delete test API')
+
+    // Expand the API and create an integration, route, and stage via the UI
+    await page.waitForTimeout(2000)
+    const apiRow = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+    await expect(apiRow).toBeVisible({ timeout: 15000 })
+    await apiRow.click()
+    await expect(page.getByRole('heading', { name: 'Routes' })).toBeVisible({ timeout: 10000 })
+
+    // Create integration (HTTP proxy)
+    await page.getByRole('button', { name: 'Create Integration' }).first().click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+    await page.getByLabel('Integration Type').selectOption('HTTP_PROXY')
+    await page.getByLabel('URI').fill(integrationUri)
+    await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+    const integrationRow = page.locator('div.grid.grid-cols-12').filter({ hasText: integrationUri }).first()
+    await expect(integrationRow).toBeVisible({ timeout: 10000 })
+
+    // Create route targeting the integration
+    await page.getByRole('button', { name: 'Create Route' }).first().click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+    await page.getByLabel('Route Key').fill(routeKey)
+    // The dialog has two selects: Target Type (default Existing Integration) and
+    // Select Integration. Pick the first real integration option (index 1).
+    await page.getByRole('dialog').locator('select').nth(1).selectOption({ index: 1 })
+    await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+    const routeRow = page.locator('div.grid.grid-cols-12').filter({ hasText: routeKey }).first()
+    await expect(routeRow).toBeVisible({ timeout: 10000 })
+
+    // Create stage
+    await page.getByRole('button', { name: 'Create Stage' }).first().click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+    await page.getByRole('dialog').getByLabel(/Stage Name/).fill(stageName)
+    await page.getByRole('dialog').getByLabel(/Description/).fill('QA stage')
+    await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+    const stageRow = page.locator('div.grid.grid-cols-12').filter({ hasText: stageName }).first()
+    await expect(stageRow).toBeVisible({ timeout: 10000 })
+
+    // Regression scenario: reload the page (this clears any selected-API state),
+    // then expand the API again and click Delete directly without opening any
+    // modal. Previously these delete buttons silently did nothing.
+    await page.reload({ waitUntil: 'networkidle' })
+    await page.waitForTimeout(2000)
+    await page.getByRole('tab', { name: 'API Gateway V2' }).click()
+    await showAllItems(page)
+
+    const apiRowAfter = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+    await expect(apiRowAfter).toBeVisible({ timeout: 15000 })
+    await apiRowAfter.click()
+    await expect(page.getByRole('heading', { name: 'Routes' })).toBeVisible({ timeout: 10000 })
+
+    // Toasts are displayed one at a time (serial queue, ~5s each) and the
+    // progress timer restarts when the mouse hovers the toast. Dismiss the
+    // current toast after each delete so the next success toast can appear.
+    const dismissToast = async () => {
+      const closeBtn = page.locator('div.fixed.top-4.right-4 button').first()
+      await closeBtn.click({ timeout: 3000 }).catch(() => {})
+      await page.waitForTimeout(400)
+    }
+
+    // Delete the route -> row disappears + success toast
+    const routeRowAfter = page.locator('div.grid.grid-cols-12').filter({ hasText: routeKey }).first()
+    await expect(routeRowAfter).toBeVisible({ timeout: 10000 })
+    await routeRowAfter.getByRole('button', { name: 'Delete' }).click()
+    await expect(page.getByText('Route deleted').first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText('No routes yet.').first()).toBeVisible({ timeout: 10000 })
+    await dismissToast()
+
+    // Delete the integration -> row disappears + success toast
+    const integrationRowAfter = page.locator('div.grid.grid-cols-12').filter({ hasText: integrationUri }).first()
+    await expect(integrationRowAfter).toBeVisible({ timeout: 10000 })
+    await integrationRowAfter.getByRole('button', { name: 'Delete' }).click()
+    await expect(page.getByText('Integration deleted').first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText('No integrations yet.').first()).toBeVisible({ timeout: 10000 })
+    await dismissToast()
+
+    // Delete the stage -> row disappears + success toast
+    const stageRowAfter = page.locator('div.grid.grid-cols-12').filter({ hasText: stageName }).first()
+    await expect(stageRowAfter).toBeVisible({ timeout: 10000 })
+    await stageRowAfter.getByRole('button', { name: 'Delete' }).click()
+    await expect(page.getByText('Stage deleted').first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText('No stages yet.').first()).toBeVisible({ timeout: 10000 })
+    await dismissToast()
+
+    // Cleanup: delete the test API (best-effort)
+    try {
+      const apiRowCleanup = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+      await apiRowCleanup.getByRole('button', { name: 'Delete' }).click()
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+      await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+    } catch {
+      // best-effort cleanup - do not fail the test on cleanup issues
+    }
+
+    expect(consoleErrors).toEqual([])
+  })
+})
