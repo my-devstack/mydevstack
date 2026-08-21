@@ -45,6 +45,16 @@ const emulatorUrl = computed(() => {
   const emulator = emulatorType.value
   const isWebSocket = activeProtocol.value === 'WEBSOCKET'
   
+  // V2 (HTTP API) with Floci — use execute-api host format
+  if (emulator === 'FLOCI' && props.apiType === 'http') {
+    const scheme = isWebSocket ? 'ws' : 'http'
+    const isDefault = selectedStage.value === '$default'
+    if (isDefault) {
+      return `${scheme}://${apiId.value}.execute-api.localhost.floci.io:4566`
+    }
+    return `${scheme}://${apiId.value}.execute-api.localhost.floci.io:4566/${selectedStage.value}`
+  }
+  
   if (isWebSocket) {
     if (emulator === 'FLOCI') {
       return `ws://localhost:4566/ws/${apiId.value}/${selectedStage.value}`

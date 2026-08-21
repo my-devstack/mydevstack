@@ -530,3 +530,129 @@ test.describe('API Gateway V2 (HTTP API) delete', () => {
     expect(consoleErrors).toEqual([])
   })
 })
+
+test.describe('API Gateway V2 Floci emulator invoke URL', () => {
+  test('V2 HTTP API invoke URL modal shows Floci emulator format', async ({ page }) => {
+    test.setTimeout(120000)
+
+    const suffix = Date.now()
+    const apiName = 'test-invoke-e2e-' + suffix
+    const stageName = 'test-stage-' + suffix
+
+    const consoleErrors: string[] = []
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') consoleErrors.push(msg.text())
+    })
+    page.on('pageerror', (err) => consoleErrors.push(err.message))
+
+    // Navigate to API Gateway
+    await page.goto('/#/services/api-gateway')
+    await page.waitForLoadState('networkidle')
+
+    // Switch to API Gateway V2 tab
+    await page.getByRole('tab', { name: 'API Gateway V2' }).click()
+
+    // Create an HTTP API
+    await page.getByRole('button', { name: 'Create API' }).first().click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+    await page.getByPlaceholder('my-api').fill(apiName)
+    await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+
+    // Wait for dialog to close
+    try {
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+    } catch {
+      const errorToast = page.locator('.toast-error, [class*="error"]').first()
+      if (await errorToast.isVisible({ timeout: 2000 })) {
+        throw new Error('HTTP API creation failed')
+      }
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+    }
+
+    // Refresh and re-expand to ensure data is fresh
+    await page.reload({ waitUntil: 'networkidle' })
+    await page.waitForTimeout(2000)
+    await page.getByRole('tab', { name: 'API Gateway V2' }).click()
+    await showAllItems(page)
+
+    // Find and expand the API row
+    const apiRow = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+    await expect(apiRow).toBeVisible({ timeout: 15000 })
+    await apiRow.click()
+
+    // Wait for details to load
+    await expect(page.getByRole('heading', { name: 'Routes' })).toBeVisible({ timeout: 10000 })
+
+    // Create a stage (we need at least one stage to test the invoke URL)
+    await page.getByRole('button', { name: 'Create Stage' }).first().click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+    await page.getByRole('dialog').getByLabel(/Stage Name/).fill(stageName)
+    await page.getByRole('dialog').getByLabel(/Description/).fill('E2E test stage')
+    await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+
+    // Verify stage exists in list
+    const stageRow = page.locator('div.grid.grid-cols-12').filter({ hasText: stageName }).first()
+    await expect(stageRow).toBeVisible({ timeout: 10000 })
+
+    // Click the Invoke URL button WITHIN the expanded row (not global .first())
+    const invokeBtn = apiRow.getByRole('button', { name: 'Get Invoke URL' })
+    await expect(invokeBtn).toBeVisible({ timeout: 10000 })
+    await invokeBtn.click()
+
+    // Verify the modal appears with the correct API name
+    const modal = page.getByRole('dialog')
+    await expect(modal).toBeVisible({ timeout: 10000 })
+    await expect(modal.getByRole('heading', { name: new RegExp(apiName) })).toBeVisible({ timeout: 10000 })
+
+    // Wait for stages to load — the Stage select must have actual options (not just "Select an option")
+    // The select has a disabled placeholder "Select an option" when empty, and real options when stages load.
+    const stageSelect = modal.getByLabel('Stage')
+    await expect(stageSelect).toBeVisible({ timeout: 15000 })
+    // Wait until the select has more than 1 option (placeholder + at least 1 real stage)
+    await expect(async () => {
+      const optionCount = await stageSelect.locator('option').count()
+      expect(optionCount).toBeGreaterThan(1)
+    }).toPass({ timeout: 15000, intervals: [500] })
+
+    // Stages confirmed loaded — the Emulator URL section should now render.
+    const emulatorHeading = modal.getByText(/Emulator URL/)
+    await expect(emulatorHeading.first()).toBeVisible({ timeout: 10000 })
+
+    // Extract the emulator URL text from the modal
+    const modalText = await modal.innerText()
+    const emulatorMatch = modalText.match(/Emulator URL[^)]*\)[^]*?((?:https?|wss?):\/\/[^\s]+)/)
+    const emulatorUrlText = emulatorMatch ? emulatorMatch[1] : ''
+
+    // Verify emulator URL contains the Floci format: execute-api.localhost.floci.io:4566
+    expect(emulatorUrlText).toContain('execute-api.localhost.floci.io:4566')
+
+    // Verify emulator URL is not the AWS endpoint (should not contain amazonaws.com)
+    expect(emulatorUrlText).not.toContain('amazonaws.com')
+
+    // Close the modal (use exact match to avoid ambiguity with close icon)
+    await modal.getByRole('button', { name: 'Close', exact: true }).click()
+    await expect(modal).not.toBeVisible({ timeout: 5000 })
+
+    // Cleanup: delete the test API (best-effort)
+    try {
+      // Make sure we're on the V2 tab
+      await page.goto('/#/services/api-gateway')
+      await page.waitForLoadState('networkidle')
+      await page.getByRole('tab', { name: 'API Gateway V2' }).click()
+      await showAllItems(page)
+
+      const apiRowCleanup = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+      if (await apiRowCleanup.isVisible({ timeout: 5000 })) {
+        await apiRowCleanup.getByRole('button', { name: 'Delete' }).click()
+        await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+        await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+        await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+      }
+    } catch {
+      // best-effort cleanup
+    }
+
+    expect(consoleErrors).toEqual([])
+  })
+})
