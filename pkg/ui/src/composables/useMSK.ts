@@ -240,7 +240,7 @@ export function useMSK() {
       language: 'aws-cli',
       label: 'AWS CLI',
       code: `# List MSK clusters
-aws kafka list-clusters-v2 --endpoint-url http://localhost:4566
+aws kafka list-clusters-v2 --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create cluster
 aws kafka create-cluster-v2 \\
@@ -256,27 +256,27 @@ aws kafka create-cluster-v2 \\
       }
     }
   }' \\
-  --endpoint-url http://localhost:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Describe cluster
 aws kafka describe-cluster-v2 \\
   --cluster-arn arn:aws:kafka:us-east-1:123456789:cluster/my-cluster \\
-  --endpoint-url http://localhost:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get bootstrap brokers
 aws kafka get-bootstrap-brokers \\
   --cluster-arn arn:aws:kafka:us-east-1:123456789:cluster/my-cluster \\
-  --endpoint-url http://localhost:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # List nodes
 aws kafka list-nodes \\
   --cluster-arn arn:aws:kafka:us-east-1:123456789:cluster/my-cluster \\
-  --endpoint-url http://localhost:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete cluster
 aws kafka delete-cluster \\
   --cluster-arn arn:aws:kafka:us-east-1:123456789:cluster/my-cluster \\
-  --endpoint-url http://localhost:4566`
+  --endpoint-url ${settingsStore.publicEndpoint}`
     },
     {
       language: 'javascript',
@@ -286,7 +286,7 @@ import { KafkaClient, CreateClusterV2Command, ListClustersV2Command, DeleteClust
 
 const client = new KafkaClient({
   region: 'us-east-1',
-  endpoint: 'http://localhost:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: 'test',
     secretAccessKey: 'test',
@@ -328,7 +328,7 @@ import json
 client = boto3.client(
     'kafka',
     region_name='us-east-1',
-    endpoint_url='http://localhost:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='test',
     aws_secret_access_key='test',
 )
@@ -383,7 +383,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 client := kafka.NewFromConfig(cfg, func(o *kafka.Options) {
-    o.BaseEndpoint = aws.String("http://localhost:4566")
+    o.BaseEndpoint = aws.String("${settingsStore.publicEndpoint}")
 })
 
 // List clusters

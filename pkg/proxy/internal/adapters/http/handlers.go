@@ -137,14 +137,15 @@ func (h *ProxyHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := map[string]interface{}{
-		"status":        status,
-		"proxy":         "aws-proxy",
-		"target":        h.Svc.Config().AWS.Endpoint,
-		"endpoint_url":  h.Svc.Config().AWS.Endpoint,
-		"region":        h.Svc.Region(),
-		"emulator":      h.Svc.Config().Emulator,
-		"github_repo":   h.VersionSvc.GetGitHubRepo(),
-		"latestVersion": "",
+		"status":           status,
+		"proxy":            "aws-proxy",
+		"target":           h.Svc.Config().AWS.Endpoint,
+		"endpoint_url":     h.Svc.Config().AWS.Endpoint,
+		"endpoint_override": h.Svc.Config().AWS.EndpointOverride,
+		"region":           h.Svc.Region(),
+		"emulator":         h.Svc.Config().Emulator,
+		"github_repo":      h.VersionSvc.GetGitHubRepo(),
+		"latestVersion":    "",
 	}
 
 	// Add latest version if available

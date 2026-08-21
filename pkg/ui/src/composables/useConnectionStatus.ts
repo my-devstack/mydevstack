@@ -77,6 +77,7 @@ async function checkConnection(): Promise<boolean> {
   let backendTarget = ''
   let backendRegion = ''
   let backendEmulator = ''
+  let backendEndpointOverride = ''
   try {
     const healthResponse = await fetch(`${targetEndpoint}/health`, { method: 'GET' })
     if (healthResponse.ok) {
@@ -84,6 +85,7 @@ async function checkConnection(): Promise<boolean> {
       backendTarget = healthData.target || healthData.endpoint_url || ''
       backendRegion = healthData.region || ''
       backendEmulator = healthData.emulator || ''
+      backendEndpointOverride = healthData.endpoint_override || ''
     }
   } catch {
     // Ignore - will use default
@@ -118,6 +120,13 @@ async function checkConnection(): Promise<boolean> {
           lastChecked: new Date(),
           endpoint: backendTarget || targetEndpoint
         }
+        // Update public endpoint for code examples
+        const settingsStore = useSettingsStore()
+        if (backendEndpointOverride) {
+          settingsStore.setPublicEndpoint(backendEndpointOverride)
+        } else {
+          settingsStore.setPublicEndpoint(backendTarget || targetEndpoint)
+        }
         return true
       }
     } catch (e) {
@@ -131,6 +140,13 @@ async function checkConnection(): Promise<boolean> {
     isConnected: false,
     lastChecked: new Date(),
     endpoint: backendTarget || targetEndpoint
+  }
+  // Update public endpoint for code examples
+  const settingsStore = useSettingsStore()
+  if (backendEndpointOverride) {
+    settingsStore.setPublicEndpoint(backendEndpointOverride)
+  } else {
+    settingsStore.setPublicEndpoint(backendTarget || targetEndpoint)
   }
   
   return false

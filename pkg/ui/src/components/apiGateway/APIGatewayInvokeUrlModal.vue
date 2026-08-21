@@ -45,22 +45,24 @@ const emulatorUrl = computed(() => {
   const emulator = emulatorType.value
   const isWebSocket = activeProtocol.value === 'WEBSOCKET'
   
+  const endpoint = settingsStore.publicEndpoint
+  
   if (isWebSocket) {
     if (emulator === 'FLOCI') {
-      return `ws://localhost:4566/ws/${apiId.value}/${selectedStage.value}`
+      return `ws://${endpoint}/ws/${apiId.value}/${selectedStage.value}`
     }
     if (emulator === 'LOCALSTACK' || emulator === 'MINISTACK') {
-      return `ws://localhost:4566/_aws/execute-api/${apiId.value}/${selectedStage.value}`
+      return `ws://${endpoint}/_aws/execute-api/${apiId.value}/${selectedStage.value}`
     }
     return ''
   }
   
   if (emulator === 'FLOCI') {
-    return `http://localhost:4566/restapis/${apiId.value}/${selectedStage.value}/_user_request_/`
+    return `http://${endpoint}/restapis/${apiId.value}/${selectedStage.value}/_user_request_/`
   }
   
   if (emulator === 'LOCALSTACK' || emulator === 'MINISTACK') {
-    return `http://localhost:4566/restapis/${apiId.value}/${selectedStage.value}/_user_request_/`
+    return `http://${endpoint}/restapis/${apiId.value}/${selectedStage.value}/_user_request_/`
   }
   
   // Default: don't show emulator URL for unknown emulator types

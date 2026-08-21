@@ -89,7 +89,7 @@ export function useCloudFormation() {
       language: 'aws-cli',
       label: 'AWS CLI',
       code: `# List CloudFormation stacks
-aws cloudformation list-stacks --endpoint-url http://127.0.0.1:4566
+aws cloudformation list-stacks --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create CloudFormation stack
 aws cloudformation create-stack \\
@@ -105,27 +105,27 @@ aws cloudformation create-stack \\
     }
   }
 }' \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Describe stack
 aws cloudformation describe-stacks \\
   --stack-name my-stack \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Describe stack events
 aws cloudformation describe-stack-events \\
   --stack-name my-stack \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # List stack resources
 aws cloudformation list-stack-resources \\
   --stack-name my-stack \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete CloudFormation stack
 aws cloudformation delete-stack \\
   --stack-name my-stack \\
-  --endpoint-url http://127.0.0.1:4566`
+  --endpoint-url ${settingsStore.publicEndpoint}`
     },
     {
       language: 'javascript',
@@ -135,7 +135,7 @@ import { CloudFormationClient, ListStacksCommand, CreateStackCommand, DescribeSt
 
 const client = new CloudFormationClient({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${settingsStore.accessKey}',
     secretAccessKey: '${settingsStore.secretKey}',
@@ -195,7 +195,7 @@ import json
 client = boto3.client(
     'cloudformation',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}',
 )
@@ -255,7 +255,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 client := cloudformation.NewFromConfig(cfg, func(o *cloudformation.Options) {
-    o.BaseEndpoint = "http://127.0.0.1:4566"
+    o.BaseEndpoint = "${settingsStore.publicEndpoint}"
 })
 
 ctx := context.Background()

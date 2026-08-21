@@ -159,8 +159,8 @@ function handleTypeChange(event: Event) {
         v-if="localType === 'AWS' || localType === 'HTTP' || localType === 'HTTP_PROXY'"
         v-model="localUri"
         label="Integration URI"
-        :placeholder="localType === 'AWS' ? 'functionName (Lambda function name)' : localType === 'HTTP_PROXY' ? 'http://localhost:4566/restapis/API_ID/STAGE/_user_request_/PATH' : 'https://example.com/path'"
-        :hint="localType === 'AWS' ? 'Enter Lambda function name (same as HTTP API)' : localType === 'HTTP_PROXY' ? 'e.g., http://localhost:4566/restapis/API_ID/STAGE/_user_request_/path' : 'Required for HTTP and HTTP_PROXY types'"
+        :placeholder="localType === 'AWS' ? 'functionName (Lambda function name)' : localType === 'HTTP_PROXY' ? `http://${settingsStore.publicEndpoint}/restapis/API_ID/STAGE/_user_request_/PATH` : 'https://example.com/path'"
+        :hint="localType === 'AWS' ? 'Enter Lambda function name (same as HTTP API)' : localType === 'HTTP_PROXY' ? `e.g., http://${settingsStore.publicEndpoint}/restapis/API_ID/STAGE/_user_request_/path` : 'Required for HTTP and HTTP_PROXY types'"
       />
       
       <div>

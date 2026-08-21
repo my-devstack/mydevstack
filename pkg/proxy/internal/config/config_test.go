@@ -15,6 +15,7 @@ func clearConfigEnv() {
 		"AWS_ENDPOINT",
 		"AWS_ACCESS_KEY",
 		"AWS_SECRET_KEY",
+		"AWS_ENDPOINT_OVERRIDE",
 		"EMULATOR",
 		"GITHUB_REPO",
 		"VERSION_CHECK_HOURS",
@@ -80,6 +81,24 @@ func TestAWSProxyConfig_StructFields(t *testing.T) {
 	}
 	if awsCfg.SecretKey != "sk" {
 		t.Errorf("SecretKey = %v, want sk", awsCfg.SecretKey)
+	}
+}
+
+func TestAWSProxyConfig_EndpointOverride(t *testing.T) {
+	// Test empty default
+	awsCfg := AWSProxyConfig{
+		Endpoint:  "http://local:4566",
+		AccessKey: "ak",
+		SecretKey: "sk",
+	}
+	if awsCfg.EndpointOverride != "" {
+		t.Errorf("EndpointOverride = %v, want empty string", awsCfg.EndpointOverride)
+	}
+	
+	// Test populated
+	awsCfg.EndpointOverride = "https://my-public-host:4566"
+	if awsCfg.EndpointOverride != "https://my-public-host:4566" {
+		t.Errorf("EndpointOverride = %v, want https://my-public-host:4566", awsCfg.EndpointOverride)
 	}
 }
 
@@ -158,6 +177,32 @@ func TestLoadConfig_WithEnvOverrides(t *testing.T) {
 	}
 	if cfg.VersionCheckHours != 12 {
 		t.Errorf("VersionCheckHours = %v, want 12", cfg.VersionCheckHours)
+	}
+}
+
+func TestLoadConfig_AWS_ENDPOINT_OVERRIDE(t *testing.T) {
+	clearConfigEnv()
+	defer clearConfigEnv()
+	
+	// Test default empty string
+	cfg, err := LoadConfig(context.Background())
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+	if cfg.AWS.EndpointOverride != "" {
+		t.Errorf("AWS.EndpointOverride = %v, want empty string", cfg.AWS.EndpointOverride)
+	}
+	
+	// Test env var override
+	if err := os.Setenv("AWS_ENDPOINT_OVERRIDE", "https://my-public-host:4566"); err != nil {
+		t.Fatalf("Setenv failed: %v", err)
+	}
+	cfg, err = LoadConfig(context.Background())
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+	if cfg.AWS.EndpointOverride != "https://my-public-host:4566" {
+		t.Errorf("AWS.EndpointOverride = %v, want https://my-public-host:4566", cfg.AWS.EndpointOverride)
 	}
 }
 

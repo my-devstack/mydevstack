@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import CodeSnippet from '@/components/common/CodeSnippet.vue'
+import { useSettingsStore } from '@/stores/settings'
 
 const props = defineProps<{
   region: string
   accessKey: string
   secretKey: string
 }>()
+
+const settingsStore = useSettingsStore()
 
 const selectedTab = ref<'rest' | 'http'>('rest')
 
@@ -15,25 +18,25 @@ const restExamples = computed(() => [
     language: 'aws-cli',
     label: 'AWS CLI',
     code: `# List REST APIs
-aws apigateway get-rest-apis --endpoint-url http://127.0.0.1:4566
+aws apigateway get-rest-apis --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get REST API details
-aws apigateway get-rest-api --rest-api-id <api-id> --endpoint-url http://127.0.0.1:4566
+aws apigateway get-rest-api --rest-api-id <api-id> --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create REST API
-aws apigateway create-rest-api --name "my-api" --endpoint-url http://127.0.0.1:4566
+aws apigateway create-rest-api --name "my-api" --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create Resource
-aws apigateway create-resource --rest-api-id <api-id> --parent-id <parent-id> --path-part "items" --endpoint-url http://127.0.0.1:4566
+aws apigateway create-resource --rest-api-id <api-id> --parent-id <parent-id> --path-part "items" --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create Method (GET)
-aws apigateway put-method --rest-api-id <api-id> --resource-id <resource-id> --http-method GET --authorization-type NONE --endpoint-url http://127.0.0.1:4566
+aws apigateway put-method --rest-api-id <api-id> --resource-id <resource-id> --http-method GET --authorization-type NONE --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create Deployment
-aws apigateway create-deployment --rest-api-id <api-id> --stage-name prod --endpoint-url http://127.0.0.1:4566
+aws apigateway create-deployment --rest-api-id <api-id> --stage-name prod --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete REST API
-aws apigateway delete-rest-api --rest-api-id <api-id> --endpoint-url http://127.0.0.1:4566`
+aws apigateway delete-rest-api --rest-api-id <api-id> --endpoint-url ${settingsStore.publicEndpoint}`
   },
   {
     language: 'javascript',
@@ -43,7 +46,7 @@ import { APIGatewayClient, GetRestApisCommand, CreateRestApiCommand, GetRestApiC
 
 const client = new APIGatewayClient({
   region: '${props.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${props.accessKey}',
     secretAccessKey: '${props.secretKey}',
@@ -74,7 +77,7 @@ import boto3
 client = boto3.client(
     'apigateway',
     region_name='${props.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${props.accessKey}',
     aws_secret_access_key='${props.secretKey}',
 )
@@ -116,7 +119,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 
 client := apigateway.New(apigateway.Options{
     Region: "${props.region}",
-    BaseURL: aws.String("http://127.0.0.1:4566"),
+    BaseURL: aws.String("${settingsStore.publicEndpoint}"),
     Credentials: aws.CredentialsProviderFunc(
         func(ctx context.Context) (aws.Credentials, error) {
             return aws.Credentials{
@@ -162,25 +165,25 @@ const httpExamples = computed(() => [
     language: 'aws-cli',
     label: 'AWS CLI',
     code: `# List HTTP APIs
-aws apigatewayv2 get-apis --endpoint-url http://127.0.0.1:4566
+aws apigatewayv2 get-apis --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get HTTP API details
-aws apigatewayv2 get-api --api-id <api-id> --endpoint-url http://127.0.0.1:4566
+aws apigatewayv2 get-api --api-id <api-id> --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create HTTP API
-aws apigatewayv2 create-api --name "my-http-api" --protocol-type HTTP --endpoint-url http://127.0.0.1:4566
+aws apigatewayv2 create-api --name "my-http-api" --protocol-type HTTP --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create Route
-aws apigatewayv2 create-route --api-id <api-id> --route-key "GET /items" --endpoint-url http://127.0.0.1:4566
+aws apigatewayv2 create-route --api-id <api-id> --route-key "GET /items" --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create Integration
-aws apigatewayv2 create-integration --api-id <api-id> --integration-type HTTP_PROXY --uri "http://localhost:8080" --endpoint-url http://127.0.0.1:4566
+aws apigatewayv2 create-integration --api-id <api-id> --integration-type HTTP_PROXY --uri "http://localhost:8080" --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create Stage
-aws apigatewayv2 create-stage --api-id <api-id> --stage-name prod --endpoint-url http://127.0.0.1:4566
+aws apigatewayv2 create-stage --api-id <api-id> --stage-name prod --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete HTTP API
-aws apigatewayv2 delete-api --api-id <api-id> --endpoint-url http://127.0.0.1:4566`
+aws apigatewayv2 delete-api --api-id <api-id> --endpoint-url ${settingsStore.publicEndpoint}`
   },
   {
     language: 'javascript',
@@ -190,7 +193,7 @@ import { ApiGatewayV2Client, GetApisCommand, CreateApiCommand, DeleteApiCommand 
 
 const client = new ApiGatewayV2Client({
   region: '${props.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${props.accessKey}',
     secretAccessKey: '${props.secretKey}',
@@ -220,7 +223,7 @@ import boto3
 client = boto3.client(
     'apigatewayv2',
     region_name='${props.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${props.accessKey}',
     aws_secret_access_key='${props.secretKey}',
 )
@@ -258,7 +261,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 
 client := apigatewayv2.New(apigatewayv2.Options{
     Region: "${props.region}",
-    BaseURL: aws.String("http://127.0.0.1:4566"),
+    BaseURL: aws.String("${settingsStore.publicEndpoint}"),
     Credentials: aws.CredentialsProviderFunc(
         func(ctx context.Context) (aws.Credentials, error) {
             return aws.Credentials{

@@ -49,6 +49,7 @@ export interface RecordForm {
 
 export function useKinesis() {
   const toast = useToast()
+  const settingsStore = useSettingsStore()
   const { reloadTrigger } = useContentReload()
 
   // State
@@ -315,30 +316,30 @@ export function useKinesis() {
       language: 'aws-cli',
       label: 'AWS CLI',
       code: `# List Kinesis streams
-aws kinesis list-streams --endpoint-url http://localhost:4566
+aws kinesis list-streams --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create stream
 aws kinesis create-stream \\
   --stream-name my-stream \\
   --shard-count 1 \\
-  --endpoint-url http://localhost:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Describe stream
 aws kinesis describe-stream \\
   --stream-name my-stream \\
-  --endpoint-url http://localhost:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Put record
 aws kinesis put-record \\
   --stream-name my-stream \\
   --partition-key key1 \\
   --data "hello world" \\
-  --endpoint-url http://localhost:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete stream
 aws kinesis delete-stream \\
   --stream-name my-stream \\
-  --endpoint-url http://localhost:4566`,
+  --endpoint-url ${settingsStore.publicEndpoint}`,
     },
     {
       language: 'javascript',
@@ -348,7 +349,7 @@ import { KinesisClient, CreateStreamCommand, PutRecordCommand, GetRecordsCommand
 
 const client = new KinesisClient({
   region: 'us-east-1',
-  endpoint: 'http://localhost:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: 'test',
     secretAccessKey: 'test',
@@ -384,7 +385,7 @@ import json
 client = boto3.client(
     'kinesis',
     region_name='us-east-1',
-    endpoint_url='http://localhost:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='test',
     aws_secret_access_key='test',
 )
@@ -426,7 +427,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 client := kinesis.NewFromConfig(cfg, func(o *kinesis.Options) {
-    o.BaseEndpoint = aws.String("http://localhost:4566")
+    o.BaseEndpoint = aws.String("${settingsStore.publicEndpoint}")
 })
 
 // Create stream

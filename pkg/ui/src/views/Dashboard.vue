@@ -41,7 +41,7 @@ function getIcon(serviceId: string): string {
 }
 
 const isConnected = computed(() => connectionStatus.value.isConnected)
-const endpoint = computed(() => connectionStatus.value.endpoint || settingsStore.endpoint)
+const endpoint = computed(() => settingsStore.publicEndpoint || connectionStatus.value.endpoint || settingsStore.endpoint)
 const region = computed(() => settingsStore.region)
 
 onMounted(async () => {

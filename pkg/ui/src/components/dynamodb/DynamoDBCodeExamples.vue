@@ -18,29 +18,29 @@ const tableExamples = computed(() => [
     language: 'aws-cli',
     label: 'AWS CLI',
     code: `# List tables
-aws dynamodb list-tables --endpoint-url http://127.0.0.1:4566
+aws dynamodb list-tables --endpoint-url ${settingsStore.publicEndpoint}
 
 # Scan table (get all items)
-aws dynamodb scan --table-name my-table --endpoint-url http://127.0.0.1:4566
+aws dynamodb scan --table-name my-table --endpoint-url ${settingsStore.publicEndpoint}
 
 # Query by partition key
 aws dynamodb query \\
   --table-name my-table \\
   --key-condition-expression "pk = :pk" \\
   --expression-attribute-values '{":pk":{"S":"user123"}}' \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Put item
 aws dynamodb put-item \\
   --table-name my-table \\
   --item '{"pk":{"S":"user1"},"name":{"S":"John"}}' \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete item
 aws dynamodb delete-item \\
   --table-name my-table \\
   --key '{"pk":{"S":"user1"}}' \\
-  --endpoint-url http://127.0.0.1:4566`,
+  --endpoint-url ${settingsStore.publicEndpoint}`,
   },
   {
     language: 'javascript',
@@ -50,7 +50,7 @@ import { DynamoDBClient, ScanCommand, QueryCommand, PutItemCommand, DeleteItemCo
 
 const client = new DynamoDBClient({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${settingsStore.accessKey}',
     secretAccessKey: '${settingsStore.secretKey}',
@@ -97,7 +97,7 @@ import boto3
 client = boto3.client(
     'dynamodb',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}',
 )
@@ -146,7 +146,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
     config.WithEndpointResolverWithOptions(
         aws.EndpointResolverWithOptionsFunc(
             func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-                return aws.Endpoint{URL: "http://127.0.0.1:4566"}, nil
+                return aws.Endpoint{URL: "${settingsStore.publicEndpoint}"}, nil
             },
         ),
     ),
@@ -187,23 +187,23 @@ const streamExamples = computed(() => [
     language: 'aws-cli',
     label: 'AWS CLI',
     code: `# List streams for a table
-aws dynamodbstreams list-streams --endpoint-url http://127.0.0.1:4566
+aws dynamodbstreams list-streams --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get stream details
-aws dynamodbstreams describe-stream --stream-arn <stream-arn> --endpoint-url http://127.0.0.1:4566
+aws dynamodbstreams describe-stream --stream-arn <stream-arn> --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get shard iterator
 aws dynamodbstreams get-shard-iterator \\
   --stream-arn <stream-arn> \\
   --shard-id <shard-id> \\
   --shard-iterator-type TRIM_HORIZON \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get stream records
 aws dynamodbstreams get-records \\
   --shard-iterator <iterator> \\
   --limit 100 \\
-  --endpoint-url http://127.0.0.1:4566`,
+  --endpoint-url ${settingsStore.publicEndpoint}`,
   },
   {
     language: 'javascript',
@@ -213,7 +213,7 @@ import { DynamoDBStreamsClient, ListStreamsCommand, DescribeStreamCommand, GetSh
 
 const streamsClient = new DynamoDBStreamsClient({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${settingsStore.accessKey}',
     secretAccessKey: '${settingsStore.secretKey}',
@@ -254,7 +254,7 @@ import boto3
 streams_client = boto3.client(
     'dynamodbstreams',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}',
 )
@@ -297,7 +297,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 streamsClient := dynamodbstreams.NewFromConfig(cfg, func(o *dynamodbstreams.Options) {
-    o.BaseURL = aws.String("http://127.0.0.1:4566")
+    o.BaseURL = aws.String("${settingsStore.publicEndpoint}")
 })
 
 // List streams

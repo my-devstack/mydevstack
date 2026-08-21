@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { useToast } from '@/composables/useToast'
+import { useSettingsStore } from '@/stores/settings'
 import * as s3Api from '@/api/services/s3'
 import type { LifecycleRule } from '@/api/services/s3'
 import * as lambdaApi from '@/api/services/lambda'
@@ -13,6 +14,7 @@ export interface TriggerConfig {
 
 export function useS3() {
   const toast = useToast()
+  const settingsStore = useSettingsStore()
 
   const buckets = ref<any[]>([])
   const objects = ref<any[]>([])

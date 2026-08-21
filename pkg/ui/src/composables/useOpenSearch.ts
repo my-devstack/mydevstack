@@ -275,11 +275,11 @@ export function useOpenSearch() {
       language: 'aws-cli',
       label: 'AWS CLI',
       code: `# List all domains
-aws opensearch list-domain-names --endpoint-url http://127.0.0.1:4566
+aws opensearch list-domain-names --endpoint-url ${settingsStore.publicEndpoint}
 
 # Describe a domain
 aws opensearch describe-domain \\
-  --domain-name my-domain --endpoint-url http://127.0.0.1:4566
+  --domain-name my-domain --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create a domain
 aws opensearch create-domain \\
@@ -287,20 +287,20 @@ aws opensearch create-domain \\
   --engine-version OpenSearch_2.13 \\
   --cluster-config InstanceType=t3.medium.search,InstanceCount=1 \\
   --ebs-options EBSEnabled=true,VolumeType=gp2,VolumeSize=10 \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete a domain
 aws opensearch delete-domain \\
   --domain-name my-domain \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # List tags
 aws opensearch list-tags \\
   --arn arn:aws:es:us-east-1:123456789012:domain/my-domain \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get compatible versions
-aws opensearch get-compatible-versions --endpoint-url http://127.0.0.1:4566`,
+aws opensearch get-compatible-versions --endpoint-url ${settingsStore.publicEndpoint}`,
     },
     {
       language: 'javascript',
@@ -310,7 +310,7 @@ import { OpenSearchClient, ListDomainNamesCommand, CreateDomainCommand, DeleteDo
 
 const client = new OpenSearchClient({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${settingsStore.accessKey}',
     secretAccessKey: '${settingsStore.secretKey}',
@@ -341,7 +341,7 @@ await client.send(new DeleteDomainCommand({ DomainName: 'my-domain' }));`,
 # Create OpenSearch client
 opensearch = boto3.client('opensearch',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}'
 )
@@ -387,7 +387,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 client := opensearch.NewFromConfig(cfg, func(o *opensearch.Options) {
-    o.BaseEndpoint = aws.String("http://127.0.0.1:4566")
+    o.BaseEndpoint = aws.String("${settingsStore.publicEndpoint}")
 })
 
 // List domain names

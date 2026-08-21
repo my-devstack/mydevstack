@@ -12,7 +12,7 @@ const snippets = computed(() => [
     code: `# === ALARMS ===
 
 # List alarms
-aws cloudwatch describe-alarms --endpoint-url http://127.0.0.1:4566
+aws cloudwatch describe-alarms --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create alarm
 aws cloudwatch put-metric-alarm \\
@@ -25,24 +25,24 @@ aws cloudwatch put-metric-alarm \\
   --evaluation-periods 2 \\
   --threshold 80 \\
   --comparison-operator GreaterThanThreshold \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete alarm
 aws cloudwatch delete-alarms \\
   --alarm-names "HighCPU" \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Set alarm state manually (for testing)
 aws cloudwatch set-alarm-state \\
   --alarm-name "HighCPU" \\
   --state-value ALARM \\
   --state-reason "Manual test" \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # === METRICS ===
 
 # List metrics
-aws cloudwatch list-metrics --namespace AWS/EC2 --endpoint-url http://127.0.0.1:4566
+aws cloudwatch list-metrics --namespace AWS/EC2 --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get metric statistics
 aws cloudwatch get-metric-statistics \\
@@ -52,7 +52,7 @@ aws cloudwatch get-metric-statistics \\
   --period 300 \\
   --start-time 2024-01-01T00:00:00Z \\
   --end-time 2024-01-02T00:00:00Z \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Put custom metric data
 aws cloudwatch put-metric-data \\
@@ -60,27 +60,27 @@ aws cloudwatch put-metric-data \\
   --metric-name ErrorCount \\
   --value 1 \\
   --unit Count \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # === LOGS ===
 
 # List log groups
-aws logs describe-log-groups --endpoint-url http://127.0.0.1:4566
+aws logs describe-log-groups --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create log group
-aws logs create-log-group --log-group-name /myapp/demo --endpoint-url http://127.0.0.1:4566
+aws logs create-log-group --log-group-name /myapp/demo --endpoint-url ${settingsStore.publicEndpoint}
 
 # Set retention policy
 aws logs put-retention-policy \\
   --log-group-name /myapp/demo \\
   --retention-in-days 30 \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create log stream
 aws logs create-log-stream \\
   --log-group-name /myapp/demo \\
   --log-stream-name stream-1 \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Put log events
 TS=$(date +%s000)
@@ -90,21 +90,21 @@ aws logs put-log-events \\
   --log-events timestamp=$TS,message='INFO: Server started' \\
                 timestamp=$((TS+1000)),message='ERROR: DB timeout' \\
                 timestamp=$((TS+2000)),message='WARN: Memory 90%' \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get log events
 aws logs get-log-events \\
   --log-group-name /myapp/demo \\
   --log-stream-name stream-1 \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Describe log streams
 aws logs describe-log-streams \\
   --log-group-name /myapp/demo \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Delete log group
-aws logs delete-log-group --log-group-name /myapp/demo --endpoint-url http://127.0.0.1:4566`,
+aws logs delete-log-group --log-group-name /myapp/demo --endpoint-url ${settingsStore.publicEndpoint}`,
   },
   {
     language: 'javascript',
@@ -115,7 +115,7 @@ import { CloudWatchClient, DescribeAlarmsCommand, PutMetricAlarmCommand, DeleteA
 
 const cw = new CloudWatchClient({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: { accessKeyId: '${settingsStore.accessKey}', secretAccessKey: '${settingsStore.secretKey}' },
 });
 
@@ -176,7 +176,7 @@ import { CloudWatchLogsClient, DescribeLogGroupsCommand, CreateLogGroupCommand, 
 
 const logs = new CloudWatchLogsClient({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: { accessKeyId: '${settingsStore.accessKey}', secretAccessKey: '${settingsStore.secretKey}' },
 });
 
@@ -228,7 +228,7 @@ import boto3
 
 cw = boto3.client('cloudwatch',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}')
 
@@ -279,7 +279,7 @@ cw.put_metric_data(
 
 logs = boto3.client('logs',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}')
 
@@ -341,7 +341,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 cw := cloudwatch.NewFromConfig(cfg, func(o *cloudwatch.Options) {
-    o.BaseEndpoint = aws.String("http://127.0.0.1:4566")
+    o.BaseEndpoint = aws.String("${settingsStore.publicEndpoint}")
 })
 
 // List alarms
@@ -409,7 +409,7 @@ import (
 )
 
 logs := cloudwatchlogs.NewFromConfig(cfg, func(o *cloudwatchlogs.Options) {
-    o.BaseEndpoint = aws.String("http://127.0.0.1:4566")
+    o.BaseEndpoint = aws.String("${settingsStore.publicEndpoint}")
 })
 
 // List log groups

@@ -338,7 +338,7 @@ export function useEC2() {
       language: 'aws-cli',
       label: 'AWS CLI',
       code: `# Describe all EC2 instances
-aws ec2 describe-instances --endpoint-url http://127.0.0.1:4566
+aws ec2 describe-instances --endpoint-url ${settingsStore.publicEndpoint}
 
 # Run (create) an EC2 instance
 aws ec2 run-instances \\
@@ -347,40 +347,40 @@ aws ec2 run-instances \\
   --key-name my-key \\
   --security-group-ids sg-123 \\
   --subnet-id subnet-123 \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Terminate an EC2 instance
 aws ec2 terminate-instances \\
   --instance-ids i-123 \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Start an instance
 aws ec2 start-instances \\
   --instance-ids i-123 \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Stop an instance
 aws ec2 stop-instances \\
   --instance-ids i-123 \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Describe key pairs
-aws ec2 describe-key-pairs --endpoint-url http://127.0.0.1:4566
+aws ec2 describe-key-pairs --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create key pair
 aws ec2 create-key-pair \\
   --key-name my-key \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Describe security groups
-aws ec2 describe-security-groups --endpoint-url http://127.0.0.1:4566
+aws ec2 describe-security-groups --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create security group
 aws ec2 create-security-group \\
   --group-name web-sg \\
   --description "Web server SG" \\
   --vpc-id vpc-123 \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Authorize security group ingress
 aws ec2 authorize-security-group-ingress \\
@@ -388,7 +388,7 @@ aws ec2 authorize-security-group-ingress \\
   --protocol tcp \\
   --port 80 \\
   --cidr 0.0.0.0/0 \\
-  --endpoint-url http://127.0.0.1:4566`,
+  --endpoint-url ${settingsStore.publicEndpoint}`,
     },
     {
       language: 'javascript',
@@ -398,7 +398,7 @@ import { EC2Client, DescribeInstancesCommand, RunInstancesCommand, TerminateInst
 
 const client = new EC2Client({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${settingsStore.accessKey}',
     secretAccessKey: '${settingsStore.secretKey}',
@@ -451,7 +451,7 @@ await client.send(new AuthorizeSecurityGroupIngressCommand({
 # Create EC2 client
 ec2 = boto3.client('ec2',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}'
 )
@@ -511,7 +511,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 client := ec2.NewFromConfig(cfg, func(o *ec2.Options) {
-    o.BaseEndpoint = "http://127.0.0.1:4566"
+    o.BaseEndpoint = "${settingsStore.publicEndpoint}"
 })
 
 ctx := context.Background()

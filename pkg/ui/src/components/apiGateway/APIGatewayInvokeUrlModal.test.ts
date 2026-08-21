@@ -38,7 +38,7 @@ const defaultProps = {
 describe('APIGatewayInvokeUrlModal', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    mockSettings.mockReturnValue({ darkMode: false, emulator: 'floci' })
+    mockSettings.mockReturnValue({ darkMode: false, emulator: 'floci', publicEndpoint: 'localhost:4566' })
     vi.clearAllMocks()
     vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
   })
@@ -210,7 +210,7 @@ describe('APIGatewayInvokeUrlModal', () => {
     })
 
     it('shows WebSocket emulator URL for MINISTACK', async () => {
-      mockSettings.mockReturnValue({ darkMode: false, emulator: 'ministack' })
+      mockSettings.mockReturnValue({ darkMode: false, emulator: 'ministack', publicEndpoint: 'localhost:4566' })
       const wrapper = mount(APIGatewayInvokeUrlModal, {
         props: {
           ...defaultProps,

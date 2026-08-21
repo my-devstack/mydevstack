@@ -10,25 +10,25 @@ const snippets = computed(() => [
     language: 'aws-cli',
     label: 'AWS CLI',
     code: `# List state machines
-aws stepfunctions list-state-machines --endpoint-url http://127.0.0.1:4566
+aws stepfunctions list-state-machines --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create state machine
 aws stepfunctions create-state-machine \\
     --name "MyStateMachine" \\
     --definition '{"StartAt": "HelloWorld", "States": {"HelloWorld": {"Type": "Pass", "End": true}}}' \\
     --role-arn "arn:aws:iam::123456789012:role/my-role" \\
-    --endpoint-url http://127.0.0.1:4566
+    --endpoint-url ${settingsStore.publicEndpoint}
 
 # Start execution
 aws stepfunctions start-execution \\
     --state-machine-arn "arn:aws:states:us-east-1:123456789012:stateMachine:MyStateMachine" \\
     --input '{"key": "value"}' \\
-    --endpoint-url http://127.0.0.1:4566
+    --endpoint-url ${settingsStore.publicEndpoint}
 
 # Describe execution
 aws stepfunctions describe-execution \\
     --execution-arn "arn:aws:states:us-east-1:123456789012:execution:MyStateMachine:exec-01" \\
-    --endpoint-url http://127.0.0.1:4566`,
+    --endpoint-url ${settingsStore.publicEndpoint}`,
   },
   {
     language: 'javascript',
@@ -41,7 +41,7 @@ aws stepfunctions describe-execution \\
 
 const client = new SFNClient({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${settingsStore.accessKey}',
     secretAccessKey: '${settingsStore.secretKey}',
@@ -76,7 +76,7 @@ console.log(descResp.status, descResp.startDate);`,
 client = boto3.client(
     'stepfunctions',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}',
 )
@@ -118,7 +118,7 @@ cfg, _ := config.LoadDefaultConfig(
     config.WithEndpointResolverWithOptions(
         aws.EndpointResolverWithOptionsFunc(
             func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-                return aws.Endpoint{URL: "http://127.0.0.1:4566"}, nil
+                return aws.Endpoint{URL: "${settingsStore.publicEndpoint}"}, nil
             },
         ),
     ),

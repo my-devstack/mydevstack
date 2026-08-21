@@ -6,6 +6,7 @@ import S3CodeExamples from './S3CodeExamples.vue'
 vi.mock('@/stores/settings', () => ({
   useSettingsStore: () => ({
     darkMode: false,
+    publicEndpoint: 'http://127.0.0.1:4566',
   }),
 }))
 

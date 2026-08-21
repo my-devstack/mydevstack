@@ -298,45 +298,45 @@ export function useKMS() {
       language: 'aws-cli',
       label: 'AWS CLI',
       code: `# List KMS keys
-aws kms list-keys --endpoint-url http://127.0.0.1:4566
+aws kms list-keys --endpoint-url ${settingsStore.publicEndpoint}
 
 # Create key
 aws kms create-key \\
   --description "My encryption key" \\
   --key-usage ENCRYPT_DECRYPT \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Describe key
 aws kms describe-key \\
   --key-id 1234abcd-12ab-12ab-12ab-1234567890ab \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Enable/Disable key
-aws kms enable-key --key-id 1234abcd-12ab-12ab-12ab-1234567890ab --endpoint-url http://127.0.0.1:4566
-aws kms disable-key --key-id 1234abcd-12ab-12ab-12ab-1234567890ab --endpoint-url http://127.0.0.1:4566
+aws kms enable-key --key-id 1234abcd-12ab-12ab-12ab-1234567890ab --endpoint-url ${settingsStore.publicEndpoint}
+aws kms disable-key --key-id 1234abcd-12ab-12ab-12ab-1234567890ab --endpoint-url ${settingsStore.publicEndpoint}
 
 # Encrypt data
 aws kms encrypt \\
   --key-id 1234abcd-12ab-12ab-12ab-1234567890ab \\
   --plaintext fileb://plaintext.txt \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Decrypt data
 aws kms decrypt \\
   --ciphertext-blob fileb://ciphertext.bin \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Get key policy
 aws kms get-key-policy \\
   --key-id 1234abcd-12ab-12ab-12ab-1234567890ab \\
   --policy-name default \\
-  --endpoint-url http://127.0.0.1:4566
+  --endpoint-url ${settingsStore.publicEndpoint}
 
 # Schedule key deletion
 aws kms schedule-key-deletion \\
   --key-id 1234abcd-12ab-12ab-12ab-1234567890ab \\
   --pending-window-in-days 7 \\
-  --endpoint-url http://127.0.0.1:4566`
+  --endpoint-url ${settingsStore.publicEndpoint}`
     },
     {
       language: 'javascript',
@@ -346,7 +346,7 @@ import { KMSClient, ListKeysCommand, CreateKeyCommand, EncryptCommand, DecryptCo
 
 const client = new KMSClient({
   region: '${settingsStore.region}',
-  endpoint: 'http://127.0.0.1:4566',
+  endpoint: '${settingsStore.publicEndpoint}',
   credentials: {
     accessKeyId: '${settingsStore.accessKey}',
     secretAccessKey: '${settingsStore.secretKey}',
@@ -386,7 +386,7 @@ import boto3
 client = boto3.client(
     'kms',
     region_name='${settingsStore.region}',
-    endpoint_url='http://127.0.0.1:4566',
+    endpoint_url='${settingsStore.publicEndpoint}',
     aws_access_key_id='${settingsStore.accessKey}',
     aws_secret_access_key='${settingsStore.secretKey}',
 )
@@ -434,7 +434,7 @@ cfg, _ := config.LoadDefaultConfig(context.Background(),
 )
 
 client := kms.NewFromConfig(cfg, func(o *kms.Options) {
-    o.BaseURL = aws.String("http://127.0.0.1:4566")
+    o.BaseURL = aws.String("${settingsStore.publicEndpoint}")
 })
 
 // List keys

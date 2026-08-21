@@ -24,6 +24,7 @@ func LoadConfig(ctx context.Context) (*Config, error) {
 		"AWS_ENDPOINT",
 		"AWS_ACCESS_KEY",
 		"AWS_SECRET_KEY",
+		"AWS_ENDPOINT_OVERRIDE",
 		"EMULATOR",
 		"GITHUB_REPO",
 		"VERSION_CHECK_HOURS",
@@ -62,13 +63,14 @@ func setDefaults() config.ConfigMap {
 
 func setEnvAlias() config.ConfigEnvAlias {
 	return config.ConfigEnvAlias{
-		"PROXY_PORT":          "port",
-		"AWS_ENDPOINT":        "aws.endpoint",
-		"AWS_ACCESS_KEY":      "aws.access_key",
-		"AWS_SECRET_KEY":      "aws.secret_key",
-		"SERVICE_PATTERN":     "service_pattern",
-		"EMULATOR":            "emulator",
-		"GITHUB_REPO":         "github_repo",
-		"VERSION_CHECK_HOURS": "version_check_hours",
+		"PROXY_PORT":            "port",
+		"AWS_ENDPOINT":          "aws.endpoint",
+		"AWS_ACCESS_KEY":        "aws.access_key",
+		"AWS_SECRET_KEY":        "aws.secret_key",
+		"AWS_ENDPOINT_OVERRIDE": "aws.endpoint_override",
+		"SERVICE_PATTERN":       "service_pattern",
+		"EMULATOR":              "emulator",
+		"GITHUB_REPO":           "github_repo",
+		"VERSION_CHECK_HOURS":   "version_check_hours",
 	}
 }
