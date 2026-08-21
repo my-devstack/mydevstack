@@ -27,13 +27,13 @@ const emit = defineEmits<{
   'get-invoke-url': [api: HTTPAPI]
   'create-route': [api: HTTPAPI]
   'edit-route': [route: any, apiId: string]
-  'delete-route': [route: any]
+  'delete-route': [apiId: string, route: any]
   'create-integration': [api: HTTPAPI]
   'edit-integration': [integration: any]
-  'delete-integration': [integration: any]
+  'delete-integration': [apiId: string, integration: any]
   'create-stage': [api: HTTPAPI]
   'edit-stage': [stage: any, apiId: string]
-  'delete-stage': [stage: any]
+  'delete-stage': [apiId: string, stage: any]
 }>()
 
 const settingsStore = useSettingsStore()
@@ -202,7 +202,7 @@ const settingsStore = useSettingsStore()
                   type="button"
                   class="p-1 rounded text-red-500 hover:bg-light-border dark:hover:bg-dark-border"
                   title="Delete"
-                  @click.stop="emit('delete-route', route)"
+                  @click.stop="emit('delete-route', api.apiId, route)"
                 >
                   <svg
                     class="w-4 h-4"
@@ -285,7 +285,7 @@ const settingsStore = useSettingsStore()
                   type="button"
                   class="p-1 rounded text-red-500 hover:bg-light-border dark:hover:bg-dark-border"
                   title="Delete"
-                  @click.stop="emit('delete-integration', integration)"
+                  @click.stop="emit('delete-integration', api.apiId, integration)"
                 >
                   <svg
                     class="w-4 h-4"
@@ -368,7 +368,7 @@ const settingsStore = useSettingsStore()
                   type="button"
                   class="p-1 rounded text-red-500 hover:bg-light-border dark:hover:bg-dark-border"
                   title="Delete"
-                  @click.stop="emit('delete-stage', stage)"
+                  @click.stop="emit('delete-stage', api.apiId, stage)"
                 >
                   <svg
                     class="w-4 h-4"

@@ -110,6 +110,55 @@ describe('APIGatewayHttpApisList', () => {
     }
   })
 
+  it('emits delete-route with apiId when route delete clicked in expanded state', async () => {
+    const route = { routeId: 'route-1', routeKey: 'GET /items' }
+    const wrapper = mount(APIGatewayHttpApisList, {
+      props: {
+        ...defaultProps,
+        expandedApis: new Set(['http-api-456']),
+        routes: { 'http-api-456': [route] },
+        routeTargets: { 'http-api-456': { 'route-1': 'integration:int1' } },
+      },
+    })
+    const deleteBtns = wrapper.findAll('button[title="Delete"]')
+    // [0] = api-level delete, [1] = route delete
+    expect(deleteBtns.length).toBeGreaterThanOrEqual(2)
+    await deleteBtns[1].trigger('click')
+    expect(wrapper.emitted('delete-route')?.[0]).toEqual(['http-api-456', route])
+  })
+
+  it('emits delete-integration with apiId when integration delete clicked in expanded state', async () => {
+    const integration = { integrationId: 'int-1', integrationType: 'HTTP', integrationUri: 'http://localhost:8080' }
+    const wrapper = mount(APIGatewayHttpApisList, {
+      props: {
+        ...defaultProps,
+        expandedApis: new Set(['http-api-456']),
+        integrations: { 'http-api-456': [integration] },
+      },
+    })
+    const deleteBtns = wrapper.findAll('button[title="Delete"]')
+    // [0] = api-level delete, [1] = integration delete
+    expect(deleteBtns.length).toBeGreaterThanOrEqual(2)
+    await deleteBtns[1].trigger('click')
+    expect(wrapper.emitted('delete-integration')?.[0]).toEqual(['http-api-456', integration])
+  })
+
+  it('emits delete-stage with apiId when stage delete clicked in expanded state', async () => {
+    const stage = { stageName: 'prod', autoDeploy: true }
+    const wrapper = mount(APIGatewayHttpApisList, {
+      props: {
+        ...defaultProps,
+        expandedApis: new Set(['http-api-456']),
+        stages: { 'http-api-456': [stage] },
+      },
+    })
+    const deleteBtns = wrapper.findAll('button[title="Delete"]')
+    // [0] = api-level delete, [1] = stage delete
+    expect(deleteBtns.length).toBeGreaterThanOrEqual(2)
+    await deleteBtns[1].trigger('click')
+    expect(wrapper.emitted('delete-stage')?.[0]).toEqual(['http-api-456', stage])
+  })
+
   it('renders expanded content when expanded', () => {
     const wrapper = mount(APIGatewayHttpApisList, {
       props: { ...defaultProps, expandedApis: new Set(['http-api-456']) },
