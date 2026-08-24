@@ -143,22 +143,23 @@ mydevstack/
 
 | Service | Status | Description |
 |---------|--------|-------------|
-| S3 | ✅ | Buckets, Objects, Presigned URLs |
-| Lambda | ✅ | Functions, Invocations |
+| S3 | ✅ | Buckets, Objects, Presigned URLs, Lifecycle Rules |
+| Lambda | ✅ | Functions, Invocations, Event Source Mappings |
 | DynamoDB | ✅ | Tables, Items |
 | DynamoDB Streams | ✅ | Stream records, shards |
 | EC2 | ✅ | Instances, Key Pairs, Security Groups, Elastic IPs |
-| VPC | ✅ | VPCs, Subnets, Route Tables, Internet Gateways, NAT Gateways, Network ACLs, Flow Logs |
+| VPC | ✅ | VPCs, Subnets, Route Tables, Internet Gateways, NAT Gateways, Network ACLs, Flow Logs — also integrated as a cross-service selector in EC2, RDS, Lambda, ElastiCache, MSK, and OpenSearch views |
 | SQS | ✅ | Queues, Messages |
 | SNS | ✅ | Topics, Subscriptions, Publishing |
 | IAM | ✅ | Users, Roles, Groups, Policies |
 | KMS | ✅ | Keys, Encryption, Decryption |
 | Secrets Manager | ✅ | Secrets management |
 | SSM | ✅ | Parameter Store, SecureString |
-| API Gateway | ✅ | REST APIs, HTTP APIs, Integrations |
+| API Gateway | ✅ | REST APIs, HTTP APIs, WebSocket APIs, Integrations, Invoke URLs |
 | Kinesis | ✅ | Streams, Shards, Records |
 | CloudFormation | ✅ | Stacks, Templates, Resources |
-| CloudWatch | ✅ | Metric Alarms, Logs |
+| CloudWatch | ✅ | Metric Alarms, Logs, Dashboards |
+| Cognito | ✅ | User Pools, Groups, Users, Clients, Resource Servers, Tags, Test Login, Reset Password |
 | ElastiCache | ✅ | Redis Server Groups, Cache Nodes |
 | RDS | ✅ | Databases, Instances, Snapshots |
 | SES | ✅ | Emails, Templates, Send |
