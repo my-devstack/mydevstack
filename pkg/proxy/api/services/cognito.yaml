@@ -1,0 +1,2083 @@
+openapi: 3.0.0
+info:
+  title: "Cognito"
+  version: "1.0.0"
+
+paths:
+  # ---- User Pools ----
+  /cognito/user-pools:
+    get:
+      tags: [Cognito]
+      summary: List user pools
+      description: |
+        Lists the user pools associated with the AWS account.
+        Supports pagination via NextToken and MaxResults.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listUserPools
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListUserPoolsInput'
+      responses:
+        "200":
+          description: List of user pools
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUserPoolsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Cognito]
+      summary: Create user pool
+      description: |
+        Creates a new user pool with the specified configuration.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createUserPool
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserPoolInput'
+      responses:
+        "200":
+          description: User pool created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUserPoolOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cognito/user-pools/{userPoolId}:
+    get:
+      tags: [Cognito]
+      summary: Describe user pool
+      description: |
+        Returns the configuration details and metadata of the specified user pool.
+      operationId: describeUserPool
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+      responses:
+        "200":
+          description: User pool details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeUserPoolOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Cognito]
+      summary: Delete user pool
+      description: |
+        Deletes the specified user pool. The user pool must not have
+        any users, groups, or clients.
+      operationId: deleteUserPool
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+      responses:
+        "200":
+          description: User pool deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteUserPoolOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Cognito]
+      summary: Update user pool
+      description: |
+        Updates the configuration of the specified user pool.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateUserPool
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserPoolInput'
+      responses:
+        "200":
+          description: User pool updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateUserPoolOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Users ----
+  /cognito/user-pools/{userPoolId}/users:
+    get:
+      tags: [Cognito]
+      summary: List users
+      description: |
+        Lists the users in the specified user pool.
+        Supports pagination via PaginationToken and Limit.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listUsers
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListUsersInput'
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUsersOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Cognito]
+      summary: Admin create user
+      description: |
+        Creates a new user in the specified user pool.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: adminCreateUser
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminCreateUserInput'
+      responses:
+        "200":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminCreateUserOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cognito/user-pools/{userPoolId}/users/{username}:
+    get:
+      tags: [Cognito]
+      summary: Admin get user
+      description: |
+        Gets the specified user by username from the user pool.
+      operationId: adminGetUser
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+          description: The username of the user
+          example: alice
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminGetUserOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Cognito]
+      summary: Admin update user attributes
+      description: |
+        Updates the specified user's attributes in the user pool.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: adminUpdateUserAttributes
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+          description: The username of the user
+          example: alice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUpdateUserAttributesInput'
+      responses:
+        "200":
+          description: User attributes updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUpdateUserAttributesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Cognito]
+      summary: Admin delete user
+      description: |
+        Deletes the specified user from the user pool.
+      operationId: adminDeleteUser
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+          description: The username of the user
+          example: alice
+      responses:
+        "200":
+          description: User deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDeleteUserOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Groups ----
+  /cognito/user-pools/{userPoolId}/groups:
+    get:
+      tags: [Cognito]
+      summary: List groups
+      description: |
+        Lists the groups in the specified user pool.
+        Supports pagination via NextToken and Limit.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listGroups
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListGroupsInput'
+      responses:
+        "200":
+          description: List of groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListGroupsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Cognito]
+      summary: Create group
+      description: |
+        Creates a new group in the specified user pool.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createGroup
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupInput'
+      responses:
+        "200":
+          description: Group created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateGroupOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cognito/user-pools/{userPoolId}/groups/{groupName}:
+    get:
+      tags: [Cognito]
+      summary: Get group
+      description: |
+        Gets the specified group from the user pool.
+      operationId: getGroup
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: groupName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The name of the group
+          example: admins
+      responses:
+        "200":
+          description: Group details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetGroupOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Cognito]
+      summary: Update group
+      description: |
+        Updates the specified group in the user pool.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateGroup
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: groupName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The name of the group
+          example: admins
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGroupInput'
+      responses:
+        "200":
+          description: Group updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateGroupOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Cognito]
+      summary: Delete group
+      description: |
+        Deletes the specified group from the user pool.
+      operationId: deleteGroup
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: groupName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The name of the group
+          example: admins
+      responses:
+        "200":
+          description: Group deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteGroupOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- User Pool Clients ----
+  /cognito/user-pools/{userPoolId}/clients:
+    get:
+      tags: [Cognito]
+      summary: List user pool clients
+      description: |
+        Lists the clients that have been created for the specified user pool.
+        Supports pagination via NextToken and MaxResults.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listUserPoolClients
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListUserPoolClientsInput'
+      responses:
+        "200":
+          description: List of user pool clients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUserPoolClientsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Cognito]
+      summary: Create user pool client
+      description: |
+        Creates a new app client for the specified user pool.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createUserPoolClient
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserPoolClientInput'
+      responses:
+        "200":
+          description: User pool client created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUserPoolClientOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cognito/user-pools/{userPoolId}/clients/{clientId}:
+    get:
+      tags: [Cognito]
+      summary: Describe user pool client
+      description: |
+        Returns the configuration details of the specified user pool client.
+      operationId: describeUserPoolClient
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: clientId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The app client ID
+          example: client123
+      responses:
+        "200":
+          description: User pool client details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeUserPoolClientOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Cognito]
+      summary: Update user pool client
+      description: |
+        Updates the specified user pool client.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateUserPoolClient
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: clientId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The app client ID
+          example: client123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserPoolClientInput'
+      responses:
+        "200":
+          description: User pool client updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateUserPoolClientOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Cognito]
+      summary: Delete user pool client
+      description: |
+        Deletes the specified user pool client.
+      operationId: deleteUserPoolClient
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: clientId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The app client ID
+          example: client123
+      responses:
+        "200":
+          description: User pool client deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteUserPoolClientOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Group membership ----
+  /cognito/user-pools/{userPoolId}/users/{username}/groups:
+    put:
+      tags: [Cognito]
+      summary: Add user to group
+      description: |
+        Adds the specified user to the specified group.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: adminAddUserToGroup
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+          description: The username of the user
+          example: alice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminAddUserToGroupInput'
+      responses:
+        "200":
+          description: User added to group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAddUserToGroupOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [Cognito]
+      summary: List groups for user
+      description: |
+        Lists the groups that the specified user belongs to.
+      operationId: adminListGroupsForUser
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+          description: The username of the user
+          example: alice
+      responses:
+        "200":
+          description: List of groups for the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminListGroupsForUserOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cognito/user-pools/{userPoolId}/users/{username}/groups/{groupName}:
+    delete:
+      tags: [Cognito]
+      summary: Remove user from group
+      description: |
+        Removes the specified user from the specified group.
+      operationId: adminRemoveUserFromGroup
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+          description: The username of the user
+          example: alice
+        - name: groupName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The name of the group
+          example: admins
+      responses:
+        "200":
+          description: User removed from group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminRemoveUserFromGroupOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cognito/user-pools/{userPoolId}/groups/{groupName}/users:
+    get:
+      tags: [Cognito]
+      summary: List users in group
+      description: |
+        Lists the users that belong to the specified group.
+      operationId: listUsersInGroup
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: groupName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The name of the group
+          example: admins
+      responses:
+        "200":
+          description: List of users in the group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUsersInGroupOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Reset password ----
+  /cognito/user-pools/{userPoolId}/users/{username}/password:
+    put:
+      tags: [Cognito]
+      summary: Set user password
+      description: |
+        Sets the password for the specified user.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: adminSetUserPassword
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+          description: The username of the user
+          example: alice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminSetUserPasswordInput'
+      responses:
+        "200":
+          description: Password set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSetUserPasswordOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Resource servers ----
+  /cognito/user-pools/{userPoolId}/resource-servers:
+    get:
+      tags: [Cognito]
+      summary: List resource servers
+      description: |
+        Lists the resource servers associated with the specified user pool.
+      operationId: listResourceServers
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+      responses:
+        "200":
+          description: List of resource servers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResourceServersOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Cognito]
+      summary: Create resource server
+      description: |
+        Creates a new resource server for the specified user pool.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createResourceServer
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateResourceServerInput'
+      responses:
+        "200":
+          description: Resource server created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResourceServerOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cognito/user-pools/{userPoolId}/resource-servers/{identifier}:
+    get:
+      tags: [Cognito]
+      summary: Describe resource server
+      description: |
+        Returns the configuration details of the specified resource server.
+      operationId: describeResourceServer
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: identifier
+          in: path
+          required: true
+          schema: { type: string }
+          description: The resource server identifier
+          example: test-api
+      responses:
+        "200":
+          description: Resource server details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeResourceServerOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Cognito]
+      summary: Delete resource server
+      description: |
+        Deletes the specified resource server from the user pool.
+      operationId: deleteResourceServer
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+        - name: identifier
+          in: path
+          required: true
+          schema: { type: string }
+          description: The resource server identifier
+          example: test-api
+      responses:
+        "200":
+          description: Resource server deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResourceServerOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Tags ----
+  /cognito/user-pools/{userPoolId}/tags:
+    get:
+      tags: [Cognito]
+      summary: List tags for resource
+      description: |
+        Lists the tags associated with the specified user pool.
+      operationId: listTagsForResource
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+      responses:
+        "200":
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTagsForResourceOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Cognito]
+      summary: Update tags
+      description: |
+        Adds or updates tags on the specified user pool and removes
+        tags listed in RemovedKeys.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateTags
+      parameters:
+        - name: userPoolId
+          in: path
+          required: true
+          schema: { type: string }
+          description: The user pool ID
+          example: us-east-1_abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTagsInput'
+      responses:
+        "200":
+          description: Tags updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateTagsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Authentication ----
+  /cognito/initiate-auth:
+    post:
+      tags: [Cognito]
+      summary: Initiate auth
+      description: |
+        Initiates the authentication flow for a user.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: initiateAuth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitiateAuthInput'
+      responses:
+        "200":
+          description: Authentication initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitiateAuthOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cognito/admin-initiate-auth:
+    post:
+      tags: [Cognito]
+      summary: Admin initiate auth
+      description: |
+        Initiates the authentication flow for a user as an administrator.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: adminInitiateAuth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminInitiateAuthInput'
+      responses:
+        "200":
+          description: Authentication initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitiateAuthOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cognito/respond-to-auth-challenge:
+    post:
+      tags: [Cognito]
+      summary: Respond to auth challenge
+      description: |
+        Responds to an authentication challenge.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: respondToAuthChallenge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RespondToAuthChallengeInput'
+      responses:
+        "200":
+          description: Challenge response processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespondToAuthChallengeOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ============================================================
+    # Core Cognito types
+    # ============================================================
+    UserPoolDescriptionType:
+      type: object
+      properties:
+        Id:
+          type: string
+        Name:
+          type: string
+        LambdaConfig:
+          type: object
+        Status:
+          type: string
+          enum: [Enabled, Disabled]
+        LastModifiedDate:
+          type: string
+          format: date-time
+        CreationDate:
+          type: string
+          format: date-time
+
+    UserPoolType:
+      type: object
+      properties:
+        Id:
+          type: string
+        Name:
+          type: string
+        Status:
+          type: string
+          enum: [Enabled, Disabled]
+        LastModifiedDate:
+          type: string
+          format: date-time
+        CreationDate:
+          type: string
+          format: date-time
+        SchemaAttributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchemaAttributeType'
+        AutoVerifiedAttributes:
+          type: array
+          items: { type: string }
+        MfaConfiguration:
+          type: string
+          enum: [OFF, ON, OPTIONAL]
+        EstimatedNumberOfUsers:
+          type: integer
+          format: int32
+
+    SchemaAttributeType:
+      type: object
+      properties:
+        Name:
+          type: string
+        AttributeDataType:
+          type: string
+          enum: [String, Number, DateTime, Boolean]
+        DeveloperOnlyAttribute:
+          type: boolean
+        Mutable:
+          type: boolean
+        Required:
+          type: boolean
+        StringAttributeConstraints:
+          type: object
+          properties:
+            MinLength:
+              type: string
+            MaxLength:
+              type: string
+        NumberAttributeConstraints:
+          type: object
+          properties:
+            MinValue:
+              type: string
+            MaxValue:
+              type: string
+
+    UserType:
+      type: object
+      properties:
+        Username:
+          type: string
+        Attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttributeType'
+        UserCreateDate:
+          type: string
+          format: date-time
+        UserLastModifiedDate:
+          type: string
+          format: date-time
+        Enabled:
+          type: boolean
+        UserStatus:
+          type: string
+          enum: [UNCONFIRMED, CONFIRMED, ARCHIVED, COMPROMISED, UNKNOWN, RESET_REQUIRED, FORCE_CHANGE_PASSWORD]
+        MFAOptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MFAOptionType'
+
+    AttributeType:
+      type: object
+      properties:
+        Name:
+          type: string
+        Value:
+          type: string
+
+    MFAOptionType:
+      type: object
+      properties:
+        DeliveryMedium:
+          type: string
+          enum: [SMS, EMAIL]
+        AttributeName:
+          type: string
+
+    GroupType:
+      type: object
+      properties:
+        GroupName:
+          type: string
+        UserPoolId:
+          type: string
+        Description:
+          type: string
+        RoleArn:
+          type: string
+        Precedence:
+          type: integer
+          format: int32
+        LastModifiedDate:
+          type: string
+          format: date-time
+        CreationDate:
+          type: string
+          format: date-time
+
+    UserPoolClientType:
+      type: object
+      properties:
+        UserPoolId:
+          type: string
+        ClientName:
+          type: string
+        ClientId:
+          type: string
+        ClientSecret:
+          type: string
+        LastModifiedDate:
+          type: string
+          format: date-time
+        CreationDate:
+          type: string
+          format: date-time
+        RefreshTokenValidity:
+          type: integer
+          format: int32
+        AccessTokenValidity:
+          type: integer
+          format: int32
+        IdTokenValidity:
+          type: integer
+          format: int32
+        ExplicitAuthFlows:
+          type: array
+          items: { type: string }
+
+    UserPoolClientDescription:
+      type: object
+      properties:
+        ClientId:
+          type: string
+        UserPoolId:
+          type: string
+        ClientName:
+          type: string
+
+    # ============================================================
+    # User pool operations
+    # ============================================================
+    ListUserPoolsInput:
+      type: object
+      properties:
+        NextToken:
+          type: string
+        MaxResults:
+          type: integer
+          format: int32
+          maximum: 60
+
+    ListUserPoolsOutput:
+      type: object
+      properties:
+        UserPools:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserPoolDescriptionType'
+        NextToken:
+          type: string
+
+    CreateUserPoolInput:
+      type: object
+      required: [PoolName]
+      properties:
+        PoolName:
+          type: string
+        Policies:
+          type: object
+        DeletionProtection:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+        LambdaConfig:
+          type: object
+        AutoVerifiedAttributes:
+          type: array
+          items: { type: string }
+        AliasAttributes:
+          type: array
+          items: { type: string }
+        UsernameAttributes:
+          type: array
+          items: { type: string }
+        Schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchemaAttributeType'
+        MfaConfiguration:
+          type: string
+          enum: [OFF, ON, OPTIONAL]
+        EmailConfiguration:
+          type: object
+        SmsConfiguration:
+          type: object
+        Tags:
+          type: object
+          additionalProperties: { type: string }
+
+    CreateUserPoolOutput:
+      type: object
+      properties:
+        UserPool:
+          $ref: '#/components/schemas/UserPoolType'
+
+    DescribeUserPoolOutput:
+      type: object
+      properties:
+        UserPool:
+          $ref: '#/components/schemas/UserPoolType'
+
+    DeleteUserPoolOutput:
+      type: object
+      properties: {}
+
+    UpdateUserPoolInput:
+      type: object
+      properties:
+        Policies:
+          type: object
+        DeletionProtection:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+        LambdaConfig:
+          type: object
+        AutoVerifiedAttributes:
+          type: array
+          items: { type: string }
+        MfaConfiguration:
+          type: string
+          enum: [OFF, ON, OPTIONAL]
+        EmailConfiguration:
+          type: object
+        SmsConfiguration:
+          type: object
+        AdminCreateUserConfig:
+          type: object
+        Tags:
+          type: object
+          additionalProperties: { type: string }
+
+    UpdateUserPoolOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # User operations
+    # ============================================================
+    ListUsersInput:
+      type: object
+      properties:
+        Filter:
+          type: string
+        Limit:
+          type: integer
+          format: int32
+          maximum: 60
+        PaginationToken:
+          type: string
+
+    ListUsersOutput:
+      type: object
+      properties:
+        Users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserType'
+        PaginationToken:
+          type: string
+
+    AdminCreateUserInput:
+      type: object
+      required: [Username]
+      properties:
+        Username:
+          type: string
+        UserAttributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttributeType'
+        ValidationData:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttributeType'
+        TemporaryPassword:
+          type: string
+        ForceAliasCreation:
+          type: boolean
+        MessageAction:
+          type: string
+          enum: [RESEND, SUPPRESS]
+        DesiredDeliveryMediums:
+          type: array
+          items:
+            type: string
+            enum: [SMS, EMAIL]
+        ClientMetadata:
+          type: object
+          additionalProperties: { type: string }
+
+    AdminCreateUserOutput:
+      type: object
+      properties:
+        User:
+          $ref: '#/components/schemas/UserType'
+
+    AdminGetUserOutput:
+      type: object
+      properties:
+        Username:
+          type: string
+        UserAttributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttributeType'
+        UserCreateDate:
+          type: string
+          format: date-time
+        UserLastModifiedDate:
+          type: string
+          format: date-time
+        Enabled:
+          type: boolean
+        UserStatus:
+          type: string
+          enum: [UNCONFIRMED, CONFIRMED, ARCHIVED, COMPROMISED, UNKNOWN, RESET_REQUIRED, FORCE_CHANGE_PASSWORD]
+        MFAOptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MFAOptionType'
+
+    AdminDeleteUserOutput:
+      type: object
+      properties: {}
+
+    AdminUpdateUserAttributesInput:
+      type: object
+      required: [UserAttributes]
+      properties:
+        UserPoolId:
+          type: string
+        Username:
+          type: string
+        UserAttributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttributeType'
+
+    AdminUpdateUserAttributesOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # Group operations
+    # ============================================================
+    ListGroupsInput:
+      type: object
+      properties:
+        Limit:
+          type: integer
+          format: int32
+          maximum: 60
+        NextToken:
+          type: string
+
+    ListGroupsOutput:
+      type: object
+      properties:
+        Groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupType'
+        NextToken:
+          type: string
+
+    CreateGroupInput:
+      type: object
+      required: [GroupName]
+      properties:
+        GroupName:
+          type: string
+        Description:
+          type: string
+        RoleArn:
+          type: string
+        Precedence:
+          type: integer
+          format: int32
+
+    CreateGroupOutput:
+      type: object
+      properties:
+        Group:
+          $ref: '#/components/schemas/GroupType'
+
+    GetGroupOutput:
+      type: object
+      properties:
+        Group:
+          $ref: '#/components/schemas/GroupType'
+
+    DeleteGroupOutput:
+      type: object
+      properties: {}
+
+    UpdateGroupInput:
+      type: object
+      properties:
+        GroupName:
+          type: string
+        Description:
+          type: string
+        RoleArn:
+          type: string
+        Precedence:
+          type: integer
+          format: int32
+        UserPoolId:
+          type: string
+
+    UpdateGroupOutput:
+      type: object
+      properties:
+        Group:
+          $ref: '#/components/schemas/GroupType'
+
+    # ============================================================
+    # User pool client operations
+    # ============================================================
+    ListUserPoolClientsInput:
+      type: object
+      properties:
+        MaxResults:
+          type: integer
+          format: int32
+          maximum: 60
+        NextToken:
+          type: string
+
+    ListUserPoolClientsOutput:
+      type: object
+      properties:
+        UserPoolClients:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserPoolClientDescription'
+        NextToken:
+          type: string
+
+    CreateUserPoolClientInput:
+      type: object
+      required: [ClientName]
+      properties:
+        ClientName:
+          type: string
+        GenerateSecret:
+          type: boolean
+        RefreshTokenValidity:
+          type: integer
+          format: int32
+        AccessTokenValidity:
+          type: integer
+          format: int32
+        IdTokenValidity:
+          type: integer
+          format: int32
+        ExplicitAuthFlows:
+          type: array
+          items: { type: string }
+        AllowedOAuthFlows:
+          type: array
+          items: { type: string }
+        AllowedOAuthScopes:
+          type: array
+          items: { type: string }
+        CallbackURLs:
+          type: array
+          items: { type: string }
+        LogoutURLs:
+          type: array
+          items: { type: string }
+
+    CreateUserPoolClientOutput:
+      type: object
+      properties:
+        UserPoolClient:
+          $ref: '#/components/schemas/UserPoolClientType'
+
+    DescribeUserPoolClientOutput:
+      type: object
+      properties:
+        UserPoolClient:
+          $ref: '#/components/schemas/UserPoolClientType'
+
+    DeleteUserPoolClientOutput:
+      type: object
+      properties: {}
+
+    UpdateUserPoolClientInput:
+      type: object
+      properties:
+        UserPoolId:
+          type: string
+        ClientId:
+          type: string
+        ClientName:
+          type: string
+        RefreshTokenValidity:
+          type: integer
+          format: int32
+        AccessTokenValidity:
+          type: integer
+          format: int32
+        IdTokenValidity:
+          type: integer
+          format: int32
+        ExplicitAuthFlows:
+          type: array
+          items: { type: string }
+
+    UpdateUserPoolClientOutput:
+      type: object
+      properties:
+        UserPoolClient:
+          $ref: '#/components/schemas/UserPoolClientType'
+
+    # ============================================================
+    # Group membership operations
+    # ============================================================
+    AdminAddUserToGroupInput:
+      type: object
+      required: [GroupName]
+      properties:
+        UserPoolId:
+          type: string
+        Username:
+          type: string
+        GroupName:
+          type: string
+
+    AdminAddUserToGroupOutput:
+      type: object
+      properties: {}
+
+    AdminRemoveUserFromGroupOutput:
+      type: object
+      properties: {}
+
+    AdminListGroupsForUserOutput:
+      type: object
+      properties:
+        Groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupType'
+        NextToken:
+          type: string
+
+    ListUsersInGroupOutput:
+      type: object
+      properties:
+        Users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserType'
+        NextToken:
+          type: string
+
+    # ============================================================
+    # Reset password operations
+    # ============================================================
+    AdminSetUserPasswordInput:
+      type: object
+      required: [Password]
+      properties:
+        UserPoolId:
+          type: string
+        Username:
+          type: string
+        Password:
+          type: string
+        Permanent:
+          type: boolean
+
+    AdminSetUserPasswordOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # Resource server operations
+    # ============================================================
+    ResourceServerType:
+      type: object
+      properties:
+        UserPoolId:
+          type: string
+        Identifier:
+          type: string
+        Name:
+          type: string
+        Scopes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceServerScopeType'
+
+    ResourceServerScopeType:
+      type: object
+      properties:
+        ScopeName:
+          type: string
+        ScopeDescription:
+          type: string
+
+    CreateResourceServerInput:
+      type: object
+      required: [Identifier, Name]
+      properties:
+        UserPoolId:
+          type: string
+        Identifier:
+          type: string
+        Name:
+          type: string
+        Scopes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceServerScopeType'
+
+    CreateResourceServerOutput:
+      type: object
+      properties:
+        ResourceServer:
+          $ref: '#/components/schemas/ResourceServerType'
+
+    DescribeResourceServerOutput:
+      type: object
+      properties:
+        ResourceServer:
+          $ref: '#/components/schemas/ResourceServerType'
+
+    ListResourceServersOutput:
+      type: object
+      properties:
+        ResourceServers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceServerType'
+        NextToken:
+          type: string
+
+    DeleteResourceServerOutput:
+      type: object
+      properties: {}
+
+    # ============================================================
+    # Tag operations
+    # ============================================================
+    ListTagsForResourceOutput:
+      type: object
+      properties:
+        Tags:
+          type: object
+          additionalProperties: { type: string }
+
+    UpdateTagsInput:
+      type: object
+      properties:
+        Tags:
+          type: object
+          additionalProperties: { type: string }
+        RemovedKeys:
+          type: array
+          items: { type: string }
+
+    UpdateTagsOutput:
+      type: object
+      properties:
+        message:
+          type: string
+
+    # ============================================================
+    # Authentication operations
+    # ============================================================
+    InitiateAuthInput:
+      type: object
+      required: [ClientId, AuthFlow]
+      properties:
+        ClientId:
+          type: string
+        AuthFlow:
+          type: string
+          enum: [USER_SRP_AUTH, REFRESH_TOKEN_AUTH, REFRESH_TOKEN, CUSTOM_AUTH, USER_PASSWORD_AUTH, USER_AUTH]
+        AuthParameters:
+          type: object
+          additionalProperties: { type: string }
+
+    InitiateAuthOutput:
+      type: object
+      properties:
+        AuthenticationResult:
+          $ref: '#/components/schemas/AuthenticationResultType'
+        ChallengeName:
+          type: string
+        ChallengeParameters:
+          type: object
+          additionalProperties: { type: string }
+        Session:
+          type: string
+
+    AuthenticationResultType:
+      type: object
+      properties:
+        AccessToken:
+          type: string
+        ExpiresIn:
+          type: integer
+          format: int32
+        IdToken:
+          type: string
+        RefreshToken:
+          type: string
+        TokenType:
+          type: string
+
+    AdminInitiateAuthInput:
+      type: object
+      required: [UserPoolId, ClientId, AuthFlow]
+      properties:
+        UserPoolId:
+          type: string
+        ClientId:
+          type: string
+        AuthFlow:
+          type: string
+          enum: [USER_SRP_AUTH, REFRESH_TOKEN_AUTH, REFRESH_TOKEN, CUSTOM_AUTH, ADMIN_NO_SRP_AUTH, USER_PASSWORD_AUTH, USER_AUTH]
+        AuthParameters:
+          type: object
+          additionalProperties: { type: string }
+
+    RespondToAuthChallengeInput:
+      type: object
+      required: [ClientId, ChallengeName]
+      properties:
+        ClientId:
+          type: string
+        ChallengeName:
+          type: string
+        ChallengeResponses:
+          type: object
+          additionalProperties: { type: string }
+        Session:
+          type: string
+
+    RespondToAuthChallengeOutput:
+      type: object
+      properties:
+        AuthenticationResult:
+          $ref: '#/components/schemas/AuthenticationResultType'
+        ChallengeName:
+          type: string
+        ChallengeParameters:
+          type: object
+          additionalProperties: { type: string }
+        Session:
+          type: string

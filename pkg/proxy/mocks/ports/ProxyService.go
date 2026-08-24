@@ -267,6 +267,52 @@ func (_c *ProxyService_CloudWatchLogs_Call) RunAndReturn(run func() ports.CloudW
 	return _c
 }
 
+// Cognito provides a mock function for the type ProxyService
+func (_mock *ProxyService) Cognito() ports.CognitoPort {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Cognito")
+	}
+
+	var r0 ports.CognitoPort
+	if returnFunc, ok := ret.Get(0).(func() ports.CognitoPort); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ports.CognitoPort)
+		}
+	}
+	return r0
+}
+
+// ProxyService_Cognito_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Cognito'
+type ProxyService_Cognito_Call struct {
+	*mock.Call
+}
+
+// Cognito is a helper method to define mock.On call
+func (_e *ProxyService_Expecter) Cognito() *ProxyService_Cognito_Call {
+	return &ProxyService_Cognito_Call{Call: _e.mock.On("Cognito")}
+}
+
+func (_c *ProxyService_Cognito_Call) Run(run func()) *ProxyService_Cognito_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ProxyService_Cognito_Call) Return(cognitoPort ports.CognitoPort) *ProxyService_Cognito_Call {
+	_c.Call.Return(cognitoPort)
+	return _c
+}
+
+func (_c *ProxyService_Cognito_Call) RunAndReturn(run func() ports.CognitoPort) *ProxyService_Cognito_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Config provides a mock function for the type ProxyService
 func (_mock *ProxyService) Config() *configloader.Config {
 	ret := _mock.Called()

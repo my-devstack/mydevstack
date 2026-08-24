@@ -161,6 +161,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/services/MSK.vue'),
     meta: { title: 'MSK', service: 'msk' },
   },
+  // Cognito
+  {
+    path: '/services/cognito',
+    name: 'Cognito',
+    component: () => import('@/views/services/Cognito.vue'),
+    meta: { title: 'Cognito', service: 'cognito' },
+  },
   
   // Explicit redirect for /services to dashboard
   {

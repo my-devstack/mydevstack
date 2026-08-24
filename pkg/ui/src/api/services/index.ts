@@ -304,6 +304,25 @@ export type {
   SetRegionResponse,
 } from './region'
 
+// Cognito Service
+export {
+  listUserPools,
+  createUserPool,
+  deleteUserPool,
+  listUsers,
+  createUser,
+  deleteUser,
+  listGroups,
+  createGroup,
+  deleteGroup,
+} from './cognito'
+export type {
+  CognitoUserPool,
+  CognitoUser,
+  CognitoGroup,
+  CognitoAttribute,
+} from './cognito'
+
 // Re-export APIError for convenience
 export { APIError } from '../client'
 

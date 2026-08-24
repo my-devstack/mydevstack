@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -442,6 +443,56 @@ type OpenSearchClientPort interface {
 	AddTags(ctx context.Context, input *opensearch.AddTagsInput, opts ...func(*opensearch.Options)) (*opensearch.AddTagsOutput, error)
 	RemoveTags(ctx context.Context, input *opensearch.RemoveTagsInput, opts ...func(*opensearch.Options)) (*opensearch.RemoveTagsOutput, error)
 	GetCompatibleVersions(ctx context.Context, input *opensearch.GetCompatibleVersionsInput, opts ...func(*opensearch.Options)) (*opensearch.GetCompatibleVersionsOutput, error)
+}
+
+// CognitoClientPort defines the interface for the AWS Cognito Identity Provider client
+type CognitoClientPort interface {
+	ListUserPools(ctx context.Context, input *cognitoidentityprovider.ListUserPoolsInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.ListUserPoolsOutput, error)
+	CreateUserPool(ctx context.Context, input *cognitoidentityprovider.CreateUserPoolInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.CreateUserPoolOutput, error)
+	DescribeUserPool(ctx context.Context, input *cognitoidentityprovider.DescribeUserPoolInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.DescribeUserPoolOutput, error)
+	DeleteUserPool(ctx context.Context, input *cognitoidentityprovider.DeleteUserPoolInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.DeleteUserPoolOutput, error)
+	UpdateUserPool(ctx context.Context, input *cognitoidentityprovider.UpdateUserPoolInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.UpdateUserPoolOutput, error)
+	ListUsers(ctx context.Context, input *cognitoidentityprovider.ListUsersInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.ListUsersOutput, error)
+	AdminCreateUser(ctx context.Context, input *cognitoidentityprovider.AdminCreateUserInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.AdminCreateUserOutput, error)
+	GetUser(ctx context.Context, input *cognitoidentityprovider.GetUserInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.GetUserOutput, error)
+	AdminDeleteUser(ctx context.Context, input *cognitoidentityprovider.AdminDeleteUserInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.AdminDeleteUserOutput, error)
+	AdminGetUser(ctx context.Context, input *cognitoidentityprovider.AdminGetUserInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.AdminGetUserOutput, error)
+	AdminUpdateUserAttributes(ctx context.Context, input *cognitoidentityprovider.AdminUpdateUserAttributesInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.AdminUpdateUserAttributesOutput, error)
+	ListGroups(ctx context.Context, input *cognitoidentityprovider.ListGroupsInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.ListGroupsOutput, error)
+	CreateGroup(ctx context.Context, input *cognitoidentityprovider.CreateGroupInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.CreateGroupOutput, error)
+	GetGroup(ctx context.Context, input *cognitoidentityprovider.GetGroupInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.GetGroupOutput, error)
+	DeleteGroup(ctx context.Context, input *cognitoidentityprovider.DeleteGroupInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.DeleteGroupOutput, error)
+	UpdateGroup(ctx context.Context, input *cognitoidentityprovider.UpdateGroupInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.UpdateGroupOutput, error)
+	ListUserPoolClients(ctx context.Context, input *cognitoidentityprovider.ListUserPoolClientsInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.ListUserPoolClientsOutput, error)
+	CreateUserPoolClient(ctx context.Context, input *cognitoidentityprovider.CreateUserPoolClientInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.CreateUserPoolClientOutput, error)
+	DescribeUserPoolClient(ctx context.Context, input *cognitoidentityprovider.DescribeUserPoolClientInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.DescribeUserPoolClientOutput, error)
+	DeleteUserPoolClient(ctx context.Context, input *cognitoidentityprovider.DeleteUserPoolClientInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.DeleteUserPoolClientOutput, error)
+	UpdateUserPoolClient(ctx context.Context, input *cognitoidentityprovider.UpdateUserPoolClientInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.UpdateUserPoolClientOutput, error)
+
+	// Admin user management
+	AdminSetUserPassword(ctx context.Context, input *cognitoidentityprovider.AdminSetUserPasswordInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.AdminSetUserPasswordOutput, error)
+
+	// Group membership
+	AdminAddUserToGroup(ctx context.Context, input *cognitoidentityprovider.AdminAddUserToGroupInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.AdminAddUserToGroupOutput, error)
+	AdminRemoveUserFromGroup(ctx context.Context, input *cognitoidentityprovider.AdminRemoveUserFromGroupInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.AdminRemoveUserFromGroupOutput, error)
+	AdminListGroupsForUser(ctx context.Context, input *cognitoidentityprovider.AdminListGroupsForUserInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.AdminListGroupsForUserOutput, error)
+	ListUsersInGroup(ctx context.Context, input *cognitoidentityprovider.ListUsersInGroupInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.ListUsersInGroupOutput, error)
+
+	// Resource servers
+	CreateResourceServer(ctx context.Context, input *cognitoidentityprovider.CreateResourceServerInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.CreateResourceServerOutput, error)
+	DescribeResourceServer(ctx context.Context, input *cognitoidentityprovider.DescribeResourceServerInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.DescribeResourceServerOutput, error)
+	ListResourceServers(ctx context.Context, input *cognitoidentityprovider.ListResourceServersInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.ListResourceServersOutput, error)
+	DeleteResourceServer(ctx context.Context, input *cognitoidentityprovider.DeleteResourceServerInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.DeleteResourceServerOutput, error)
+
+	// Tags
+	ListTagsForResource(ctx context.Context, input *cognitoidentityprovider.ListTagsForResourceInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.ListTagsForResourceOutput, error)
+	TagResource(ctx context.Context, input *cognitoidentityprovider.TagResourceInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.TagResourceOutput, error)
+	UntagResource(ctx context.Context, input *cognitoidentityprovider.UntagResourceInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.UntagResourceOutput, error)
+
+	// Authentication
+	InitiateAuth(ctx context.Context, input *cognitoidentityprovider.InitiateAuthInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.InitiateAuthOutput, error)
+	AdminInitiateAuth(ctx context.Context, input *cognitoidentityprovider.AdminInitiateAuthInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.AdminInitiateAuthOutput, error)
+	RespondToAuthChallenge(ctx context.Context, input *cognitoidentityprovider.RespondToAuthChallengeInput, opts ...func(*cognitoidentityprovider.Options)) (*cognitoidentityprovider.RespondToAuthChallengeOutput, error)
 }
 
 // SFNClientPort defines the interface for the AWS Step Functions client
