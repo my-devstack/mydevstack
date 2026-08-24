@@ -63,11 +63,14 @@ tags:
     description: Amazon Virtual Private Cloud
   - name: EC2
     description: Amazon Elastic Compute Cloud
+  - name: Cognito
+    description: Amazon Cognito Identity Provider
 
 services:
   - services/_management.yaml
   - services/s3.yaml
   - services/iam.yaml
+  - services/cognito.yaml
   - services/lambda.yaml
   - services/dynamodb.yaml
   - services/dynamodb-streams.yaml

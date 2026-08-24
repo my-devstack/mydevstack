@@ -27,6 +27,7 @@ describe('Router', () => {
     'SES',
     'CloudWatch',
     'MSK',
+    'Cognito',
   ]
 
   it('creates router instance', () => {

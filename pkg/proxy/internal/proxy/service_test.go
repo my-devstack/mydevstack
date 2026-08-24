@@ -118,4 +118,7 @@ func TestProxyService_ServiceGetters(t *testing.T) {
 	if svc.ElastiCache() != nil {
 		t.Error("ElastiCache() should be nil before SetServices")
 	}
+	if svc.Cognito() != nil {
+		t.Error("Cognito() should be nil before SetServices")
+	}
 }

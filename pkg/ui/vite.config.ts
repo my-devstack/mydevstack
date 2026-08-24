@@ -57,6 +57,7 @@ export default defineConfig(({ mode }) => {
         '/opensearch':     { target, changeOrigin: true },
         '/apigateway':     { target, changeOrigin: true },
         '/step-functions': { target, changeOrigin: true },
+        '/cognito':        { target, changeOrigin: true },
       },
     },
     build: {
