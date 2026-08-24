@@ -895,18 +895,18 @@ describe('Cognito Components Integration', () => {
       expect(wrapper.html()).toContain('Edit User Pool')
     })
 
-    it('populates form from props and emits update on save', async () => {
+    it('renders pool name input disabled and emits update on save', async () => {
       const wrapper = mount(CognitoEditUserPoolModal, {
         props: { open: true, userPoolId: 'us-east-1_abc123', poolName: 'my-user-pool', mfaConfiguration: 'ON', deletionProtection: 'ACTIVE', tags: { env: 'dev' } },
         global: { stubs: createStubs() },
       })
       const input = wrapper.find('input')
-      await input.setValue('renamed-pool')
+      expect(input.attributes('disabled')).toBeDefined()
       const saveBtn = wrapper.findAll('button').find(b => b.text().includes('Save'))
       await saveBtn!.trigger('click')
       expect(wrapper.emitted('update')![0]).toEqual([
         'us-east-1_abc123',
-        { PoolName: 'renamed-pool', MfaConfiguration: 'ON', DeletionProtection: 'ACTIVE', Tags: { env: 'dev' }, RemovedKeys: [] },
+        { PoolName: 'my-user-pool', MfaConfiguration: 'ON', DeletionProtection: 'ACTIVE', Tags: { env: 'dev' }, RemovedKeys: [] },
       ])
     })
 

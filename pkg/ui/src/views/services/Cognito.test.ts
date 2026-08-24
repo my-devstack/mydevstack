@@ -215,7 +215,7 @@ describe('Cognito.vue', () => {
       mockUpdateTags.mockResolvedValue({})
       const wrapper = shallowMount(CognitoView, { global: { stubs } })
       wrapper.vm.poolToEdit = { Id: 'us-east-1_abc123', Name: 'my-pool' }
-      await wrapper.vm.handleEditUserPool({
+      await wrapper.vm.handleEditUserPool('us-east-1_abc123', {
         PoolName: 'renamed',
         MfaConfiguration: 'ON',
         DeletionProtection: 'ACTIVE',

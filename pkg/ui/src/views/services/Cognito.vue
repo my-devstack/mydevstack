@@ -689,7 +689,7 @@ async function openEditUserPoolModal(pool: CognitoUserPool) {
   showEditUserPoolModal.value = true
 }
 
-async function handleEditUserPool(data: { PoolName?: string; MfaConfiguration?: string; DeletionProtection?: string; Tags?: Record<string, string>; RemovedKeys?: string[] }) {
+async function handleEditUserPool(userPoolId: string, data: { PoolName?: string; MfaConfiguration?: string; DeletionProtection?: string; Tags?: Record<string, string>; RemovedKeys?: string[] }) {
   if (!poolToEdit.value) return
   try {
     const { Tags, RemovedKeys, ...poolParams } = data
@@ -1163,7 +1163,7 @@ watch(reloadTrigger, () => {
             @edit="(user) => { userToEdit = user; showEditUserModal = true }"
             @delete="(username) => { userToDelete = username; showDeleteUserModal = true }"
             @reset-password="(user) => { userForPassword = user.Username; showResetPasswordModal = true }"
-            @test-login="(user) => { userForLogin = user.Username; authResult = null; showTestLoginModal = true }"
+            @test-login="(user) => { userForLogin = user.Username; authResult = null; loadUserPoolClients(); showTestLoginModal = true }"
           />
         </template>
       </template>

@@ -405,8 +405,8 @@ test.describe('Cognito - Resource Servers', () => {
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     const rsRow = page.locator('.rounded-lg').filter({ hasText: rsIdentifier }).first()
-    // Delete is 2nd button (Edit=0, Delete=1)
-    await rsRow.locator('button').nth(1).click()
+    // Delete is the only button in row (index 0)
+    await rsRow.locator('button').nth(0).click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
     await expect(page.getByText(rsIdentifier).first()).not.toBeVisible({ timeout: 15000 })
@@ -539,7 +539,7 @@ test.describe('Cognito - Reset Password', () => {
       (resp: any) => resp.url().includes('/password') && resp.request().method() === 'PUT',
       { timeout: 15000 }
     ).catch(() => null)
-    await resetDialog.getByRole('button', { name: /Confirm|Save|Update/i }).first().click()
+    await resetDialog.getByRole('button', { name: /Confirm|Save|Update|Reset Password/i }).first().click()
     await resetResponse
     await page.waitForLoadState('networkidle')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
@@ -573,6 +573,24 @@ test.describe('Cognito - Test Login', () => {
     await page.waitForLoadState('networkidle')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
+    // Create a user pool client (required for test login)
+    await selectPoolOnTab(page, 'Clients', poolName)
+    const createClientBtn = page.getByRole('button', { name: /Create Client/i }).first()
+    await expect(createClientBtn).toBeVisible({ timeout: 10000 })
+    await createClientBtn.click()
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
+    const clientDialog = page.getByRole('dialog')
+    const clientNameInput = clientDialog.locator('input[type="text"]').first()
+    await expect(clientNameInput).toBeVisible({ timeout: 5000 })
+    await clientNameInput.fill('test-client-' + Date.now())
+    await clientDialog.getByRole('button', { name: 'Create' }).click()
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+
+    // Go back to Users tab
+    await page.getByRole('tab', { name: 'Users' }).click()
+    await page.waitForLoadState('networkidle')
+
     // Set password first (via Reset Password) — icon-only button, nth(1)
     const userRow = page.locator('.rounded-lg').filter({ hasText: userName }).first()
     const resetBtn = userRow.locator('button').nth(1)
@@ -587,7 +605,7 @@ test.describe('Cognito - Test Login', () => {
       (resp: any) => resp.url().includes('/password') && resp.request().method() === 'PUT',
       { timeout: 15000 }
     ).catch(() => null)
-    await resetDialog.getByRole('button', { name: /Confirm|Save|Update/i }).first().click()
+    await resetDialog.getByRole('button', { name: /Confirm|Save|Update|Reset Password/i }).first().click()
     await resetResponse
     await page.waitForLoadState('networkidle')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
@@ -600,6 +618,13 @@ test.describe('Cognito - Test Login', () => {
 
     // Enter password and test
     const loginDialog = page.getByRole('dialog')
+
+    // Select the client from dropdown
+    const clientSelect = loginDialog.locator('select').first()
+    await expect(clientSelect).toBeVisible({ timeout: 5000 })
+    // Select the first (and only) client option (index 0 is "Select a client...")
+    await clientSelect.selectOption({ index: 1 })
+
     const loginPwInput = loginDialog.locator('input[type="password"]').first()
     await expect(loginPwInput).toBeVisible({ timeout: 5000 })
     await loginPwInput.fill('TestPass123!')
@@ -639,10 +664,6 @@ test.describe('Cognito - Tags', () => {
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
 
     // Add tag
-    const addTagBtn = page.getByRole('dialog').getByRole('button', { name: /Add Tag|Add/i }).first()
-    if (await addTagBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await addTagBtn.click()
-    }
     const keyInput = page.getByRole('dialog').getByPlaceholder(/key/i).first()
     const valueInput = page.getByRole('dialog').getByPlaceholder(/value/i).first()
     if (await keyInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -651,22 +672,33 @@ test.describe('Cognito - Tags', () => {
     if (await valueInput.isVisible({ timeout: 3000 }).catch(() => false)) {
       await valueInput.fill(tagValue)
     }
+    // Click Add button to persist tag (addRow + emitUpdate)
+    const addTagBtn = page.getByRole('dialog').getByRole('button', { name: /Add/i }).first()
+    await addTagBtn.click()
+    await page.waitForLoadState('networkidle')
 
     // Save
-    const saveResponse = page.waitForResponse(
+    await page.getByRole('dialog').getByRole('button', { name: /Save|Update/i }).first().click()
+    // Wait for pool update PUT
+    await page.waitForResponse(
+      (resp: any) => resp.url().includes('/user-pools') && resp.request().method() === 'PUT',
+      { timeout: 15000 }
+    ).catch(() => null)
+    // Wait for tags PUT
+    await page.waitForResponse(
       (resp: any) => resp.url().includes('/tags') && resp.request().method() === 'PUT',
       { timeout: 15000 }
     ).catch(() => null)
-    await page.getByRole('dialog').getByRole('button', { name: /Save|Update/i }).first().click()
-    await saveResponse
     await page.waitForLoadState('networkidle')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     // Re-open edit and verify tag persists
     await editBtn.click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
-    await expect(page.getByText(tagKey).first()).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText(tagValue).first()).toBeVisible({ timeout: 10000 })
+    const tagKeyInput = page.getByRole('dialog').locator('input[value="Environment"]')
+    const tagValueInput = page.getByRole('dialog').locator('input[value="qa"]')
+    await expect(tagKeyInput.first()).toBeVisible({ timeout: 10000 })
+    await expect(tagValueInput.first()).toBeVisible({ timeout: 10000 })
 
     // Close
     const closeBtn = page.getByRole('dialog').getByRole('button', { name: /Close|Cancel|X/i }).first()
@@ -677,10 +709,9 @@ test.describe('Cognito - Tags', () => {
 })
 
 test.describe('Cognito - Edit Operations', () => {
-  test('edit user pool name', async ({ page }) => {
+  test('edit user pool modal opens with disabled name', async ({ page }) => {
     test.setTimeout(120000)
     const poolName = 'test-pool-edit-' + Date.now()
-    const newName = 'renamed-pool-' + Date.now()
 
     await createUserPool(page, poolName)
 
@@ -690,19 +721,14 @@ test.describe('Cognito - Edit Operations', () => {
     await editBtn.click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
 
+    // Verify pool name input is disabled (Floci limitation)
     const nameInput = page.getByRole('dialog').locator('input[type="text"]').first()
     await expect(nameInput).toBeVisible({ timeout: 5000 })
-    await nameInput.clear()
-    await nameInput.fill(newName)
-    const saveResponse = page.waitForResponse(
-      (resp: any) => resp.url().includes('/user-pools') && resp.request().method() === 'PUT',
-      { timeout: 15000 }
-    ).catch(() => null)
-    await page.getByRole('dialog').getByRole('button', { name: /Save|Update/i }).first().click()
-    await saveResponse
-    await page.waitForLoadState('networkidle')
+    await expect(nameInput).toBeDisabled()
+
+    // Close modal
+    await page.getByRole('dialog').getByRole('button', { name: /Cancel/i }).click()
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
-    await expect(page.getByText(newName).first()).toBeVisible({ timeout: 15000 })
   })
 
   test('edit user attributes', async ({ page }) => {

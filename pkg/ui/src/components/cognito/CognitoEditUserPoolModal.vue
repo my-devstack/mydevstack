@@ -73,6 +73,7 @@ function handleClose() {
         label="Pool Name"
         placeholder="My User Pool"
         required
+        disabled
       />
       <div>
         <label class="block text-sm font-medium text-light-text dark:text-dark-text mb-1">MFA Configuration</label>
