@@ -54,6 +54,8 @@ export default {
           ssm: '#FF4F8B',
           elasticache: '#4053D6',
           rds: '#FF9900',
+          ecs: '#FF9900',
+          ecr: '#FF9900',
         },
       },
       fontFamily: {

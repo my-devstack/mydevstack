@@ -126,6 +126,8 @@ func (h *ProxyHandler) RegisterServiceRoutes(r chi.Router) {
 	h.registerElastiCacheRoutes(r)
 	h.registerRDSRoutes(r)
 	h.registerCognitoRoutes(r)
+	h.registerECSRoutes(r)
+	h.registerECRRoutes(r)
 }
 
 // HealthCheck is a simple endpoint to check if the proxy and backend are healthy.

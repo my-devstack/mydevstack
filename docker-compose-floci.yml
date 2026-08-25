@@ -37,11 +37,13 @@ services:
     environment:
       FLOCI_STORAGE_MODE: hybrid
       FLOCI_STORAGE_PERSISTENT_PATH: /app/data
-      FLOCI_SERVICES_LAMBDA_CODE_PATH:	/app/data/lambda
+      FLOCI_SERVICES_LAMBDA_CODE_PATH: /app/data/lambda
       FLOCI_SERVICES_DOCKER_NETWORK: mydevstack-network
       FLOCI_SERVICES_LAMBDA_HOT_RELOAD_ENABLED: "true"
       FLOCI_SERVICES_SES_SMTP_HOST: mailpit
       FLOCI_SERVICES_SES_SMTP_PORT: 1025
+      FLOCI_SERVICES_ECR_REGISTRY_BASE_PORT: 5200
+      FLOCI_SERVICES_ECR_REGISTRY_MAX_PORT: 5299
     networks:
       - mydevstack-network
     restart: unless-stopped

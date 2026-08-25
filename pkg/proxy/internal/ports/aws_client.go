@@ -13,6 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
@@ -510,4 +512,47 @@ type SFNClientPort interface {
 	ListTagsForResource(ctx context.Context, input *sfn.ListTagsForResourceInput, opts ...func(*sfn.Options)) (*sfn.ListTagsForResourceOutput, error)
 	TagResource(ctx context.Context, input *sfn.TagResourceInput, opts ...func(*sfn.Options)) (*sfn.TagResourceOutput, error)
 	UntagResource(ctx context.Context, input *sfn.UntagResourceInput, opts ...func(*sfn.Options)) (*sfn.UntagResourceOutput, error)
+}
+
+// ECSClientPort defines the interface for the AWS ECS (Elastic Container Service) client
+type ECSClientPort interface {
+	// Clusters
+	CreateCluster(ctx context.Context, input *ecs.CreateClusterInput, opts ...func(*ecs.Options)) (*ecs.CreateClusterOutput, error)
+	DescribeClusters(ctx context.Context, input *ecs.DescribeClustersInput, opts ...func(*ecs.Options)) (*ecs.DescribeClustersOutput, error)
+	ListClusters(ctx context.Context, input *ecs.ListClustersInput, opts ...func(*ecs.Options)) (*ecs.ListClustersOutput, error)
+	DeleteCluster(ctx context.Context, input *ecs.DeleteClusterInput, opts ...func(*ecs.Options)) (*ecs.DeleteClusterOutput, error)
+
+	// Task Definitions
+	RegisterTaskDefinition(ctx context.Context, input *ecs.RegisterTaskDefinitionInput, opts ...func(*ecs.Options)) (*ecs.RegisterTaskDefinitionOutput, error)
+	DescribeTaskDefinition(ctx context.Context, input *ecs.DescribeTaskDefinitionInput, opts ...func(*ecs.Options)) (*ecs.DescribeTaskDefinitionOutput, error)
+	ListTaskDefinitions(ctx context.Context, input *ecs.ListTaskDefinitionsInput, opts ...func(*ecs.Options)) (*ecs.ListTaskDefinitionsOutput, error)
+	ListTaskDefinitionFamilies(ctx context.Context, input *ecs.ListTaskDefinitionFamiliesInput, opts ...func(*ecs.Options)) (*ecs.ListTaskDefinitionFamiliesOutput, error)
+	DeregisterTaskDefinition(ctx context.Context, input *ecs.DeregisterTaskDefinitionInput, opts ...func(*ecs.Options)) (*ecs.DeregisterTaskDefinitionOutput, error)
+
+	// Tasks
+	RunTask(ctx context.Context, input *ecs.RunTaskInput, opts ...func(*ecs.Options)) (*ecs.RunTaskOutput, error)
+	StopTask(ctx context.Context, input *ecs.StopTaskInput, opts ...func(*ecs.Options)) (*ecs.StopTaskOutput, error)
+	DescribeTasks(ctx context.Context, input *ecs.DescribeTasksInput, opts ...func(*ecs.Options)) (*ecs.DescribeTasksOutput, error)
+	ListTasks(ctx context.Context, input *ecs.ListTasksInput, opts ...func(*ecs.Options)) (*ecs.ListTasksOutput, error)
+
+	// Services
+	CreateService(ctx context.Context, input *ecs.CreateServiceInput, opts ...func(*ecs.Options)) (*ecs.CreateServiceOutput, error)
+	DescribeServices(ctx context.Context, input *ecs.DescribeServicesInput, opts ...func(*ecs.Options)) (*ecs.DescribeServicesOutput, error)
+	ListServices(ctx context.Context, input *ecs.ListServicesInput, opts ...func(*ecs.Options)) (*ecs.ListServicesOutput, error)
+	DeleteService(ctx context.Context, input *ecs.DeleteServiceInput, opts ...func(*ecs.Options)) (*ecs.DeleteServiceOutput, error)
+}
+
+// ECRClientPort defines the interface for the AWS ECR client
+type ECRClientPort interface {
+	CreateRepository(ctx context.Context, input *ecr.CreateRepositoryInput, opts ...func(*ecr.Options)) (*ecr.CreateRepositoryOutput, error)
+	DescribeRepositories(ctx context.Context, input *ecr.DescribeRepositoriesInput, opts ...func(*ecr.Options)) (*ecr.DescribeRepositoriesOutput, error)
+	DeleteRepository(ctx context.Context, input *ecr.DeleteRepositoryInput, opts ...func(*ecr.Options)) (*ecr.DeleteRepositoryOutput, error)
+	GetAuthorizationToken(ctx context.Context, input *ecr.GetAuthorizationTokenInput, opts ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error)
+	ListImages(ctx context.Context, input *ecr.ListImagesInput, opts ...func(*ecr.Options)) (*ecr.ListImagesOutput, error)
+	DescribeImages(ctx context.Context, input *ecr.DescribeImagesInput, opts ...func(*ecr.Options)) (*ecr.DescribeImagesOutput, error)
+	BatchGetImage(ctx context.Context, input *ecr.BatchGetImageInput, opts ...func(*ecr.Options)) (*ecr.BatchGetImageOutput, error)
+	BatchDeleteImage(ctx context.Context, input *ecr.BatchDeleteImageInput, opts ...func(*ecr.Options)) (*ecr.BatchDeleteImageOutput, error)
+	TagResource(ctx context.Context, input *ecr.TagResourceInput, opts ...func(*ecr.Options)) (*ecr.TagResourceOutput, error)
+	UntagResource(ctx context.Context, input *ecr.UntagResourceInput, opts ...func(*ecr.Options)) (*ecr.UntagResourceOutput, error)
+	ListTagsForResource(ctx context.Context, input *ecr.ListTagsForResourceInput, opts ...func(*ecr.Options)) (*ecr.ListTagsForResourceOutput, error)
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
@@ -280,6 +281,7 @@ func TestServiceRouter(t *testing.T) {
 		{name: "cloudwatch", method: "GET", path: "/cloudwatch/alarms", wantStatus: http.StatusOK},
 		{name: "cloudwatchlogs", method: "GET", path: "/cloudwatch-logs/log-groups", wantStatus: http.StatusOK},
 		{name: "sesv2", method: "GET", path: "/sesv2/email-identities", wantStatus: http.StatusOK},
+		{name: "ecs", method: "GET", path: "/ecs/clusters", wantStatus: http.StatusOK},
 	}
 
 	for _, sc := range cases {
@@ -366,6 +368,10 @@ func TestServiceRouter(t *testing.T) {
 					mp := mockports.NewSESv2Port(t)
 					mp.EXPECT().ListEmailIdentities(mock.Anything, mock.Anything).Return(&sesv2.ListEmailIdentitiesOutput{}, nil)
 					svc.EXPECT().SESv2().Return(mp)
+				case "/ecs/clusters":
+					mp := mockports.NewECSPort(t)
+					mp.EXPECT().ListClusters(mock.Anything, mock.Anything).Return(&ecs.ListClustersOutput{}, nil)
+					svc.EXPECT().ECS().Return(mp)
 				}
 			})
 		})

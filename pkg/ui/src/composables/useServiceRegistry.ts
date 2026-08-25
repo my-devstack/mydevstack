@@ -17,6 +17,10 @@ import { listDomainNames as fetchOpenSearchDomains } from '@/api/services/opense
 import { describeParameters as fetchSSMParameters } from '@/api/services/ssm'
 import { describeAlarms as fetchCWAlarms } from '@/api/services/cloudwatch'
 import { listUserPools as fetchCognitoUserPools } from '@/api/services/cognito'
+import { listClusters as fetchECSClusters } from '@/api/services/ecs'
+import { listRepositories as fetchECRRepositories } from '@/api/services/ecr'
+import { listStateMachines as fetchStepFunctionsStateMachines } from '@/api/services/stepfunctions'
+import { listStacks as fetchCloudFormationStacks } from '@/api/services/cloudformation'
 import { useSettingsStore } from '@/stores/settings'
 import type { ServiceCategory } from '@/types/services'
 import { SERVICE_COLORS, type ServiceStats, type ServiceStatus, determineStatus } from '@/types/serviceRegistry'
@@ -305,6 +309,62 @@ const SERVICE_CONFIGS: ServiceConfig[] = [
     statsFetcher: async () => {
       const result = await fetchSSMParameters()
       return result.Parameters?.length || 0
+    },
+    enabled: true,
+  },
+  {
+    id: 'ecs',
+    name: 'ECS Clusters',
+    category: 'compute',
+    icon: 'ServerIcon',
+    route: '/services/ecs',
+    color: SERVICE_COLORS.ecs.text,
+    bgColor: SERVICE_COLORS.ecs.bg,
+    statsFetcher: async () => {
+      const result = await fetchECSClusters()
+      return result.ClusterArns?.length || 0
+    },
+    enabled: true,
+  },
+  {
+    id: 'ecr',
+    name: 'ECR Repositories',
+    category: 'storage',
+    icon: 'ArchiveBoxIcon',
+    route: '/services/ecr',
+    color: SERVICE_COLORS.ecr.text,
+    bgColor: SERVICE_COLORS.ecr.bg,
+    statsFetcher: async () => {
+      const result = await fetchECRRepositories()
+      return result.Repositories?.length || 0
+    },
+    enabled: true,
+  },
+  {
+    id: 'stepfunctions',
+    name: 'Step Functions',
+    category: 'analytics',
+    icon: 'CircleStackIcon',
+    route: '/services/stepfunctions',
+    color: SERVICE_COLORS.stepfunctions.text,
+    bgColor: SERVICE_COLORS.stepfunctions.bg,
+    statsFetcher: async () => {
+      const result = await fetchStepFunctionsStateMachines()
+      return result.StateMachines?.length || 0
+    },
+    enabled: true,
+  },
+  {
+    id: 'cloudformation',
+    name: 'CloudFormation Stacks',
+    category: 'analytics',
+    icon: 'CloudIcon',
+    route: '/services/cloudformation',
+    color: SERVICE_COLORS.cloudformation.text,
+    bgColor: SERVICE_COLORS.cloudformation.bg,
+    statsFetcher: async () => {
+      const result = await fetchCloudFormationStacks()
+      return result.length || 0
     },
     enabled: true,
   },

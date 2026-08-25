@@ -28,6 +28,8 @@ describe('Router', () => {
     'CloudWatch',
     'MSK',
     'Cognito',
+    'ECS',
+    'ECR',
   ]
 
   it('creates router instance', () => {

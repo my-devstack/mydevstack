@@ -70,6 +70,22 @@ vi.mock('@/api/services/cloudwatch', () => ({
   describeAlarms: vi.fn(),
 }))
 
+vi.mock('@/api/services/ecs', () => ({
+  listClusters: vi.fn(),
+}))
+
+vi.mock('@/api/services/ecr', () => ({
+  listRepositories: vi.fn(),
+}))
+
+vi.mock('@/api/services/stepfunctions', () => ({
+  listStateMachines: vi.fn(),
+}))
+
+vi.mock('@/api/services/cloudformation', () => ({
+  listStacks: vi.fn(),
+}))
+
 const mockEmulator = { value: '' }
 vi.mock('@/stores/settings', () => ({
   useSettingsStore: vi.fn(() => ({
@@ -93,6 +109,10 @@ import * as secretsApi from '@/api/services/secrets-manager'
 import * as elasticacheApi from '@/api/services/elasticache'
 import * as ssmApi from '@/api/services/ssm'
 import * as cwApi from '@/api/services/cloudwatch'
+import * as ecsApi from '@/api/services/ecs'
+import * as ecrApi from '@/api/services/ecr'
+import * as stepfunctionsApi from '@/api/services/stepfunctions'
+import * as cloudformationApi from '@/api/services/cloudformation'
 
 describe('useServiceRegistry', () => {
   beforeEach(() => {
@@ -113,6 +133,10 @@ describe('useServiceRegistry', () => {
     vi.mocked(elasticacheApi.describeReplicationGroups).mockResolvedValue([{ ReplicationGroupId: 'rg1' }])
     vi.mocked(ssmApi.describeParameters).mockResolvedValue({ Parameters: [{ Name: 'param1' }] })
     vi.mocked(cwApi.describeAlarms).mockResolvedValue({ MetricAlarms: [{ AlarmName: 'alarm1' }] })
+    vi.mocked(ecsApi.listClusters).mockResolvedValue({ ClusterArns: ['arn:aws:ecs:cluster1'] })
+    vi.mocked(ecrApi.listRepositories).mockResolvedValue({ Repositories: [{ RepositoryName: 'repo1' }] })
+    vi.mocked(stepfunctionsApi.listStateMachines).mockResolvedValue({ StateMachines: [{ StateMachineArn: 'arn:aws:states:sm1' }] })
+    vi.mocked(cloudformationApi.listStacks).mockResolvedValue([{ StackName: 'stack1' }])
   })
 
   describe('service configurations', () => {
@@ -136,6 +160,24 @@ describe('useServiceRegistry', () => {
       expect(s3Service?.color).toBeDefined()
       expect(s3Service?.bgColor).toBeDefined()
       expect(s3Service?.statsFetcher).toBeInstanceOf(Function)
+    })
+
+    it('should have stepfunctions and cloudformation service configs', () => {
+      const stepfunctions = SERVICE_CONFIGS.find(s => s.id === 'stepfunctions')
+      expect(stepfunctions).toBeDefined()
+      expect(stepfunctions?.name).toBe('Step Functions')
+      expect(stepfunctions?.route).toBe('/services/stepfunctions')
+      expect(stepfunctions?.color).toBeDefined()
+      expect(stepfunctions?.bgColor).toBeDefined()
+      expect(stepfunctions?.statsFetcher).toBeInstanceOf(Function)
+
+      const cloudformation = SERVICE_CONFIGS.find(s => s.id === 'cloudformation')
+      expect(cloudformation).toBeDefined()
+      expect(cloudformation?.name).toBe('CloudFormation Stacks')
+      expect(cloudformation?.route).toBe('/services/cloudformation')
+      expect(cloudformation?.color).toBeDefined()
+      expect(cloudformation?.bgColor).toBeDefined()
+      expect(cloudformation?.statsFetcher).toBeInstanceOf(Function)
     })
   })
 
@@ -255,6 +297,16 @@ describe('useServiceRegistry', () => {
       expect(stats.value.get('s3')?.status).toBe('healthy')
       expect(stats.value.get('ec2')?.count).toBe(0)
       expect(stats.value.get('ec2')?.status).toBe('healthy')
+      // ECS and ECR should have count 1 (from mock)
+      expect(stats.value.get('ecs')?.count).toBe(1)
+      expect(stats.value.get('ecs')?.status).toBe('healthy')
+      expect(stats.value.get('ecr')?.count).toBe(1)
+      expect(stats.value.get('ecr')?.status).toBe('healthy')
+      // Step Functions and CloudFormation should have count 1 (from mock)
+      expect(stats.value.get('stepfunctions')?.count).toBe(1)
+      expect(stats.value.get('stepfunctions')?.status).toBe('healthy')
+      expect(stats.value.get('cloudformation')?.count).toBe(1)
+      expect(stats.value.get('cloudformation')?.status).toBe('healthy')
     })
 
     it('quickStats reflects fetched stats', async () => {

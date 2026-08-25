@@ -277,6 +277,8 @@
   .service-ssm { @apply text-service-ssm; }
   .service-elasticache { @apply text-service-elasticache; }
   .service-rds { @apply text-service-rds; }
+  .service-ecs { @apply text-service-ecs; }
+  .service-ecr { @apply text-service-ecr; }
 
   .bg-service-s3 { @apply bg-service-s3; }
   .bg-service-lambda { @apply bg-service-lambda; }
@@ -296,6 +298,8 @@
   .bg-service-ssm { @apply bg-service-ssm; }
   .bg-service-elasticache { @apply bg-service-elasticache; }
   .bg-service-rds { @apply bg-service-rds; }
+  .bg-service-ecs { @apply bg-service-ecs; }
+  .bg-service-ecr { @apply bg-service-ecr; }
 
   /* Status indicators */
   .status-dot {

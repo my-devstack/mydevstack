@@ -1,0 +1,842 @@
+openapi: 3.0.0
+info:
+  title: "ECS"
+  version: "1.0.0"
+
+paths:
+  /ecs/clusters:
+    get:
+      tags: [ECS]
+      summary: List clusters
+      description: |
+        Returns a list of Amazon ECS clusters.
+      operationId: listClusters
+      parameters:
+        - name: nextToken
+          in: query
+          required: false
+          schema: { type: string }
+          description: Pagination token from previous response
+        - name: maxResults
+          in: query
+          required: false
+          schema: { type: integer, format: int32, minimum: 1, maximum: 100 }
+          description: Maximum number of clusters to return
+      responses:
+        "200":
+          description: List of clusters
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSListClustersOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [ECS]
+      summary: Create cluster
+      description: |
+        Creates a new Amazon ECS cluster.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createCluster
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/ECSCreateClusterInput'
+      responses:
+        "200":
+          description: Cluster created
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSCreateClusterOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecs/clusters/{clusterName}:
+    get:
+      tags: [ECS]
+      summary: Describe cluster
+      description: |
+        Returns detailed information about a specific cluster.
+      operationId: describeCluster
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema: { type: string, pattern: '.+' }
+          description: The cluster name or full ARN
+      responses:
+        "200":
+          description: Cluster details
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSDescribeClusterOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [ECS]
+      summary: Delete cluster
+      description: |
+        Deletes a specific cluster.
+      operationId: deleteCluster
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema: { type: string, pattern: '.+' }
+          description: The cluster name or full ARN
+      responses:
+        "200":
+          description: Cluster deleted
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSDeleteClusterOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecs/clusters/{clusterName}/settings:
+    get:
+      tags: [ECS]
+      summary: Get cluster settings
+      description: |
+        Returns the settings for a specific cluster.
+      operationId: getClusterSettings
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema: { type: string, pattern: '.+' }
+          description: The cluster name or full ARN
+        - name: settings
+          in: query
+          required: false
+          schema: { type: string }
+          description: Setting name to retrieve
+      responses:
+        "200":
+          description: Cluster settings
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSGetClusterSettingsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [ECS]
+      summary: Update cluster settings
+      description: |
+        Updates the settings for a cluster.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateClusterSettings
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema: { type: string, pattern: '.+' }
+          description: The cluster name or full ARN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/ECSUpdateClusterSettingsInput'
+      responses:
+        "200":
+          description: Cluster settings updated
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSUpdateClusterSettingsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecs/clusters/{clusterName}/capacity-providers:
+    get:
+      tags: [ECS]
+      summary: Get cluster capacity providers
+      description: |
+        Returns the capacity providers for a cluster.
+      operationId: getClusterCapacityProviders
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema: { type: string, pattern: '.+' }
+          description: The cluster name or full ARN
+      responses:
+        "200":
+          description: Cluster capacity providers
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSGetClusterCapacityProvidersOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [ECS]
+      summary: Update cluster capacity providers
+      description: |
+        Updates the capacity providers for a cluster.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: putClusterCapacityProviders
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema: { type: string, pattern: '.+' }
+          description: The cluster name or full ARN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/ECSPutClusterCapacityProvidersInput'
+      responses:
+        "200":
+          description: Cluster capacity providers updated
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSPutClusterCapacityProvidersOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecs/task-definitions:
+    get:
+      tags: [ECS]
+      summary: List task definitions
+      description: |
+        Returns a list of task definition revisions.
+      operationId: listTaskDefinitions
+      parameters:
+        - name: familyPrefix
+          in: query
+          required: false
+          schema: { type: string }
+          description: Filter by family prefix
+        - name: nextToken
+          in: query
+          required: false
+          schema: { type: string }
+          description: Pagination token
+        - name: maxResults
+          in: query
+          required: false
+          schema: { type: integer, format: int32, minimum: 1, maximum: 100 }
+          description: Maximum number to return
+        - name: sort
+          in: query
+          required: false
+          schema: { type: string, enum: [ASC, DESC] }
+          description: Sort order
+        - name: status
+          in: query
+          required: false
+          schema: { type: string, enum: [ACTIVE, INACTIVE, DELETE_IN_PROGRESS] }
+          description: Filter by status
+      responses:
+        "200":
+          description: List of task definitions
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSListTaskDefinitionsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [ECS]
+      summary: Register task definition
+      description: |
+        Registers a new task definition.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: registerTaskDefinition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/ECSRegisterTaskDefinitionInput'
+      responses:
+        "200":
+          description: Task definition registered
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSRegisterTaskDefinitionOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecs/task-definitions/{taskDefinitionArn}:
+    get:
+      tags: [ECS]
+      summary: Describe task definition
+      description: |
+        Returns a task definition description.
+      operationId: describeTaskDefinition
+      parameters:
+        - name: taskDefinitionArn
+          in: path
+          required: true
+          schema: { type: string }
+          description: The task definition ARN
+      responses:
+        "200":
+          description: Task definition details
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSDescribeTaskDefinitionOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [ECS]
+      summary: Deregister task definition
+      description: |
+        Deregisters a task definition.
+      operationId: deregisterTaskDefinition
+      parameters:
+        - name: taskDefinitionArn
+          in: path
+          required: true
+          schema: { type: string }
+          description: The task definition ARN
+      responses:
+        "200":
+          description: Task definition deregistered
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSDeregisterTaskDefinitionOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecs/task-definition-families:
+    get:
+      tags: [ECS]
+      summary: List task definition families
+      description: |
+        Returns a list of task definition families.
+      operationId: listTaskDefinitionFamilies
+      parameters:
+        - name: familyPrefix
+          in: query
+          required: false
+          schema: { type: string }
+          description: Filter by family prefix
+        - name: nextToken
+          in: query
+          required: false
+          schema: { type: string }
+          description: Pagination token
+        - name: maxResults
+          in: query
+          required: false
+          schema: { type: integer, format: int32, minimum: 1, maximum: 100 }
+          description: Maximum number to return
+      responses:
+        "200":
+          description: List of task definition families
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSListTaskDefinitionFamiliesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecs/tasks:
+    get:
+      tags: [ECS]
+      summary: List tasks
+      description: |
+        Returns a list of tasks in a cluster.
+      operationId: listTasks
+      parameters:
+        - name: cluster
+          in: query
+          required: false
+          schema: { type: string }
+          description: The cluster name or ARN
+        - name: family
+          in: query
+          required: false
+          schema: { type: string }
+          description: Filter by task definition family
+        - name: nextToken
+          in: query
+          required: false
+          schema: { type: string }
+          description: Pagination token
+        - name: maxResults
+          in: query
+          required: false
+          schema: { type: integer, format: int32, minimum: 1, maximum: 100 }
+          description: Maximum number to return
+        - name: startedBy
+          in: query
+          required: false
+          schema: { type: string }
+          description: Filter by startedBy
+        - name: serviceName
+          in: query
+          required: false
+          schema: { type: string }
+          description: Filter by service name
+        - name: desiredStatus
+          in: query
+          required: false
+          schema: { type: string, enum: [RUNNING, PENDING, STOPPED] }
+          description: Filter by desired status
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSListTasksOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [ECS]
+      summary: Run task
+      description: |
+        Starts a new task using the specified task definition.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: runTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/ECSRunTaskInput'
+      responses:
+        "200":
+          description: Task started
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSRunTaskOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecs/tasks/start:
+    post:
+      tags: [ECS]
+      summary: Start task
+      description: |
+        Starts a new task on a specific cluster.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: startTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/ECSStartTaskInput'
+      responses:
+        "200":
+          description: Task started
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSStartTaskOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecs/tasks/stop:
+    post:
+      tags: [ECS]
+      summary: Stop task
+      description: |
+        Stops a running task.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: stopTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/ECSStopTaskInput'
+      responses:
+        "200":
+          description: Task stopped
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSStopTaskOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecs/tasks/{taskArn}:
+    get:
+      tags: [ECS]
+      summary: Describe task
+      description: |
+        Returns description of a task.
+      operationId: describeTask
+      parameters:
+        - name: taskArn
+          in: path
+          required: true
+          schema: { type: string }
+          description: The task ARN
+      responses:
+        "200":
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSDescribeTaskOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecs/services:
+    get:
+      tags: [ECS]
+      summary: List services
+      description: |
+        Returns a list of services in a cluster.
+      operationId: listServices
+      parameters:
+        - name: cluster
+          in: query
+          required: false
+          schema: { type: string }
+          description: The cluster name or ARN
+        - name: nextToken
+          in: query
+          required: false
+          schema: { type: string }
+          description: Pagination token
+        - name: maxResults
+          in: query
+          required: false
+          schema: { type: integer, format: int32, minimum: 1, maximum: 100 }
+          description: Maximum number to return
+        - name: launchType
+          in: query
+          required: false
+          schema: { type: string, enum: [EC2, FARGATE, EXTERNAL] }
+          description: Filter by launch type
+        - name: schedulingStrategy
+          in: query
+          required: false
+          schema: { type: string, enum: [REPLICA, DAEMON] }
+          description: Filter by scheduling strategy
+      responses:
+        "200":
+          description: List of services
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSListServicesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [ECS]
+      summary: Create service
+      description: |
+        Creates a new service in a cluster.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createService
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../common/_components.yaml#/components/schemas/ECSCreateServiceInput'
+      responses:
+        "200":
+          description: Service created
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSCreateServiceOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecs/services/{clusterName}/{serviceName}:
+    get:
+      tags: [ECS]
+      summary: Describe service
+      description: |
+        Returns details of a service.
+      operationId: describeService
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema: { type: string, pattern: '.+' }
+          description: The cluster name or ARN
+        - name: serviceName
+          in: path
+          required: true
+          schema: { type: string, pattern: '.+' }
+          description: The service name or ARN
+      responses:
+        "200":
+          description: Service details
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSDescribeServiceOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [ECS]
+      summary: Delete service
+      description: |
+        Deletes a service.
+      operationId: deleteService
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema: { type: string, pattern: '.+' }
+          description: The cluster name or ARN
+        - name: serviceName
+          in: path
+          required: true
+          schema: { type: string, pattern: '.+' }
+          description: The service name or ARN
+      responses:
+        "200":
+          description: Service deleted
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ECSDeleteServiceOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'

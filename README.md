@@ -166,6 +166,8 @@ mydevstack/
 | Step Functions | ✅ | State Machines, Executions |
 | OpenSearch | ✅ | Domains, Config (requires LocalStack or FloCi) |
 | MSK | ✅ | Clusters, Bootstrap Brokers (requires LocalStack or FloCi) |
+| ECS | ✅ | Clusters, Task Definitions, Tasks, Services |
+| ECR | ✅ | Repositories, Images, Authorization |
 
 ---
 
