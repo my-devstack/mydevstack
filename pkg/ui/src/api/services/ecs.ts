@@ -237,20 +237,20 @@ export async function listTasks(params?: {
 }
 
 export async function describeTasks(taskArn: string, cluster?: string): Promise<{ Tasks: ECSTask[]; Failures?: unknown[] }> {
-  const res = await fetch(`${api}/ecs/tasks/${encodeURIComponent(taskArn)}`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-    body: cluster ? JSON.stringify({ Cluster: cluster }) : undefined,
-  })
+  const query = cluster ? `?Cluster=${encodeURIComponent(cluster)}` : ''
+  const res = await fetch(`${api}/ecs/tasks/${encodeURIComponent(taskArn)}${query}`)
   if (!res.ok) throw new APIError(`Describe task failed`, res.status, 'ecs')
   return res.json()
 }
 
 export async function stopTask(taskArn: string, cluster?: string, reason?: string): Promise<{ Task: ECSTask }> {
-  const res = await fetch(`${api}/ecs/tasks/${encodeURIComponent(taskArn)}/stop`, {
+  const body: Record<string, string> = { Task: taskArn }
+  if (cluster) body.Cluster = cluster
+  if (reason) body.Reason = reason
+  const res = await fetch(`${api}/ecs/tasks/stop`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ Cluster: cluster, Reason: reason }),
+    body: JSON.stringify(body),
   })
   if (!res.ok) throw new APIError(`Stop task failed`, res.status, 'ecs')
   return res.json()
@@ -294,11 +294,8 @@ export async function createService(params: {
 }
 
 export async function describeServices(serviceName: string, cluster?: string): Promise<{ Services: ECSService[]; Failures?: unknown[] }> {
-  const res = await fetch(`${api}/ecs/services/${encodeURIComponent(serviceName)}`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-    body: cluster ? JSON.stringify({ Cluster: cluster }) : undefined,
-  })
+  const query = cluster ? `?Cluster=${encodeURIComponent(cluster)}` : ''
+  const res = await fetch(`${api}/ecs/services/${encodeURIComponent(serviceName)}${query}`)
   if (!res.ok) throw new APIError(`Describe service failed`, res.status, 'ecs')
   return res.json()
 }

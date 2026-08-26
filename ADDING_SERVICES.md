@@ -48,9 +48,11 @@ pkg/ui/src/api/services/<service>.ts
 - Use existing patterns from other services (e.g., `s3.ts`, `lambda.ts`)
 - Return properly typed responses
 
-**Testing:**
-- Manual testing via browser DevTools
-- No unit test required for API client (covered by integration tests)
+**Testing (REQUIRED — do not skip):**
+- Unit tests **required** for every API client function. API clients are HTTP client wrappers with error handling branches that are NOT covered by integration tests.
+- Create `pkg/ui/src/api/services/<service>.test.ts` following the pattern of `sqs.test.ts`, `kinesis.test.ts`, `ecr.test.ts`, or `ecs.test.ts`.
+- Cover: success path, error path (non-ok response throws APIError), network error path.
+- All tests must pass before marking work complete.
 
 ---
 
@@ -569,6 +571,7 @@ cd pkg/regression-test && pnpm exec playwright test e2e/services/<service>.spec.
 | **Backend** | `pkg/proxy/internal/adapters/aws/<service>.go` | AWS adapter |
 | **Backend** | `pkg/proxy/internal/adapters/http/<service>_test.go` | Unit tests |
 | **API** | `pkg/ui/src/api/services/<service>.ts` | API client |
+| **API** | `pkg/ui/src/api/services/<service>.test.ts` | Unit tests |
 | **Composable** | `pkg/ui/src/composables/use<Service>.ts` | State management |
 | **Composable** | `pkg/ui/src/composables/use<Service>.test.ts` | Unit tests |
 | **Component** | `pkg/ui/src/components/<service>/index.ts` | Barrel export |
@@ -581,7 +584,7 @@ cd pkg/regression-test && pnpm exec playwright test e2e/services/<service>.spec.
 | **Router** | `pkg/ui/src/router/index.ts` | Route entry |
 | **Nav** | `pkg/ui/src/components/layout/Sidebar.vue` | Navigation |
 | **E2E** | `pkg/regression-test/e2e/services/<service>.spec.ts` | E2E tests |
-| **Total** | **15-17 files** | Per service |
+| **Total** | **16-18 files** | Per service |
 
 ---
 

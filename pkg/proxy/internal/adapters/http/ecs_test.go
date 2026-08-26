@@ -382,7 +382,19 @@ func TestECS_DescribeTasks_Success(t *testing.T) {
 			in.Cluster != nil && *in.Cluster == "test-cluster"
 	})).Return(&ecs.DescribeTasksOutput{}, nil)
 
-	w := performECSRequest(handler, "GET", "/ecs/tasks/task-arn-1", []byte(`{"Cluster":"test-cluster"}`))
+	// The frontend sends the cluster as a query param, not a body.
+	w := performECSRequest(handler, "GET", "/ecs/tasks/task-arn-1?Cluster=test-cluster", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestECS_DescribeTasks_NoCluster(t *testing.T) {
+	t.Parallel()
+	_, mp, handler := setupECSTest(t)
+	mp.EXPECT().DescribeTasks(mock.Anything, mock.MatchedBy(func(in *ecs.DescribeTasksInput) bool {
+		return len(in.Tasks) == 1 && in.Tasks[0] == "task-arn-1" && in.Cluster == nil
+	})).Return(&ecs.DescribeTasksOutput{}, nil)
+
+	w := performECSRequest(handler, "GET", "/ecs/tasks/task-arn-1", nil)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -407,7 +419,7 @@ func TestECS_StopTask_Success(t *testing.T) {
 			in.Reason != nil && *in.Reason == "test reason"
 	})).Return(&ecs.StopTaskOutput{}, nil)
 
-	w := performECSRequest(handler, "POST", "/ecs/tasks/task-arn-1/stop", []byte(`{"Cluster":"test-cluster","Reason":"test reason"}`))
+	w := performECSRequest(handler, "POST", "/ecs/tasks/stop", []byte(`{"Task":"task-arn-1","Cluster":"test-cluster","Reason":"test reason"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -416,7 +428,7 @@ func TestECS_StopTask_Error(t *testing.T) {
 	_, mp, handler := setupECSTest(t)
 	mp.EXPECT().StopTask(mock.Anything, mock.Anything).Return(nil, errors.New("stop task error"))
 
-	w := performECSRequest(handler, "POST", "/ecs/tasks/task-arn-1/stop", []byte(`{}`))
+	w := performECSRequest(handler, "POST", "/ecs/tasks/stop", []byte(`{}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -506,7 +518,19 @@ func TestECS_DescribeServices_Success(t *testing.T) {
 			in.Cluster != nil && *in.Cluster == "test-cluster"
 	})).Return(&ecs.DescribeServicesOutput{}, nil)
 
-	w := performECSRequest(handler, "GET", "/ecs/services/test-svc", []byte(`{"Cluster":"test-cluster"}`))
+	// The frontend sends the cluster as a query param, not a body.
+	w := performECSRequest(handler, "GET", "/ecs/services/test-svc?Cluster=test-cluster", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestECS_DescribeServices_NoCluster(t *testing.T) {
+	t.Parallel()
+	_, mp, handler := setupECSTest(t)
+	mp.EXPECT().DescribeServices(mock.Anything, mock.MatchedBy(func(in *ecs.DescribeServicesInput) bool {
+		return len(in.Services) == 1 && in.Services[0] == "test-svc" && in.Cluster == nil
+	})).Return(&ecs.DescribeServicesOutput{}, nil)
+
+	w := performECSRequest(handler, "GET", "/ecs/services/test-svc", nil)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -567,7 +591,7 @@ func TestECS_InvalidBody(t *testing.T) {
 		{name: "ListClusters", method: "GET", path: "/ecs/clusters", body: `{invalid`},
 		{name: "ListTasks", method: "GET", path: "/ecs/tasks", body: `{invalid`},
 		{name: "ListServices", method: "GET", path: "/ecs/services", body: `{invalid`},
-		{name: "StopTask", method: "POST", path: "/ecs/tasks/task-arn-1/stop", body: `{invalid`},
+		{name: "StopTask", method: "POST", path: "/ecs/tasks/stop", body: `{invalid`},
 		{name: "DeleteService", method: "DELETE", path: "/ecs/services/test-svc", body: `{invalid`},
 	}
 	for _, tt := range tests {
@@ -646,7 +670,7 @@ func TestECS_NotFound(t *testing.T) {
 			setupMock: func(mp *mockports.ECSPort) {
 				mp.EXPECT().DescribeTasks(mock.Anything, mock.Anything).Return(nil, &mockNotFoundError{})
 			}},
-		{name: "StopTask", method: "POST", path: "/ecs/tasks/task-arn-1/stop", body: `{}`,
+		{name: "StopTask", method: "POST", path: "/ecs/tasks/stop", body: `{}`,
 			setupMock: func(mp *mockports.ECSPort) {
 				mp.EXPECT().StopTask(mock.Anything, mock.Anything).Return(nil, &mockNotFoundError{})
 			}},

@@ -155,6 +155,8 @@ jobs:
             -e FLOCI_SERVICES_OPENSEARCH_MOCK=true \
             -e FLOCI_SERVICES_MSK_MOCK=true \
             -e FLOCI_SERVICES_EC2_MOCK=true \
+            -e FLOCI_SERVICES_ECS_MOCK=true \
+            -e FLOCI_SERVICES_ECR_ENABLED=true \
             floci/floci:latest
           sleep 5
           for i in {1..30}; do

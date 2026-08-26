@@ -142,5 +142,18 @@ describe('SNS Service', () => {
       mockFetch.mockRejectedValue(new Error('Network error'))
       await expect(listTopics()).rejects.toThrow(/Failed to listTopics/)
     })
+
+    it('subscribe catches non-APIError and rethrows as APIError', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ SubscriptionArn: 'arn:sns:sub1' }))
+      // The function has a catch block that rethrows non-APIError
+      // This test verifies the catch path when error is not APIError
+      mockFetch.mockRejectedValueOnce(new Error('Unexpected error'))
+      await expect(subscribe('arn:aws:sns:t1', 'email', 'a@b.com')).rejects.toThrow(/Failed to subscribe/)
+    })
+
+    it('publish catches non-APIError and rethrows as APIError', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Unexpected error'))
+      await expect(publish('arn:aws:sns:t1', 'hello')).rejects.toThrow(/Failed to publish/)
+    })
   })
 })

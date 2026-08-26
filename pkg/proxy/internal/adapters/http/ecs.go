@@ -28,8 +28,8 @@ func (h *ProxyHandler) registerECSRoutes(r chi.Router) {
 		// Tasks
 		r.Post("/tasks", h.ecsRunTask)
 		r.Get("/tasks", h.ecsListTasks)
-		r.Get("/tasks/{task}", h.ecsDescribeTasks)
-		r.Post("/tasks/{task}/stop", h.ecsStopTask)
+		r.Get("/tasks/{task:*}", h.ecsDescribeTasks)
+		r.Post("/tasks/stop", h.ecsStopTask)
 
 		// Services
 		r.Get("/services", h.ecsListServices)
@@ -344,19 +344,11 @@ func (h *ProxyHandler) ecsListTasks(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProxyHandler) ecsDescribeTasks(w http.ResponseWriter, r *http.Request) {
-	bodyBytes := readBody(r)
-	var body struct {
-		Cluster string `json:"Cluster"`
-	}
-	if err := parseBody(bodyBytes, &body); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
-	}
 	input := &ecs.DescribeTasksInput{
 		Tasks: []string{urlParam(r, "task")},
 	}
-	if body.Cluster != "" {
-		input.Cluster = aws.String(body.Cluster)
+	if v := r.URL.Query().Get("Cluster"); v != "" {
+		input.Cluster = aws.String(v)
 	}
 	result, err := h.Svc.ECS().DescribeTasks(h.ctx, input)
 	if err != nil {
@@ -368,22 +360,10 @@ func (h *ProxyHandler) ecsDescribeTasks(w http.ResponseWriter, r *http.Request) 
 
 func (h *ProxyHandler) ecsStopTask(w http.ResponseWriter, r *http.Request) {
 	bodyBytes := readBody(r)
-	var body struct {
-		Cluster string `json:"Cluster"`
-		Reason  string `json:"Reason"`
-	}
-	if err := parseBody(bodyBytes, &body); err != nil {
+	input := &ecs.StopTaskInput{}
+	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
-	}
-	input := &ecs.StopTaskInput{
-		Task: aws.String(urlParam(r, "task")),
-	}
-	if body.Cluster != "" {
-		input.Cluster = aws.String(body.Cluster)
-	}
-	if body.Reason != "" {
-		input.Reason = aws.String(body.Reason)
 	}
 	result, err := h.Svc.ECS().StopTask(h.ctx, input)
 	if err != nil {
@@ -454,19 +434,11 @@ func (h *ProxyHandler) ecsCreateService(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *ProxyHandler) ecsDescribeServices(w http.ResponseWriter, r *http.Request) {
-	bodyBytes := readBody(r)
-	var body struct {
-		Cluster string `json:"Cluster"`
-	}
-	if err := parseBody(bodyBytes, &body); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
-	}
 	input := &ecs.DescribeServicesInput{
 		Services: []string{urlParam(r, "service")},
 	}
-	if body.Cluster != "" {
-		input.Cluster = aws.String(body.Cluster)
+	if v := r.URL.Query().Get("Cluster"); v != "" {
+		input.Cluster = aws.String(v)
 	}
 	result, err := h.Svc.ECS().DescribeServices(h.ctx, input)
 	if err != nil {
