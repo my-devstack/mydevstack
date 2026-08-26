@@ -168,6 +168,20 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/services/Cognito.vue'),
     meta: { title: 'Cognito', service: 'cognito' },
   },
+  // ECS
+  {
+    path: '/services/ecs',
+    name: 'ECS',
+    component: () => import('@/views/services/ECS.vue'),
+    meta: { title: 'ECS', service: 'ecs' },
+  },
+  // ECR
+  {
+    path: '/services/ecr',
+    name: 'ECR',
+    component: () => import('@/views/services/ECR.vue'),
+    meta: { title: 'ECR', service: 'ecr' },
+  },
   
   // Explicit redirect for /services to dashboard
   {

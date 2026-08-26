@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useVPC } from './useVPC'
+import { useToast } from './useToast'
 
 vi.mock('@/stores/settings', () => ({
   useSettingsStore: vi.fn(() => ({
@@ -183,6 +184,140 @@ describe('useVPC', () => {
     })
   })
 
+  describe('load functions error paths', () => {
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>
+
+    beforeEach(() => {
+      consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    })
+
+    afterEach(() => {
+      consoleErrorSpy.mockRestore()
+    })
+
+    it('loadVpcs sets [] on error', async () => {
+      vi.mocked(vpcApi.describeVpcs).mockRejectedValue(new Error('boom'))
+      const { loadVpcs, vpcs } = useVPC()
+      vpcs.value = [{ VpcId: 'vpc-1', CidrBlock: '10.0.0.0/16', IsDefault: false, State: 'available' }]
+      await loadVpcs()
+      expect(vpcs.value).toEqual([])
+    })
+
+    it('loadSubnets sets [] on error', async () => {
+      vi.mocked(vpcApi.describeSubnets).mockRejectedValue(new Error('boom'))
+      const { loadSubnets, subnets } = useVPC()
+      subnets.value = [{ SubnetId: 'sn-1', VpcId: 'vpc-1', CidrBlock: '10.0.1.0/24', AvailabilityZone: 'us-east-1a', State: 'available' }]
+      await loadSubnets()
+      expect(subnets.value).toEqual([])
+    })
+
+    it('loadRouteTables sets [] on error', async () => {
+      vi.mocked(vpcApi.describeRouteTables).mockRejectedValue(new Error('boom'))
+      const { loadRouteTables, routeTables } = useVPC()
+      routeTables.value = [{ RouteTableId: 'rtb-1', VpcId: 'vpc-1' }]
+      await loadRouteTables()
+      expect(routeTables.value).toEqual([])
+    })
+
+    it('loadInternetGateways sets [] on error', async () => {
+      vi.mocked(vpcApi.describeInternetGateways).mockRejectedValue(new Error('boom'))
+      const { loadInternetGateways, internetGateways } = useVPC()
+      internetGateways.value = [{ InternetGatewayId: 'igw-1' }]
+      await loadInternetGateways()
+      expect(internetGateways.value).toEqual([])
+    })
+
+    it('loadNatGateways sets [] on error', async () => {
+      vi.mocked(vpcApi.describeNatGateways).mockRejectedValue(new Error('boom'))
+      const { loadNatGateways, natGateways } = useVPC()
+      natGateways.value = [{ NatGatewayId: 'nat-1', State: 'available', SubnetId: 'sn-1' }]
+      await loadNatGateways()
+      expect(natGateways.value).toEqual([])
+    })
+
+    it('loadNetworkAcls sets [] on error', async () => {
+      vi.mocked(vpcApi.describeNetworkAcls).mockRejectedValue(new Error('boom'))
+      const { loadNetworkAcls, networkAcls } = useVPC()
+      networkAcls.value = [{ NetworkAclId: 'acl-1', VpcId: 'vpc-1', IsDefault: false }]
+      await loadNetworkAcls()
+      expect(networkAcls.value).toEqual([])
+    })
+
+    it('loadFlowLogs sets [] on error', async () => {
+      vi.mocked(vpcApi.describeFlowLogs).mockRejectedValue(new Error('boom'))
+      const { loadFlowLogs, flowLogs } = useVPC()
+      flowLogs.value = [{ FlowLogId: 'fl-1', ResourceId: 'vpc-1', LogDestination: 'arn:logs', TrafficType: 'ALL' }]
+      await loadFlowLogs()
+      expect(flowLogs.value).toEqual([])
+    })
+
+    it('loadElasticIps sets [] on error', async () => {
+      vi.mocked(vpcApi.describeAddresses).mockRejectedValue(new Error('boom'))
+      const { loadElasticIps, elasticIps } = useVPC()
+      elasticIps.value = [{ AllocationId: 'eip-1', PublicIp: '1.2.3.4', Domain: 'vpc' }]
+      await loadElasticIps()
+      expect(elasticIps.value).toEqual([])
+    })
+  })
+
+  describe('load functions missing result keys', () => {
+    it('loadVpcs defaults to [] when Vpcs missing', async () => {
+      vi.mocked(vpcApi.describeVpcs).mockResolvedValue({})
+      const { loadVpcs, vpcs } = useVPC()
+      await loadVpcs()
+      expect(vpcs.value).toEqual([])
+    })
+
+    it('loadSubnets defaults to [] when Subnets missing', async () => {
+      vi.mocked(vpcApi.describeSubnets).mockResolvedValue({})
+      const { loadSubnets, subnets } = useVPC()
+      await loadSubnets()
+      expect(subnets.value).toEqual([])
+    })
+
+    it('loadRouteTables defaults to [] when RouteTables missing', async () => {
+      vi.mocked(vpcApi.describeRouteTables).mockResolvedValue({})
+      const { loadRouteTables, routeTables } = useVPC()
+      await loadRouteTables()
+      expect(routeTables.value).toEqual([])
+    })
+
+    it('loadInternetGateways defaults to [] when InternetGateways missing', async () => {
+      vi.mocked(vpcApi.describeInternetGateways).mockResolvedValue({})
+      const { loadInternetGateways, internetGateways } = useVPC()
+      await loadInternetGateways()
+      expect(internetGateways.value).toEqual([])
+    })
+
+    it('loadNatGateways defaults to [] when NatGateways missing', async () => {
+      vi.mocked(vpcApi.describeNatGateways).mockResolvedValue({})
+      const { loadNatGateways, natGateways } = useVPC()
+      await loadNatGateways()
+      expect(natGateways.value).toEqual([])
+    })
+
+    it('loadNetworkAcls defaults to [] when NetworkAcls missing', async () => {
+      vi.mocked(vpcApi.describeNetworkAcls).mockResolvedValue({})
+      const { loadNetworkAcls, networkAcls } = useVPC()
+      await loadNetworkAcls()
+      expect(networkAcls.value).toEqual([])
+    })
+
+    it('loadFlowLogs defaults to [] when FlowLogs missing', async () => {
+      vi.mocked(vpcApi.describeFlowLogs).mockResolvedValue({})
+      const { loadFlowLogs, flowLogs } = useVPC()
+      await loadFlowLogs()
+      expect(flowLogs.value).toEqual([])
+    })
+
+    it('loadElasticIps defaults to [] when Addresses missing', async () => {
+      vi.mocked(vpcApi.describeAddresses).mockResolvedValue({})
+      const { loadElasticIps, elasticIps } = useVPC()
+      await loadElasticIps()
+      expect(elasticIps.value).toEqual([])
+    })
+  })
+
   describe('subnet CRUD', () => {
     it('handleCreateSubnet calls API and reloads', async () => {
       vi.mocked(vpcApi.createSubnet).mockResolvedValue({ SubnetId: 'sn-new', VpcId: 'vpc-1', CidrBlock: '10.0.1.0/24', AvailabilityZone: 'us-east-1a', State: 'available' })
@@ -277,6 +412,14 @@ describe('useVPC', () => {
       vi.mocked(vpcApi.describeInternetGateways).mockResolvedValue({ InternetGateways: [] })
       const { handleCreateIgw } = useVPC()
       await handleCreateIgw()
+      expect(vpcApi.attachInternetGateway).not.toHaveBeenCalled()
+    })
+
+    it('handleCreateIgw with vpcId but no InternetGatewayId skips attach', async () => {
+      vi.mocked(vpcApi.createInternetGateway).mockResolvedValue({})
+      vi.mocked(vpcApi.describeInternetGateways).mockResolvedValue({ InternetGateways: [] })
+      const { handleCreateIgw } = useVPC()
+      await handleCreateIgw('vpc-1')
       expect(vpcApi.attachInternetGateway).not.toHaveBeenCalled()
     })
 
@@ -383,6 +526,12 @@ describe('useVPC', () => {
       expect(result.PublicIp).toBe('1.2.3.5')
     })
 
+    it('handleAllocateElasticIp throws on error', async () => {
+      vi.mocked(vpcApi.allocateElasticIp).mockRejectedValue(new Error('no eips'))
+      const { handleAllocateElasticIp } = useVPC()
+      await expect(handleAllocateElasticIp()).rejects.toThrow('no eips')
+    })
+
     it('handleReleaseElasticIp returns early if no item', async () => {
       const { handleReleaseElasticIp } = useVPC()
       await handleReleaseElasticIp()
@@ -397,6 +546,241 @@ describe('useVPC', () => {
       await handleReleaseElasticIp()
       expect(vpcApi.releaseElasticIp).toHaveBeenCalledWith('eip-1')
       expect(elasticIps.value).toHaveLength(0)
+    })
+  })
+
+  describe('delete handlers early return', () => {
+    it('handleDeleteVpc returns early if no itemToDelete', async () => {
+      const { handleDeleteVpc } = useVPC()
+      await handleDeleteVpc()
+      expect(vpcApi.deleteVpc).not.toHaveBeenCalled()
+    })
+
+    it('handleDeleteSubnet returns early if no itemToDelete', async () => {
+      const { handleDeleteSubnet } = useVPC()
+      await handleDeleteSubnet()
+      expect(vpcApi.deleteSubnet).not.toHaveBeenCalled()
+    })
+
+    it('handleDeleteRouteTable returns early if no itemToDelete', async () => {
+      const { handleDeleteRouteTable } = useVPC()
+      await handleDeleteRouteTable()
+      expect(vpcApi.deleteRouteTable).not.toHaveBeenCalled()
+    })
+
+    it('handleDeleteIgw returns early if no itemToDelete', async () => {
+      const { handleDeleteIgw } = useVPC()
+      await handleDeleteIgw()
+      expect(vpcApi.deleteInternetGateway).not.toHaveBeenCalled()
+    })
+
+    it('handleDeleteNatGateway returns early if no itemToDelete', async () => {
+      const { handleDeleteNatGateway } = useVPC()
+      await handleDeleteNatGateway()
+      expect(vpcApi.deleteNatGateway).not.toHaveBeenCalled()
+    })
+
+    it('handleDeleteNacl returns early if no itemToDelete', async () => {
+      const { handleDeleteNacl } = useVPC()
+      await handleDeleteNacl()
+      expect(vpcApi.deleteNetworkAcl).not.toHaveBeenCalled()
+    })
+
+    it('handleDeleteFlowLog returns early if no itemToDelete', async () => {
+      const { handleDeleteFlowLog } = useVPC()
+      await handleDeleteFlowLog()
+      expect(vpcApi.deleteFlowLogs).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('CRUD error paths', () => {
+    const expectErrorToast = () => {
+      expect(useToast().toasts.value.some((t) => t.type === 'error')).toBe(true)
+    }
+
+    it('handleCreateVpc catches error and keeps modal open', async () => {
+      vi.mocked(vpcApi.createVpc).mockRejectedValue(new Error('boom'))
+      const { handleCreateVpc, showVpcModal } = useVPC()
+      showVpcModal.value = true
+      await handleCreateVpc({ CidrBlock: '10.0.0.0/16' })
+      expect(showVpcModal.value).toBe(true)
+      expectErrorToast()
+    })
+
+    it('handleDeleteVpc catches error and keeps list', async () => {
+      vi.mocked(vpcApi.deleteVpc).mockRejectedValue(new Error('boom'))
+      const { handleDeleteVpc, itemToDelete, vpcs } = useVPC()
+      vpcs.value = [{ VpcId: 'vpc-1', CidrBlock: '10.0.0.0/16', IsDefault: false, State: 'available' }]
+      itemToDelete.value = { VpcId: 'vpc-1' }
+      await handleDeleteVpc()
+      expect(vpcs.value).toHaveLength(1)
+      expectErrorToast()
+    })
+
+    it('handleCreateSubnet catches error and keeps modal open', async () => {
+      vi.mocked(vpcApi.createSubnet).mockRejectedValue(new Error('boom'))
+      const { handleCreateSubnet, showSubnetModal } = useVPC()
+      showSubnetModal.value = true
+      await handleCreateSubnet({ VpcId: 'vpc-1', CidrBlock: '10.0.1.0/24' })
+      expect(showSubnetModal.value).toBe(true)
+      expectErrorToast()
+    })
+
+    it('handleDeleteSubnet catches error and keeps list', async () => {
+      vi.mocked(vpcApi.deleteSubnet).mockRejectedValue(new Error('boom'))
+      const { handleDeleteSubnet, itemToDelete, subnets } = useVPC()
+      subnets.value = [{ SubnetId: 'sn-1', VpcId: 'vpc-1', CidrBlock: '10.0.1.0/24', AvailabilityZone: 'us-east-1a', State: 'available' }]
+      itemToDelete.value = { SubnetId: 'sn-1' }
+      await handleDeleteSubnet()
+      expect(subnets.value).toHaveLength(1)
+      expectErrorToast()
+    })
+
+    it('handleCreateRouteTable catches error and keeps modal open', async () => {
+      vi.mocked(vpcApi.createRouteTable).mockRejectedValue(new Error('boom'))
+      const { handleCreateRouteTable, showRouteTableModal } = useVPC()
+      showRouteTableModal.value = true
+      await handleCreateRouteTable({ VpcId: 'vpc-1' })
+      expect(showRouteTableModal.value).toBe(true)
+      expectErrorToast()
+    })
+
+    it('handleDeleteRouteTable catches error and keeps list', async () => {
+      vi.mocked(vpcApi.deleteRouteTable).mockRejectedValue(new Error('boom'))
+      const { handleDeleteRouteTable, itemToDelete, routeTables } = useVPC()
+      routeTables.value = [{ RouteTableId: 'rtb-1', VpcId: 'vpc-1' }]
+      itemToDelete.value = { RouteTableId: 'rtb-1' }
+      await handleDeleteRouteTable()
+      expect(routeTables.value).toHaveLength(1)
+      expectErrorToast()
+    })
+
+    it('handleCreateRoute catches error', async () => {
+      vi.mocked(vpcApi.createRoute).mockRejectedValue(new Error('boom'))
+      const { handleCreateRoute } = useVPC()
+      await handleCreateRoute('rtb-1', { DestinationCidrBlock: '0.0.0.0/0', GatewayId: 'igw-1' })
+      expectErrorToast()
+    })
+
+    it('handleDeleteRoute catches error', async () => {
+      vi.mocked(vpcApi.deleteRoute).mockRejectedValue(new Error('boom'))
+      const { handleDeleteRoute } = useVPC()
+      await handleDeleteRoute('rtb-1', '0.0.0.0/0')
+      expectErrorToast()
+    })
+
+    it('handleAssociateRouteTable catches error', async () => {
+      vi.mocked(vpcApi.associateRouteTable).mockRejectedValue(new Error('boom'))
+      const { handleAssociateRouteTable } = useVPC()
+      await handleAssociateRouteTable('rtb-1', 'sn-1')
+      expectErrorToast()
+    })
+
+    it('handleDisassociateRouteTable catches error', async () => {
+      vi.mocked(vpcApi.disassociateRouteTable).mockRejectedValue(new Error('boom'))
+      const { handleDisassociateRouteTable } = useVPC()
+      await handleDisassociateRouteTable('assoc-1')
+      expectErrorToast()
+    })
+
+    it('handleCreateIgw catches error and keeps modal open', async () => {
+      vi.mocked(vpcApi.createInternetGateway).mockRejectedValue(new Error('boom'))
+      const { handleCreateIgw, showIgwModal } = useVPC()
+      showIgwModal.value = true
+      await handleCreateIgw('vpc-1')
+      expect(showIgwModal.value).toBe(true)
+      expectErrorToast()
+    })
+
+    it('handleDeleteIgw catches error and keeps list', async () => {
+      vi.mocked(vpcApi.deleteInternetGateway).mockRejectedValue(new Error('boom'))
+      const { handleDeleteIgw, itemToDelete, internetGateways } = useVPC()
+      internetGateways.value = [{ InternetGatewayId: 'igw-1' }]
+      itemToDelete.value = { InternetGatewayId: 'igw-1' }
+      await handleDeleteIgw()
+      expect(internetGateways.value).toHaveLength(1)
+      expectErrorToast()
+    })
+
+    it('handleCreateNatGateway catches error and keeps modal open', async () => {
+      vi.mocked(vpcApi.createNatGateway).mockRejectedValue(new Error('boom'))
+      const { handleCreateNatGateway, showNatGatewayModal } = useVPC()
+      showNatGatewayModal.value = true
+      await handleCreateNatGateway({ SubnetId: 'sn-1', AllocationId: 'eip-1' })
+      expect(showNatGatewayModal.value).toBe(true)
+      expectErrorToast()
+    })
+
+    it('handleDeleteNatGateway catches error and keeps list', async () => {
+      vi.mocked(vpcApi.deleteNatGateway).mockRejectedValue(new Error('boom'))
+      const { handleDeleteNatGateway, itemToDelete, natGateways } = useVPC()
+      natGateways.value = [{ NatGatewayId: 'nat-1', State: 'available', SubnetId: 'sn-1' }]
+      itemToDelete.value = { NatGatewayId: 'nat-1' }
+      await handleDeleteNatGateway()
+      expect(natGateways.value).toHaveLength(1)
+      expectErrorToast()
+    })
+
+    it('handleCreateNacl catches error and keeps modal open', async () => {
+      vi.mocked(vpcApi.createNetworkAcl).mockRejectedValue(new Error('boom'))
+      const { handleCreateNacl, showNaclModal } = useVPC()
+      showNaclModal.value = true
+      await handleCreateNacl({ VpcId: 'vpc-1' })
+      expect(showNaclModal.value).toBe(true)
+      expectErrorToast()
+    })
+
+    it('handleDeleteNacl catches error and keeps list', async () => {
+      vi.mocked(vpcApi.deleteNetworkAcl).mockRejectedValue(new Error('boom'))
+      const { handleDeleteNacl, itemToDelete, networkAcls } = useVPC()
+      networkAcls.value = [{ NetworkAclId: 'acl-1', VpcId: 'vpc-1', IsDefault: false }]
+      itemToDelete.value = { NetworkAclId: 'acl-1' }
+      await handleDeleteNacl()
+      expect(networkAcls.value).toHaveLength(1)
+      expectErrorToast()
+    })
+
+    it('handleCreateNaclRule catches error', async () => {
+      vi.mocked(vpcApi.createNetworkAclEntry).mockRejectedValue(new Error('boom'))
+      const { handleCreateNaclRule } = useVPC()
+      await handleCreateNaclRule('acl-1', { RuleNumber: 100, Protocol: 'tcp', CidrBlock: '0.0.0.0/0', Egress: false, RuleAction: 'allow', PortRange: { From: 80, To: 80 } })
+      expectErrorToast()
+    })
+
+    it('handleDeleteNaclRule catches error', async () => {
+      vi.mocked(vpcApi.deleteNetworkAclEntry).mockRejectedValue(new Error('boom'))
+      const { handleDeleteNaclRule } = useVPC()
+      await handleDeleteNaclRule('acl-1', 100)
+      expectErrorToast()
+    })
+
+    it('handleCreateFlowLog catches error and keeps modal open', async () => {
+      vi.mocked(vpcApi.createFlowLogs).mockRejectedValue(new Error('boom'))
+      const { handleCreateFlowLog, showFlowLogModal } = useVPC()
+      showFlowLogModal.value = true
+      await handleCreateFlowLog({ ResourceId: 'vpc-1', LogDestinationType: 'cloud-watch-logs', LogDestination: 'arn:logs', TrafficType: 'ALL' })
+      expect(showFlowLogModal.value).toBe(true)
+      expectErrorToast()
+    })
+
+    it('handleDeleteFlowLog catches error and keeps list', async () => {
+      vi.mocked(vpcApi.deleteFlowLogs).mockRejectedValue(new Error('boom'))
+      const { handleDeleteFlowLog, itemToDelete, flowLogs } = useVPC()
+      flowLogs.value = [{ FlowLogId: 'fl-1', ResourceId: 'vpc-1', LogDestination: 'arn:logs', TrafficType: 'ALL' }]
+      itemToDelete.value = { FlowLogId: 'fl-1' }
+      await handleDeleteFlowLog()
+      expect(flowLogs.value).toHaveLength(1)
+      expectErrorToast()
+    })
+
+    it('handleReleaseElasticIp catches error and keeps list', async () => {
+      vi.mocked(vpcApi.releaseElasticIp).mockRejectedValue(new Error('boom'))
+      const { handleReleaseElasticIp, itemToDelete, elasticIps } = useVPC()
+      elasticIps.value = [{ AllocationId: 'eip-1', PublicIp: '1.2.3.4', Domain: 'vpc' }]
+      itemToDelete.value = { AllocationId: 'eip-1' }
+      await handleReleaseElasticIp()
+      expect(elasticIps.value).toHaveLength(1)
+      expectErrorToast()
     })
   })
 
@@ -503,6 +887,30 @@ describe('useVPC', () => {
       expect(getStatus('deleting')).toBe('pending')
       expect(getStatus('deleted')).toBe('inactive')
       expect(getStatus('unknown')).toBe('inactive')
+    })
+
+    it('maps remaining status values correctly', () => {
+      const { getStatus } = useVPC()
+      expect(getStatus('running')).toBe('active')
+      expect(getStatus('stopping')).toBe('pending')
+      expect(getStatus('stopped')).toBe('inactive')
+      expect(getStatus('terminated')).toBe('inactive')
+      expect(getStatus('shuttingdown')).toBe('pending')
+      expect(getStatus('creating')).toBe('pending')
+    })
+
+    it('returns inactive for missing or empty status', () => {
+      const { getStatus } = useVPC()
+      expect(getStatus()).toBe('inactive')
+      expect(getStatus('')).toBe('inactive')
+      expect(getStatus('  ')).toBe('inactive')
+    })
+
+    it('is case-insensitive', () => {
+      const { getStatus } = useVPC()
+      expect(getStatus('AVAILABLE')).toBe('active')
+      expect(getStatus('Pending')).toBe('pending')
+      expect(getStatus('DELETED')).toBe('inactive')
     })
   })
 

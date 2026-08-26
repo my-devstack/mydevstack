@@ -39,6 +39,10 @@ export const SERVICE_COLORS: Record<string, { text: string; bg: string }> = {
   msk: { text: 'text-purple-600', bg: 'bg-purple-600' },
   cloudwatch: { text: 'text-orange-500', bg: 'bg-orange-500' },
   cognito: { text: 'text-fuchsia-500', bg: 'bg-fuchsia-500' },
+  ecs: { text: 'text-orange-400', bg: 'bg-orange-400' }, // AWS orange
+  ecr: { text: 'text-blue-400', bg: 'bg-blue-400' },
+  stepfunctions: { text: 'text-orange-400', bg: 'bg-orange-400' },
+  cloudformation: { text: 'text-blue-400', bg: 'bg-blue-400' },
 }
 
 export const getServiceColor = (serviceId: string): string => {

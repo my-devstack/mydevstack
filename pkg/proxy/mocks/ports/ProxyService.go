@@ -497,6 +497,98 @@ func (_c *ProxyService_EC2_Call) RunAndReturn(run func() ports.EC2Port) *ProxySe
 	return _c
 }
 
+// ECR provides a mock function for the type ProxyService
+func (_mock *ProxyService) ECR() ports.ECRPort {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ECR")
+	}
+
+	var r0 ports.ECRPort
+	if returnFunc, ok := ret.Get(0).(func() ports.ECRPort); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ports.ECRPort)
+		}
+	}
+	return r0
+}
+
+// ProxyService_ECR_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ECR'
+type ProxyService_ECR_Call struct {
+	*mock.Call
+}
+
+// ECR is a helper method to define mock.On call
+func (_e *ProxyService_Expecter) ECR() *ProxyService_ECR_Call {
+	return &ProxyService_ECR_Call{Call: _e.mock.On("ECR")}
+}
+
+func (_c *ProxyService_ECR_Call) Run(run func()) *ProxyService_ECR_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ProxyService_ECR_Call) Return(eCRPort ports.ECRPort) *ProxyService_ECR_Call {
+	_c.Call.Return(eCRPort)
+	return _c
+}
+
+func (_c *ProxyService_ECR_Call) RunAndReturn(run func() ports.ECRPort) *ProxyService_ECR_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ECS provides a mock function for the type ProxyService
+func (_mock *ProxyService) ECS() ports.ECSPort {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ECS")
+	}
+
+	var r0 ports.ECSPort
+	if returnFunc, ok := ret.Get(0).(func() ports.ECSPort); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ports.ECSPort)
+		}
+	}
+	return r0
+}
+
+// ProxyService_ECS_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ECS'
+type ProxyService_ECS_Call struct {
+	*mock.Call
+}
+
+// ECS is a helper method to define mock.On call
+func (_e *ProxyService_Expecter) ECS() *ProxyService_ECS_Call {
+	return &ProxyService_ECS_Call{Call: _e.mock.On("ECS")}
+}
+
+func (_c *ProxyService_ECS_Call) Run(run func()) *ProxyService_ECS_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ProxyService_ECS_Call) Return(eCSPort ports.ECSPort) *ProxyService_ECS_Call {
+	_c.Call.Return(eCSPort)
+	return _c
+}
+
+func (_c *ProxyService_ECS_Call) RunAndReturn(run func() ports.ECSPort) *ProxyService_ECS_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ElastiCache provides a mock function for the type ProxyService
 func (_mock *ProxyService) ElastiCache() ports.ElastiCachePort {
 	ret := _mock.Called()

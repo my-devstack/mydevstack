@@ -1,0 +1,760 @@
+openapi: 3.0.0
+info:
+  title: "ECR"
+  version: "1.0.0"
+
+paths:
+  # ---- Repositories ----
+  /ecr/repositories:
+    get:
+      tags: [ECR]
+      summary: Describe repositories
+      description: |
+        Returns a list of repositories. Can be filtered by repository names.
+        Supports pagination via NextToken and MaxResults.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: describeRepositories
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DescribeRepositoriesInput'
+      responses:
+        "200":
+          description: List of repositories
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeRepositoriesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "404":
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [ECR]
+      summary: Create repository
+      description: |
+        Creates a new repository. Requires RepositoryName.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createRepository
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRepositoryInput'
+      responses:
+        "200":
+          description: Repository created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRepositoryOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecr/repositories/{repositoryName}:
+    get:
+      tags: [ECR]
+      summary: Describe repository
+      description: |
+        Returns details about a single repository. The repository name may
+        contain forward slashes (e.g. project-a/nginx-web-app).
+      operationId: describeRepository
+      parameters:
+        - name: repositoryName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The repository name
+          example: my-app
+      responses:
+        "200":
+          description: Repository details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeRepositoriesOutput'
+        "404":
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [ECR]
+      summary: Delete repository
+      description: |
+        Deletes a repository. If force=true, the repository contents are
+        deleted as well; otherwise the repository must be empty.
+      operationId: deleteRepository
+      parameters:
+        - name: repositoryName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The repository name
+          example: my-app
+        - name: force
+          in: query
+          required: false
+          schema: { type: boolean }
+          description: Force delete the repository contents
+      responses:
+        "200":
+          description: Repository deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteRepositoryOutput'
+        "404":
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Authorization ----
+  /ecr/authorization-token:
+    get:
+      tags: [ECR]
+      summary: Get authorization token
+      description: |
+        Returns a Docker login token (Base64-encoded AWS:floci) and the
+        registry proxy endpoint. Pipe the token to
+        `docker login --username AWS --password-stdin <proxyEndpoint>`.
+      operationId: getAuthorizationToken
+      responses:
+        "200":
+          description: Authorization token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAuthorizationTokenOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Images ----
+  /ecr/images/{repositoryName}:
+    get:
+      tags: [ECR]
+      summary: List images
+      description: |
+        Lists image IDs (tags and digests) in a repository.
+        Supports pagination via NextToken and MaxResults, and filtering by
+        TagStatus (TAGGED, UNTAGGED, ANY).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listImages
+      parameters:
+        - name: repositoryName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The repository name
+          example: my-app
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListImagesInput'
+      responses:
+        "200":
+          description: List of image IDs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListImagesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "404":
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecr/images/details/{repositoryName}:
+    get:
+      tags: [ECR]
+      summary: Describe images
+      description: |
+        Returns image metadata (digest, size, push timestamp, manifest media
+        type) for images in a repository. Can be filtered by image IDs.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: describeImages
+      parameters:
+        - name: repositoryName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The repository name
+          example: my-app
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DescribeImagesInput'
+      responses:
+        "200":
+          description: Image metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeImagesOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "404":
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecr/images/batch-get/{repositoryName}:
+    post:
+      tags: [ECR]
+      summary: Batch get images
+      description: |
+        Fetches image manifests for the given image IDs. Honors
+        acceptedMediaTypes (e.g. application/vnd.oci.image.manifest.v1+json).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: batchGetImage
+      parameters:
+        - name: repositoryName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The repository name
+          example: my-app
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchGetImageInput'
+      responses:
+        "200":
+          description: Image manifests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchGetImageOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "404":
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /ecr/images/batch-delete/{repositoryName}:
+    post:
+      tags: [ECR]
+      summary: Batch delete images
+      description: |
+        Deletes images by tag or digest. Returns the failures list for any
+        images that could not be deleted.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: batchDeleteImage
+      parameters:
+        - name: repositoryName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The repository name
+          example: my-app
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchDeleteImageInput'
+      responses:
+        "200":
+          description: Images deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchDeleteImageOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "404":
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Tags ----
+  /ecr/tags/{repositoryName}:
+    get:
+      tags: [ECR]
+      summary: List tags for resource
+      description: |
+        Lists the tags attached to a repository.
+      operationId: listTagsForResource
+      parameters:
+        - name: repositoryName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The repository name
+          example: my-app
+      responses:
+        "200":
+          description: Repository tags
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTagsForResourceOutput'
+        "404":
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [ECR]
+      summary: Update tags
+      description: |
+        Adds or removes tags on a repository. Tags to add are passed as a
+        key-value map; tags to remove are passed as RemovedKeys.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateTags
+      parameters:
+        - name: repositoryName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The repository name
+          example: my-app
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTagsInput'
+      responses:
+        "200":
+          description: Tags updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateTagsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "404":
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    DescribeRepositoriesInput:
+      type: object
+      properties:
+        RepositoryNames:
+          type: array
+          items: { type: string }
+          description: Filter by repository names
+        NextToken:
+          type: string
+        MaxResults:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000
+
+    DescribeRepositoriesOutput:
+      type: object
+      properties:
+        Repositories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Repository'
+        NextToken:
+          type: string
+
+    Repository:
+      type: object
+      properties:
+        RepositoryArn:
+          type: string
+        RegistryId:
+          type: string
+        RepositoryName:
+          type: string
+        RepositoryUri:
+          type: string
+        CreatedAt:
+          type: string
+          format: date-time
+        ImageTagMutability:
+          type: string
+          enum: [MUTABLE, IMMUTABLE]
+        ImageScanningConfiguration:
+          type: object
+          properties:
+            ScanOnPush:
+              type: boolean
+        EncryptionConfiguration:
+          type: object
+          properties:
+            EncryptionType:
+              type: string
+              enum: [AES256, KMS]
+            KmsKey:
+              type: string
+
+    CreateRepositoryInput:
+      type: object
+      required: [RepositoryName]
+      properties:
+        RepositoryName:
+          type: string
+          description: The repository name (may include namespaces with /)
+        ImageTagMutability:
+          type: string
+          enum: [MUTABLE, IMMUTABLE]
+        ImageScanningConfiguration:
+          type: object
+          properties:
+            ScanOnPush:
+              type: boolean
+        EncryptionConfiguration:
+          type: object
+          properties:
+            EncryptionType:
+              type: string
+              enum: [AES256, KMS]
+            KmsKey:
+              type: string
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+
+    CreateRepositoryOutput:
+      type: object
+      properties:
+        Repository:
+          $ref: '#/components/schemas/Repository'
+
+    DeleteRepositoryOutput:
+      type: object
+      properties:
+        Repository:
+          $ref: '#/components/schemas/Repository'
+
+    GetAuthorizationTokenOutput:
+      type: object
+      properties:
+        AuthorizationData:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizationData'
+
+    AuthorizationData:
+      type: object
+      properties:
+        AuthorizationToken:
+          type: string
+          description: Base64-encoded AWS:floci docker login token
+        ExpiresAt:
+          type: string
+          format: date-time
+        ProxyEndpoint:
+          type: string
+          description: The registry proxy endpoint for docker login
+
+    ListImagesInput:
+      type: object
+      properties:
+        NextToken:
+          type: string
+        MaxResults:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000
+        TagStatus:
+          type: string
+          enum: [TAGGED, UNTAGGED, ANY]
+
+    ListImagesOutput:
+      type: object
+      properties:
+        ImageIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageIdentifier'
+        NextToken:
+          type: string
+
+    DescribeImagesInput:
+      type: object
+      properties:
+        ImageIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageIdentifier'
+        NextToken:
+          type: string
+        MaxResults:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000
+        TagStatus:
+          type: string
+          enum: [TAGGED, UNTAGGED, ANY]
+
+    DescribeImagesOutput:
+      type: object
+      properties:
+        ImageDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageDetail'
+        NextToken:
+          type: string
+
+    ImageDetail:
+      type: object
+      properties:
+        RegistryId:
+          type: string
+        RepositoryName:
+          type: string
+        ImageDigest:
+          type: string
+        ImageTags:
+          type: array
+          items: { type: string }
+        ImageSizeInBytes:
+          type: integer
+          format: int64
+        ImagePushedAt:
+          type: string
+          format: date-time
+        ImageManifestMediaType:
+          type: string
+        ArtifactMediaType:
+          type: string
+
+    BatchGetImageInput:
+      type: object
+      required: [ImageIds]
+      properties:
+        ImageIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageIdentifier'
+        AcceptedMediaTypes:
+          type: array
+          items: { type: string }
+          description: e.g. application/vnd.oci.image.manifest.v1+json
+
+    BatchGetImageOutput:
+      type: object
+      properties:
+        Images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        Failures:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageFailure'
+
+    Image:
+      type: object
+      properties:
+        RegistryId:
+          type: string
+        RepositoryName:
+          type: string
+        ImageId:
+          $ref: '#/components/schemas/ImageIdentifier'
+        ImageManifest:
+          type: string
+        ImageManifestMediaType:
+          type: string
+
+    BatchDeleteImageInput:
+      type: object
+      required: [ImageIds]
+      properties:
+        ImageIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageIdentifier'
+
+    BatchDeleteImageOutput:
+      type: object
+      properties:
+        ImageIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageIdentifier'
+        Failures:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageFailure'
+
+    ImageIdentifier:
+      type: object
+      properties:
+        ImageDigest:
+          type: string
+        ImageTag:
+          type: string
+
+    ImageFailure:
+      type: object
+      properties:
+        ImageId:
+          $ref: '#/components/schemas/ImageIdentifier'
+        FailureCode:
+          type: string
+        FailureReason:
+          type: string
+
+    ListTagsForResourceOutput:
+      type: object
+      properties:
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+
+    UpdateTagsInput:
+      type: object
+      properties:
+        Tags:
+          type: object
+          additionalProperties: { type: string }
+          description: Tags to add or update
+        RemovedKeys:
+          type: array
+          items: { type: string }
+          description: Tag keys to remove
+
+    UpdateTagsOutput:
+      type: object
+      properties:
+        message:
+          type: string
+
+    Tag:
+      type: object
+      properties:
+        Key:
+          type: string
+        Value:
+          type: string

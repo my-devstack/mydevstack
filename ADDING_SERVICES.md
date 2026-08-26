@@ -48,9 +48,11 @@ pkg/ui/src/api/services/<service>.ts
 - Use existing patterns from other services (e.g., `s3.ts`, `lambda.ts`)
 - Return properly typed responses
 
-**Testing:**
-- Manual testing via browser DevTools
-- No unit test required for API client (covered by integration tests)
+**Testing (REQUIRED — do not skip):**
+- Unit tests **required** for every API client function. API clients are HTTP client wrappers with error handling branches that are NOT covered by integration tests.
+- Create `pkg/ui/src/api/services/<service>.test.ts` following the pattern of `sqs.test.ts`, `kinesis.test.ts`, `ecr.test.ts`, or `ecs.test.ts`.
+- Cover: success path, error path (non-ok response throws APIError), network error path.
+- All tests must pass before marking work complete.
 
 ---
 
@@ -569,6 +571,7 @@ cd pkg/regression-test && pnpm exec playwright test e2e/services/<service>.spec.
 | **Backend** | `pkg/proxy/internal/adapters/aws/<service>.go` | AWS adapter |
 | **Backend** | `pkg/proxy/internal/adapters/http/<service>_test.go` | Unit tests |
 | **API** | `pkg/ui/src/api/services/<service>.ts` | API client |
+| **API** | `pkg/ui/src/api/services/<service>.test.ts` | Unit tests |
 | **Composable** | `pkg/ui/src/composables/use<Service>.ts` | State management |
 | **Composable** | `pkg/ui/src/composables/use<Service>.test.ts` | Unit tests |
 | **Component** | `pkg/ui/src/components/<service>/index.ts` | Barrel export |
@@ -581,7 +584,7 @@ cd pkg/regression-test && pnpm exec playwright test e2e/services/<service>.spec.
 | **Router** | `pkg/ui/src/router/index.ts` | Route entry |
 | **Nav** | `pkg/ui/src/components/layout/Sidebar.vue` | Navigation |
 | **E2E** | `pkg/regression-test/e2e/services/<service>.spec.ts` | E2E tests |
-| **Total** | **15-17 files** | Per service |
+| **Total** | **16-18 files** | Per service |
 
 ---
 
@@ -626,3 +629,84 @@ cd pkg/ui && pnpm run lint
 6. **Keep components small** - Break into smaller reusable parts
 7. **Consistent naming** - PascalCase for components, camelCase for files
 8. **Handle all states** - Loading, Empty, Error, Success
+
+---
+
+## Dashboard Quick Stats & All Services
+
+Every new service MUST be registered in the dashboard to appear in:
+- **Quick Stats** cards on the main dashboard
+- **All Services** view
+
+### Files to modify:
+
+1. **pkg/ui/src/types/serviceRegistry.ts**
+   - Add color entry to `SERVICE_COLORS`:
+   ```typescript
+   <service>: { text: 'text-<color>-500', bg: 'bg-<color>-500' },
+   ```
+
+2. **pkg/ui/src/composables/useServiceRegistry.ts**
+   - Add import for the API:
+   ```typescript
+   import { listItems as fetch<Service>Items } from '@/api/services/<service>'
+   ```
+   - Add entry to `SERVICE_CONFIGS` array:
+   ```typescript
+   {
+     id: '<service>',
+     name: '<Service> Items',
+     category: '<category>', // compute, storage, database, networking, analytics, security, messaging, monitoring, parameters
+     icon: 'IconName', // from @heroicons/vue/24/outline
+     route: '/services/<service>',
+     color: SERVICE_COLORS.<service>.text,
+     bgColor: SERVICE_COLORS.<service>.bg,
+     statsFetcher: async () => {
+       const result = await fetch<Service>Items()
+       return result.Items?.length || 0
+     },
+     enabled: true,
+   },
+   ```
+
+### Important Notes:
+- Choose appropriate category and icon from existing services
+- If service uses cluster/resource selection (like ECS), use `ServerIcon`
+- If service uses repositories/images (like ECR), use `ArchiveBoxIcon`
+- `statsFetcher` should return the count of primary resources (e.g., clusters, tables, functions)
+
+---
+
+## Code Examples Section
+
+If the service has AWS CLI code examples (like showing how to create/list resources via CLI), render them at the **bottom of the view**, NOT as a tab.
+
+### Pattern (Lambda/ECR):
+
+**In the view file (e.g., Lambda.vue):**
+```vue
+<!-- Content area with tabs -->
+<div class="flex-1 overflow-auto p-6">
+  <template v-if="activeTab === 'functions'">
+    <!-- tab content -->
+  </template>
+</div>
+
+<!-- Code Examples - ALWAYS at bottom, NOT a tab -->
+<div class="flex-shrink-0 border-t border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface px-6 py-6">
+  <LambdaCodeExamples
+    :region="settingsStore.region"
+    :access-key="settingsStore.accessKey"
+    :secret-key="settingsStore.secretKey"
+  />
+</div>
+```
+
+### DO NOT:
+- ❌ Add `{ id: 'code-examples', label: 'Code Examples', icon: CodeBracketIcon }` to the tabs array
+- ❌ Create a separate tab condition for `activeTab === 'code-examples'`
+
+### DO:
+- ✅ Render `<Service>CodeExamples` component at the bottom of the template
+- ✅ Always visible regardless of which tab is active
+- ✅ Import and include the component in the template

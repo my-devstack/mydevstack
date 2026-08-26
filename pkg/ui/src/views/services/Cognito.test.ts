@@ -27,6 +27,9 @@ const {
   mockAdminInitiateAuth,
   mockListTagsForResource,
   mockUpdateTags,
+  mockToastSuccess,
+  mockToastError,
+  mockToastInfo,
 } = vi.hoisted(() => ({
   mockListUserPools: vi.fn(),
   mockCreateUserPool: vi.fn(),
@@ -52,6 +55,9 @@ const {
   mockAdminInitiateAuth: vi.fn(),
   mockListTagsForResource: vi.fn(),
   mockUpdateTags: vi.fn(),
+  mockToastSuccess: vi.fn(),
+  mockToastError: vi.fn(),
+  mockToastInfo: vi.fn(),
 }))
 
 vi.mock('@/api/services/cognito', () => ({
@@ -82,7 +88,7 @@ vi.mock('@/api/services/cognito', () => ({
 }))
 
 vi.mock('@/composables/useToast', () => ({
-  useToast: () => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() }),
+  useToast: () => ({ success: mockToastSuccess, error: mockToastError, info: mockToastInfo }),
 }))
 
 vi.mock('@/composables/useContentReload', () => ({
@@ -211,6 +217,15 @@ describe('Cognito.vue', () => {
       expect(wrapper.vm.showEditUserPoolModal).toBe(true)
     })
 
+    it('openEditUserPoolModal with API error keeps tags empty and opens modal', async () => {
+      mockListTagsForResource.mockRejectedValue(new Error('Tags failed'))
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      await wrapper.vm.openEditUserPoolModal({ Id: 'us-east-1_abc123', Name: 'my-pool' })
+      expect(wrapper.vm.poolTags).toEqual({})
+      expect(wrapper.vm.showEditUserPoolModal).toBe(true)
+      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining('Tags failed'))
+    })
+
     it('handleEditUserPool updates pool and tags', async () => {
       mockUpdateTags.mockResolvedValue({})
       const wrapper = shallowMount(CognitoView, { global: { stubs } })
@@ -223,6 +238,35 @@ describe('Cognito.vue', () => {
         RemovedKeys: ['old-key'],
       })
       expect(mockUpdateTags).toHaveBeenCalledWith('us-east-1_abc123', { env: 'prod' }, ['old-key'])
+      expect(wrapper.vm.showEditUserPoolModal).toBe(false)
+    })
+
+    it('handleEditUserPool without Tags skips updateTags', async () => {
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      wrapper.vm.poolToEdit = { Id: 'us-east-1_abc123', Name: 'my-pool' }
+      await wrapper.vm.handleEditUserPool('us-east-1_abc123', {
+        PoolName: 'renamed',
+        MfaConfiguration: 'ON',
+        DeletionProtection: 'ACTIVE',
+      })
+      expect(mockUpdateUserPool).toHaveBeenCalledWith('us-east-1_abc123', {
+        PoolName: 'renamed',
+        MfaConfiguration: 'ON',
+        DeletionProtection: 'ACTIVE',
+      })
+      expect(mockUpdateTags).not.toHaveBeenCalled()
+      expect(wrapper.vm.showEditUserPoolModal).toBe(false)
+    })
+
+    it('handleEditUserPool with Tags but no RemovedKeys passes empty array', async () => {
+      mockUpdateTags.mockResolvedValue({})
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      wrapper.vm.poolToEdit = { Id: 'us-east-1_abc123', Name: 'my-pool' }
+      await wrapper.vm.handleEditUserPool('us-east-1_abc123', {
+        PoolName: 'renamed',
+        Tags: { env: 'prod' },
+      })
+      expect(mockUpdateTags).toHaveBeenCalledWith('us-east-1_abc123', { env: 'prod' }, [])
       expect(wrapper.vm.showEditUserPoolModal).toBe(false)
     })
   })
@@ -313,6 +357,13 @@ describe('Cognito.vue', () => {
       await wrapper.vm.handleTestLogin('Pass123!')
       expect(mockAdminInitiateAuth).not.toHaveBeenCalled()
     })
+
+    it('handleTestLogin without userForLogin returns early', async () => {
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      wrapper.vm.selectedUserPoolId = 'us-east-1_abc123'
+      await wrapper.vm.handleTestLogin('Pass123!', 'client-1')
+      expect(mockAdminInitiateAuth).not.toHaveBeenCalled()
+    })
   })
 
   describe('groups tab', () => {
@@ -366,6 +417,13 @@ describe('Cognito.vue', () => {
       expect(wrapper.vm.showGroupMembersModal).toBe(true)
     })
 
+    it('handleOpenMembers without selected pool returns early', async () => {
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      await wrapper.vm.handleOpenMembers({ GroupName: 'admins' })
+      expect(mockListUsersInGroup).not.toHaveBeenCalled()
+      expect(wrapper.vm.showGroupMembersModal).toBe(false)
+    })
+
     it('handleAddUserToGroup calls addUserToGroup and reloads members', async () => {
       mockAddUserToGroup.mockResolvedValue({})
       mockListUsersInGroup.mockResolvedValue({ Users: [] })
@@ -377,6 +435,12 @@ describe('Cognito.vue', () => {
       expect(mockListUsersInGroup).toHaveBeenCalledWith('us-east-1_abc123', 'admins')
     })
 
+    it('handleAddUserToGroup without pool or group returns early', async () => {
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      await wrapper.vm.handleAddUserToGroup('alice')
+      expect(mockAddUserToGroup).not.toHaveBeenCalled()
+    })
+
     it('handleRemoveUserFromGroup calls removeUserFromGroup and reloads members', async () => {
       mockRemoveUserFromGroup.mockResolvedValue({})
       mockListUsersInGroup.mockResolvedValue({ Users: [] })
@@ -386,6 +450,12 @@ describe('Cognito.vue', () => {
       await wrapper.vm.handleRemoveUserFromGroup('alice')
       expect(mockRemoveUserFromGroup).toHaveBeenCalledWith('us-east-1_abc123', 'alice', 'admins')
       expect(mockListUsersInGroup).toHaveBeenCalledWith('us-east-1_abc123', 'admins')
+    })
+
+    it('handleRemoveUserFromGroup without pool or group returns early', async () => {
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      await wrapper.vm.handleRemoveUserFromGroup('alice')
+      expect(mockRemoveUserFromGroup).not.toHaveBeenCalled()
     })
   })
 
@@ -462,6 +532,82 @@ describe('Cognito.vue', () => {
       wrapper.vm.resourceServerToDelete = 'api.example.com'
       await wrapper.vm.handleDeleteResourceServer()
       expect(mockDeleteResourceServer).toHaveBeenCalledWith('us-east-1_abc123', 'api.example.com')
+    })
+  })
+
+  describe('tab switching and pool selection', () => {
+    it('handleTabChange to pools does not load anything', async () => {
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      wrapper.vm.handleTabChange('pools')
+      expect(wrapper.vm.activeTab).toBe('pools')
+      expect(mockListUsers).not.toHaveBeenCalled()
+      expect(mockListGroups).not.toHaveBeenCalled()
+      expect(mockListUserPoolClients).not.toHaveBeenCalled()
+      expect(mockListResourceServers).not.toHaveBeenCalled()
+    })
+
+    it('handleTabChange to users with no pools does not load', async () => {
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      wrapper.vm.handleTabChange('users')
+      expect(wrapper.vm.activeTab).toBe('users')
+      expect(mockListUsers).not.toHaveBeenCalled()
+    })
+
+    it('handleUserPoolSelect without selected pool returns early', async () => {
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      wrapper.vm.activeTab = 'users'
+      wrapper.vm.handleUserPoolSelect()
+      expect(mockListUsers).not.toHaveBeenCalled()
+      expect(mockListGroups).not.toHaveBeenCalled()
+      expect(mockListUserPoolClients).not.toHaveBeenCalled()
+      expect(mockListResourceServers).not.toHaveBeenCalled()
+    })
+
+    it('handleUserPoolSelect loads data for current tab', async () => {
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      wrapper.vm.selectedUserPoolId = 'us-east-1_abc123'
+
+      wrapper.vm.activeTab = 'users'
+      wrapper.vm.handleUserPoolSelect()
+      expect(mockListUsers).toHaveBeenCalledWith('us-east-1_abc123')
+
+      wrapper.vm.activeTab = 'groups'
+      wrapper.vm.handleUserPoolSelect()
+      expect(mockListGroups).toHaveBeenCalledWith('us-east-1_abc123')
+
+      wrapper.vm.activeTab = 'clients'
+      wrapper.vm.handleUserPoolSelect()
+      expect(mockListUserPoolClients).toHaveBeenCalledWith('us-east-1_abc123')
+
+      wrapper.vm.activeTab = 'resource-servers'
+      wrapper.vm.handleUserPoolSelect()
+      expect(mockListResourceServers).toHaveBeenCalledWith('us-east-1_abc123')
+    })
+  })
+
+  describe('load functions early returns', () => {
+    it('loadUsers without selected pool returns early', async () => {
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      await wrapper.vm.loadUsers()
+      expect(mockListUsers).not.toHaveBeenCalled()
+    })
+
+    it('loadGroups without selected pool returns early', async () => {
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      await wrapper.vm.loadGroups()
+      expect(mockListGroups).not.toHaveBeenCalled()
+    })
+
+    it('loadUserPoolClients without selected pool returns early', async () => {
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      await wrapper.vm.loadUserPoolClients()
+      expect(mockListUserPoolClients).not.toHaveBeenCalled()
+    })
+
+    it('loadResourceServers without selected pool returns early', async () => {
+      const wrapper = shallowMount(CognitoView, { global: { stubs } })
+      await wrapper.vm.loadResourceServers()
+      expect(mockListResourceServers).not.toHaveBeenCalled()
     })
   })
 

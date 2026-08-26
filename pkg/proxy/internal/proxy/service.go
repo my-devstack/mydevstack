@@ -39,6 +39,8 @@ type ProxyService struct {
 	ec2             ports.EC2Port
 	vpc             ports.VpcPort
 	cognito         ports.CognitoPort
+	ecs             ports.ECSPort
+	ecr             ports.ECRPort
 	mu              sync.RWMutex
 	ctx             context.Context
 }
@@ -114,6 +116,8 @@ func (s *ProxyService) SetServices() error {
 	s.ec2 = awsadapter.NewEC2Adapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.vpc = awsadapter.NewVpcAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.cognito = awsadapter.NewCognitoAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.ecs = awsadapter.NewECSAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.ecr = awsadapter.NewECRAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	return nil
 }
 
@@ -215,4 +219,12 @@ func (s *ProxyService) CloudWatchLogs() ports.CloudWatchLogsPort {
 
 func (s *ProxyService) Cognito() ports.CognitoPort {
 	return s.cognito
+}
+
+func (s *ProxyService) ECS() ports.ECSPort {
+	return s.ecs
+}
+
+func (s *ProxyService) ECR() ports.ECRPort {
+	return s.ecr
 }

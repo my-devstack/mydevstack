@@ -13,6 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
@@ -58,6 +60,8 @@ type ProxyService interface {
 	CloudWatch() CloudWatchPort
 	CloudWatchLogs() CloudWatchLogsPort
 	Cognito() CognitoPort
+	ECS() ECSPort
+	ECR() ECRPort
 	Config() *configloader.Config
 	Region() string
 	SetRegion(region string) error
@@ -510,4 +514,49 @@ type CognitoPort interface {
 	InitiateAuth(ctx context.Context, input *cognitoidentityprovider.InitiateAuthInput) (*cognitoidentityprovider.InitiateAuthOutput, error)
 	AdminInitiateAuth(ctx context.Context, input *cognitoidentityprovider.AdminInitiateAuthInput) (*cognitoidentityprovider.AdminInitiateAuthOutput, error)
 	RespondToAuthChallenge(ctx context.Context, input *cognitoidentityprovider.RespondToAuthChallengeInput) (*cognitoidentityprovider.RespondToAuthChallengeOutput, error)
+}
+
+// ECSPort defines the interface for the ECS (Elastic Container Service) adapter.
+// It exposes a subset of the AWS ECS operations supported by the emulator.
+type ECSPort interface {
+	// Clusters
+	CreateCluster(ctx context.Context, input *ecs.CreateClusterInput) (*ecs.CreateClusterOutput, error)
+	DescribeClusters(ctx context.Context, input *ecs.DescribeClustersInput) (*ecs.DescribeClustersOutput, error)
+	ListClusters(ctx context.Context, input *ecs.ListClustersInput) (*ecs.ListClustersOutput, error)
+	DeleteCluster(ctx context.Context, input *ecs.DeleteClusterInput) (*ecs.DeleteClusterOutput, error)
+
+	// Task Definitions
+	RegisterTaskDefinition(ctx context.Context, input *ecs.RegisterTaskDefinitionInput) (*ecs.RegisterTaskDefinitionOutput, error)
+	DescribeTaskDefinition(ctx context.Context, input *ecs.DescribeTaskDefinitionInput) (*ecs.DescribeTaskDefinitionOutput, error)
+	ListTaskDefinitions(ctx context.Context, input *ecs.ListTaskDefinitionsInput) (*ecs.ListTaskDefinitionsOutput, error)
+	ListTaskDefinitionFamilies(ctx context.Context, input *ecs.ListTaskDefinitionFamiliesInput) (*ecs.ListTaskDefinitionFamiliesOutput, error)
+	DeregisterTaskDefinition(ctx context.Context, input *ecs.DeregisterTaskDefinitionInput) (*ecs.DeregisterTaskDefinitionOutput, error)
+
+	// Tasks
+	RunTask(ctx context.Context, input *ecs.RunTaskInput) (*ecs.RunTaskOutput, error)
+	StopTask(ctx context.Context, input *ecs.StopTaskInput) (*ecs.StopTaskOutput, error)
+	DescribeTasks(ctx context.Context, input *ecs.DescribeTasksInput) (*ecs.DescribeTasksOutput, error)
+	ListTasks(ctx context.Context, input *ecs.ListTasksInput) (*ecs.ListTasksOutput, error)
+
+	// Services
+	CreateService(ctx context.Context, input *ecs.CreateServiceInput) (*ecs.CreateServiceOutput, error)
+	DescribeServices(ctx context.Context, input *ecs.DescribeServicesInput) (*ecs.DescribeServicesOutput, error)
+	ListServices(ctx context.Context, input *ecs.ListServicesInput) (*ecs.ListServicesOutput, error)
+	DeleteService(ctx context.Context, input *ecs.DeleteServiceInput) (*ecs.DeleteServiceOutput, error)
+}
+
+// ECRPort defines the interface for the ECR (Elastic Container Registry) adapter.
+// It exposes a subset of the AWS ECR operations supported by the emulator.
+type ECRPort interface {
+	CreateRepository(ctx context.Context, input *ecr.CreateRepositoryInput) (*ecr.CreateRepositoryOutput, error)
+	DescribeRepositories(ctx context.Context, input *ecr.DescribeRepositoriesInput) (*ecr.DescribeRepositoriesOutput, error)
+	DeleteRepository(ctx context.Context, input *ecr.DeleteRepositoryInput) (*ecr.DeleteRepositoryOutput, error)
+	GetAuthorizationToken(ctx context.Context, input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error)
+	ListImages(ctx context.Context, input *ecr.ListImagesInput) (*ecr.ListImagesOutput, error)
+	DescribeImages(ctx context.Context, input *ecr.DescribeImagesInput) (*ecr.DescribeImagesOutput, error)
+	BatchGetImage(ctx context.Context, input *ecr.BatchGetImageInput) (*ecr.BatchGetImageOutput, error)
+	BatchDeleteImage(ctx context.Context, input *ecr.BatchDeleteImageInput) (*ecr.BatchDeleteImageOutput, error)
+	TagResource(ctx context.Context, input *ecr.TagResourceInput) (*ecr.TagResourceOutput, error)
+	UntagResource(ctx context.Context, input *ecr.UntagResourceInput) (*ecr.UntagResourceOutput, error)
+	ListTagsForResource(ctx context.Context, input *ecr.ListTagsForResourceInput) (*ecr.ListTagsForResourceOutput, error)
 }

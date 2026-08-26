@@ -1188,3 +1188,49 @@ export interface EC2ElasticIp {
   InstanceId?: string
   Tags?: Array<{ Key: string; Value: string }>
 }
+
+// ECR Types
+export interface ECRTag {
+  Key: string
+  Value: string
+}
+
+export interface ECRRepository {
+  RepositoryArn: string
+  RegistryId: string
+  RepositoryName: string
+  RepositoryUri: string
+  CreatedAt?: string
+  ImageTagMutability?: 'MUTABLE' | 'IMMUTABLE'
+  ImageScanningConfiguration?: { ScanOnPush?: boolean }
+  EncryptionConfiguration?: { EncryptionType?: string; KmsKey?: string }
+  Tags?: ECRTag[]
+}
+
+export interface ECRImageIdentifier {
+  ImageDigest?: string
+  ImageTag?: string
+}
+
+export interface ECRImageDetail {
+  RegistryId?: string
+  RepositoryName?: string
+  ImageDigest: string
+  ImageTags?: string[]
+  ImageSizeInBytes?: number
+  ImagePushedAt?: string
+  ImageManifestMediaType?: string
+  ArtifactMediaType?: string
+}
+
+export interface ECRAuthorizationData {
+  AuthorizationToken?: string
+  ExpiresAt?: string
+  ProxyEndpoint?: string
+}
+
+export interface ECRImageFailure {
+  ImageId?: ECRImageIdentifier
+  FailureCode?: string
+  FailureReason?: string
+}

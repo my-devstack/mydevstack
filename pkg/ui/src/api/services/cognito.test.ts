@@ -397,4 +397,18 @@ describe('Cognito Service', () => {
       )
     })
   })
+
+  describe('Resource server operations - error branches', () => {
+    it('deleteResourceServer throws APIError on failure', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ message: 'boom' }, 500))
+      await expect(deleteResourceServer('us-east-1_abc', 'api.example.com')).rejects.toThrow('Delete resource server failed')
+    })
+  })
+
+  describe('Tags - error branches', () => {
+    it('updateTags throws APIError on failure', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ message: 'boom' }, 500))
+      await expect(updateTags('us-east-1_abc', { env: 'prod' }, [])).rejects.toThrow('Update tags failed')
+    })
+  })
 })
