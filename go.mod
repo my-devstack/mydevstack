@@ -3,7 +3,7 @@ module github.com/my-devstack/mydevstack
 go 1.26.1
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.43.8
+	github.com/aws/aws-sdk-go-v2 v1.44.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.39
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.38
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.42.8
@@ -19,7 +19,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.90.4
 	github.com/aws/aws-sdk-go-v2/service/elasticache v1.56.8
 	github.com/aws/aws-sdk-go-v2/service/iam v1.59.3
-	github.com/aws/aws-sdk-go-v2/service/kafka v1.59.1
+	github.com/aws/aws-sdk-go-v2/service/kafka v1.60.0
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.47.1
 	github.com/aws/aws-sdk-go-v2/service/kms v1.55.8
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.102.1
@@ -32,7 +32,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sns v1.42.8
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.46.8
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.73.8
-	github.com/aws/smithy-go v1.28.0
+	github.com/aws/smithy-go v1.28.1
 	github.com/beabys/ayotl v1.1.1
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/stretchr/testify v1.12.1
@@ -43,8 +43,8 @@ require (
 require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.19 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.39 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.39 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.39 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.40 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.40 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.40 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.18 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.32 // indirect
