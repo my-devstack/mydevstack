@@ -3,7 +3,7 @@ module github.com/my-devstack/mydevstack
 go 1.26.1
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.43.8
+	github.com/aws/aws-sdk-go-v2 v1.44.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.39
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.38
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.42.8
@@ -24,7 +24,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kms v1.55.8
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.102.1
 	github.com/aws/aws-sdk-go-v2/service/opensearch v1.75.8
-	github.com/aws/aws-sdk-go-v2/service/rds v1.124.5
+	github.com/aws/aws-sdk-go-v2/service/rds v1.125.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.107.4
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.44.8
 	github.com/aws/aws-sdk-go-v2/service/sesv2 v1.67.1
@@ -32,7 +32,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sns v1.42.8
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.46.8
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.73.8
-	github.com/aws/smithy-go v1.28.0
+	github.com/aws/smithy-go v1.28.1
 	github.com/beabys/ayotl v1.1.1
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/stretchr/testify v1.12.1
@@ -43,13 +43,13 @@ require (
 require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.19 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.39 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.39 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.39 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.40 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.40 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.40 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.18 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.19 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.32 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.12.16 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.39 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.40 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.40 // indirect
 	github.com/aws/aws-sdk-go-v2/service/signin v1.5.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.33.8 // indirect
