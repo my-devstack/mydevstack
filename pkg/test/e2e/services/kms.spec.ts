@@ -110,21 +110,19 @@ test.describe('KMS', () => {
 
   await createKey(page, keyDescription)
 
-  // Wait for the key to appear in the list
-  await expect(page.locator('div.border.rounded-lg').first()).toBeVisible({ timeout: 15000 })
-  await page.waitForTimeout(500)
+  // Wait for a key row to appear (key rows always contain an Encrypt button;
+  // avoid div.border.rounded-lg which also matches lingering toasts and code snippets)
+  const keyCard = page.locator('div.border.rounded-lg:has(button[title="Encrypt"])').first()
+  await expect(keyCard).toBeVisible({ timeout: 15000 })
 
-  // Click on the key card to expand
-  const keyCard = page.locator('div.border.rounded-lg').first()
-  await keyCard.click({ position: { x: 50, y: 20 } })
-  
-  await page.waitForTimeout(500)
+  // Click the Key ID text in the row header to expand the accordion.
+  // Avoids the actions column (@click.stop on Encrypt/Decrypt/Delete/chevron).
+  await keyCard.locator('span.font-medium').first().click()
 
-  // Verify accordion opened - look for expanded content
-  // The accordion content should contain either Key Details heading or Key Policy
+  // Verify expanded content appears inside the same card
   await expect(
-    page.locator('text=Key Details').or(page.locator('text=Key Policy'))
-  ).toBeVisible({ timeout: 5000 })
+    keyCard.getByRole('heading', { name: 'Key Details' })
+  ).toBeVisible({ timeout: 10000 })
 })
 
   test('delete key - schedule deletion', async ({ page }) => {
