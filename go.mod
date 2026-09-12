@@ -3,12 +3,12 @@ module github.com/my-devstack/mydevstack
 go 1.26.1
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.46.0
+	github.com/aws/aws-sdk-go-v2 v1.47.0
 	github.com/aws/aws-sdk-go-v2/config v1.33.3
 	github.com/aws/aws-sdk-go-v2/credentials v1.20.3
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.46.0
 	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.41.0
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.80.0
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.81.0
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.71.0
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.86.0
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.73.0
@@ -43,8 +43,8 @@ require (
 require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.20 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.19.2 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.5.2 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.8.2 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.5.3 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.8.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.5.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.19 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.11.2 // indirect
