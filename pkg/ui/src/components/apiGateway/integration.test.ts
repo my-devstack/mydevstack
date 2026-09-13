@@ -661,6 +661,24 @@ describe('APIGatewayAuthorizersModal', () => {
       const nameInput = wrapper.findAll('.form-input input').at(0)
       expect((nameInput!.element as HTMLInputElement).value).toBe('my-auth')
     })
+
+    it('pre-fills fields when mounted with open=true (v-if mount)', () => {
+      const wrapper = mount(APIGatewayAuthorizersModal, {
+        props: {
+          open: true,
+          mode: 'edit' as const,
+          apiId: 'api1',
+          apiName: 'test-api',
+          apiType: 'http' as const,
+          authorizer: { authorizerId: 'auth-1', name: 'my-auth', authorizerType: 'JWT', jwtConfiguration: { issuer: 'https://issuer', audience: ['aud1', 'aud2'] } },
+        },
+        global: { stubs: authorizerModalStubs },
+      })
+      const inputs = wrapper.findAll('.form-input input')
+      expect((inputs.at(0)!.element as HTMLInputElement).value).toBe('my-auth')
+      expect((inputs.at(1)!.element as HTMLInputElement).value).toBe('https://issuer')
+      expect((inputs.at(2)!.element as HTMLInputElement).value).toBe('aud1, aud2')
+    })
   })
 
   describe('V1 REST API mode', () => {

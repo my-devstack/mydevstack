@@ -769,6 +769,58 @@ describe('APIGatewayHttpApis.vue — stage create/update', () => {
   })
 })
 
+describe('APIGatewayHttpApis.vue — authorizer modal close', () => {
+  it('handleAuthorizersModalClose closes the modal and bumps the list key to force reload', async () => {
+    const wrapper = mountView()
+    await flushPromises()
+
+    wrapper.vm.handleOpenAuthorizers(mockApi)
+    wrapper.vm.handleCreateAuthorizer()
+    expect(wrapper.vm.showAuthorizers).toBe(true)
+    expect(wrapper.vm.showAuthorizersModal).toBe(true)
+    expect(wrapper.vm.authorizersListKey).toBe(0)
+
+    wrapper.vm.handleAuthorizersModalClose()
+
+    expect(wrapper.vm.showAuthorizersModal).toBe(false)
+    expect(wrapper.vm.authorizersListKey).toBe(1)
+    // The list modal stays open — only the key changes to force a remount/reload.
+    expect(wrapper.vm.showAuthorizers).toBe(true)
+  })
+
+  it('handleAuthorizersModalClose bumps the key on every close', async () => {
+    const wrapper = mountView()
+    await flushPromises()
+
+    wrapper.vm.handleOpenAuthorizers(mockApi)
+    wrapper.vm.handleCreateAuthorizer()
+    wrapper.vm.handleAuthorizersModalClose()
+    wrapper.vm.handleCreateAuthorizer()
+    wrapper.vm.handleAuthorizersModalClose()
+
+    expect(wrapper.vm.authorizersListKey).toBe(2)
+    expect(wrapper.vm.showAuthorizers).toBe(true)
+  })
+
+  it('authorizers list stays mounted after modal close (no close/reopen flicker)', async () => {
+    const wrapper = mountView()
+    await flushPromises()
+
+    wrapper.vm.handleOpenAuthorizers(mockApi)
+    await wrapper.vm.$nextTick()
+
+    const list = wrapper.findComponent({ name: 'APIGatewayAuthorizersList' })
+    expect(list.exists()).toBe(true)
+
+    wrapper.vm.handleCreateAuthorizer()
+    wrapper.vm.handleAuthorizersModalClose()
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.vm.showAuthorizers).toBe(true)
+    expect(wrapper.findComponent({ name: 'APIGatewayAuthorizersList' }).exists()).toBe(true)
+  })
+})
+
 describe('APIGatewayHttpApis.vue — template inline handlers', () => {
   it('pagination Previous and Next buttons call goToHttpApiPage', async () => {
     const manyApis = Array.from({ length: 15 }, (_, i) => ({ apiId: `api-${i}`, name: `API ${i}` }))

@@ -1629,7 +1629,8 @@ func TestAPIGateway_CreateAuthorizerV2_JWT(t *testing.T) {
 			in.AuthorizerType == apigwV2Types.AuthorizerTypeJwt &&
 			in.JwtConfiguration != nil &&
 			*in.JwtConfiguration.Issuer == "https://cognito-idp.us-east-1.amazonaws.com/pool" &&
-			len(in.JwtConfiguration.Audience) == 1 && in.JwtConfiguration.Audience[0] == "aud1"
+			len(in.JwtConfiguration.Audience) == 1 && in.JwtConfiguration.Audience[0] == "aud1" &&
+			len(in.IdentitySource) == 1 && in.IdentitySource[0] == "$request.header.Authorization"
 	})).Return(&apigwV2Types.Authorizer{AuthorizerId: aws.String("auth-1"), Name: aws.String("jwt-auth"), AuthorizerType: apigwV2Types.AuthorizerTypeJwt}, nil)
 
 	body := `{"name":"jwt-auth","authorizerType":"JWT","jwtConfiguration":{"issuer":"https://cognito-idp.us-east-1.amazonaws.com/pool","audience":["aud1"]}}`
@@ -1650,7 +1651,8 @@ func TestAPIGateway_CreateAuthorizerV2_Lambda(t *testing.T) {
 		return in.Name != nil && *in.Name == "lambda-auth" &&
 			in.AuthorizerType == apigwV2Types.AuthorizerType("LAMBDA") &&
 			in.AuthorizerUri != nil && *in.AuthorizerUri == "arn:aws:lambda:us-east-1:123456789012:function:auth" &&
-			in.AuthorizerPayloadFormatVersion != nil && *in.AuthorizerPayloadFormatVersion == "2.0"
+			in.AuthorizerPayloadFormatVersion != nil && *in.AuthorizerPayloadFormatVersion == "2.0" &&
+			len(in.IdentitySource) == 1 && in.IdentitySource[0] == "$request.header.Authorization"
 	})).Return(&apigwV2Types.Authorizer{AuthorizerId: aws.String("auth-2"), Name: aws.String("lambda-auth"), AuthorizerType: apigwV2Types.AuthorizerType("LAMBDA")}, nil)
 
 	body := `{"name":"lambda-auth","authorizerType":"LAMBDA","authorizerUri":"arn:aws:lambda:us-east-1:123456789012:function:auth","authorizerPayloadFormatVersion":"2.0"}`
@@ -1677,6 +1679,27 @@ func TestAPIGateway_UpdateAuthorizerV2(t *testing.T) {
 	var resp apigwV2Types.Authorizer
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Equal(t, "updated-auth", *resp.Name)
+}
+
+func TestAPIGateway_UpdateAuthorizerV2_JWT_DefaultsIdentitySource(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+	r := setupTestRouter(s.h)
+
+	s.mpV2.EXPECT().UpdateAuthorizer(mock.Anything, "testid", "testauth", mock.MatchedBy(func(in *apigatewayv2.UpdateAuthorizerInput) bool {
+		return in.Name != nil && *in.Name == "jwt-auth" &&
+			in.AuthorizerType == apigwV2Types.AuthorizerTypeJwt &&
+			in.JwtConfiguration != nil &&
+			len(in.IdentitySource) == 1 && in.IdentitySource[0] == "$request.header.Authorization"
+	})).Return(&apigwV2Types.Authorizer{AuthorizerId: aws.String("auth-1"), Name: aws.String("jwt-auth"), AuthorizerType: apigwV2Types.AuthorizerTypeJwt}, nil)
+
+	body := `{"name":"jwt-auth","authorizerType":"JWT","jwtConfiguration":{"issuer":"https://issuer","audience":["aud"]}}`
+	w := performRequest(r, "PUT", "/apigateway/apis/testid/authorizers/testauth", []byte(body))
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp apigwV2Types.Authorizer
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "auth-1", *resp.AuthorizerId)
 }
 
 func TestAPIGateway_DeleteAuthorizerV2(t *testing.T) {
@@ -1855,6 +1878,26 @@ func TestAPIGateway_UpdateAuthorizer(t *testing.T) {
 	var resp apigwTypes.Authorizer
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Equal(t, "updated-auth", *resp.Name)
+}
+
+func TestAPIGateway_UpdateAuthorizer_SimpleFormat(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV1(t)
+	r := setupTestRouter(s.h)
+
+	s.mp.EXPECT().UpdateAuthorizer(mock.Anything, "testid", "testauth", mock.MatchedBy(func(in *apigateway.UpdateAuthorizerInput) bool {
+		if len(in.PatchOperations) != 1 {
+			return false
+		}
+		return *in.PatchOperations[0].Path == "/name" && *in.PatchOperations[0].Value == "new-name"
+	})).Return(&apigwTypes.Authorizer{Id: aws.String("auth-1"), Name: aws.String("new-name")}, nil)
+
+	w := performRequest(r, "PUT", "/apigateway/rest-apis/testid/authorizers/testauth", []byte(`{"Name":"new-name","Type":"TOKEN"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp apigwTypes.Authorizer
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "new-name", *resp.Name)
 }
 
 func TestAPIGateway_DeleteAuthorizer(t *testing.T) {

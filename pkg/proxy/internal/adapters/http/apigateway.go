@@ -937,11 +937,13 @@ func (h *ProxyHandler) createAuthorizer(w http.ResponseWriter, r *http.Request) 
 
 func (h *ProxyHandler) updateAuthorizer(w http.ResponseWriter, r *http.Request) {
 	bodyBytes := readBody(r)
-	input := &apigateway.UpdateAuthorizerInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
+
+	var bodyData map[string]interface{}
+	if err := json.Unmarshal(bodyBytes, &bodyData); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+
 	restApiId := chi.URLParam(r, "restApiId")
 	authorizerId := chi.URLParam(r, "authorizerId")
 	if restApiId == "" {
@@ -952,6 +954,64 @@ func (h *ProxyHandler) updateAuthorizer(w http.ResponseWriter, r *http.Request) 
 		sendError(w, http.StatusBadRequest, "AuthorizerId is required", nil)
 		return
 	}
+
+	// Simple format: {Name, Type, AuthorizerUri, AuthorizerCredentials, IdentitySource}.
+	// v1 UpdateAuthorizerInput has no Name/Type fields — it uses PatchOperations.
+	// Authorizer Type is immutable after creation (AWS rejects /type patch), so it is skipped.
+	if _, hasName := bodyData["Name"]; hasName {
+		patchOperations := []apigwTypes.PatchOperation{}
+
+		if name, ok := bodyData["Name"].(string); ok && name != "" {
+			patchOperations = append(patchOperations, apigwTypes.PatchOperation{
+				Op:    apigwTypes.OpReplace,
+				Path:  aws.String("/name"),
+				Value: aws.String(name),
+			})
+		}
+		if uri, ok := bodyData["AuthorizerUri"].(string); ok && uri != "" {
+			patchOperations = append(patchOperations, apigwTypes.PatchOperation{
+				Op:    apigwTypes.OpReplace,
+				Path:  aws.String("/authorizerUri"),
+				Value: aws.String(uri),
+			})
+		}
+		if creds, ok := bodyData["AuthorizerCredentials"].(string); ok && creds != "" {
+			patchOperations = append(patchOperations, apigwTypes.PatchOperation{
+				Op:    apigwTypes.OpReplace,
+				Path:  aws.String("/authorizerCredentials"),
+				Value: aws.String(creds),
+			})
+		}
+		if idSrc, ok := bodyData["IdentitySource"].(string); ok && idSrc != "" {
+			patchOperations = append(patchOperations, apigwTypes.PatchOperation{
+				Op:    apigwTypes.OpReplace,
+				Path:  aws.String("/identitySource"),
+				Value: aws.String(idSrc),
+			})
+		}
+
+		input := &apigateway.UpdateAuthorizerInput{
+			RestApiId:       aws.String(restApiId),
+			AuthorizerId:    aws.String(authorizerId),
+			PatchOperations: patchOperations,
+		}
+		result, err := h.Svc.APIGateway().UpdateAuthorizer(h.ctx, restApiId, authorizerId, input)
+		if err != nil {
+			sendError(w, http.StatusInternalServerError, "Failed to update authorizer", err)
+			return
+		}
+		writeJSON(w, http.StatusOK, result)
+		return
+	}
+
+	// AWS SDK format with patchOperations array
+	input := &apigateway.UpdateAuthorizerInput{}
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	input.RestApiId = aws.String(restApiId)
+	input.AuthorizerId = aws.String(authorizerId)
 	result, err := h.Svc.APIGateway().UpdateAuthorizer(h.ctx, restApiId, authorizerId, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to update authorizer", err)
@@ -1020,6 +1080,10 @@ func (h *ProxyHandler) createAuthorizerV2(w http.ResponseWriter, r *http.Request
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	if len(input.IdentitySource) == 0 {
+		input.IdentitySource = []string{"$request.header.Authorization"}
+	}
+	log.Printf("CreateAuthorizerV2: AuthorizerType=%v, JwtConfiguration=%v, IdentitySource=%v", input.AuthorizerType, input.JwtConfiguration, input.IdentitySource)
 	apiId := chi.URLParam(r, "apiId")
 	if apiId == "" {
 		sendError(w, http.StatusBadRequest, "ApiId is required", nil)
@@ -1027,6 +1091,7 @@ func (h *ProxyHandler) createAuthorizerV2(w http.ResponseWriter, r *http.Request
 	}
 	result, err := h.Svc.APIGatewayV2().CreateAuthorizer(h.ctx, apiId, input)
 	if err != nil {
+		log.Printf("CreateAuthorizerV2 error: %v", err)
 		sendError(w, http.StatusInternalServerError, "Failed to create authorizer", err)
 		return
 	}
@@ -1040,6 +1105,10 @@ func (h *ProxyHandler) updateAuthorizerV2(w http.ResponseWriter, r *http.Request
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	if len(input.IdentitySource) == 0 {
+		input.IdentitySource = []string{"$request.header.Authorization"}
+	}
+	log.Printf("UpdateAuthorizerV2: AuthorizerType=%v, JwtConfiguration=%v, IdentitySource=%v", input.AuthorizerType, input.JwtConfiguration, input.IdentitySource)
 	apiId := chi.URLParam(r, "apiId")
 	authorizerId := chi.URLParam(r, "authorizerId")
 	if apiId == "" {
@@ -1052,6 +1121,7 @@ func (h *ProxyHandler) updateAuthorizerV2(w http.ResponseWriter, r *http.Request
 	}
 	result, err := h.Svc.APIGatewayV2().UpdateAuthorizer(h.ctx, apiId, authorizerId, input)
 	if err != nil {
+		log.Printf("UpdateAuthorizerV2 error: %v", err)
 		sendError(w, http.StatusInternalServerError, "Failed to update authorizer", err)
 		return
 	}

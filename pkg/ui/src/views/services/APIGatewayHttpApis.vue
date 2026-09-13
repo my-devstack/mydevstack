@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useToast } from '@/composables/useToast'
 import { usePagination } from '@/composables/usePagination'
 import { useSettingsStore } from '@/stores/settings'
@@ -67,6 +67,7 @@ const stageToEdit = ref<any>(null)
 const showAuthorizers = ref(false)
 const showAuthorizersModal = ref(false)
 const authorizerToEdit = ref<any>(null)
+const authorizersListKey = ref(0)
 
 onMounted(async () => {
   await loadApis()
@@ -213,10 +214,7 @@ function handleEditAuthorizer(authorizer: any) {
 
 function handleAuthorizersModalClose() {
   showAuthorizersModal.value = false
-  showAuthorizers.value = false
-  nextTick(() => {
-    showAuthorizers.value = true
-  })
+  authorizersListKey.value++
 }
 
 async function confirmCreateIntegration(integrationType: string, httpMethod: string, uri: string, mappingTemplate?: string) {
@@ -476,6 +474,7 @@ defineExpose({
 
   <APIGatewayAuthorizersList
     v-if="showAuthorizers"
+    :key="authorizersListKey"
     :open="showAuthorizers"
     :api-id="selectedApi?.apiId"
     :api-name="selectedApi?.name"

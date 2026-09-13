@@ -77,7 +77,7 @@ watch(() => props.open, (isOpen) => {
   authorizerUri.value = a?.authorizerUri || ''
   invokeMode.value = a?.invokeMode || 'WAIT_FOR_RESPONSE'
   identitySource.value = a?.identitySource || ''
-})
+}, { immediate: true })
 
 function authorizerId(): string {
   return props.authorizer?.authorizerId || props.authorizer?.id || ''
@@ -97,6 +97,7 @@ async function handleSubmit() {
       }
       if (credentialsArn.value) input.authorizerCredentials = credentialsArn.value.trim()
       if (ttl.value) input.authorizerResultTtlInSeconds = Number(ttl.value)
+      input.identitySource = '$request.header.Authorization'
     } else if (authorizerType.value === 'LAMBDA') {
       if (authorizerUri.value) input.authorizerUri = authorizerUri.value.trim()
       if (credentialsArn.value) input.authorizerCredentials = credentialsArn.value.trim()

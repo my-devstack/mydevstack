@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useToast } from '@/composables/useToast'
 import { usePagination } from '@/composables/usePagination'
 import { useSettingsStore } from '@/stores/settings'
@@ -51,6 +51,7 @@ const apiToDelete = ref<any>(null)
 const showAuthorizers = ref(false)
 const showAuthorizersModal = ref(false)
 const authorizerToEdit = ref<any>(null)
+const authorizersListKey = ref(0)
 
 const lambdaFunctions = ref<any[]>([])
 
@@ -325,10 +326,7 @@ function handleEditAuthorizer(authorizer: any) {
 
 function handleAuthorizersModalClose() {
   showAuthorizersModal.value = false
-  showAuthorizers.value = false
-  nextTick(() => {
-    showAuthorizers.value = true
-  })
+  authorizersListKey.value++
 }
 
 const confirmDeleteDeployment = async (deployment: any) => {
@@ -498,6 +496,7 @@ defineExpose({
   <!-- Authorizers List Modal -->
   <APIGatewayAuthorizersList
     v-if="showAuthorizers"
+    :key="authorizersListKey"
     :open="showAuthorizers"
     :api-id="selectedApi?.id"
     :api-name="selectedApi?.name"

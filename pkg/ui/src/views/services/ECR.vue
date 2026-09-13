@@ -234,7 +234,6 @@ watch(reloadTrigger, () => {
           />
         </template>
       </template>
-
     </div>
 
     <!-- Code Examples (always visible at bottom) -->
