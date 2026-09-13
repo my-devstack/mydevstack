@@ -69,6 +69,11 @@ import {
   deleteStage,
   getRestApiInvokeUrl,
   getHttpApiInvokeUrl,
+  listHttpApiAuthorizers,
+  createHttpApiAuthorizer,
+  deleteHttpApiAuthorizer,
+  listRestApiAuthorizers,
+  createRestApiAuthorizer,
 } from './api-gateway'
 
 const BASE = 'http://127.0.0.1:8081'
@@ -919,5 +924,177 @@ describe('API Gateway Service', () => {
       await getRestApis()
       expect(mockFetch.mock.calls[0][1].headers['X-Amz-Target']).toBeUndefined()
     })
+  })
+
+  describe('V2 Authorizers', () => {
+    it('listHttpApiAuthorizers returns normalized items', async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse({ Items: [{ AuthorizerId: 'auth1', Name: 'my-auth', AuthorizerType: 'JWT', JwtConfiguration: { Issuer: 'https://issuer', Audience: ['aud1'] } }] }))
+      const result = await listHttpApiAuthorizers('api1')
+      expect(result.items[0].authorizerId).toBe('auth1')
+      expect(result.items[0].authorizerType).toBe('JWT')
+      expect(result.items[0].jwtConfiguration.issuer).toBe('https://issuer')
+    })
+
+    it('createHttpApiAuthorizer sends correct mapping', async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse({}))
+      await createHttpApiAuthorizer('api1', { name: 'auth', authorizerType: 'JWT', authorizerCredentials: 'arn:aws:...', jwtConfiguration: { issuer: 'https://issuer', audience: ['aud1'] } })
+      expect(mockFetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ body: expect.stringContaining('AuthorizerCredentialsArn') }))
+      expect(mockFetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ body: expect.stringContaining('JwtConfiguration') }))
+    })
+
+    it('deleteHttpApiAuthorizer calls correct endpoint', async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse({}))
+      await deleteHttpApiAuthorizer('api1', 'auth1')
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('/apis/api1/authorizers/auth1'), expect.any(Object))
+    })
+  })
+
+  describe('V1 Authorizers', () => {
+    it('listRestApiAuthorizers returns normalized items', async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse({ Items: [{ Id: 'auth1', Name: 'my-auth', Type: 'TOKEN' }] }))
+      const result = await listRestApiAuthorizers('api1')
+      expect(result.items[0].id).toBe('auth1')
+      expect(result.items[0].type).toBe('TOKEN')
+    })
+
+    it('createRestApiAuthorizer sends correct fields', async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse({}))
+      await createRestApiAuthorizer('api1', { name: 'auth', type: 'TOKEN', authorizerUri: 'arn:aws:lambda:...' })
+      expect(mockFetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ body: expect.stringContaining('AuthorizerUri') }))
+    })
+  })
+})
+
+describe('V2 Authorizers', () => {
+  beforeEach(() => {
+    mockFetch.mockReset()
+  })
+
+  it('listHttpApiAuthorizers returns normalized items', async () => {
+    const { APIGatewayService } = await import('./api-gateway')
+    const service = new APIGatewayService()
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        Items: [{ AuthorizerId: 'auth1', Name: 'my-auth', AuthorizerType: 'JWT', JwtConfiguration: { Issuer: 'https://issuer', Audience: ['aud1'] } }],
+      }),
+    })
+    const result = await service.listHttpApiAuthorizers('api1')
+    expect(result.items[0].authorizerId).toBe('auth1')
+    expect(result.items[0].name).toBe('my-auth')
+    expect(result.items[0].authorizerType).toBe('JWT')
+    expect(result.items[0].jwtConfiguration.issuer).toBe('https://issuer')
+    expect(result.items[0].jwtConfiguration.audience).toEqual(['aud1'])
+  })
+
+  it('listHttpApiAuthorizers handles lowercase items key', async () => {
+    const { APIGatewayService } = await import('./api-gateway')
+    const service = new APIGatewayService()
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        items: [{ authorizerId: 'auth1', name: 'my-auth', authorizerType: 'JWT' }],
+      }),
+    })
+    const result = await service.listHttpApiAuthorizers('api1')
+    expect(result.items[0].authorizerId).toBe('auth1')
+  })
+
+  it('createHttpApiAuthorizer maps camelCase to TitleCase', async () => {
+    const { APIGatewayService } = await import('./api-gateway')
+    const service = new APIGatewayService()
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) })
+    await service.createHttpApiAuthorizer('api1', {
+      name: 'auth',
+      authorizerType: 'JWT',
+      authorizerCredentials: 'arn:aws:iam::123:role/auth',
+      jwtConfiguration: { issuer: 'https://issuer', audience: ['aud1'] },
+      authorizerResultTtlInSeconds: 300,
+    })
+    expect(mockFetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
+      body: JSON.stringify({
+        Name: 'auth',
+        AuthorizerType: 'JWT',
+        AuthorizerCredentialsArn: 'arn:aws:iam::123:role/auth',
+        JwtConfiguration: { Issuer: 'https://issuer', Audience: ['aud1'] },
+        AuthorizerResultTtlInSeconds: 300,
+      }),
+    }))
+  })
+
+  it('updateHttpApiAuthorizer sends correct fields', async () => {
+    const { APIGatewayService } = await import('./api-gateway')
+    const service = new APIGatewayService()
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) })
+    await service.updateHttpApiAuthorizer('api1', 'auth1', { name: 'updated', authorizerType: 'IAM' })
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/apis/api1/authorizers/auth1'),
+      expect.objectContaining({ method: 'PUT', body: JSON.stringify({ Name: 'updated', AuthorizerType: 'IAM' }) }),
+    )
+  })
+
+  it('deleteHttpApiAuthorizer calls correct endpoint', async () => {
+    const { APIGatewayService } = await import('./api-gateway')
+    const service = new APIGatewayService()
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ message: 'Deleted' }) })
+    const result = await service.deleteHttpApiAuthorizer('api1', 'auth1')
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/apis/api1/authorizers/auth1'),
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+})
+
+describe('V1 Authorizers', () => {
+  beforeEach(() => {
+    mockFetch.mockReset()
+  })
+
+  it('listRestApiAuthorizers returns normalized items', async () => {
+    const { APIGatewayService } = await import('./api-gateway')
+    const service = new APIGatewayService()
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        Items: [{ Id: 'auth1', Name: 'my-auth', Type: 'TOKEN', AuthorizerUri: 'arn:aws:lambda:...' }],
+      }),
+    })
+    const result = await service.listRestApiAuthorizers('api1')
+    expect(result.items[0].id).toBe('auth1')
+    expect(result.items[0].name).toBe('my-auth')
+    expect(result.items[0].type).toBe('TOKEN')
+    expect(result.items[0].authorizerUri).toBe('arn:aws:lambda:...')
+  })
+
+  it('createRestApiAuthorizer sends correct fields', async () => {
+    const { APIGatewayService } = await import('./api-gateway')
+    const service = new APIGatewayService()
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) })
+    await service.createRestApiAuthorizer('api1', { name: 'auth', type: 'TOKEN', authorizerUri: 'arn:aws:lambda:us-east-1:123:function:auth' })
+    expect(mockFetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
+      body: JSON.stringify({ Name: 'auth', Type: 'TOKEN', AuthorizerUri: 'arn:aws:lambda:us-east-1:123:function:auth' }),
+    }))
+  })
+
+  it('updateRestApiAuthorizer uses PUT method', async () => {
+    const { APIGatewayService } = await import('./api-gateway')
+    const service = new APIGatewayService()
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) })
+    await service.updateRestApiAuthorizer('api1', 'auth1', { name: 'updated' })
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/rest-apis/api1/authorizers/auth1'),
+      expect.objectContaining({ method: 'PUT' }),
+    )
+  })
+
+  it('deleteRestApiAuthorizer calls correct endpoint', async () => {
+    const { APIGatewayService } = await import('./api-gateway')
+    const service = new APIGatewayService()
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ message: 'Deleted' }) })
+    await service.deleteRestApiAuthorizer('api1', 'auth1')
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/rest-apis/api1/authorizers/auth1'),
+      expect.objectContaining({ method: 'DELETE' }),
+    )
   })
 })

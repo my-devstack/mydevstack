@@ -23,3 +23,5 @@ export { default as APIGatewayEditStageModal } from './APIGatewayEditStageModal.
 export { default as APIGatewayEditIntegrationModal } from './APIGatewayEditIntegrationModal.vue'
 export { default as APIGatewayEditConfigModal } from './APIGatewayEditConfigModal.vue'
 export { default as APIGatewayDeploymentsModal } from './APIGatewayDeploymentsModal.vue'
+export { default as APIGatewayAuthorizersList } from './APIGatewayAuthorizersList.vue'
+export { default as APIGatewayAuthorizersModal } from './APIGatewayAuthorizersModal.vue'

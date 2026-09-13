@@ -34,6 +34,7 @@ const emit = defineEmits<{
   'create-stage': [api: HTTPAPI]
   'edit-stage': [stage: any, apiId: string]
   'delete-stage': [apiId: string, stage: any]
+  'open-authorizers': [api: HTTPAPI]
 }>()
 
 const settingsStore = useSettingsStore()
@@ -392,6 +393,22 @@ const settingsStore = useSettingsStore()
             class="text-light-muted dark:text-dark-muted text-sm"
           >
             No stages yet.
+          </div>
+
+          <div class="flex justify-between items-center">
+            <h4
+              class="text-sm font-semibold uppercase tracking-wider"
+              :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+            >
+              Authorizers
+            </h4>
+            <button
+              type="button"
+              class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              @click.stop="emit('open-authorizers', api)"
+            >
+              View Authorizers
+            </button>
           </div>
         </div>
       </div>

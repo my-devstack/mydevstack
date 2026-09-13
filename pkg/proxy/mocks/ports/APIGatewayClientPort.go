@@ -17,10 +17,19 @@ func NewAPIGatewayClientPort(t interface {
 	mock.TestingT
 	Cleanup(func())
 }) *APIGatewayClientPort {
+	if helper, ok := t.(interface{ Helper() }); ok {
+		helper.Helper()
+	}
+
 	mock := &APIGatewayClientPort{}
 	mock.Mock.Test(t)
 
-	t.Cleanup(func() { mock.AssertExpectations(t) })
+	t.Cleanup(func() {
+		if helper, ok := t.(interface{ Helper() }); ok {
+			helper.Helper()
+		}
+		mock.AssertExpectations(t)
+	})
 
 	return mock
 }
@@ -36,6 +45,89 @@ type APIGatewayClientPort_Expecter struct {
 
 func (_m *APIGatewayClientPort) EXPECT() *APIGatewayClientPort_Expecter {
 	return &APIGatewayClientPort_Expecter{mock: &_m.Mock}
+}
+
+// CreateAuthorizer provides a mock function for the type APIGatewayClientPort
+func (_mock *APIGatewayClientPort) CreateAuthorizer(ctx context.Context, input *apigateway.CreateAuthorizerInput, opts ...func(*apigateway.Options)) (*apigateway.CreateAuthorizerOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateAuthorizer")
+	}
+
+	var r0 *apigateway.CreateAuthorizerOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *apigateway.CreateAuthorizerInput, ...func(*apigateway.Options)) (*apigateway.CreateAuthorizerOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *apigateway.CreateAuthorizerInput, ...func(*apigateway.Options)) *apigateway.CreateAuthorizerOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*apigateway.CreateAuthorizerOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *apigateway.CreateAuthorizerInput, ...func(*apigateway.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// APIGatewayClientPort_CreateAuthorizer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAuthorizer'
+type APIGatewayClientPort_CreateAuthorizer_Call struct {
+	*mock.Call
+}
+
+// CreateAuthorizer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *apigateway.CreateAuthorizerInput
+//   - opts ...func(*apigateway.Options)
+func (_e *APIGatewayClientPort_Expecter) CreateAuthorizer(ctx any, input any, opts ...any) *APIGatewayClientPort_CreateAuthorizer_Call {
+	return &APIGatewayClientPort_CreateAuthorizer_Call{Call: _e.mock.On("CreateAuthorizer",
+		append([]any{ctx, input}, opts...)...)}
+}
+
+func (_c *APIGatewayClientPort_CreateAuthorizer_Call) Run(run func(ctx context.Context, input *apigateway.CreateAuthorizerInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_CreateAuthorizer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *apigateway.CreateAuthorizerInput
+		if args[1] != nil {
+			arg1 = args[1].(*apigateway.CreateAuthorizerInput)
+		}
+		var arg2 []func(*apigateway.Options)
+		var variadicArgs []func(*apigateway.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*apigateway.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *APIGatewayClientPort_CreateAuthorizer_Call) Return(createAuthorizerOutput *apigateway.CreateAuthorizerOutput, err error) *APIGatewayClientPort_CreateAuthorizer_Call {
+	_c.Call.Return(createAuthorizerOutput, err)
+	return _c
+}
+
+func (_c *APIGatewayClientPort_CreateAuthorizer_Call) RunAndReturn(run func(ctx context.Context, input *apigateway.CreateAuthorizerInput, opts ...func(*apigateway.Options)) (*apigateway.CreateAuthorizerOutput, error)) *APIGatewayClientPort_CreateAuthorizer_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateDeployment provides a mock function for the type APIGatewayClientPort
@@ -366,6 +458,89 @@ func (_c *APIGatewayClientPort_CreateStage_Call) Return(createStageOutput *apiga
 }
 
 func (_c *APIGatewayClientPort_CreateStage_Call) RunAndReturn(run func(ctx context.Context, input *apigateway.CreateStageInput, opts ...func(*apigateway.Options)) (*apigateway.CreateStageOutput, error)) *APIGatewayClientPort_CreateStage_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteAuthorizer provides a mock function for the type APIGatewayClientPort
+func (_mock *APIGatewayClientPort) DeleteAuthorizer(ctx context.Context, input *apigateway.DeleteAuthorizerInput, opts ...func(*apigateway.Options)) (*apigateway.DeleteAuthorizerOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAuthorizer")
+	}
+
+	var r0 *apigateway.DeleteAuthorizerOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *apigateway.DeleteAuthorizerInput, ...func(*apigateway.Options)) (*apigateway.DeleteAuthorizerOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *apigateway.DeleteAuthorizerInput, ...func(*apigateway.Options)) *apigateway.DeleteAuthorizerOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*apigateway.DeleteAuthorizerOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *apigateway.DeleteAuthorizerInput, ...func(*apigateway.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// APIGatewayClientPort_DeleteAuthorizer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAuthorizer'
+type APIGatewayClientPort_DeleteAuthorizer_Call struct {
+	*mock.Call
+}
+
+// DeleteAuthorizer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *apigateway.DeleteAuthorizerInput
+//   - opts ...func(*apigateway.Options)
+func (_e *APIGatewayClientPort_Expecter) DeleteAuthorizer(ctx any, input any, opts ...any) *APIGatewayClientPort_DeleteAuthorizer_Call {
+	return &APIGatewayClientPort_DeleteAuthorizer_Call{Call: _e.mock.On("DeleteAuthorizer",
+		append([]any{ctx, input}, opts...)...)}
+}
+
+func (_c *APIGatewayClientPort_DeleteAuthorizer_Call) Run(run func(ctx context.Context, input *apigateway.DeleteAuthorizerInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_DeleteAuthorizer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *apigateway.DeleteAuthorizerInput
+		if args[1] != nil {
+			arg1 = args[1].(*apigateway.DeleteAuthorizerInput)
+		}
+		var arg2 []func(*apigateway.Options)
+		var variadicArgs []func(*apigateway.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*apigateway.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *APIGatewayClientPort_DeleteAuthorizer_Call) Return(deleteAuthorizerOutput *apigateway.DeleteAuthorizerOutput, err error) *APIGatewayClientPort_DeleteAuthorizer_Call {
+	_c.Call.Return(deleteAuthorizerOutput, err)
+	return _c
+}
+
+func (_c *APIGatewayClientPort_DeleteAuthorizer_Call) RunAndReturn(run func(ctx context.Context, input *apigateway.DeleteAuthorizerInput, opts ...func(*apigateway.Options)) (*apigateway.DeleteAuthorizerOutput, error)) *APIGatewayClientPort_DeleteAuthorizer_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -864,6 +1039,172 @@ func (_c *APIGatewayClientPort_DeleteStage_Call) Return(deleteStageOutput *apiga
 }
 
 func (_c *APIGatewayClientPort_DeleteStage_Call) RunAndReturn(run func(ctx context.Context, input *apigateway.DeleteStageInput, opts ...func(*apigateway.Options)) (*apigateway.DeleteStageOutput, error)) *APIGatewayClientPort_DeleteStage_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAuthorizer provides a mock function for the type APIGatewayClientPort
+func (_mock *APIGatewayClientPort) GetAuthorizer(ctx context.Context, input *apigateway.GetAuthorizerInput, opts ...func(*apigateway.Options)) (*apigateway.GetAuthorizerOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAuthorizer")
+	}
+
+	var r0 *apigateway.GetAuthorizerOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *apigateway.GetAuthorizerInput, ...func(*apigateway.Options)) (*apigateway.GetAuthorizerOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *apigateway.GetAuthorizerInput, ...func(*apigateway.Options)) *apigateway.GetAuthorizerOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*apigateway.GetAuthorizerOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *apigateway.GetAuthorizerInput, ...func(*apigateway.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// APIGatewayClientPort_GetAuthorizer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAuthorizer'
+type APIGatewayClientPort_GetAuthorizer_Call struct {
+	*mock.Call
+}
+
+// GetAuthorizer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *apigateway.GetAuthorizerInput
+//   - opts ...func(*apigateway.Options)
+func (_e *APIGatewayClientPort_Expecter) GetAuthorizer(ctx any, input any, opts ...any) *APIGatewayClientPort_GetAuthorizer_Call {
+	return &APIGatewayClientPort_GetAuthorizer_Call{Call: _e.mock.On("GetAuthorizer",
+		append([]any{ctx, input}, opts...)...)}
+}
+
+func (_c *APIGatewayClientPort_GetAuthorizer_Call) Run(run func(ctx context.Context, input *apigateway.GetAuthorizerInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_GetAuthorizer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *apigateway.GetAuthorizerInput
+		if args[1] != nil {
+			arg1 = args[1].(*apigateway.GetAuthorizerInput)
+		}
+		var arg2 []func(*apigateway.Options)
+		var variadicArgs []func(*apigateway.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*apigateway.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *APIGatewayClientPort_GetAuthorizer_Call) Return(getAuthorizerOutput *apigateway.GetAuthorizerOutput, err error) *APIGatewayClientPort_GetAuthorizer_Call {
+	_c.Call.Return(getAuthorizerOutput, err)
+	return _c
+}
+
+func (_c *APIGatewayClientPort_GetAuthorizer_Call) RunAndReturn(run func(ctx context.Context, input *apigateway.GetAuthorizerInput, opts ...func(*apigateway.Options)) (*apigateway.GetAuthorizerOutput, error)) *APIGatewayClientPort_GetAuthorizer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAuthorizers provides a mock function for the type APIGatewayClientPort
+func (_mock *APIGatewayClientPort) GetAuthorizers(ctx context.Context, input *apigateway.GetAuthorizersInput, opts ...func(*apigateway.Options)) (*apigateway.GetAuthorizersOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAuthorizers")
+	}
+
+	var r0 *apigateway.GetAuthorizersOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *apigateway.GetAuthorizersInput, ...func(*apigateway.Options)) (*apigateway.GetAuthorizersOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *apigateway.GetAuthorizersInput, ...func(*apigateway.Options)) *apigateway.GetAuthorizersOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*apigateway.GetAuthorizersOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *apigateway.GetAuthorizersInput, ...func(*apigateway.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// APIGatewayClientPort_GetAuthorizers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAuthorizers'
+type APIGatewayClientPort_GetAuthorizers_Call struct {
+	*mock.Call
+}
+
+// GetAuthorizers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *apigateway.GetAuthorizersInput
+//   - opts ...func(*apigateway.Options)
+func (_e *APIGatewayClientPort_Expecter) GetAuthorizers(ctx any, input any, opts ...any) *APIGatewayClientPort_GetAuthorizers_Call {
+	return &APIGatewayClientPort_GetAuthorizers_Call{Call: _e.mock.On("GetAuthorizers",
+		append([]any{ctx, input}, opts...)...)}
+}
+
+func (_c *APIGatewayClientPort_GetAuthorizers_Call) Run(run func(ctx context.Context, input *apigateway.GetAuthorizersInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_GetAuthorizers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *apigateway.GetAuthorizersInput
+		if args[1] != nil {
+			arg1 = args[1].(*apigateway.GetAuthorizersInput)
+		}
+		var arg2 []func(*apigateway.Options)
+		var variadicArgs []func(*apigateway.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*apigateway.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *APIGatewayClientPort_GetAuthorizers_Call) Return(getAuthorizersOutput *apigateway.GetAuthorizersOutput, err error) *APIGatewayClientPort_GetAuthorizers_Call {
+	_c.Call.Return(getAuthorizersOutput, err)
+	return _c
+}
+
+func (_c *APIGatewayClientPort_GetAuthorizers_Call) RunAndReturn(run func(ctx context.Context, input *apigateway.GetAuthorizersInput, opts ...func(*apigateway.Options)) (*apigateway.GetAuthorizersOutput, error)) *APIGatewayClientPort_GetAuthorizers_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1777,6 +2118,89 @@ func (_c *APIGatewayClientPort_PutMethod_Call) Return(putMethodOutput *apigatewa
 }
 
 func (_c *APIGatewayClientPort_PutMethod_Call) RunAndReturn(run func(ctx context.Context, input *apigateway.PutMethodInput, opts ...func(*apigateway.Options)) (*apigateway.PutMethodOutput, error)) *APIGatewayClientPort_PutMethod_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateAuthorizer provides a mock function for the type APIGatewayClientPort
+func (_mock *APIGatewayClientPort) UpdateAuthorizer(ctx context.Context, input *apigateway.UpdateAuthorizerInput, opts ...func(*apigateway.Options)) (*apigateway.UpdateAuthorizerOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAuthorizer")
+	}
+
+	var r0 *apigateway.UpdateAuthorizerOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *apigateway.UpdateAuthorizerInput, ...func(*apigateway.Options)) (*apigateway.UpdateAuthorizerOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *apigateway.UpdateAuthorizerInput, ...func(*apigateway.Options)) *apigateway.UpdateAuthorizerOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*apigateway.UpdateAuthorizerOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *apigateway.UpdateAuthorizerInput, ...func(*apigateway.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// APIGatewayClientPort_UpdateAuthorizer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAuthorizer'
+type APIGatewayClientPort_UpdateAuthorizer_Call struct {
+	*mock.Call
+}
+
+// UpdateAuthorizer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *apigateway.UpdateAuthorizerInput
+//   - opts ...func(*apigateway.Options)
+func (_e *APIGatewayClientPort_Expecter) UpdateAuthorizer(ctx any, input any, opts ...any) *APIGatewayClientPort_UpdateAuthorizer_Call {
+	return &APIGatewayClientPort_UpdateAuthorizer_Call{Call: _e.mock.On("UpdateAuthorizer",
+		append([]any{ctx, input}, opts...)...)}
+}
+
+func (_c *APIGatewayClientPort_UpdateAuthorizer_Call) Run(run func(ctx context.Context, input *apigateway.UpdateAuthorizerInput, opts ...func(*apigateway.Options))) *APIGatewayClientPort_UpdateAuthorizer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *apigateway.UpdateAuthorizerInput
+		if args[1] != nil {
+			arg1 = args[1].(*apigateway.UpdateAuthorizerInput)
+		}
+		var arg2 []func(*apigateway.Options)
+		var variadicArgs []func(*apigateway.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*apigateway.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *APIGatewayClientPort_UpdateAuthorizer_Call) Return(updateAuthorizerOutput *apigateway.UpdateAuthorizerOutput, err error) *APIGatewayClientPort_UpdateAuthorizer_Call {
+	_c.Call.Return(updateAuthorizerOutput, err)
+	return _c
+}
+
+func (_c *APIGatewayClientPort_UpdateAuthorizer_Call) RunAndReturn(run func(ctx context.Context, input *apigateway.UpdateAuthorizerInput, opts ...func(*apigateway.Options)) (*apigateway.UpdateAuthorizerOutput, error)) *APIGatewayClientPort_UpdateAuthorizer_Call {
 	_c.Call.Return(run)
 	return _c
 }

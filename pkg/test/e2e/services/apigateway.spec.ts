@@ -120,6 +120,41 @@ async function createWebSocketApi(page: any, name: string, description?: string)
   await showAllItems(page)
 }
 
+// Helper to expand an API row and open its Authorizers list modal.
+// Stays on the current page — does NOT navigate away.
+async function openAuthorizers(page: any, apiName: string, tabName: string) {
+  // The parent container wraps both the API row and the expanded section.
+  // Use partial class match for robustness against Tailwind class ordering.
+  const container = page.locator('[class*="overflow-hidden"]').filter({ hasText: apiName }).first()
+
+  // Floci sync delay — wait for row to appear. Reload once if needed.
+  const visible = await container.isVisible({ timeout: 15000 }).catch(() => false)
+  if (!visible) {
+    await page.reload({ waitUntil: 'networkidle' })
+    if (tabName === 'API Gateway') {
+      await page.getByRole('tab', { name: 'API Gateway', exact: true }).click()
+    } else {
+      await page.getByRole('tab', { name: tabName }).click()
+    }
+    await page.waitForLoadState('networkidle')
+    await showAllItems(page)
+    await expect(container).toBeVisible({ timeout: 15000 })
+  }
+
+  // Click the API row to expand it (first child of the container)
+  const apiRow = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+  await apiRow.click()
+  await page.waitForTimeout(1000)
+
+  // "View Authorizers" button is in the expanded section (sibling of the API row)
+  const viewBtn = container.getByRole('button', { name: 'View Authorizers' })
+  await expect(viewBtn).toBeVisible({ timeout: 10000 })
+  await viewBtn.click()
+
+  // Authorizers list modal opens
+  await expect(page.locator('div[role="dialog"]')).toBeVisible({ timeout: 10000 })
+}
+
 test.describe('API Gateway', () => {
   test('navigate to service', async ({ page }) => {
     await page.goto('/#/services/api-gateway')
@@ -131,8 +166,8 @@ test.describe('API Gateway', () => {
     await page.goto('/#/services/api-gateway')
     await page.waitForLoadState('networkidle')
 
-// Click API Gateway tab
-  await page.getByRole('tab', { name: 'API Gateway', exact: true }).click()
+    // Click API Gateway tab
+    await page.getByRole('tab', { name: 'API Gateway', exact: true }).click()
 
     // Verify tab is active (contains active styling or check URL)
     await expect(page.getByRole('tab', { name: 'API Gateway', exact: true })).toBeVisible({ timeout: 5000 })
@@ -142,8 +177,8 @@ test.describe('API Gateway', () => {
     await page.goto('/#/services/api-gateway')
     await page.waitForLoadState('networkidle')
 
-// Click API Gateway V2 tab
-  await page.getByRole('tab', { name: 'API Gateway V2' }).click()
+    // Click API Gateway V2 tab
+    await page.getByRole('tab', { name: 'API Gateway V2' }).click()
 
     await expect(page.getByRole('tab', { name: 'API Gateway V2' })).toBeVisible({ timeout: 5000 })
   })
@@ -654,5 +689,435 @@ test.describe('API Gateway V2 Floci emulator invoke URL', () => {
     }
 
     expect(consoleErrors).toEqual([])
+  })
+})
+
+test.describe('Authorizers', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/#/services/api-gateway')
+    await page.waitForLoadState('networkidle')
+  })
+
+  test.describe('HTTP API authorizers', () => {
+    test('navigates to authorizers list', async ({ page }) => {
+      test.setTimeout(120000)
+      const apiName = 'test-auth-http-' + Date.now()
+
+      // Create HTTP API inline — stay on the page
+      await page.getByRole('tab', { name: 'API Gateway V2' }).click()
+      await showAllItems(page)
+      await page.getByRole('button', { name: 'Create API' }).first().click()
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+      await page.getByPlaceholder('my-api').fill(apiName)
+      await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+
+      // Open authorizers
+      await openAuthorizers(page, apiName, 'API Gateway V2')
+
+      // Verify authorizers modal visible with correct title
+      await expect(page.getByRole('heading', { name: new RegExp(`Authorizers: ${apiName}`) })).toBeVisible({ timeout: 5000 })
+
+      // Cleanup
+      await page.keyboard.press('Escape')
+      await page.waitForTimeout(500)
+      try {
+        const apiRow = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+        if (await apiRow.isVisible({ timeout: 3000 })) {
+          await apiRow.getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+          await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+        }
+      } catch { /* best-effort */ }
+    })
+
+    test('shows empty state', async ({ page }) => {
+      test.setTimeout(120000)
+      const apiName = 'test-auth-empty-' + Date.now()
+
+      // Create HTTP API inline
+      await page.getByRole('tab', { name: 'API Gateway V2' }).click()
+      await showAllItems(page)
+      await page.getByRole('button', { name: 'Create API' }).first().click()
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+      await page.getByPlaceholder('my-api').fill(apiName)
+      await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+
+      await openAuthorizers(page, apiName, 'API Gateway V2')
+
+      // Verify empty state
+      await expect(page.getByText('No Authorizers')).toBeVisible({ timeout: 5000 })
+
+      // Cleanup
+      await page.keyboard.press('Escape')
+      await page.waitForTimeout(500)
+      try {
+        const apiRow = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+        if (await apiRow.isVisible({ timeout: 3000 })) {
+          await apiRow.getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+          await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+        }
+      } catch { /* best-effort */ }
+    })
+
+    test('creates JWT authorizer', async ({ page }) => {
+      test.setTimeout(120000)
+      const apiName = 'test-auth-jwt-' + Date.now()
+
+      // Create HTTP API inline
+      await page.getByRole('tab', { name: 'API Gateway V2' }).click()
+      await showAllItems(page)
+      await page.getByRole('button', { name: 'Create API' }).first().click()
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+      await page.getByPlaceholder('my-api').fill(apiName)
+      await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+
+      await openAuthorizers(page, apiName, 'API Gateway V2')
+
+      const listModal = page.getByRole('dialog').filter({ hasText: `Authorizers: ${apiName}` })
+      await listModal.getByRole('button', { name: 'Create Authorizer' }).click()
+
+      const createModal = page.getByRole('dialog').filter({ hasText: `Create Authorizer: ${apiName}` })
+      await expect(createModal).toBeVisible({ timeout: 10000 })
+
+      // JWT is the default type for HTTP APIs
+      await createModal.getByLabel('Name').fill('test-jwt-auth')
+      await createModal.getByLabel('Issuer').fill('https://issuer.example.com')
+      await createModal.getByLabel('Audiences (comma-separated)').fill('my-audience')
+
+      await createModal.getByRole('button', { name: 'Create' }).click()
+      await expect(createModal).not.toBeVisible({ timeout: 15000 })
+      await expect(listModal).toBeVisible({ timeout: 10000 })
+      await expect(page.getByText('test-jwt-auth')).toBeVisible({ timeout: 10000 })
+
+      // Cleanup
+      await page.keyboard.press('Escape')
+      await page.waitForTimeout(500)
+      try {
+        const apiRow = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+        if (await apiRow.isVisible({ timeout: 3000 })) {
+          await apiRow.getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+          await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+        }
+      } catch { /* best-effort */ }
+    })
+
+    test('creates Lambda authorizer', async ({ page }) => {
+      test.setTimeout(120000)
+      const apiName = 'test-auth-lambda-' + Date.now()
+
+      // Create HTTP API inline
+      await page.getByRole('tab', { name: 'API Gateway V2' }).click()
+      await showAllItems(page)
+      await page.getByRole('button', { name: 'Create API' }).first().click()
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+      await page.getByPlaceholder('my-api').fill(apiName)
+      await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+
+      await openAuthorizers(page, apiName, 'API Gateway V2')
+
+      const listModal = page.getByRole('dialog').filter({ hasText: `Authorizers: ${apiName}` })
+      await listModal.getByRole('button', { name: 'Create Authorizer' }).click()
+
+      const createModal = page.getByRole('dialog').filter({ hasText: `Create Authorizer: ${apiName}` })
+      await expect(createModal).toBeVisible({ timeout: 10000 })
+
+      // Select Lambda type
+      await createModal.getByLabel('Authorizer Type').selectOption('LAMBDA')
+      await createModal.getByLabel('Name').fill('test-lambda-auth')
+      await createModal.getByLabel('Authorizer URI').fill('arn:aws:lambda:us-east-1:123456789:function:auth')
+
+      await createModal.getByRole('button', { name: 'Create' }).click()
+      await expect(createModal).not.toBeVisible({ timeout: 15000 })
+      await expect(listModal).toBeVisible({ timeout: 10000 })
+      await expect(page.getByText('test-lambda-auth')).toBeVisible({ timeout: 10000 })
+
+      // Cleanup
+      await page.keyboard.press('Escape')
+      await page.waitForTimeout(500)
+      try {
+        const apiRow = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+        if (await apiRow.isVisible({ timeout: 3000 })) {
+          await apiRow.getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+          await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+        }
+      } catch { /* best-effort */ }
+    })
+
+    test('creates IAM authorizer', async ({ page }) => {
+      test.setTimeout(120000)
+      const apiName = 'test-auth-iam-' + Date.now()
+
+      // Create HTTP API inline
+      await page.getByRole('tab', { name: 'API Gateway V2' }).click()
+      await showAllItems(page)
+      await page.getByRole('button', { name: 'Create API' }).first().click()
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+      await page.getByPlaceholder('my-api').fill(apiName)
+      await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+
+      await openAuthorizers(page, apiName, 'API Gateway V2')
+
+      const listModal = page.getByRole('dialog').filter({ hasText: `Authorizers: ${apiName}` })
+      await listModal.getByRole('button', { name: 'Create Authorizer' }).click()
+
+      const createModal = page.getByRole('dialog').filter({ hasText: `Create Authorizer: ${apiName}` })
+      await expect(createModal).toBeVisible({ timeout: 10000 })
+
+      // Select IAM type
+      await createModal.getByLabel('Authorizer Type').selectOption('IAM')
+      await createModal.getByLabel('Name').fill('test-iam-auth')
+      await createModal.getByLabel('Credentials ARN').fill('arn:aws:iam::123456789012:role/authorizer-role')
+
+      await createModal.getByRole('button', { name: 'Create' }).click()
+      await expect(createModal).not.toBeVisible({ timeout: 15000 })
+      await expect(listModal).toBeVisible({ timeout: 10000 })
+      await expect(page.getByText('test-iam-auth')).toBeVisible({ timeout: 10000 })
+
+      // Cleanup
+      await page.keyboard.press('Escape')
+      await page.waitForTimeout(500)
+      try {
+        const apiRow = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+        if (await apiRow.isVisible({ timeout: 3000 })) {
+          await apiRow.getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+          await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+        }
+      } catch { /* best-effort */ }
+    })
+
+    test('edits authorizer', async ({ page }) => {
+      test.setTimeout(180000)
+      const apiName = 'test-auth-edit-' + Date.now()
+
+      // Create HTTP API inline
+      await page.getByRole('tab', { name: 'API Gateway V2' }).click()
+      await showAllItems(page)
+      await page.getByRole('button', { name: 'Create API' }).first().click()
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+      await page.getByPlaceholder('my-api').fill(apiName)
+      await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+
+      await openAuthorizers(page, apiName, 'API Gateway V2')
+
+      const listModal = page.getByRole('dialog').filter({ hasText: `Authorizers: ${apiName}` })
+
+      // Create an authorizer first
+      await listModal.getByRole('button', { name: 'Create Authorizer' }).click()
+      const createModal = page.getByRole('dialog').filter({ hasText: `Create Authorizer: ${apiName}` })
+      await expect(createModal).toBeVisible({ timeout: 10000 })
+      await createModal.getByLabel('Name').fill('original-auth')
+      await createModal.getByRole('button', { name: 'Create' }).click()
+      await expect(createModal).not.toBeVisible({ timeout: 15000 })
+      await expect(listModal).toBeVisible({ timeout: 10000 })
+
+      // Click Edit
+      await listModal.getByRole('button', { name: 'Edit' }).first().click()
+      const editModal = page.getByRole('dialog').filter({ hasText: `Edit Authorizer: ${apiName}` })
+      await expect(editModal).toBeVisible({ timeout: 10000 })
+
+      // Update name
+      await editModal.getByLabel('Name').fill('updated-auth')
+      await editModal.getByRole('button', { name: 'Save' }).click()
+      await expect(editModal).not.toBeVisible({ timeout: 15000 })
+      await expect(listModal).toBeVisible({ timeout: 10000 })
+      await expect(page.getByText('updated-auth')).toBeVisible({ timeout: 10000 })
+
+      // Cleanup
+      await page.keyboard.press('Escape')
+      await page.waitForTimeout(500)
+      try {
+        const apiRow = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+        if (await apiRow.isVisible({ timeout: 3000 })) {
+          await apiRow.getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+          await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+        }
+      } catch { /* best-effort */ }
+    })
+
+    test('deletes authorizer', async ({ page }) => {
+      test.setTimeout(180000)
+      const apiName = 'test-auth-del-' + Date.now()
+
+      // Create HTTP API inline
+      await page.getByRole('tab', { name: 'API Gateway V2' }).click()
+      await showAllItems(page)
+      await page.getByRole('button', { name: 'Create API' }).first().click()
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+      await page.getByPlaceholder('my-api').fill(apiName)
+      await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+
+      await openAuthorizers(page, apiName, 'API Gateway V2')
+
+      const listModal = page.getByRole('dialog').filter({ hasText: `Authorizers: ${apiName}` })
+
+      // Create authorizer to delete
+      await listModal.getByRole('button', { name: 'Create Authorizer' }).click()
+      const createModal = page.getByRole('dialog').filter({ hasText: `Create Authorizer: ${apiName}` })
+      await expect(createModal).toBeVisible({ timeout: 10000 })
+      await createModal.getByLabel('Name').fill('to-delete-auth')
+      await createModal.getByRole('button', { name: 'Create' }).click()
+      await expect(createModal).not.toBeVisible({ timeout: 15000 })
+      await expect(listModal).toBeVisible({ timeout: 10000 })
+
+      // Delete it — Delete button is inside the list modal, not a browser dialog
+      await listModal.getByRole('button', { name: 'Delete' }).first().click()
+
+      // Authorizer should disappear from list
+      await expect(page.getByText('to-delete-auth')).not.toBeVisible({ timeout: 10000 })
+
+      // Cleanup API
+      await page.keyboard.press('Escape')
+      await page.waitForTimeout(500)
+      try {
+        const apiRow = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+        if (await apiRow.isVisible({ timeout: 3000 })) {
+          await apiRow.getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+          await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+        }
+      } catch { /* best-effort */ }
+    })
+  })
+
+  test.describe('REST API authorizers', () => {
+    test('navigates to authorizers list', async ({ page }) => {
+      test.setTimeout(120000)
+      const apiName = 'test-auth-rest-' + Date.now()
+
+      // Create REST API inline — stay on the page
+      await page.getByRole('tab', { name: 'API Gateway', exact: true }).click()
+      await showAllItems(page)
+      await page.getByRole('button', { name: 'Create REST API' }).first().click()
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+      await page.getByPlaceholder('my-api').fill(apiName)
+      await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+
+      await openAuthorizers(page, apiName, 'API Gateway')
+
+      await expect(page.getByRole('heading', { name: new RegExp(`Authorizers: ${apiName}`) })).toBeVisible({ timeout: 5000 })
+
+      // Cleanup
+      await page.keyboard.press('Escape')
+      await page.waitForTimeout(500)
+      try {
+        const apiRow = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+        if (await apiRow.isVisible({ timeout: 3000 })) {
+          await apiRow.getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+          await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+        }
+      } catch { /* best-effort */ }
+    })
+
+    test('creates TOKEN authorizer', async ({ page }) => {
+      test.setTimeout(120000)
+      const apiName = 'test-auth-token-' + Date.now()
+
+      // Create REST API inline
+      await page.getByRole('tab', { name: 'API Gateway', exact: true }).click()
+      await showAllItems(page)
+      await page.getByRole('button', { name: 'Create REST API' }).first().click()
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+      await page.getByPlaceholder('my-api').fill(apiName)
+      await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+
+      await openAuthorizers(page, apiName, 'API Gateway')
+
+      const listModal = page.getByRole('dialog').filter({ hasText: `Authorizers: ${apiName}` })
+      await listModal.getByRole('button', { name: 'Create Authorizer' }).click()
+
+      const createModal = page.getByRole('dialog').filter({ hasText: `Create Authorizer: ${apiName}` })
+      await expect(createModal).toBeVisible({ timeout: 10000 })
+
+      // TOKEN is the default type for REST APIs
+      await createModal.getByLabel('Name').fill('test-token-auth')
+      await createModal.getByLabel('Authorizer URI').fill('arn:aws:lambda:us-east-1:123456789:function:auth')
+
+      await createModal.getByRole('button', { name: 'Create' }).click()
+      await expect(createModal).not.toBeVisible({ timeout: 15000 })
+      await expect(listModal).toBeVisible({ timeout: 10000 })
+      await expect(page.getByText('test-token-auth')).toBeVisible({ timeout: 10000 })
+
+      // Cleanup
+      await page.keyboard.press('Escape')
+      await page.waitForTimeout(500)
+      try {
+        const apiRow = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+        if (await apiRow.isVisible({ timeout: 3000 })) {
+          await apiRow.getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+          await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+        }
+      } catch { /* best-effort */ }
+    })
+
+    test('creates REQUEST authorizer', async ({ page }) => {
+      test.setTimeout(120000)
+      const apiName = 'test-auth-req-' + Date.now()
+
+      // Create REST API inline
+      await page.getByRole('tab', { name: 'API Gateway', exact: true }).click()
+      await showAllItems(page)
+      await page.getByRole('button', { name: 'Create REST API' }).first().click()
+      await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
+      await page.getByPlaceholder('my-api').fill(apiName)
+      await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
+      await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+
+      await openAuthorizers(page, apiName, 'API Gateway')
+
+      const listModal = page.getByRole('dialog').filter({ hasText: `Authorizers: ${apiName}` })
+      await listModal.getByRole('button', { name: 'Create Authorizer' }).click()
+
+      const createModal = page.getByRole('dialog').filter({ hasText: `Create Authorizer: ${apiName}` })
+      await expect(createModal).toBeVisible({ timeout: 10000 })
+
+      // Select REQUEST type
+      await createModal.getByLabel('Authorizer Type').selectOption('REQUEST')
+      await createModal.getByLabel('Name').fill('test-request-auth')
+      await createModal.getByLabel('Authorizer URI').fill('arn:aws:lambda:us-east-1:123456789:function:auth')
+      await createModal.getByLabel('Identity Source (comma-separated)').fill('method.request.header.Authorization')
+
+      await createModal.getByRole('button', { name: 'Create' }).click()
+      await expect(createModal).not.toBeVisible({ timeout: 15000 })
+      await expect(listModal).toBeVisible({ timeout: 10000 })
+      await expect(page.getByText('test-request-auth')).toBeVisible({ timeout: 10000 })
+
+      // Cleanup
+      await page.keyboard.press('Escape')
+      await page.waitForTimeout(500)
+      try {
+        const apiRow = page.locator('div.grid.grid-cols-12').filter({ hasText: apiName }).first()
+        if (await apiRow.isVisible({ timeout: 3000 })) {
+          await apiRow.getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
+          await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+          await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 10000 })
+        }
+      } catch { /* best-effort */ }
+    })
   })
 })

@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
+	apigatewayTypes "github.com/aws/aws-sdk-go-v2/service/apigateway/types"
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
 )
 
@@ -118,6 +119,86 @@ func (a *APIGatewayAdapter) UpdateStage(ctx context.Context, input *apigateway.U
 
 func (a *APIGatewayAdapter) DeleteStage(ctx context.Context, input *apigateway.DeleteStageInput) (*apigateway.DeleteStageOutput, error) {
 	return a.client.DeleteStage(ctx, input)
+}
+
+// Authorizer operations
+func (a *APIGatewayAdapter) GetAuthorizers(ctx context.Context, restApiId string) ([]apigatewayTypes.Authorizer, error) {
+	result, err := a.client.GetAuthorizers(ctx, &apigateway.GetAuthorizersInput{RestApiId: aws.String(restApiId)})
+	if err != nil {
+		return nil, err
+	}
+	return result.Items, nil
+}
+
+func (a *APIGatewayAdapter) GetAuthorizer(ctx context.Context, restApiId, authorizerId string) (*apigatewayTypes.Authorizer, error) {
+	result, err := a.client.GetAuthorizer(ctx, &apigateway.GetAuthorizerInput{
+		RestApiId:    aws.String(restApiId),
+		AuthorizerId: aws.String(authorizerId),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &apigatewayTypes.Authorizer{
+		Id:                            result.Id,
+		Name:                          result.Name,
+		Type:                          result.Type,
+		AuthorizerUri:                 result.AuthorizerUri,
+		AuthorizerCredentials:         result.AuthorizerCredentials,
+		AuthorizerResultTtlInSeconds:  result.AuthorizerResultTtlInSeconds,
+		IdentitySource:                result.IdentitySource,
+		IdentityValidationExpression:  result.IdentityValidationExpression,
+		ProviderARNs:                  result.ProviderARNs,
+		AuthType:                      result.AuthType,
+	}, nil
+}
+
+func (a *APIGatewayAdapter) CreateAuthorizer(ctx context.Context, restApiId string, params *apigateway.CreateAuthorizerInput) (*apigatewayTypes.Authorizer, error) {
+	params.RestApiId = aws.String(restApiId)
+	result, err := a.client.CreateAuthorizer(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &apigatewayTypes.Authorizer{
+		Id:                            result.Id,
+		Name:                          result.Name,
+		Type:                          result.Type,
+		AuthorizerUri:                 result.AuthorizerUri,
+		AuthorizerCredentials:         result.AuthorizerCredentials,
+		AuthorizerResultTtlInSeconds:  result.AuthorizerResultTtlInSeconds,
+		IdentitySource:                result.IdentitySource,
+		IdentityValidationExpression:  result.IdentityValidationExpression,
+		ProviderARNs:                  result.ProviderARNs,
+		AuthType:                      result.AuthType,
+	}, nil
+}
+
+func (a *APIGatewayAdapter) UpdateAuthorizer(ctx context.Context, restApiId, authorizerId string, params *apigateway.UpdateAuthorizerInput) (*apigatewayTypes.Authorizer, error) {
+	params.RestApiId = aws.String(restApiId)
+	params.AuthorizerId = aws.String(authorizerId)
+	result, err := a.client.UpdateAuthorizer(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &apigatewayTypes.Authorizer{
+		Id:                            result.Id,
+		Name:                          result.Name,
+		Type:                          result.Type,
+		AuthorizerUri:                 result.AuthorizerUri,
+		AuthorizerCredentials:         result.AuthorizerCredentials,
+		AuthorizerResultTtlInSeconds:  result.AuthorizerResultTtlInSeconds,
+		IdentitySource:                result.IdentitySource,
+		IdentityValidationExpression:  result.IdentityValidationExpression,
+		ProviderARNs:                  result.ProviderARNs,
+		AuthType:                      result.AuthType,
+	}, nil
+}
+
+func (a *APIGatewayAdapter) DeleteAuthorizer(ctx context.Context, restApiId, authorizerId string) error {
+	_, err := a.client.DeleteAuthorizer(ctx, &apigateway.DeleteAuthorizerInput{
+		RestApiId:    aws.String(restApiId),
+		AuthorizerId: aws.String(authorizerId),
+	})
+	return err
 }
 
 func (a *APIGatewayAdapter) GetInvokeUrl(ctx context.Context, apiId, stageName string) (string, error) {

@@ -66,6 +66,13 @@ vi.mock('@/api/services/api-gateway', () => ({
   createHttpApiStage: vi.fn(),
   updateHttpApiStage: vi.fn(),
   deleteHttpApiStage: vi.fn(),
+  // Authorizers
+  listHttpApiAuthorizers: vi.fn(),
+  listRestApiAuthorizers: vi.fn(),
+  createHttpApiAuthorizer: vi.fn(),
+  createRestApiAuthorizer: vi.fn(),
+  deleteHttpApiAuthorizer: vi.fn(),
+  deleteRestApiAuthorizer: vi.fn(),
 }))
 
 // Mock the useToast composable
@@ -545,5 +552,161 @@ describe('API Gateway Components Integration Tests', () => {
       const url = await getRestInvokeUrl('api-123', 'prod')
       expect(url).toBe('https://api-id.execute-api.us-east-1.amazonaws.com/prod')
     })
+  })
+})
+
+import APIGatewayAuthorizersModal from './APIGatewayAuthorizersModal.vue'
+import APIGatewayAuthorizersList from './APIGatewayAuthorizersList.vue'
+
+vi.mock('@/stores/settings', () => ({
+  useSettingsStore: () => ({ darkMode: false, region: 'us-east-1' }),
+}))
+
+const authorizerModalStub = {
+  template: '<div v-if="open" data-testid="modal">{{ title }}<slot /><slot name="footer" /></div>',
+  props: ['open', 'title'],
+}
+const authorizerButtonStub = {
+  template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
+  props: ['variant', 'loading', 'disabled'],
+  emits: ['click'],
+}
+const authorizerFormInputStub = {
+  template: '<div class="form-input">{{ label }}<input :value="modelValue" :disabled="disabled" @input="$emit(\'update:modelValue\', $event.target.value)" /></div>',
+  props: ['modelValue', 'label', 'placeholder', 'type', 'disabled'],
+  emits: ['update:modelValue'],
+}
+const authorizerFormSelectStub = {
+  template: '<div class="form-select">{{ label }}<select :value="modelValue" :disabled="disabled" @change="$emit(\'update:modelValue\', $event.target.value)"><option v-for="opt in options" :key="opt.value" :value="opt.value">{{ opt.label }}</option></select></div>',
+  props: ['modelValue', 'label', 'options', 'disabled'],
+  emits: ['update:modelValue'],
+}
+const authorizerEmptyStateStub = {
+  template: '<div class="empty-state">{{ title }}</div>',
+  props: ['icon', 'title', 'description'],
+}
+const authorizerLoadingSpinnerStub = {
+  template: '<div class="loading-spinner">Loading...</div>',
+}
+const authorizerDataTableStub = {
+  template: '<div class="data-table"><div v-for="row in data" :key="row.authorizerId || row.id">{{ row.name }} {{ row.authorizerType || row.type }}</div></div>',
+  props: ['columns', 'data', 'loading', 'emptyTitle', 'emptyText'],
+}
+
+const authorizerModalStubs = {
+  Modal: authorizerModalStub,
+  Button: authorizerButtonStub,
+  FormInput: authorizerFormInputStub,
+  FormSelect: authorizerFormSelectStub,
+}
+
+const authorizerListStubs = {
+  Modal: authorizerModalStub,
+  Button: authorizerButtonStub,
+  LoadingSpinner: authorizerLoadingSpinnerStub,
+  EmptyState: authorizerEmptyStateStub,
+  DataTable: authorizerDataTableStub,
+}
+
+describe('APIGatewayAuthorizersModal', () => {
+  const baseProps = {
+    open: true,
+    mode: 'create' as const,
+    apiId: 'api1',
+    apiName: 'test-api',
+    apiType: 'http' as const,
+  }
+
+  describe('V2 HTTP API mode', () => {
+    it('renders name and type fields', () => {
+      const wrapper = mount(APIGatewayAuthorizersModal, { props: baseProps, global: { stubs: authorizerModalStubs } })
+      expect(wrapper.text()).toContain('Name')
+      expect(wrapper.text()).toContain('Authorizer Type')
+    })
+
+    it('shows JWT-specific fields when JWT selected', async () => {
+      const wrapper = mount(APIGatewayAuthorizersModal, { props: baseProps, global: { stubs: authorizerModalStubs } })
+      await wrapper.find('.form-select select').setValue('JWT')
+      expect(wrapper.text()).toContain('Issuer')
+      expect(wrapper.text()).toContain('Audiences')
+      expect(wrapper.text()).not.toContain('Identity Source')
+    })
+
+    it('shows Lambda-specific fields when Lambda selected', async () => {
+      const wrapper = mount(APIGatewayAuthorizersModal, { props: baseProps, global: { stubs: authorizerModalStubs } })
+      await wrapper.find('.form-select select').setValue('LAMBDA')
+      expect(wrapper.text()).toContain('Authorizer URI')
+      expect(wrapper.text()).toContain('Invoke Mode')
+    })
+
+    it('shows IAM-specific fields when IAM selected', async () => {
+      const wrapper = mount(APIGatewayAuthorizersModal, { props: baseProps, global: { stubs: authorizerModalStubs } })
+      await wrapper.find('.form-select select').setValue('IAM')
+      expect(wrapper.text()).toContain('Credentials ARN')
+    })
+
+    it('renders view mode with read-only fields', async () => {
+      const wrapper = mount(APIGatewayAuthorizersModal, {
+        props: {
+          open: false,
+          mode: 'view' as const,
+          apiId: 'api1',
+          apiName: 'test-api',
+          apiType: 'http' as const,
+          authorizer: { name: 'my-auth', authorizerType: 'JWT', jwtConfiguration: { issuer: 'https://issuer', audience: ['aud1'] } },
+        },
+        global: { stubs: authorizerModalStubs },
+      })
+      await wrapper.setProps({ open: true })
+      const nameInput = wrapper.findAll('.form-input input').at(0)
+      expect((nameInput!.element as HTMLInputElement).value).toBe('my-auth')
+    })
+  })
+
+  describe('V1 REST API mode', () => {
+    it('renders TOKEN type fields', () => {
+      const wrapper = mount(APIGatewayAuthorizersModal, {
+        props: { ...baseProps, apiType: 'rest' as const },
+        global: { stubs: authorizerModalStubs },
+      })
+      expect(wrapper.text()).toContain('Name')
+      expect(wrapper.text()).toContain('Authorizer Type')
+    })
+
+    it('shows REQUEST type fields', async () => {
+      const wrapper = mount(APIGatewayAuthorizersModal, {
+        props: { ...baseProps, apiType: 'rest' as const },
+        global: { stubs: authorizerModalStubs },
+      })
+      await wrapper.find('.form-select select').setValue('REQUEST')
+      expect(wrapper.text()).toContain('Authorizer URI')
+      expect(wrapper.text()).toContain('Identity Source')
+    })
+  })
+})
+
+describe('APIGatewayAuthorizersList', () => {
+  const baseProps = {
+    open: true,
+    apiId: 'api1',
+    apiName: 'test-api',
+    apiType: 'http' as const,
+  }
+
+  it('renders empty state message', async () => {
+    vi.mocked(apigatewayApi.listHttpApiAuthorizers).mockResolvedValue({ items: [] })
+    const wrapper = mount(APIGatewayAuthorizersList, { props: baseProps, global: { stubs: authorizerListStubs } })
+    await flushPromises()
+    expect(wrapper.text()).toContain('No Authorizers')
+  })
+
+  it('renders authorizer rows when items present', async () => {
+    vi.mocked(apigatewayApi.listHttpApiAuthorizers).mockResolvedValue({
+      items: [{ authorizerId: 'auth1', name: 'my-auth', authorizerType: 'JWT' }],
+    })
+    const wrapper = mount(APIGatewayAuthorizersList, { props: baseProps, global: { stubs: authorizerListStubs } })
+    await flushPromises()
+    expect(wrapper.text()).toContain('my-auth')
+    expect(wrapper.text()).toContain('JWT')
   })
 })

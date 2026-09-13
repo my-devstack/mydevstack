@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	apigatewayv2Types "github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
 	"github.com/my-devstack/mydevstack/pkg/proxy/internal/ports"
 )
 
@@ -16,6 +17,9 @@ type APIGatewayV2Adapter struct {
 	client ports.APIGatewayV2ClientPort
 	region string
 }
+
+// Ensure APIGatewayV2Adapter implements the port interface
+var _ ports.APIGatewayV2Port = (*APIGatewayV2Adapter)(nil)
 
 func NewAPIGatewayV2Adapter(awsCfg aws.Config, endpoint string) ports.APIGatewayV2Port {
 	httpClient := &http.Client{Timeout: 30 * time.Second}
@@ -93,6 +97,89 @@ func (a *APIGatewayV2Adapter) UpdateStage(ctx context.Context, input *apigateway
 
 func (a *APIGatewayV2Adapter) DeleteStage(ctx context.Context, input *apigatewayv2.DeleteStageInput) (*apigatewayv2.DeleteStageOutput, error) {
 	return a.client.DeleteStage(ctx, input)
+}
+
+// Authorizer operations
+func (a *APIGatewayV2Adapter) GetAuthorizers(ctx context.Context, apiId string) ([]apigatewayv2Types.Authorizer, error) {
+	result, err := a.client.GetAuthorizers(ctx, &apigatewayv2.GetAuthorizersInput{ApiId: aws.String(apiId)})
+	if err != nil {
+		return nil, err
+	}
+	return result.Items, nil
+}
+
+func (a *APIGatewayV2Adapter) GetAuthorizer(ctx context.Context, apiId, authorizerId string) (*apigatewayv2Types.Authorizer, error) {
+	result, err := a.client.GetAuthorizer(ctx, &apigatewayv2.GetAuthorizerInput{
+		ApiId:        aws.String(apiId),
+		AuthorizerId: aws.String(authorizerId),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &apigatewayv2Types.Authorizer{
+		AuthorizerId:                   result.AuthorizerId,
+		Name:                           result.Name,
+		AuthorizerType:                 result.AuthorizerType,
+		AuthorizerUri:                  result.AuthorizerUri,
+		AuthorizerCredentialsArn:       result.AuthorizerCredentialsArn,
+		AuthorizerPayloadFormatVersion: result.AuthorizerPayloadFormatVersion,
+		AuthorizerResultTtlInSeconds:   result.AuthorizerResultTtlInSeconds,
+		EnableSimpleResponses:          result.EnableSimpleResponses,
+		IdentitySource:                 result.IdentitySource,
+		IdentityValidationExpression:   result.IdentityValidationExpression,
+		JwtConfiguration:               result.JwtConfiguration,
+	}, nil
+}
+
+func (a *APIGatewayV2Adapter) CreateAuthorizer(ctx context.Context, apiId string, params *apigatewayv2.CreateAuthorizerInput) (*apigatewayv2Types.Authorizer, error) {
+	params.ApiId = aws.String(apiId)
+	result, err := a.client.CreateAuthorizer(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &apigatewayv2Types.Authorizer{
+		AuthorizerId:                   result.AuthorizerId,
+		Name:                           result.Name,
+		AuthorizerType:                 result.AuthorizerType,
+		AuthorizerUri:                  result.AuthorizerUri,
+		AuthorizerCredentialsArn:       result.AuthorizerCredentialsArn,
+		AuthorizerPayloadFormatVersion: result.AuthorizerPayloadFormatVersion,
+		AuthorizerResultTtlInSeconds:   result.AuthorizerResultTtlInSeconds,
+		EnableSimpleResponses:          result.EnableSimpleResponses,
+		IdentitySource:                 result.IdentitySource,
+		IdentityValidationExpression:   result.IdentityValidationExpression,
+		JwtConfiguration:               result.JwtConfiguration,
+	}, nil
+}
+
+func (a *APIGatewayV2Adapter) UpdateAuthorizer(ctx context.Context, apiId, authorizerId string, params *apigatewayv2.UpdateAuthorizerInput) (*apigatewayv2Types.Authorizer, error) {
+	params.ApiId = aws.String(apiId)
+	params.AuthorizerId = aws.String(authorizerId)
+	result, err := a.client.UpdateAuthorizer(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &apigatewayv2Types.Authorizer{
+		AuthorizerId:                   result.AuthorizerId,
+		Name:                           result.Name,
+		AuthorizerType:                 result.AuthorizerType,
+		AuthorizerUri:                  result.AuthorizerUri,
+		AuthorizerCredentialsArn:       result.AuthorizerCredentialsArn,
+		AuthorizerPayloadFormatVersion: result.AuthorizerPayloadFormatVersion,
+		AuthorizerResultTtlInSeconds:   result.AuthorizerResultTtlInSeconds,
+		EnableSimpleResponses:          result.EnableSimpleResponses,
+		IdentitySource:                 result.IdentitySource,
+		IdentityValidationExpression:   result.IdentityValidationExpression,
+		JwtConfiguration:               result.JwtConfiguration,
+	}, nil
+}
+
+func (a *APIGatewayV2Adapter) DeleteAuthorizer(ctx context.Context, apiId, authorizerId string) error {
+	_, err := a.client.DeleteAuthorizer(ctx, &apigatewayv2.DeleteAuthorizerInput{
+		ApiId:        aws.String(apiId),
+		AuthorizerId: aws.String(authorizerId),
+	})
+	return err
 }
 
 func (a *APIGatewayV2Adapter) GetInvokeUrl(ctx context.Context, apiId, stageName, protocolType string) (string, error) {

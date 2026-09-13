@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
+	"github.com/aws/aws-sdk-go-v2/service/apigateway/types"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -17,10 +18,19 @@ func NewAPIGatewayPort(t interface {
 	mock.TestingT
 	Cleanup(func())
 }) *APIGatewayPort {
+	if helper, ok := t.(interface{ Helper() }); ok {
+		helper.Helper()
+	}
+
 	mock := &APIGatewayPort{}
 	mock.Mock.Test(t)
 
-	t.Cleanup(func() { mock.AssertExpectations(t) })
+	t.Cleanup(func() {
+		if helper, ok := t.(interface{ Helper() }); ok {
+			helper.Helper()
+		}
+		mock.AssertExpectations(t)
+	})
 
 	return mock
 }
@@ -36,6 +46,80 @@ type APIGatewayPort_Expecter struct {
 
 func (_m *APIGatewayPort) EXPECT() *APIGatewayPort_Expecter {
 	return &APIGatewayPort_Expecter{mock: &_m.Mock}
+}
+
+// CreateAuthorizer provides a mock function for the type APIGatewayPort
+func (_mock *APIGatewayPort) CreateAuthorizer(ctx context.Context, restApiId string, params *apigateway.CreateAuthorizerInput) (*types.Authorizer, error) {
+	ret := _mock.Called(ctx, restApiId, params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateAuthorizer")
+	}
+
+	var r0 *types.Authorizer
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *apigateway.CreateAuthorizerInput) (*types.Authorizer, error)); ok {
+		return returnFunc(ctx, restApiId, params)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *apigateway.CreateAuthorizerInput) *types.Authorizer); ok {
+		r0 = returnFunc(ctx, restApiId, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.Authorizer)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *apigateway.CreateAuthorizerInput) error); ok {
+		r1 = returnFunc(ctx, restApiId, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// APIGatewayPort_CreateAuthorizer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAuthorizer'
+type APIGatewayPort_CreateAuthorizer_Call struct {
+	*mock.Call
+}
+
+// CreateAuthorizer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - restApiId string
+//   - params *apigateway.CreateAuthorizerInput
+func (_e *APIGatewayPort_Expecter) CreateAuthorizer(ctx any, restApiId any, params any) *APIGatewayPort_CreateAuthorizer_Call {
+	return &APIGatewayPort_CreateAuthorizer_Call{Call: _e.mock.On("CreateAuthorizer", ctx, restApiId, params)}
+}
+
+func (_c *APIGatewayPort_CreateAuthorizer_Call) Run(run func(ctx context.Context, restApiId string, params *apigateway.CreateAuthorizerInput)) *APIGatewayPort_CreateAuthorizer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 *apigateway.CreateAuthorizerInput
+		if args[2] != nil {
+			arg2 = args[2].(*apigateway.CreateAuthorizerInput)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *APIGatewayPort_CreateAuthorizer_Call) Return(authorizer *types.Authorizer, err error) *APIGatewayPort_CreateAuthorizer_Call {
+	_c.Call.Return(authorizer, err)
+	return _c
+}
+
+func (_c *APIGatewayPort_CreateAuthorizer_Call) RunAndReturn(run func(ctx context.Context, restApiId string, params *apigateway.CreateAuthorizerInput) (*types.Authorizer, error)) *APIGatewayPort_CreateAuthorizer_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CreateDeployment provides a mock function for the type APIGatewayPort
@@ -306,6 +390,69 @@ func (_c *APIGatewayPort_CreateStage_Call) Return(createStageOutput *apigateway.
 }
 
 func (_c *APIGatewayPort_CreateStage_Call) RunAndReturn(run func(ctx context.Context, input *apigateway.CreateStageInput) (*apigateway.CreateStageOutput, error)) *APIGatewayPort_CreateStage_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteAuthorizer provides a mock function for the type APIGatewayPort
+func (_mock *APIGatewayPort) DeleteAuthorizer(ctx context.Context, restApiId string, authorizerId string) error {
+	ret := _mock.Called(ctx, restApiId, authorizerId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAuthorizer")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, restApiId, authorizerId)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// APIGatewayPort_DeleteAuthorizer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAuthorizer'
+type APIGatewayPort_DeleteAuthorizer_Call struct {
+	*mock.Call
+}
+
+// DeleteAuthorizer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - restApiId string
+//   - authorizerId string
+func (_e *APIGatewayPort_Expecter) DeleteAuthorizer(ctx any, restApiId any, authorizerId any) *APIGatewayPort_DeleteAuthorizer_Call {
+	return &APIGatewayPort_DeleteAuthorizer_Call{Call: _e.mock.On("DeleteAuthorizer", ctx, restApiId, authorizerId)}
+}
+
+func (_c *APIGatewayPort_DeleteAuthorizer_Call) Run(run func(ctx context.Context, restApiId string, authorizerId string)) *APIGatewayPort_DeleteAuthorizer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *APIGatewayPort_DeleteAuthorizer_Call) Return(err error) *APIGatewayPort_DeleteAuthorizer_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *APIGatewayPort_DeleteAuthorizer_Call) RunAndReturn(run func(ctx context.Context, restApiId string, authorizerId string) error) *APIGatewayPort_DeleteAuthorizer_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -714,6 +861,148 @@ func (_c *APIGatewayPort_DeleteStage_Call) Return(deleteStageOutput *apigateway.
 }
 
 func (_c *APIGatewayPort_DeleteStage_Call) RunAndReturn(run func(ctx context.Context, input *apigateway.DeleteStageInput) (*apigateway.DeleteStageOutput, error)) *APIGatewayPort_DeleteStage_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAuthorizer provides a mock function for the type APIGatewayPort
+func (_mock *APIGatewayPort) GetAuthorizer(ctx context.Context, restApiId string, authorizerId string) (*types.Authorizer, error) {
+	ret := _mock.Called(ctx, restApiId, authorizerId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAuthorizer")
+	}
+
+	var r0 *types.Authorizer
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*types.Authorizer, error)); ok {
+		return returnFunc(ctx, restApiId, authorizerId)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *types.Authorizer); ok {
+		r0 = returnFunc(ctx, restApiId, authorizerId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.Authorizer)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, restApiId, authorizerId)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// APIGatewayPort_GetAuthorizer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAuthorizer'
+type APIGatewayPort_GetAuthorizer_Call struct {
+	*mock.Call
+}
+
+// GetAuthorizer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - restApiId string
+//   - authorizerId string
+func (_e *APIGatewayPort_Expecter) GetAuthorizer(ctx any, restApiId any, authorizerId any) *APIGatewayPort_GetAuthorizer_Call {
+	return &APIGatewayPort_GetAuthorizer_Call{Call: _e.mock.On("GetAuthorizer", ctx, restApiId, authorizerId)}
+}
+
+func (_c *APIGatewayPort_GetAuthorizer_Call) Run(run func(ctx context.Context, restApiId string, authorizerId string)) *APIGatewayPort_GetAuthorizer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *APIGatewayPort_GetAuthorizer_Call) Return(authorizer *types.Authorizer, err error) *APIGatewayPort_GetAuthorizer_Call {
+	_c.Call.Return(authorizer, err)
+	return _c
+}
+
+func (_c *APIGatewayPort_GetAuthorizer_Call) RunAndReturn(run func(ctx context.Context, restApiId string, authorizerId string) (*types.Authorizer, error)) *APIGatewayPort_GetAuthorizer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAuthorizers provides a mock function for the type APIGatewayPort
+func (_mock *APIGatewayPort) GetAuthorizers(ctx context.Context, restApiId string) ([]types.Authorizer, error) {
+	ret := _mock.Called(ctx, restApiId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAuthorizers")
+	}
+
+	var r0 []types.Authorizer
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]types.Authorizer, error)); ok {
+		return returnFunc(ctx, restApiId)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []types.Authorizer); ok {
+		r0 = returnFunc(ctx, restApiId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]types.Authorizer)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, restApiId)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// APIGatewayPort_GetAuthorizers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAuthorizers'
+type APIGatewayPort_GetAuthorizers_Call struct {
+	*mock.Call
+}
+
+// GetAuthorizers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - restApiId string
+func (_e *APIGatewayPort_Expecter) GetAuthorizers(ctx any, restApiId any) *APIGatewayPort_GetAuthorizers_Call {
+	return &APIGatewayPort_GetAuthorizers_Call{Call: _e.mock.On("GetAuthorizers", ctx, restApiId)}
+}
+
+func (_c *APIGatewayPort_GetAuthorizers_Call) Run(run func(ctx context.Context, restApiId string)) *APIGatewayPort_GetAuthorizers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *APIGatewayPort_GetAuthorizers_Call) Return(authorizers []types.Authorizer, err error) *APIGatewayPort_GetAuthorizers_Call {
+	_c.Call.Return(authorizers, err)
+	return _c
+}
+
+func (_c *APIGatewayPort_GetAuthorizers_Call) RunAndReturn(run func(ctx context.Context, restApiId string) ([]types.Authorizer, error)) *APIGatewayPort_GetAuthorizers_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1534,6 +1823,86 @@ func (_c *APIGatewayPort_PutMethod_Call) Return(putMethodOutput *apigateway.PutM
 }
 
 func (_c *APIGatewayPort_PutMethod_Call) RunAndReturn(run func(ctx context.Context, input *apigateway.PutMethodInput) (*apigateway.PutMethodOutput, error)) *APIGatewayPort_PutMethod_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateAuthorizer provides a mock function for the type APIGatewayPort
+func (_mock *APIGatewayPort) UpdateAuthorizer(ctx context.Context, restApiId string, authorizerId string, params *apigateway.UpdateAuthorizerInput) (*types.Authorizer, error) {
+	ret := _mock.Called(ctx, restApiId, authorizerId, params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAuthorizer")
+	}
+
+	var r0 *types.Authorizer
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *apigateway.UpdateAuthorizerInput) (*types.Authorizer, error)); ok {
+		return returnFunc(ctx, restApiId, authorizerId, params)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *apigateway.UpdateAuthorizerInput) *types.Authorizer); ok {
+		r0 = returnFunc(ctx, restApiId, authorizerId, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.Authorizer)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, *apigateway.UpdateAuthorizerInput) error); ok {
+		r1 = returnFunc(ctx, restApiId, authorizerId, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// APIGatewayPort_UpdateAuthorizer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAuthorizer'
+type APIGatewayPort_UpdateAuthorizer_Call struct {
+	*mock.Call
+}
+
+// UpdateAuthorizer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - restApiId string
+//   - authorizerId string
+//   - params *apigateway.UpdateAuthorizerInput
+func (_e *APIGatewayPort_Expecter) UpdateAuthorizer(ctx any, restApiId any, authorizerId any, params any) *APIGatewayPort_UpdateAuthorizer_Call {
+	return &APIGatewayPort_UpdateAuthorizer_Call{Call: _e.mock.On("UpdateAuthorizer", ctx, restApiId, authorizerId, params)}
+}
+
+func (_c *APIGatewayPort_UpdateAuthorizer_Call) Run(run func(ctx context.Context, restApiId string, authorizerId string, params *apigateway.UpdateAuthorizerInput)) *APIGatewayPort_UpdateAuthorizer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 *apigateway.UpdateAuthorizerInput
+		if args[3] != nil {
+			arg3 = args[3].(*apigateway.UpdateAuthorizerInput)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *APIGatewayPort_UpdateAuthorizer_Call) Return(authorizer *types.Authorizer, err error) *APIGatewayPort_UpdateAuthorizer_Call {
+	_c.Call.Return(authorizer, err)
+	return _c
+}
+
+func (_c *APIGatewayPort_UpdateAuthorizer_Call) RunAndReturn(run func(ctx context.Context, restApiId string, authorizerId string, params *apigateway.UpdateAuthorizerInput) (*types.Authorizer, error)) *APIGatewayPort_UpdateAuthorizer_Call {
 	_c.Call.Return(run)
 	return _c
 }

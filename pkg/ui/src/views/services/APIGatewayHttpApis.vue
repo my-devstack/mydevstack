@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useToast } from '@/composables/useToast'
 import { usePagination } from '@/composables/usePagination'
 import { useSettingsStore } from '@/stores/settings'
@@ -12,6 +12,8 @@ import APIGatewayRouteModal from '@/components/apiGateway/APIGatewayRouteModal.v
 import APIGatewayStageModal from '@/components/apiGateway/APIGatewayStageModal.vue'
 import APIGatewayEditRouteModal from '@/components/apiGateway/APIGatewayEditRouteModal.vue'
 import APIGatewayEditStageModal from '@/components/apiGateway/APIGatewayEditStageModal.vue'
+import APIGatewayAuthorizersList from '@/components/apiGateway/APIGatewayAuthorizersList.vue'
+import APIGatewayAuthorizersModal from '@/components/apiGateway/APIGatewayAuthorizersModal.vue'
 import Modal from '@/components/common/Modal.vue'
 
 const emit = defineEmits<{
@@ -61,6 +63,10 @@ const showEditStageModal = ref(false)
 const integrationToEdit = ref<any>(null)
 const routeToEdit = ref<any>(null)
 const stageToEdit = ref<any>(null)
+
+const showAuthorizers = ref(false)
+const showAuthorizersModal = ref(false)
+const authorizerToEdit = ref<any>(null)
 
 onMounted(async () => {
   await loadApis()
@@ -188,6 +194,29 @@ function handleEditStage(stage: any, apiId: string) {
   selectedApi.value = { apiId }
   stageToEdit.value = stage
   showEditStageModal.value = true
+}
+
+function handleOpenAuthorizers(api: any) {
+  selectedApi.value = api
+  showAuthorizers.value = true
+}
+
+function handleCreateAuthorizer() {
+  authorizerToEdit.value = null
+  showAuthorizersModal.value = true
+}
+
+function handleEditAuthorizer(authorizer: any) {
+  authorizerToEdit.value = authorizer
+  showAuthorizersModal.value = true
+}
+
+function handleAuthorizersModalClose() {
+  showAuthorizersModal.value = false
+  showAuthorizers.value = false
+  nextTick(() => {
+    showAuthorizers.value = true
+  })
 }
 
 async function confirmCreateIntegration(integrationType: string, httpMethod: string, uri: string, mappingTemplate?: string) {
@@ -336,6 +365,7 @@ defineExpose({
     @create-stage="handleCreateStage"
     @edit-stage="handleEditStage"
     @delete-stage="handleDeleteStage"
+    @open-authorizers="handleOpenAuthorizers"
   />
 
   <!-- Pagination -->
@@ -442,6 +472,28 @@ defineExpose({
     @close="showEditStageModal = false"
     @update:open="showEditStageModal = $event"
     @update="confirmUpdateStage"
+  />
+
+  <APIGatewayAuthorizersList
+    v-if="showAuthorizers"
+    :open="showAuthorizers"
+    :api-id="selectedApi?.apiId"
+    :api-name="selectedApi?.name"
+    api-type="http"
+    @update:open="showAuthorizers = $event"
+    @create-authorizer="handleCreateAuthorizer"
+    @edit-authorizer="handleEditAuthorizer"
+  />
+
+  <APIGatewayAuthorizersModal
+    v-if="showAuthorizersModal"
+    :open="showAuthorizersModal"
+    :mode="authorizerToEdit ? 'edit' : 'create'"
+    :api-id="selectedApi?.apiId"
+    :api-name="selectedApi?.name"
+    api-type="http"
+    :authorizer="authorizerToEdit"
+    @update:open="handleAuthorizersModalClose"
   />
 
   <Modal
