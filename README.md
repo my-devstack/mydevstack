@@ -155,7 +155,7 @@ mydevstack/
 | KMS | ✅ | Keys, Encryption, Decryption |
 | Secrets Manager | ✅ | Secrets management |
 | SSM | ✅ | Parameter Store, SecureString |
-| API Gateway | ✅ | REST APIs, HTTP APIs, WebSocket APIs, Integrations, Invoke URLs |
+| API Gateway | ✅ | REST APIs, HTTP APIs, WebSocket APIs, Integrations, Authorizers, Invoke URLs |
 | Kinesis | ✅ | Streams, Shards, Records |
 | CloudFormation | ✅ | Stacks, Templates, Resources |
 | CloudWatch | ✅ | Metric Alarms, Logs, Dashboards |

@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.0] - 2026-09-14
+
+### Added
+- **API Gateway Authorizers CRUD** — full authorizer management for REST and HTTP APIs:
+  - V2 HTTP API authorizers: JWT, Lambda, IAM
+  - V1 REST API authorizers: TOKEN, REQUEST
+  - All CRUD operations (create, read, update, delete)
+- TypeScript API client, composable, and Vue components for authorizers
+- Go tests: 2118 pass, Vue tests: 4740 pass, E2E: 9 pass
+
+## [1.12.2] - 2026-09-06
+
+### Fixed
+- **Proxy backend resolution** — fixed backend resolution in proxy
+- **E2E KMS** — fixed KMS end-to-end tests
+
+## [1.12.1] - 2026-09-06
+
+### Fixed
+- **Runtime backend host derivation** — fixed remote/docker access for backend host derivation
+
+### Changed
+- Dependency bumps
+
+## [1.12.0] - 2026-08-27
+
+### Added
+- **ECR and ECS support** — full container registry and compute management
+- **Proxy update server command** — server command updates
+
 ## [1.11.0] - 2026-08-24
 
 ### Added
