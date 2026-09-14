@@ -437,6 +437,111 @@ export class APIGatewayService {
     if (protocolType) { body.protocolType = protocolType }
     return restRequest('POST', `/apis/${encodeURIComponent(apiId)}/invoke-url`, body)
   }
+
+  // V2 HTTP API Authorizers
+  async listHttpApiAuthorizers(apiId: string): Promise<any> {
+    const response = await restRequest('GET', `/apis/${encodeURIComponent(apiId)}/authorizers`)
+    if (response) {
+      const sourceItems = response.Items || response.items || []
+      response.items = sourceItems.map((item: any) => ({
+        authorizerId: item.AuthorizerId || item.authorizerId,
+        name: item.Name || item.name,
+        authorizerType: item.AuthorizerType || item.authorizerType,
+        authorizerUri: item.AuthorizerUri || item.authorizerUri,
+        authorizerCredentials: item.AuthorizerCredentialsArn || item.authorizerCredentials,
+        jwtConfiguration: item.JwtConfiguration ? {
+          issuer: item.JwtConfiguration.Issuer || item.JwtConfiguration.issuer,
+          audience: item.JwtConfiguration.Audience || item.JwtConfiguration.audience,
+        } : undefined,
+        invokeMode: item.InvokeMode || item.invokeMode,
+        authorizerResultTtlInSeconds: item.AuthorizerResultTtlInSeconds ?? item.authorizerResultTtlInSeconds,
+      }))
+    }
+    return response
+  }
+
+  async getHttpApiAuthorizer(apiId: string, authorizerId: string): Promise<any> {
+    return restRequest('GET', `/apis/${encodeURIComponent(apiId)}/authorizers/${encodeURIComponent(authorizerId)}`)
+  }
+
+  async createHttpApiAuthorizer(apiId: string, input: Partial<V2Authorizer>): Promise<any> {
+    const body: any = {}
+    if (input.name) body.Name = input.name
+    if (input.authorizerType) body.AuthorizerType = input.authorizerType
+    if (input.authorizerUri) body.AuthorizerUri = input.authorizerUri
+    if (input.authorizerCredentials) body.AuthorizerCredentialsArn = input.authorizerCredentials
+    if (input.jwtConfiguration) {
+      body.JwtConfiguration = {}
+      if (input.jwtConfiguration.issuer) body.JwtConfiguration.Issuer = input.jwtConfiguration.issuer
+      if (input.jwtConfiguration.audience) body.JwtConfiguration.Audience = input.jwtConfiguration.audience
+    }
+    if (input.authorizerResultTtlInSeconds !== undefined) body.AuthorizerResultTtlInSeconds = input.authorizerResultTtlInSeconds
+    return restRequest('POST', `/apis/${encodeURIComponent(apiId)}/authorizers`, body)
+  }
+
+  async updateHttpApiAuthorizer(apiId: string, authorizerId: string, input: Partial<V2Authorizer>): Promise<any> {
+    const body: any = {}
+    if (input.name) body.Name = input.name
+    if (input.authorizerType) body.AuthorizerType = input.authorizerType
+    if (input.authorizerUri !== undefined) body.AuthorizerUri = input.authorizerUri
+    if (input.authorizerCredentials !== undefined) body.AuthorizerCredentialsArn = input.authorizerCredentials
+    if (input.jwtConfiguration) {
+      body.JwtConfiguration = {}
+      if (input.jwtConfiguration.issuer) body.JwtConfiguration.Issuer = input.jwtConfiguration.issuer
+      if (input.jwtConfiguration.audience) body.JwtConfiguration.Audience = input.jwtConfiguration.audience
+    }
+    if (input.authorizerResultTtlInSeconds !== undefined) body.AuthorizerResultTtlInSeconds = input.authorizerResultTtlInSeconds
+    return restRequest('PUT', `/apis/${encodeURIComponent(apiId)}/authorizers/${encodeURIComponent(authorizerId)}`, body)
+  }
+
+  async deleteHttpApiAuthorizer(apiId: string, authorizerId: string): Promise<any> {
+    return restRequest('DELETE', `/apis/${encodeURIComponent(apiId)}/authorizers/${encodeURIComponent(authorizerId)}`)
+  }
+
+  // V1 REST API Authorizers
+  async listRestApiAuthorizers(apiId: string): Promise<any> {
+    const response = await restRequest('GET', `/rest-apis/${encodeURIComponent(apiId)}/authorizers`)
+    if (response) {
+      const sourceItems = response.Items || response.items || []
+      response.items = sourceItems.map((item: any) => ({
+        id: item.Id || item.id,
+        name: item.Name || item.name,
+        type: item.Type || item.type,
+        authorizerUri: item.AuthorizerUri || item.authorizerUri,
+        authorizerCredentials: item.AuthorizerCredentials || item.authorizerCredentials,
+        identitySource: item.IdentitySource || item.identitySource,
+      }))
+    }
+    return response
+  }
+
+  async getRestApiAuthorizer(apiId: string, authorizerId: string): Promise<any> {
+    return restRequest('GET', `/rest-apis/${encodeURIComponent(apiId)}/authorizers/${encodeURIComponent(authorizerId)}`)
+  }
+
+  async createRestApiAuthorizer(apiId: string, input: Partial<V1Authorizer>): Promise<any> {
+    const body: any = {}
+    if (input.name) body.Name = input.name
+    if (input.type) body.Type = input.type
+    if (input.authorizerUri !== undefined) body.AuthorizerUri = input.authorizerUri
+    if (input.authorizerCredentials !== undefined) body.AuthorizerCredentials = input.authorizerCredentials
+    if (input.identitySource !== undefined) body.IdentitySource = input.identitySource
+    return restRequest('POST', `/rest-apis/${encodeURIComponent(apiId)}/authorizers`, body)
+  }
+
+  async updateRestApiAuthorizer(apiId: string, authorizerId: string, input: Partial<V1Authorizer>): Promise<any> {
+    const body: any = {}
+    if (input.name !== undefined) body.Name = input.name
+    if (input.type !== undefined) body.Type = input.type
+    if (input.authorizerUri !== undefined) body.AuthorizerUri = input.authorizerUri
+    if (input.authorizerCredentials !== undefined) body.AuthorizerCredentials = input.authorizerCredentials
+    if (input.identitySource !== undefined) body.IdentitySource = input.identitySource
+    return restRequest('PUT', `/rest-apis/${encodeURIComponent(apiId)}/authorizers/${encodeURIComponent(authorizerId)}`, body)
+  }
+
+  async deleteRestApiAuthorizer(apiId: string, authorizerId: string): Promise<any> {
+    return restRequest('DELETE', `/rest-apis/${encodeURIComponent(apiId)}/authorizers/${encodeURIComponent(authorizerId)}`)
+  }
 }
 
 export const apiGatewayService = new APIGatewayService()
@@ -527,5 +632,33 @@ export const getRestApiInvokeUrl = (apiId: string, stageName: string, _protocolT
   apiGatewayService.getInvokeUrl(apiId, stageName)
 export const getHttpApiInvokeUrl = (apiId: string, stageName: string, protocolType?: string) =>
   apiGatewayService.getInvokeUrlV2(apiId, stageName, protocolType)
+
+// V2 Authorizer types
+interface JwtConfiguration { issuer?: string; audience?: string[] }
+interface V2Authorizer {
+  name: string; authorizerType: 'JWT' | 'IAM' | 'LAMBDA'; authorizerId?: string;
+  authorizerUri?: string; authorizerCredentials?: string;
+  jwtConfiguration?: JwtConfiguration;
+  invokeMode?: 'BYPASS' | 'WAIT_FOR_RESPONSE';
+  authorizerResultTtlInSeconds?: number;
+}
+interface V1Authorizer {
+  id: string; name: string; type: 'TOKEN' | 'REQUEST';
+  authorizerUri?: string; authorizerCredentials?: string;
+  identitySource?: string;
+}
+
+// V2 HTTP API Authorizers
+export const listHttpApiAuthorizers = (apiId: string) => apiGatewayService.listHttpApiAuthorizers(apiId)
+export const getHttpApiAuthorizer = (apiId: string, authorizerId: string) => apiGatewayService.getHttpApiAuthorizer(apiId, authorizerId)
+export const createHttpApiAuthorizer = (apiId: string, input: Partial<V2Authorizer>) => apiGatewayService.createHttpApiAuthorizer(apiId, input)
+export const updateHttpApiAuthorizer = (apiId: string, authorizerId: string, input: Partial<V2Authorizer>) => apiGatewayService.updateHttpApiAuthorizer(apiId, authorizerId, input)
+export const deleteHttpApiAuthorizer = (apiId: string, authorizerId: string) => apiGatewayService.deleteHttpApiAuthorizer(apiId, authorizerId)
+// V1 REST API Authorizers
+export const listRestApiAuthorizers = (apiId: string) => apiGatewayService.listRestApiAuthorizers(apiId)
+export const getRestApiAuthorizer = (apiId: string, authorizerId: string) => apiGatewayService.getRestApiAuthorizer(apiId, authorizerId)
+export const createRestApiAuthorizer = (apiId: string, input: Partial<V1Authorizer>) => apiGatewayService.createRestApiAuthorizer(apiId, input)
+export const updateRestApiAuthorizer = (apiId: string, authorizerId: string, input: Partial<V1Authorizer>) => apiGatewayService.updateRestApiAuthorizer(apiId, authorizerId, input)
+export const deleteRestApiAuthorizer = (apiId: string, authorizerId: string) => apiGatewayService.deleteRestApiAuthorizer(apiId, authorizerId)
 
 export default apiGatewayService

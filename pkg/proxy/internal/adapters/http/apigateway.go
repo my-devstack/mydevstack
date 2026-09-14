@@ -36,6 +36,11 @@ func (h *ProxyHandler) registerAPIGatewayRoutes(r chi.Router) {
 		r.Delete("/apis/{apiId}/stages/{stageName}", h.deleteStageV2)
 		r.Get("/apis/{apiId}/stages/{stageName}", h.getStageV2)
 		r.Post("/apis/{apiId}/invoke-url", h.getInvokeUrlV2)
+		r.Get("/apis/{apiId}/authorizers", h.getAuthorizersV2)
+		r.Post("/apis/{apiId}/authorizers", h.createAuthorizerV2)
+		r.Get("/apis/{apiId}/authorizers/{authorizerId}", h.getAuthorizerV2)
+		r.Put("/apis/{apiId}/authorizers/{authorizerId}", h.updateAuthorizerV2)
+		r.Delete("/apis/{apiId}/authorizers/{authorizerId}", h.deleteAuthorizerV2)
 
 		// V1 REST APIs
 		r.Get("/rest-apis", h.getRestApis)
@@ -67,6 +72,11 @@ func (h *ProxyHandler) registerAPIGatewayRoutes(r chi.Router) {
 		r.Put("/rest-apis/{restApiId}/stages/{stageName}", h.updateStage)
 		r.Delete("/rest-apis/{restApiId}/stages/{stageName}", h.deleteStage)
 		r.Post("/rest-apis/{restApiId}/invoke-url", h.getInvokeUrl)
+		r.Get("/rest-apis/{restApiId}/authorizers", h.getAuthorizers)
+		r.Post("/rest-apis/{restApiId}/authorizers", h.createAuthorizer)
+		r.Get("/rest-apis/{restApiId}/authorizers/{authorizerId}", h.getAuthorizer)
+		r.Put("/rest-apis/{restApiId}/authorizers/{authorizerId}", h.updateAuthorizer)
+		r.Delete("/rest-apis/{restApiId}/authorizers/{authorizerId}", h.deleteAuthorizer)
 	})
 }
 
@@ -869,4 +879,270 @@ func (h *ProxyHandler) getInvokeUrlV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]interface{}{"invokeUrl": url})
+}
+
+// REST API v1 Authorizer handlers
+func (h *ProxyHandler) getAuthorizers(w http.ResponseWriter, r *http.Request) {
+	restApiId := chi.URLParam(r, "restApiId")
+	if restApiId == "" {
+		sendError(w, http.StatusBadRequest, "RestApiId is required", nil)
+		return
+	}
+	result, err := h.Svc.APIGateway().GetAuthorizers(h.ctx, restApiId)
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, "Failed to get authorizers", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{"items": result})
+}
+
+func (h *ProxyHandler) getAuthorizer(w http.ResponseWriter, r *http.Request) {
+	restApiId := chi.URLParam(r, "restApiId")
+	authorizerId := chi.URLParam(r, "authorizerId")
+	if restApiId == "" {
+		sendError(w, http.StatusBadRequest, "RestApiId is required", nil)
+		return
+	}
+	if authorizerId == "" {
+		sendError(w, http.StatusBadRequest, "AuthorizerId is required", nil)
+		return
+	}
+	result, err := h.Svc.APIGateway().GetAuthorizer(h.ctx, restApiId, authorizerId)
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, "Failed to get authorizer", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *ProxyHandler) createAuthorizer(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	input := &apigateway.CreateAuthorizerInput{}
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	restApiId := chi.URLParam(r, "restApiId")
+	if restApiId == "" {
+		sendError(w, http.StatusBadRequest, "RestApiId is required", nil)
+		return
+	}
+	result, err := h.Svc.APIGateway().CreateAuthorizer(h.ctx, restApiId, input)
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, "Failed to create authorizer", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *ProxyHandler) updateAuthorizer(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+
+	var bodyData map[string]interface{}
+	if err := json.Unmarshal(bodyBytes, &bodyData); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+
+	restApiId := chi.URLParam(r, "restApiId")
+	authorizerId := chi.URLParam(r, "authorizerId")
+	if restApiId == "" {
+		sendError(w, http.StatusBadRequest, "RestApiId is required", nil)
+		return
+	}
+	if authorizerId == "" {
+		sendError(w, http.StatusBadRequest, "AuthorizerId is required", nil)
+		return
+	}
+
+	// Simple format: {Name, Type, AuthorizerUri, AuthorizerCredentials, IdentitySource}.
+	// v1 UpdateAuthorizerInput has no Name/Type fields — it uses PatchOperations.
+	// Authorizer Type is immutable after creation (AWS rejects /type patch), so it is skipped.
+	if _, hasName := bodyData["Name"]; hasName {
+		patchOperations := []apigwTypes.PatchOperation{}
+
+		if name, ok := bodyData["Name"].(string); ok && name != "" {
+			patchOperations = append(patchOperations, apigwTypes.PatchOperation{
+				Op:    apigwTypes.OpReplace,
+				Path:  aws.String("/name"),
+				Value: aws.String(name),
+			})
+		}
+		if uri, ok := bodyData["AuthorizerUri"].(string); ok && uri != "" {
+			patchOperations = append(patchOperations, apigwTypes.PatchOperation{
+				Op:    apigwTypes.OpReplace,
+				Path:  aws.String("/authorizerUri"),
+				Value: aws.String(uri),
+			})
+		}
+		if creds, ok := bodyData["AuthorizerCredentials"].(string); ok && creds != "" {
+			patchOperations = append(patchOperations, apigwTypes.PatchOperation{
+				Op:    apigwTypes.OpReplace,
+				Path:  aws.String("/authorizerCredentials"),
+				Value: aws.String(creds),
+			})
+		}
+		if idSrc, ok := bodyData["IdentitySource"].(string); ok && idSrc != "" {
+			patchOperations = append(patchOperations, apigwTypes.PatchOperation{
+				Op:    apigwTypes.OpReplace,
+				Path:  aws.String("/identitySource"),
+				Value: aws.String(idSrc),
+			})
+		}
+
+		input := &apigateway.UpdateAuthorizerInput{
+			RestApiId:       aws.String(restApiId),
+			AuthorizerId:    aws.String(authorizerId),
+			PatchOperations: patchOperations,
+		}
+		result, err := h.Svc.APIGateway().UpdateAuthorizer(h.ctx, restApiId, authorizerId, input)
+		if err != nil {
+			sendError(w, http.StatusInternalServerError, "Failed to update authorizer", err)
+			return
+		}
+		writeJSON(w, http.StatusOK, result)
+		return
+	}
+
+	// AWS SDK format with patchOperations array
+	input := &apigateway.UpdateAuthorizerInput{}
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	input.RestApiId = aws.String(restApiId)
+	input.AuthorizerId = aws.String(authorizerId)
+	result, err := h.Svc.APIGateway().UpdateAuthorizer(h.ctx, restApiId, authorizerId, input)
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, "Failed to update authorizer", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *ProxyHandler) deleteAuthorizer(w http.ResponseWriter, r *http.Request) {
+	restApiId := chi.URLParam(r, "restApiId")
+	authorizerId := chi.URLParam(r, "authorizerId")
+	if restApiId == "" {
+		sendError(w, http.StatusBadRequest, "RestApiId is required", nil)
+		return
+	}
+	if authorizerId == "" {
+		sendError(w, http.StatusBadRequest, "AuthorizerId is required", nil)
+		return
+	}
+	err := h.Svc.APIGateway().DeleteAuthorizer(h.ctx, restApiId, authorizerId)
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, "Failed to delete authorizer", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"message": "Authorizer deleted"})
+}
+
+// HTTP API v2 Authorizer handlers
+func (h *ProxyHandler) getAuthorizersV2(w http.ResponseWriter, r *http.Request) {
+	apiId := chi.URLParam(r, "apiId")
+	if apiId == "" {
+		sendError(w, http.StatusBadRequest, "ApiId is required", nil)
+		return
+	}
+	result, err := h.Svc.APIGatewayV2().GetAuthorizers(h.ctx, apiId)
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, "Failed to get authorizers", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{"items": result})
+}
+
+func (h *ProxyHandler) getAuthorizerV2(w http.ResponseWriter, r *http.Request) {
+	apiId := chi.URLParam(r, "apiId")
+	authorizerId := chi.URLParam(r, "authorizerId")
+	if apiId == "" {
+		sendError(w, http.StatusBadRequest, "ApiId is required", nil)
+		return
+	}
+	if authorizerId == "" {
+		sendError(w, http.StatusBadRequest, "AuthorizerId is required", nil)
+		return
+	}
+	result, err := h.Svc.APIGatewayV2().GetAuthorizer(h.ctx, apiId, authorizerId)
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, "Failed to get authorizer", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *ProxyHandler) createAuthorizerV2(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	input := &apigatewayv2.CreateAuthorizerInput{}
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	if len(input.IdentitySource) == 0 {
+		input.IdentitySource = []string{"$request.header.Authorization"}
+	}
+	log.Printf("CreateAuthorizerV2: AuthorizerType=%v, JwtConfiguration=%v, IdentitySource=%v", input.AuthorizerType, input.JwtConfiguration, input.IdentitySource)
+	apiId := chi.URLParam(r, "apiId")
+	if apiId == "" {
+		sendError(w, http.StatusBadRequest, "ApiId is required", nil)
+		return
+	}
+	result, err := h.Svc.APIGatewayV2().CreateAuthorizer(h.ctx, apiId, input)
+	if err != nil {
+		log.Printf("CreateAuthorizerV2 error: %v", err)
+		sendError(w, http.StatusInternalServerError, "Failed to create authorizer", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *ProxyHandler) updateAuthorizerV2(w http.ResponseWriter, r *http.Request) {
+	bodyBytes := readBody(r)
+	input := &apigatewayv2.UpdateAuthorizerInput{}
+	if err := parseBody(bodyBytes, input); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+	if len(input.IdentitySource) == 0 {
+		input.IdentitySource = []string{"$request.header.Authorization"}
+	}
+	log.Printf("UpdateAuthorizerV2: AuthorizerType=%v, JwtConfiguration=%v, IdentitySource=%v", input.AuthorizerType, input.JwtConfiguration, input.IdentitySource)
+	apiId := chi.URLParam(r, "apiId")
+	authorizerId := chi.URLParam(r, "authorizerId")
+	if apiId == "" {
+		sendError(w, http.StatusBadRequest, "ApiId is required", nil)
+		return
+	}
+	if authorizerId == "" {
+		sendError(w, http.StatusBadRequest, "AuthorizerId is required", nil)
+		return
+	}
+	result, err := h.Svc.APIGatewayV2().UpdateAuthorizer(h.ctx, apiId, authorizerId, input)
+	if err != nil {
+		log.Printf("UpdateAuthorizerV2 error: %v", err)
+		sendError(w, http.StatusInternalServerError, "Failed to update authorizer", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *ProxyHandler) deleteAuthorizerV2(w http.ResponseWriter, r *http.Request) {
+	apiId := chi.URLParam(r, "apiId")
+	authorizerId := chi.URLParam(r, "authorizerId")
+	if apiId == "" {
+		sendError(w, http.StatusBadRequest, "ApiId is required", nil)
+		return
+	}
+	if authorizerId == "" {
+		sendError(w, http.StatusBadRequest, "AuthorizerId is required", nil)
+		return
+	}
+	err := h.Svc.APIGatewayV2().DeleteAuthorizer(h.ctx, apiId, authorizerId)
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, "Failed to delete authorizer", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"message": "Authorizer deleted"})
 }

@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
+	apigatewayTypes "github.com/aws/aws-sdk-go-v2/service/apigateway/types"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
+	apigatewayv2Types "github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
@@ -303,6 +305,12 @@ type APIGatewayPort interface {
 	GetStages(ctx context.Context, input *apigateway.GetStagesInput) (*apigateway.GetStagesOutput, error)
 	UpdateStage(ctx context.Context, input *apigateway.UpdateStageInput) (*apigateway.UpdateStageOutput, error)
 	DeleteStage(ctx context.Context, input *apigateway.DeleteStageInput) (*apigateway.DeleteStageOutput, error)
+	// Authorizers
+	GetAuthorizers(ctx context.Context, restApiId string) ([]apigatewayTypes.Authorizer, error)
+	GetAuthorizer(ctx context.Context, restApiId, authorizerId string) (*apigatewayTypes.Authorizer, error)
+	CreateAuthorizer(ctx context.Context, restApiId string, params *apigateway.CreateAuthorizerInput) (*apigatewayTypes.Authorizer, error)
+	UpdateAuthorizer(ctx context.Context, restApiId, authorizerId string, params *apigateway.UpdateAuthorizerInput) (*apigatewayTypes.Authorizer, error)
+	DeleteAuthorizer(ctx context.Context, restApiId, authorizerId string) error
 	GetInvokeUrl(ctx context.Context, apiId, stageName string) (string, error)
 }
 
@@ -325,6 +333,12 @@ type APIGatewayV2Port interface {
 	CreateStage(ctx context.Context, input *apigatewayv2.CreateStageInput) (*apigatewayv2.CreateStageOutput, error)
 	UpdateStage(ctx context.Context, input *apigatewayv2.UpdateStageInput) (*apigatewayv2.UpdateStageOutput, error)
 	DeleteStage(ctx context.Context, input *apigatewayv2.DeleteStageInput) (*apigatewayv2.DeleteStageOutput, error)
+	// Authorizers
+	GetAuthorizers(ctx context.Context, apiId string) ([]apigatewayv2Types.Authorizer, error)
+	GetAuthorizer(ctx context.Context, apiId, authorizerId string) (*apigatewayv2Types.Authorizer, error)
+	CreateAuthorizer(ctx context.Context, apiId string, params *apigatewayv2.CreateAuthorizerInput) (*apigatewayv2Types.Authorizer, error)
+	UpdateAuthorizer(ctx context.Context, apiId, authorizerId string, params *apigatewayv2.UpdateAuthorizerInput) (*apigatewayv2Types.Authorizer, error)
+	DeleteAuthorizer(ctx context.Context, apiId, authorizerId string) error
 	GetInvokeUrl(ctx context.Context, apiId, stageName, protocolType string) (string, error)
 }
 

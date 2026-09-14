@@ -1578,3 +1578,403 @@ func TestAPIGateway_GetInvokeUrl_V2_ServiceError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
+// ---------------------------------------------------------------------------
+// Authorizer handlers – HTTP API v2
+// ---------------------------------------------------------------------------
+
+func TestAPIGateway_GetAuthorizersV2(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+	r := setupTestRouter(s.h)
+
+	s.mpV2.EXPECT().GetAuthorizers(mock.Anything, "testid").
+		Return([]apigwV2Types.Authorizer{
+			{AuthorizerId: aws.String("auth-1"), Name: aws.String("jwt-auth"), AuthorizerType: apigwV2Types.AuthorizerTypeJwt},
+		}, nil)
+
+	w := performRequest(r, "GET", "/apigateway/apis/testid/authorizers", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]interface{}
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	items, ok := resp["items"].([]interface{})
+	assert.True(t, ok)
+	assert.Len(t, items, 1)
+}
+
+func TestAPIGateway_GetAuthorizerV2(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+	r := setupTestRouter(s.h)
+
+	s.mpV2.EXPECT().GetAuthorizer(mock.Anything, "testid", "testauth").
+		Return(&apigwV2Types.Authorizer{AuthorizerId: aws.String("auth-1"), Name: aws.String("jwt-auth"), AuthorizerType: apigwV2Types.AuthorizerTypeJwt}, nil)
+
+	w := performRequest(r, "GET", "/apigateway/apis/testid/authorizers/testauth", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp apigwV2Types.Authorizer
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "auth-1", *resp.AuthorizerId)
+	assert.Equal(t, "jwt-auth", *resp.Name)
+}
+
+func TestAPIGateway_CreateAuthorizerV2_JWT(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+	r := setupTestRouter(s.h)
+
+	s.mpV2.EXPECT().CreateAuthorizer(mock.Anything, "testid", mock.MatchedBy(func(in *apigatewayv2.CreateAuthorizerInput) bool {
+		return in.Name != nil && *in.Name == "jwt-auth" &&
+			in.AuthorizerType == apigwV2Types.AuthorizerTypeJwt &&
+			in.JwtConfiguration != nil &&
+			*in.JwtConfiguration.Issuer == "https://cognito-idp.us-east-1.amazonaws.com/pool" &&
+			len(in.JwtConfiguration.Audience) == 1 && in.JwtConfiguration.Audience[0] == "aud1" &&
+			len(in.IdentitySource) == 1 && in.IdentitySource[0] == "$request.header.Authorization"
+	})).Return(&apigwV2Types.Authorizer{AuthorizerId: aws.String("auth-1"), Name: aws.String("jwt-auth"), AuthorizerType: apigwV2Types.AuthorizerTypeJwt}, nil)
+
+	body := `{"name":"jwt-auth","authorizerType":"JWT","jwtConfiguration":{"issuer":"https://cognito-idp.us-east-1.amazonaws.com/pool","audience":["aud1"]}}`
+	w := performRequest(r, "POST", "/apigateway/apis/testid/authorizers", []byte(body))
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp apigwV2Types.Authorizer
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "auth-1", *resp.AuthorizerId)
+}
+
+func TestAPIGateway_CreateAuthorizerV2_Lambda(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+	r := setupTestRouter(s.h)
+
+	s.mpV2.EXPECT().CreateAuthorizer(mock.Anything, "testid", mock.MatchedBy(func(in *apigatewayv2.CreateAuthorizerInput) bool {
+		return in.Name != nil && *in.Name == "lambda-auth" &&
+			in.AuthorizerType == apigwV2Types.AuthorizerType("LAMBDA") &&
+			in.AuthorizerUri != nil && *in.AuthorizerUri == "arn:aws:lambda:us-east-1:123456789012:function:auth" &&
+			in.AuthorizerPayloadFormatVersion != nil && *in.AuthorizerPayloadFormatVersion == "2.0" &&
+			len(in.IdentitySource) == 1 && in.IdentitySource[0] == "$request.header.Authorization"
+	})).Return(&apigwV2Types.Authorizer{AuthorizerId: aws.String("auth-2"), Name: aws.String("lambda-auth"), AuthorizerType: apigwV2Types.AuthorizerType("LAMBDA")}, nil)
+
+	body := `{"name":"lambda-auth","authorizerType":"LAMBDA","authorizerUri":"arn:aws:lambda:us-east-1:123456789012:function:auth","authorizerPayloadFormatVersion":"2.0"}`
+	w := performRequest(r, "POST", "/apigateway/apis/testid/authorizers", []byte(body))
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp apigwV2Types.Authorizer
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "auth-2", *resp.AuthorizerId)
+}
+
+func TestAPIGateway_UpdateAuthorizerV2(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+	r := setupTestRouter(s.h)
+
+	s.mpV2.EXPECT().UpdateAuthorizer(mock.Anything, "testid", "testauth", mock.MatchedBy(func(in *apigatewayv2.UpdateAuthorizerInput) bool {
+		return in.Name != nil && *in.Name == "updated-auth"
+	})).Return(&apigwV2Types.Authorizer{AuthorizerId: aws.String("auth-1"), Name: aws.String("updated-auth")}, nil)
+
+	w := performRequest(r, "PUT", "/apigateway/apis/testid/authorizers/testauth", []byte(`{"name":"updated-auth"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp apigwV2Types.Authorizer
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "updated-auth", *resp.Name)
+}
+
+func TestAPIGateway_UpdateAuthorizerV2_JWT_DefaultsIdentitySource(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+	r := setupTestRouter(s.h)
+
+	s.mpV2.EXPECT().UpdateAuthorizer(mock.Anything, "testid", "testauth", mock.MatchedBy(func(in *apigatewayv2.UpdateAuthorizerInput) bool {
+		return in.Name != nil && *in.Name == "jwt-auth" &&
+			in.AuthorizerType == apigwV2Types.AuthorizerTypeJwt &&
+			in.JwtConfiguration != nil &&
+			len(in.IdentitySource) == 1 && in.IdentitySource[0] == "$request.header.Authorization"
+	})).Return(&apigwV2Types.Authorizer{AuthorizerId: aws.String("auth-1"), Name: aws.String("jwt-auth"), AuthorizerType: apigwV2Types.AuthorizerTypeJwt}, nil)
+
+	body := `{"name":"jwt-auth","authorizerType":"JWT","jwtConfiguration":{"issuer":"https://issuer","audience":["aud"]}}`
+	w := performRequest(r, "PUT", "/apigateway/apis/testid/authorizers/testauth", []byte(body))
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp apigwV2Types.Authorizer
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "auth-1", *resp.AuthorizerId)
+}
+
+func TestAPIGateway_DeleteAuthorizerV2(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+	r := setupTestRouter(s.h)
+
+	s.mpV2.EXPECT().DeleteAuthorizer(mock.Anything, "testid", "testauth").Return(nil)
+
+	w := performRequest(r, "DELETE", "/apigateway/apis/testid/authorizers/testauth", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]string
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "Authorizer deleted", resp["message"])
+}
+
+func TestAPIGateway_GetAuthorizersV2_ServiceError(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+	r := setupTestRouter(s.h)
+	s.mpV2.EXPECT().GetAuthorizers(mock.Anything, "testid").Return(nil, errors.New("service error"))
+	w := performRequest(r, "GET", "/apigateway/apis/testid/authorizers", nil)
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestAPIGateway_GetAuthorizerV2_ServiceError(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+	r := setupTestRouter(s.h)
+	s.mpV2.EXPECT().GetAuthorizer(mock.Anything, "testid", "testauth").Return(nil, errors.New("service error"))
+	w := performRequest(r, "GET", "/apigateway/apis/testid/authorizers/testauth", nil)
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestAPIGateway_CreateAuthorizerV2_ServiceError(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+	r := setupTestRouter(s.h)
+	s.mpV2.EXPECT().CreateAuthorizer(mock.Anything, "testid", mock.Anything).Return(nil, errors.New("service error"))
+	w := performRequest(r, "POST", "/apigateway/apis/testid/authorizers", []byte(`{"name":"jwt-auth","authorizerType":"JWT"}`))
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestAPIGateway_CreateAuthorizerV2_ParseError(t *testing.T) {
+	t.Parallel()
+	svc := createMockSvc(t, nil)
+	h := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(h)
+	w := performRequest(r, "POST", "/apigateway/apis/testid/authorizers", []byte(`{bad`))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestAPIGateway_UpdateAuthorizerV2_ServiceError(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+	r := setupTestRouter(s.h)
+	s.mpV2.EXPECT().UpdateAuthorizer(mock.Anything, "testid", "testauth", mock.Anything).Return(nil, errors.New("service error"))
+	w := performRequest(r, "PUT", "/apigateway/apis/testid/authorizers/testauth", []byte(`{"name":"updated-auth"}`))
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestAPIGateway_UpdateAuthorizerV2_ParseError(t *testing.T) {
+	t.Parallel()
+	svc := createMockSvc(t, nil)
+	h := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(h)
+	w := performRequest(r, "PUT", "/apigateway/apis/testid/authorizers/testauth", []byte(`{bad`))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestAPIGateway_DeleteAuthorizerV2_ServiceError(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV2(t)
+	r := setupTestRouter(s.h)
+	s.mpV2.EXPECT().DeleteAuthorizer(mock.Anything, "testid", "testauth").Return(errors.New("service error"))
+	w := performRequest(r, "DELETE", "/apigateway/apis/testid/authorizers/testauth", nil)
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+// ---------------------------------------------------------------------------
+// Authorizer handlers – REST API v1
+// ---------------------------------------------------------------------------
+
+func TestAPIGateway_GetAuthorizers(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV1(t)
+	r := setupTestRouter(s.h)
+
+	s.mp.EXPECT().GetAuthorizers(mock.Anything, "testid").
+		Return([]apigwTypes.Authorizer{
+			{Id: aws.String("auth-1"), Name: aws.String("token-auth"), Type: apigwTypes.AuthorizerTypeToken},
+		}, nil)
+
+	w := performRequest(r, "GET", "/apigateway/rest-apis/testid/authorizers", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]interface{}
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	items, ok := resp["items"].([]interface{})
+	assert.True(t, ok)
+	assert.Len(t, items, 1)
+}
+
+func TestAPIGateway_GetAuthorizer(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV1(t)
+	r := setupTestRouter(s.h)
+
+	s.mp.EXPECT().GetAuthorizer(mock.Anything, "testid", "testauth").
+		Return(&apigwTypes.Authorizer{Id: aws.String("auth-1"), Name: aws.String("token-auth"), Type: apigwTypes.AuthorizerTypeToken}, nil)
+
+	w := performRequest(r, "GET", "/apigateway/rest-apis/testid/authorizers/testauth", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp apigwTypes.Authorizer
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "auth-1", *resp.Id)
+	assert.Equal(t, "token-auth", *resp.Name)
+}
+
+func TestAPIGateway_CreateAuthorizer_Token(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV1(t)
+	r := setupTestRouter(s.h)
+
+	s.mp.EXPECT().CreateAuthorizer(mock.Anything, "testid", mock.MatchedBy(func(in *apigateway.CreateAuthorizerInput) bool {
+		return in.Name != nil && *in.Name == "token-auth" &&
+			in.Type == apigwTypes.AuthorizerTypeToken &&
+			in.IdentitySource != nil && *in.IdentitySource == "method.request.header.Authorization"
+	})).Return(&apigwTypes.Authorizer{Id: aws.String("auth-1"), Name: aws.String("token-auth"), Type: apigwTypes.AuthorizerTypeToken}, nil)
+
+	body := `{"Name":"token-auth","Type":"TOKEN","AuthorizerUri":"arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:123456789012:function:auth/invocations","IdentitySource":"method.request.header.Authorization"}`
+	w := performRequest(r, "POST", "/apigateway/rest-apis/testid/authorizers", []byte(body))
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp apigwTypes.Authorizer
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "auth-1", *resp.Id)
+}
+
+func TestAPIGateway_CreateAuthorizer_Request(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV1(t)
+	r := setupTestRouter(s.h)
+
+	s.mp.EXPECT().CreateAuthorizer(mock.Anything, "testid", mock.MatchedBy(func(in *apigateway.CreateAuthorizerInput) bool {
+		return in.Name != nil && *in.Name == "request-auth" &&
+			in.Type == apigwTypes.AuthorizerTypeRequest &&
+			in.IdentitySource != nil && *in.IdentitySource == "method.request.header.Authorization, method.request.header.X-Api-Key"
+	})).Return(&apigwTypes.Authorizer{Id: aws.String("auth-2"), Name: aws.String("request-auth"), Type: apigwTypes.AuthorizerTypeRequest}, nil)
+
+	body := `{"Name":"request-auth","Type":"REQUEST","AuthorizerUri":"arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:123456789012:function:auth/invocations","IdentitySource":"method.request.header.Authorization, method.request.header.X-Api-Key"}`
+	w := performRequest(r, "POST", "/apigateway/rest-apis/testid/authorizers", []byte(body))
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp apigwTypes.Authorizer
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "auth-2", *resp.Id)
+}
+
+func TestAPIGateway_UpdateAuthorizer(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV1(t)
+	r := setupTestRouter(s.h)
+
+	s.mp.EXPECT().UpdateAuthorizer(mock.Anything, "testid", "testauth", mock.MatchedBy(func(in *apigateway.UpdateAuthorizerInput) bool {
+		return len(in.PatchOperations) == 1 &&
+			in.PatchOperations[0].Path != nil && *in.PatchOperations[0].Path == "/name" &&
+			in.PatchOperations[0].Value != nil && *in.PatchOperations[0].Value == "updated-auth"
+	})).Return(&apigwTypes.Authorizer{Id: aws.String("auth-1"), Name: aws.String("updated-auth")}, nil)
+
+	w := performRequest(r, "PUT", "/apigateway/rest-apis/testid/authorizers/testauth", []byte(`{"patchOperations":[{"op":"replace","path":"/name","value":"updated-auth"}]}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp apigwTypes.Authorizer
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "updated-auth", *resp.Name)
+}
+
+func TestAPIGateway_UpdateAuthorizer_SimpleFormat(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV1(t)
+	r := setupTestRouter(s.h)
+
+	s.mp.EXPECT().UpdateAuthorizer(mock.Anything, "testid", "testauth", mock.MatchedBy(func(in *apigateway.UpdateAuthorizerInput) bool {
+		if len(in.PatchOperations) != 1 {
+			return false
+		}
+		return *in.PatchOperations[0].Path == "/name" && *in.PatchOperations[0].Value == "new-name"
+	})).Return(&apigwTypes.Authorizer{Id: aws.String("auth-1"), Name: aws.String("new-name")}, nil)
+
+	w := performRequest(r, "PUT", "/apigateway/rest-apis/testid/authorizers/testauth", []byte(`{"Name":"new-name","Type":"TOKEN"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp apigwTypes.Authorizer
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "new-name", *resp.Name)
+}
+
+func TestAPIGateway_DeleteAuthorizer(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV1(t)
+	r := setupTestRouter(s.h)
+
+	s.mp.EXPECT().DeleteAuthorizer(mock.Anything, "testid", "testauth").Return(nil)
+
+	w := performRequest(r, "DELETE", "/apigateway/rest-apis/testid/authorizers/testauth", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]string
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "Authorizer deleted", resp["message"])
+}
+
+func TestAPIGateway_GetAuthorizers_ServiceError(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV1(t)
+	r := setupTestRouter(s.h)
+	s.mp.EXPECT().GetAuthorizers(mock.Anything, "testid").Return(nil, errors.New("service error"))
+	w := performRequest(r, "GET", "/apigateway/rest-apis/testid/authorizers", nil)
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestAPIGateway_GetAuthorizer_ServiceError(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV1(t)
+	r := setupTestRouter(s.h)
+	s.mp.EXPECT().GetAuthorizer(mock.Anything, "testid", "testauth").Return(nil, errors.New("service error"))
+	w := performRequest(r, "GET", "/apigateway/rest-apis/testid/authorizers/testauth", nil)
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestAPIGateway_CreateAuthorizer_ServiceError(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV1(t)
+	r := setupTestRouter(s.h)
+	s.mp.EXPECT().CreateAuthorizer(mock.Anything, "testid", mock.Anything).Return(nil, errors.New("service error"))
+	w := performRequest(r, "POST", "/apigateway/rest-apis/testid/authorizers", []byte(`{"name":"token-auth","authorizerType":"TOKEN"}`))
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestAPIGateway_CreateAuthorizer_ParseError(t *testing.T) {
+	t.Parallel()
+	svc := createMockSvc(t, nil)
+	h := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(h)
+	w := performRequest(r, "POST", "/apigateway/rest-apis/testid/authorizers", []byte(`{bad`))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestAPIGateway_UpdateAuthorizer_ServiceError(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV1(t)
+	r := setupTestRouter(s.h)
+	s.mp.EXPECT().UpdateAuthorizer(mock.Anything, "testid", "testauth", mock.Anything).Return(nil, errors.New("service error"))
+	w := performRequest(r, "PUT", "/apigateway/rest-apis/testid/authorizers/testauth", []byte(`{"name":"updated-auth"}`))
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestAPIGateway_UpdateAuthorizer_ParseError(t *testing.T) {
+	t.Parallel()
+	svc := createMockSvc(t, nil)
+	h := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(h)
+	w := performRequest(r, "PUT", "/apigateway/rest-apis/testid/authorizers/testauth", []byte(`{bad`))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestAPIGateway_DeleteAuthorizer_ServiceError(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestV1(t)
+	r := setupTestRouter(s.h)
+	s.mp.EXPECT().DeleteAuthorizer(mock.Anything, "testid", "testauth").Return(errors.New("service error"))
+	w := performRequest(r, "DELETE", "/apigateway/rest-apis/testid/authorizers/testauth", nil)
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+

@@ -70,6 +70,11 @@ type APIGatewayClientPort interface {
 	GetStages(ctx context.Context, input *apigateway.GetStagesInput, opts ...func(*apigateway.Options)) (*apigateway.GetStagesOutput, error)
 	UpdateStage(ctx context.Context, input *apigateway.UpdateStageInput, opts ...func(*apigateway.Options)) (*apigateway.UpdateStageOutput, error)
 	DeleteStage(ctx context.Context, input *apigateway.DeleteStageInput, opts ...func(*apigateway.Options)) (*apigateway.DeleteStageOutput, error)
+	GetAuthorizers(ctx context.Context, input *apigateway.GetAuthorizersInput, opts ...func(*apigateway.Options)) (*apigateway.GetAuthorizersOutput, error)
+	GetAuthorizer(ctx context.Context, input *apigateway.GetAuthorizerInput, opts ...func(*apigateway.Options)) (*apigateway.GetAuthorizerOutput, error)
+	CreateAuthorizer(ctx context.Context, input *apigateway.CreateAuthorizerInput, opts ...func(*apigateway.Options)) (*apigateway.CreateAuthorizerOutput, error)
+	UpdateAuthorizer(ctx context.Context, input *apigateway.UpdateAuthorizerInput, opts ...func(*apigateway.Options)) (*apigateway.UpdateAuthorizerOutput, error)
+	DeleteAuthorizer(ctx context.Context, input *apigateway.DeleteAuthorizerInput, opts ...func(*apigateway.Options)) (*apigateway.DeleteAuthorizerOutput, error)
 }
 
 // APIGatewayV2ClientPort defines the interface for the AWS API Gateway V2 client
@@ -92,6 +97,12 @@ type APIGatewayV2ClientPort interface {
 	CreateStage(ctx context.Context, input *apigatewayv2.CreateStageInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.CreateStageOutput, error)
 	UpdateStage(ctx context.Context, input *apigatewayv2.UpdateStageInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.UpdateStageOutput, error)
 	DeleteStage(ctx context.Context, input *apigatewayv2.DeleteStageInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.DeleteStageOutput, error)
+	// Authorizers
+	GetAuthorizers(ctx context.Context, input *apigatewayv2.GetAuthorizersInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.GetAuthorizersOutput, error)
+	GetAuthorizer(ctx context.Context, input *apigatewayv2.GetAuthorizerInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.GetAuthorizerOutput, error)
+	CreateAuthorizer(ctx context.Context, input *apigatewayv2.CreateAuthorizerInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.CreateAuthorizerOutput, error)
+	UpdateAuthorizer(ctx context.Context, input *apigatewayv2.UpdateAuthorizerInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.UpdateAuthorizerOutput, error)
+	DeleteAuthorizer(ctx context.Context, input *apigatewayv2.DeleteAuthorizerInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.DeleteAuthorizerOutput, error)
 }
 
 // DynamoDBClientPort defines the interface for the AWS DynamoDB client

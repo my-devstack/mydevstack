@@ -2,11 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useApiGateway } from './useApiGateway'
 import * as apigw from '@/api/services/api-gateway'
 
+const { toast } = vi.hoisted(() => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}))
+
 vi.mock('@/composables/useToast', () => ({
-  useToast: () => ({
-    success: vi.fn(),
-    error: vi.fn(),
-  }),
+  useToast: () => toast,
 }))
 
 vi.mock('@/api/services/api-gateway')
@@ -632,5 +633,106 @@ describe('useApiGateway', () => {
       await promise
       expect(loading.value).toBe(false)
     })
+  })
+
+  describe('V2 Authorizers', () => {
+    it('loadHttpApiAuthorizers returns items', async () => {
+      vi.spyOn(apigw, 'listHttpApiAuthorizers').mockResolvedValueOnce({ items: [{ authorizerId: 'auth1', name: 'test' }] })
+      const { loadHttpApiAuthorizers } = useApiGateway()
+      const result = await loadHttpApiAuthorizers('api1')
+      expect(result.items).toHaveLength(1)
+    })
+
+    it('deleteHttpApiAuthorizer shows success toast', async () => {
+      vi.spyOn(apigw, 'deleteHttpApiAuthorizer').mockResolvedValueOnce(undefined)
+      const { deleteHttpApiAuthorizer } = useApiGateway()
+      await deleteHttpApiAuthorizer('api1', 'auth1')
+      expect(toast.success).toHaveBeenCalledWith('Authorizer deleted successfully')
+    })
+  })
+
+  describe('V1 Authorizers', () => {
+    it('loadRestApiAuthorizers returns items', async () => {
+      vi.spyOn(apigw, 'listRestApiAuthorizers').mockResolvedValueOnce({ items: [{ id: 'auth1', name: 'test' }] })
+      const { loadRestApiAuthorizers } = useApiGateway()
+      const result = await loadRestApiAuthorizers('api1')
+      expect(result.items).toHaveLength(1)
+    })
+  })
+})
+
+describe('V2 Authorizers', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('loadHttpApiAuthorizers returns items', async () => {
+    vi.mocked(apigw.listHttpApiAuthorizers).mockResolvedValueOnce({ items: [{ authorizerId: 'auth1', name: 'test' }] })
+    const { loadHttpApiAuthorizers } = useApiGateway()
+    const result = await loadHttpApiAuthorizers('api1')
+    expect(result.items).toHaveLength(1)
+    expect(result.items[0].authorizerId).toBe('auth1')
+  })
+
+  it('createHttpApiAuthorizer shows success toast', async () => {
+    vi.mocked(apigw.createHttpApiAuthorizer).mockResolvedValueOnce({} as any)
+    const { createHttpApiAuthorizer } = useApiGateway()
+    await createHttpApiAuthorizer('api1', { name: 'auth' } as any)
+    expect(toast.success).toHaveBeenCalledWith('Authorizer created successfully')
+  })
+
+  it('createHttpApiAuthorizer shows error toast on failure', async () => {
+    vi.mocked(apigw.createHttpApiAuthorizer).mockRejectedValueOnce(new Error('fail'))
+    const { createHttpApiAuthorizer } = useApiGateway()
+    await expect(createHttpApiAuthorizer('api1', { name: 'auth' } as any)).rejects.toThrow()
+    expect(toast.error).toHaveBeenCalledWith('Failed to create authorizer')
+  })
+
+  it('updateHttpApiAuthorizer shows success toast', async () => {
+    vi.mocked(apigw.updateHttpApiAuthorizer).mockResolvedValueOnce({} as any)
+    const { updateHttpApiAuthorizer } = useApiGateway()
+    await updateHttpApiAuthorizer('api1', 'auth1', { name: 'updated' } as any)
+    expect(toast.success).toHaveBeenCalledWith('Authorizer updated successfully')
+  })
+
+  it('deleteHttpApiAuthorizer shows success toast', async () => {
+    vi.mocked(apigw.deleteHttpApiAuthorizer).mockResolvedValueOnce(undefined)
+    const { deleteHttpApiAuthorizer } = useApiGateway()
+    await deleteHttpApiAuthorizer('api1', 'auth1')
+    expect(toast.success).toHaveBeenCalledWith('Authorizer deleted successfully')
+  })
+})
+
+describe('V1 Authorizers', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('loadRestApiAuthorizers returns items', async () => {
+    vi.mocked(apigw.listRestApiAuthorizers).mockResolvedValueOnce({ items: [{ id: 'auth1', name: 'test' }] })
+    const { loadRestApiAuthorizers } = useApiGateway()
+    const result = await loadRestApiAuthorizers('api1')
+    expect(result.items).toHaveLength(1)
+  })
+
+  it('createRestApiAuthorizer shows success toast', async () => {
+    vi.mocked(apigw.createRestApiAuthorizer).mockResolvedValueOnce({} as any)
+    const { createRestApiAuthorizer } = useApiGateway()
+    await createRestApiAuthorizer('api1', { name: 'auth', type: 'TOKEN' } as any)
+    expect(toast.success).toHaveBeenCalledWith('Authorizer created successfully')
+  })
+
+  it('updateRestApiAuthorizer shows success toast', async () => {
+    vi.mocked(apigw.updateRestApiAuthorizer).mockResolvedValueOnce({} as any)
+    const { updateRestApiAuthorizer } = useApiGateway()
+    await updateRestApiAuthorizer('api1', 'auth1', { name: 'updated' } as any)
+    expect(toast.success).toHaveBeenCalledWith('Authorizer updated successfully')
+  })
+
+  it('deleteRestApiAuthorizer shows success toast', async () => {
+    vi.mocked(apigw.deleteRestApiAuthorizer).mockResolvedValueOnce(undefined)
+    const { deleteRestApiAuthorizer } = useApiGateway()
+    await deleteRestApiAuthorizer('api1', 'auth1')
+    expect(toast.success).toHaveBeenCalledWith('Authorizer deleted successfully')
   })
 })

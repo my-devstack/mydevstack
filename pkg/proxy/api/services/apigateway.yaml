@@ -539,6 +539,70 @@ paths:
               schema:
                 $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
 
+  # --- 17b. Authorizers (V2) ---
+  /apigateway/apis/{apiId}/authorizers:
+    get:
+      operationId: ListAuthorizers
+      tags: [API Gateway V2]
+      parameters: [{ name: apiId, in: path, required: true, schema: {type: string}}]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAuthorizersV2Output'
+    post:
+      operationId: CreateAuthorizer
+      tags: [API Gateway V2]
+      parameters: [{ name: apiId, in: path, required: true, schema: {type: string}}]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAuthorizerInputV2'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizerV2'
+  /apigateway/apis/{apiId}/authorizers/{authorizerId}:
+    get:
+      operationId: GetAuthorizer
+      tags: [API Gateway V2]
+      parameters: [{ name: apiId, in: path }, { name: authorizerId, in: path }]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizerV2'
+    put:
+      operationId: UpdateAuthorizer
+      tags: [API Gateway V2]
+      parameters: [{ name: apiId, in: path }, { name: authorizerId, in: path }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAuthorizerInputV2'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizerV2'
+    delete:
+      operationId: DeleteAuthorizer
+      tags: [API Gateway V2]
+      parameters: [{ name: apiId, in: path }, { name: authorizerId, in: path }]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteAuthorizerOutputV2'
+
   # --- 18. POST /apigateway/apis/{apiId}/invoke-url ---
   /apigateway/apis/{apiId}/invoke-url:
     post:
@@ -1344,6 +1408,70 @@ paths:
             application/json:
               schema:
                 $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # --- 41b. Authorizers (V1) ---
+  /apigateway/rest-apis/{restApiId}/authorizers:
+    get:
+      operationId: ListAuthorizersV1
+      tags: [API Gateway]
+      parameters: [{ name: restApiId, in: path, required: true, schema: {type: string}}]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAuthorizersV1Output'
+    post:
+      operationId: CreateAuthorizerV1
+      tags: [API Gateway]
+      parameters: [{ name: restApiId, in: path, required: true, schema: {type: string}}]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAuthorizerInputV1'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizerV1'
+  /apigateway/rest-apis/{restApiId}/authorizers/{authorizerId}:
+    get:
+      operationId: GetAuthorizerV1
+      tags: [API Gateway]
+      parameters: [{ name: restApiId, in: path }, { name: authorizerId, in: path }]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizerV1'
+    put:
+      operationId: UpdateAuthorizerV1
+      tags: [API Gateway]
+      parameters: [{ name: restApiId, in: path }, { name: authorizerId, in: path }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAuthorizerInputV1'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizerV1'
+    delete:
+      operationId: DeleteAuthorizerV1
+      tags: [API Gateway]
+      parameters: [{ name: restApiId, in: path }, { name: authorizerId, in: path }]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteAuthorizerOutputV1'
 
   # --- 42. POST /apigateway/rest-apis/{restApiId}/invoke-url ---
   /apigateway/rest-apis/{restApiId}/invoke-url:
@@ -3023,3 +3151,166 @@ components:
         stageName:
           type: string
           description: The stage name
+
+    # ============================================================
+    # Authorizers (V2 + V1)
+    # ============================================================
+
+    AuthorizerV2:
+      type: object
+      description: Represents an authorizer for an HTTP API (V2)
+      properties:
+        AuthorizerId:
+          type: string
+          description: The authorizer ID
+        Name:
+          type: string
+          description: The name of the authorizer
+        AuthorizerType:
+          type: string
+          enum: [JWT, IAM, LAMBDA]
+          description: The authorizer type
+        AuthorizerUri:
+          type: string
+          description: The URI of the authorizer Lambda function
+        AuthorizerCredentialsArn:
+          type: string
+          description: The ARN of the role used to invoke the authorizer
+        AuthorizerResultTtlInSeconds:
+          type: integer
+          description: The time-to-live (TTL) for cached authorizer results
+        JwtConfiguration:
+          $ref: '#/components/schemas/JWTConfiguration'
+        IdentitySource:
+          type: array
+          items:
+            type: string
+          description: The identity sources for which authorization is requested
+        InvokeMode:
+          type: string
+          description: The invocation mode for the authorizer
+
+    JWTConfiguration:
+      type: object
+      description: JWT configuration for a JWT authorizer (V2)
+      properties:
+        Issuer:
+          type: string
+          description: The issuer URL of the JWT
+        Audience:
+          type: array
+          items:
+            type: string
+          description: The audience of the JWT
+
+    AuthorizerV1:
+      type: object
+      description: Represents an authorizer for a REST API (V1)
+      properties:
+        Id:
+          type: string
+          description: The authorizer ID
+        Name:
+          type: string
+          description: The name of the authorizer
+        Type:
+          type: string
+          enum: [TOKEN, REQUEST]
+          description: The authorizer type
+        AuthorizerUri:
+          type: string
+          description: The URI of the authorizer Lambda function
+        AuthorizerCredentials:
+          type: string
+          description: The credentials required for the authorizer
+        AuthorizerResultTtlInSeconds:
+          type: integer
+          description: The TTL for cached authorizer results
+        IdentitySource:
+          type: string
+          description: The identity source for which authorization is requested
+        AuthType:
+          type: string
+          description: The type of authentication
+
+    GetAuthorizersV2Output:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizerV2'
+          description: The list of authorizers
+
+    GetAuthorizersV1Output:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizerV1'
+          description: The list of authorizers
+
+    CreateAuthorizerInputV2:
+      type: object
+      description: Input for creating an authorizer (V2)
+      properties:
+        Name:
+          type: string
+        AuthorizerType:
+          type: string
+          enum: [JWT, IAM, LAMBDA]
+        AuthorizerUri:
+          type: string
+        AuthorizerCredentialsArn:
+          type: string
+        AuthorizerResultTtlInSeconds:
+          type: integer
+        JwtConfiguration:
+          $ref: '#/components/schemas/JWTConfiguration'
+        IdentitySource:
+          type: array
+          items:
+            type: string
+        InvokeMode:
+          type: string
+
+    UpdateAuthorizerInputV2:
+      $ref: '#/components/schemas/CreateAuthorizerInputV2'
+
+    CreateAuthorizerInputV1:
+      type: object
+      description: Input for creating an authorizer (V1)
+      properties:
+        Name:
+          type: string
+        Type:
+          type: string
+          enum: [TOKEN, REQUEST]
+        AuthorizerUri:
+          type: string
+        AuthorizerCredentials:
+          type: string
+        AuthorizerResultTtlInSeconds:
+          type: integer
+        IdentitySource:
+          type: string
+        AuthType:
+          type: string
+
+    UpdateAuthorizerInputV1:
+      $ref: '#/components/schemas/CreateAuthorizerInputV1'
+
+    DeleteAuthorizerOutputV2:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Confirmation message
+
+    DeleteAuthorizerOutputV1:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Confirmation message

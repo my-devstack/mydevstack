@@ -469,6 +469,61 @@ export function useApiGateway() {
     }
   }
 
+  async function loadHttpApiAuthorizers(apiId: string) {
+    loading.value = true
+    try {
+      return await apigateway.listHttpApiAuthorizers(apiId)
+    } catch { return { items: [] } } finally { loading.value = false }
+  }
+  async function loadRestApiAuthorizers(apiId: string) {
+    loading.value = true
+    try {
+      return await apigateway.listRestApiAuthorizers(apiId)
+    } catch { return { items: [] } } finally { loading.value = false }
+  }
+  async function createHttpApiAuthorizer(apiId: string, input: any) {
+    loading.value = true
+    try {
+      await apigateway.createHttpApiAuthorizer(apiId, input)
+      toast.success('Authorizer created successfully')
+    } catch (e) { toast.error('Failed to create authorizer'); throw e } finally { loading.value = false }
+  }
+  async function updateHttpApiAuthorizer(apiId: string, authorizerId: string, input: any) {
+    loading.value = true
+    try {
+      await apigateway.updateHttpApiAuthorizer(apiId, authorizerId, input)
+      toast.success('Authorizer updated successfully')
+    } catch (e) { toast.error('Failed to update authorizer'); throw e } finally { loading.value = false }
+  }
+  async function deleteHttpApiAuthorizer(apiId: string, authorizerId: string) {
+    loading.value = true
+    try {
+      await apigateway.deleteHttpApiAuthorizer(apiId, authorizerId)
+      toast.success('Authorizer deleted successfully')
+    } catch (e) { toast.error('Failed to delete authorizer'); throw e } finally { loading.value = false }
+  }
+  async function createRestApiAuthorizer(apiId: string, input: any) {
+    loading.value = true
+    try {
+      await apigateway.createRestApiAuthorizer(apiId, input)
+      toast.success('Authorizer created successfully')
+    } catch (e) { toast.error('Failed to create authorizer'); throw e } finally { loading.value = false }
+  }
+  async function updateRestApiAuthorizer(apiId: string, authorizerId: string, input: any) {
+    loading.value = true
+    try {
+      await apigateway.updateRestApiAuthorizer(apiId, authorizerId, input)
+      toast.success('Authorizer updated successfully')
+    } catch (e) { toast.error('Failed to update authorizer'); throw e } finally { loading.value = false }
+  }
+  async function deleteRestApiAuthorizer(apiId: string, authorizerId: string) {
+    loading.value = true
+    try {
+      await apigateway.deleteRestApiAuthorizer(apiId, authorizerId)
+      toast.success('Authorizer deleted successfully')
+    } catch (e) { toast.error('Failed to delete authorizer'); throw e } finally { loading.value = false }
+  }
+
   return {
     loading,
     loadRestApis,
@@ -507,6 +562,14 @@ export function useApiGateway() {
     getHttpInvokeUrl,
     getRestApiDetails,
     getHttpApiDetails,
+    loadHttpApiAuthorizers,
+    loadRestApiAuthorizers,
+    createHttpApiAuthorizer,
+    updateHttpApiAuthorizer,
+    deleteHttpApiAuthorizer,
+    createRestApiAuthorizer,
+    updateRestApiAuthorizer,
+    deleteRestApiAuthorizer,
   }
 }
 

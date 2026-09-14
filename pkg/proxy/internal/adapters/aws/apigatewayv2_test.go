@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
 	ag2mocks "github.com/my-devstack/mydevstack/pkg/proxy/mocks/ports"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestNewAPIGatewayV2Adapter(t *testing.T) {
@@ -513,4 +514,246 @@ func TestAPIGatewayV2Adapter_DeleteStage_Error(t *testing.T) {
 	output, err := adapter.DeleteStage(ctx, input)
 	assert.Error(t, err)
 	assert.Nil(t, output)
+}
+
+// --- Authorizer tests ---
+
+func TestAPIGatewayV2Adapter_GetAuthorizers(t *testing.T) {
+	mockClient := ag2mocks.NewAPIGatewayV2ClientPort(t)
+	ctx := context.Background()
+	input := &apigatewayv2.GetAuthorizersInput{ApiId: aws.String("api-123")}
+	expectedOutput := &apigatewayv2.GetAuthorizersOutput{
+		Items: []types.Authorizer{
+			{AuthorizerId: aws.String("auth-1"), Name: aws.String("jwt-auth"), AuthorizerType: types.AuthorizerTypeJwt},
+			{AuthorizerId: aws.String("auth-2"), Name: aws.String("iam-auth"), AuthorizerType: types.AuthorizerType("IAM")},
+		},
+	}
+
+	mockClient.EXPECT().GetAuthorizers(ctx, input).Return(expectedOutput, nil)
+	adapter := &APIGatewayV2Adapter{client: mockClient}
+
+	output, err := adapter.GetAuthorizers(ctx, "api-123")
+	assert.NoError(t, err)
+	assert.Len(t, output, 2)
+	assert.Equal(t, "auth-1", *output[0].AuthorizerId)
+	assert.Equal(t, "jwt-auth", *output[0].Name)
+	assert.Equal(t, types.AuthorizerTypeJwt, output[0].AuthorizerType)
+	assert.Equal(t, "auth-2", *output[1].AuthorizerId)
+}
+
+func TestAPIGatewayV2Adapter_GetAuthorizer(t *testing.T) {
+	mockClient := ag2mocks.NewAPIGatewayV2ClientPort(t)
+	ctx := context.Background()
+	input := &apigatewayv2.GetAuthorizerInput{ApiId: aws.String("api-123"), AuthorizerId: aws.String("auth-1")}
+	expectedOutput := &apigatewayv2.GetAuthorizerOutput{
+		AuthorizerId:   aws.String("auth-1"),
+		Name:           aws.String("jwt-auth"),
+		AuthorizerType: types.AuthorizerTypeJwt,
+		JwtConfiguration: &types.JWTConfiguration{
+			Issuer:   aws.String("https://cognito-idp.us-east-1.amazonaws.com/pool"),
+			Audience: []string{"aud1", "aud2"},
+		},
+	}
+
+	mockClient.EXPECT().GetAuthorizer(ctx, input).Return(expectedOutput, nil)
+	adapter := &APIGatewayV2Adapter{client: mockClient}
+
+	output, err := adapter.GetAuthorizer(ctx, "api-123", "auth-1")
+	assert.NoError(t, err)
+	assert.NotNil(t, output)
+	assert.Equal(t, "auth-1", *output.AuthorizerId)
+	assert.Equal(t, "jwt-auth", *output.Name)
+	assert.Equal(t, types.AuthorizerTypeJwt, output.AuthorizerType)
+	assert.NotNil(t, output.JwtConfiguration)
+	assert.Equal(t, "https://cognito-idp.us-east-1.amazonaws.com/pool", *output.JwtConfiguration.Issuer)
+	assert.Equal(t, []string{"aud1", "aud2"}, output.JwtConfiguration.Audience)
+}
+
+func TestAPIGatewayV2Adapter_CreateAuthorizer_JWT(t *testing.T) {
+	mockClient := ag2mocks.NewAPIGatewayV2ClientPort(t)
+	ctx := context.Background()
+	input := &apigatewayv2.CreateAuthorizerInput{
+		Name:           aws.String("jwt-auth"),
+		AuthorizerType: types.AuthorizerTypeJwt,
+		JwtConfiguration: &types.JWTConfiguration{
+			Issuer:   aws.String("https://cognito-idp.us-east-1.amazonaws.com/pool"),
+			Audience: []string{"aud1"},
+		},
+	}
+	expectedOutput := &apigatewayv2.CreateAuthorizerOutput{
+		AuthorizerId:   aws.String("auth-1"),
+		Name:           aws.String("jwt-auth"),
+		AuthorizerType: types.AuthorizerTypeJwt,
+	}
+
+	mockClient.EXPECT().CreateAuthorizer(ctx, mock.MatchedBy(func(in *apigatewayv2.CreateAuthorizerInput) bool {
+		return in.ApiId != nil && *in.ApiId == "api-123" &&
+			in.Name != nil && *in.Name == "jwt-auth" &&
+			in.AuthorizerType == types.AuthorizerTypeJwt &&
+			in.JwtConfiguration != nil && *in.JwtConfiguration.Issuer == "https://cognito-idp.us-east-1.amazonaws.com/pool"
+	})).Return(expectedOutput, nil)
+	adapter := &APIGatewayV2Adapter{client: mockClient}
+
+	output, err := adapter.CreateAuthorizer(ctx, "api-123", input)
+	assert.NoError(t, err)
+	assert.NotNil(t, output)
+	assert.Equal(t, "auth-1", *output.AuthorizerId)
+	assert.Equal(t, "jwt-auth", *output.Name)
+}
+
+func TestAPIGatewayV2Adapter_CreateAuthorizer_Lambda(t *testing.T) {
+	mockClient := ag2mocks.NewAPIGatewayV2ClientPort(t)
+	ctx := context.Background()
+	input := &apigatewayv2.CreateAuthorizerInput{
+		Name:                           aws.String("lambda-auth"),
+		AuthorizerType:                 types.AuthorizerType("LAMBDA"),
+		AuthorizerUri:                  aws.String("arn:aws:lambda:us-east-1:123456789012:function:auth"),
+		AuthorizerPayloadFormatVersion: aws.String("2.0"),
+		EnableSimpleResponses:          aws.Bool(true),
+		IdentitySource:                 []string{"$request.header.Authorization"},
+	}
+	expectedOutput := &apigatewayv2.CreateAuthorizerOutput{
+		AuthorizerId:   aws.String("auth-2"),
+		Name:           aws.String("lambda-auth"),
+		AuthorizerType: types.AuthorizerType("LAMBDA"),
+	}
+
+	mockClient.EXPECT().CreateAuthorizer(ctx, mock.MatchedBy(func(in *apigatewayv2.CreateAuthorizerInput) bool {
+		return in.ApiId != nil && *in.ApiId == "api-123" &&
+			in.AuthorizerType == types.AuthorizerType("LAMBDA") &&
+			in.AuthorizerUri != nil && *in.AuthorizerUri == "arn:aws:lambda:us-east-1:123456789012:function:auth" &&
+			in.AuthorizerPayloadFormatVersion != nil && *in.AuthorizerPayloadFormatVersion == "2.0" &&
+			in.EnableSimpleResponses != nil && *in.EnableSimpleResponses == true
+	})).Return(expectedOutput, nil)
+	adapter := &APIGatewayV2Adapter{client: mockClient}
+
+	output, err := adapter.CreateAuthorizer(ctx, "api-123", input)
+	assert.NoError(t, err)
+	assert.NotNil(t, output)
+	assert.Equal(t, "auth-2", *output.AuthorizerId)
+}
+
+func TestAPIGatewayV2Adapter_CreateAuthorizer_IAM(t *testing.T) {
+	mockClient := ag2mocks.NewAPIGatewayV2ClientPort(t)
+	ctx := context.Background()
+	input := &apigatewayv2.CreateAuthorizerInput{
+		Name:           aws.String("iam-auth"),
+		AuthorizerType: types.AuthorizerType("IAM"),
+		IdentitySource: []string{"$request.header.Authorization"},
+	}
+	expectedOutput := &apigatewayv2.CreateAuthorizerOutput{
+		AuthorizerId:   aws.String("auth-3"),
+		Name:           aws.String("iam-auth"),
+		AuthorizerType: types.AuthorizerType("IAM"),
+	}
+
+	mockClient.EXPECT().CreateAuthorizer(ctx, mock.MatchedBy(func(in *apigatewayv2.CreateAuthorizerInput) bool {
+		return in.ApiId != nil && *in.ApiId == "api-123" &&
+			in.AuthorizerType == types.AuthorizerType("IAM") &&
+			len(in.IdentitySource) == 1 && in.IdentitySource[0] == "$request.header.Authorization"
+	})).Return(expectedOutput, nil)
+	adapter := &APIGatewayV2Adapter{client: mockClient}
+
+	output, err := adapter.CreateAuthorizer(ctx, "api-123", input)
+	assert.NoError(t, err)
+	assert.NotNil(t, output)
+	assert.Equal(t, "auth-3", *output.AuthorizerId)
+}
+
+func TestAPIGatewayV2Adapter_UpdateAuthorizer(t *testing.T) {
+	mockClient := ag2mocks.NewAPIGatewayV2ClientPort(t)
+	ctx := context.Background()
+	input := &apigatewayv2.UpdateAuthorizerInput{
+		Name:           aws.String("updated-auth"),
+		AuthorizerType: types.AuthorizerTypeJwt,
+	}
+	expectedOutput := &apigatewayv2.UpdateAuthorizerOutput{
+		AuthorizerId:   aws.String("auth-1"),
+		Name:           aws.String("updated-auth"),
+		AuthorizerType: types.AuthorizerTypeJwt,
+	}
+
+	mockClient.EXPECT().UpdateAuthorizer(ctx, mock.MatchedBy(func(in *apigatewayv2.UpdateAuthorizerInput) bool {
+		return in.ApiId != nil && *in.ApiId == "api-123" &&
+			in.AuthorizerId != nil && *in.AuthorizerId == "auth-1" &&
+			in.Name != nil && *in.Name == "updated-auth"
+	})).Return(expectedOutput, nil)
+	adapter := &APIGatewayV2Adapter{client: mockClient}
+
+	output, err := adapter.UpdateAuthorizer(ctx, "api-123", "auth-1", input)
+	assert.NoError(t, err)
+	assert.NotNil(t, output)
+	assert.Equal(t, "auth-1", *output.AuthorizerId)
+	assert.Equal(t, "updated-auth", *output.Name)
+}
+
+func TestAPIGatewayV2Adapter_DeleteAuthorizer(t *testing.T) {
+	mockClient := ag2mocks.NewAPIGatewayV2ClientPort(t)
+	ctx := context.Background()
+	input := &apigatewayv2.DeleteAuthorizerInput{ApiId: aws.String("api-123"), AuthorizerId: aws.String("auth-1")}
+
+	mockClient.EXPECT().DeleteAuthorizer(ctx, input).Return(&apigatewayv2.DeleteAuthorizerOutput{}, nil)
+	adapter := &APIGatewayV2Adapter{client: mockClient}
+
+	err := adapter.DeleteAuthorizer(ctx, "api-123", "auth-1")
+	assert.NoError(t, err)
+}
+
+func TestAPIGatewayV2Adapter_GetAuthorizers_Error(t *testing.T) {
+	mockClient := ag2mocks.NewAPIGatewayV2ClientPort(t)
+	ctx := context.Background()
+	input := &apigatewayv2.GetAuthorizersInput{ApiId: aws.String("api-123")}
+	mockClient.EXPECT().GetAuthorizers(ctx, input).Return(nil, errors.New("get authorizers failed"))
+	adapter := &APIGatewayV2Adapter{client: mockClient}
+
+	output, err := adapter.GetAuthorizers(ctx, "api-123")
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayV2Adapter_GetAuthorizer_NotFound(t *testing.T) {
+	mockClient := ag2mocks.NewAPIGatewayV2ClientPort(t)
+	ctx := context.Background()
+	input := &apigatewayv2.GetAuthorizerInput{ApiId: aws.String("api-123"), AuthorizerId: aws.String("missing")}
+	mockClient.EXPECT().GetAuthorizer(ctx, input).Return(nil, errors.New("NotFoundException: authorizer not found"))
+	adapter := &APIGatewayV2Adapter{client: mockClient}
+
+	output, err := adapter.GetAuthorizer(ctx, "api-123", "missing")
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayV2Adapter_CreateAuthorizer_Error(t *testing.T) {
+	mockClient := ag2mocks.NewAPIGatewayV2ClientPort(t)
+	ctx := context.Background()
+	input := &apigatewayv2.CreateAuthorizerInput{Name: aws.String("jwt-auth")}
+	mockClient.EXPECT().CreateAuthorizer(ctx, mock.Anything).Return(nil, errors.New("create authorizer failed"))
+	adapter := &APIGatewayV2Adapter{client: mockClient}
+
+	output, err := adapter.CreateAuthorizer(ctx, "api-123", input)
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayV2Adapter_UpdateAuthorizer_Error(t *testing.T) {
+	mockClient := ag2mocks.NewAPIGatewayV2ClientPort(t)
+	ctx := context.Background()
+	input := &apigatewayv2.UpdateAuthorizerInput{Name: aws.String("updated-auth")}
+	mockClient.EXPECT().UpdateAuthorizer(ctx, mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("update authorizer failed"))
+	adapter := &APIGatewayV2Adapter{client: mockClient}
+
+	output, err := adapter.UpdateAuthorizer(ctx, "api-123", "auth-1", input)
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestAPIGatewayV2Adapter_DeleteAuthorizer_Error(t *testing.T) {
+	mockClient := ag2mocks.NewAPIGatewayV2ClientPort(t)
+	ctx := context.Background()
+	input := &apigatewayv2.DeleteAuthorizerInput{ApiId: aws.String("api-123"), AuthorizerId: aws.String("auth-1")}
+	mockClient.EXPECT().DeleteAuthorizer(ctx, input).Return(nil, errors.New("delete authorizer failed"))
+	adapter := &APIGatewayV2Adapter{client: mockClient}
+
+	err := adapter.DeleteAuthorizer(ctx, "api-123", "auth-1")
+	assert.Error(t, err)
 }

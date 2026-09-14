@@ -14,6 +14,8 @@ import APIGatewayIntegrationModal from '@/components/apiGateway/APIGatewayIntegr
 import APIGatewayIntegrationDetailsModal from '@/components/apiGateway/APIGatewayIntegrationDetailsModal.vue'
 import APIGatewayStageModal from '@/components/apiGateway/APIGatewayStageModal.vue'
 import APIGatewayDeploymentsModal from '@/components/apiGateway/APIGatewayDeploymentsModal.vue'
+import APIGatewayAuthorizersList from '@/components/apiGateway/APIGatewayAuthorizersList.vue'
+import APIGatewayAuthorizersModal from '@/components/apiGateway/APIGatewayAuthorizersModal.vue'
 
 const emit = defineEmits<{
   'edit-api': [api: any]
@@ -45,6 +47,11 @@ const showStageModal = ref(false)
 const showDeploymentModal = ref(false)
 const showDeleteModal = ref(false)
 const apiToDelete = ref<any>(null)
+
+const showAuthorizers = ref(false)
+const showAuthorizersModal = ref(false)
+const authorizerToEdit = ref<any>(null)
+const authorizersListKey = ref(0)
 
 const lambdaFunctions = ref<any[]>([])
 
@@ -302,6 +309,26 @@ function handleGetInvokeUrl(api: any) {
   emit('get-invoke-url', api)
 }
 
+function handleOpenAuthorizers(api: any) {
+  selectedApi.value = api
+  showAuthorizers.value = true
+}
+
+function handleCreateAuthorizer() {
+  authorizerToEdit.value = null
+  showAuthorizersModal.value = true
+}
+
+function handleEditAuthorizer(authorizer: any) {
+  authorizerToEdit.value = authorizer
+  showAuthorizersModal.value = true
+}
+
+function handleAuthorizersModalClose() {
+  showAuthorizersModal.value = false
+  authorizersListKey.value++
+}
+
 const confirmDeleteDeployment = async (deployment: any) => {
   await handleDeleteDeployment(deployment)
 }
@@ -346,6 +373,7 @@ defineExpose({
     @delete-deployment="confirmDeleteDeployment"
     @create-stage="handleCreateStage"
     @delete-stage="confirmDeleteStage"
+    @open-authorizers="handleOpenAuthorizers"
   />
 
   <!-- Pagination -->
@@ -463,6 +491,31 @@ defineExpose({
     @delete-deployment="handleDeleteDeployment"
     @close="showDeploymentModal = false"
     @update:open="showDeploymentModal = $event"
+  />
+
+  <!-- Authorizers List Modal -->
+  <APIGatewayAuthorizersList
+    v-if="showAuthorizers"
+    :key="authorizersListKey"
+    :open="showAuthorizers"
+    :api-id="selectedApi?.id"
+    :api-name="selectedApi?.name"
+    api-type="rest"
+    @update:open="showAuthorizers = $event"
+    @create-authorizer="handleCreateAuthorizer"
+    @edit-authorizer="handleEditAuthorizer"
+  />
+
+  <!-- Authorizer Create/Edit Modal -->
+  <APIGatewayAuthorizersModal
+    v-if="showAuthorizersModal"
+    :open="showAuthorizersModal"
+    :mode="authorizerToEdit ? 'edit' : 'create'"
+    :api-id="selectedApi?.id"
+    :api-name="selectedApi?.name"
+    api-type="rest"
+    :authorizer="authorizerToEdit"
+    @update:open="handleAuthorizersModalClose"
   />
 
   <!-- Delete Modal -->

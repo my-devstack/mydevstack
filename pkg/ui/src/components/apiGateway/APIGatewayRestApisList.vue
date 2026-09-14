@@ -60,6 +60,7 @@ const emit = defineEmits<{
   'create-stage': [api: APIGatewayRestAPI]
   'delete-stage': [apiId: string, stageName: string]
   'get-invoke-url': [api: APIGatewayRestAPI]
+  'open-authorizers': [api: APIGatewayRestAPI]
 }>()
 
 const settingsStore = useSettingsStore()
@@ -592,6 +593,28 @@ function formatDate(dateStr: string | undefined): string {
               class="text-sm text-light-muted dark:text-dark-muted"
             >
               No stages found for this API.
+            </div>
+          </div>
+
+          <!-- Authorizers Section -->
+          <div
+            class="mt-4 pt-4 border-t"
+            :class="settingsStore.darkMode ? 'border-dark-border' : 'border-light-border'"
+          >
+            <div class="flex justify-between items-center mb-3">
+              <h4
+                class="text-sm font-medium"
+                :class="settingsStore.darkMode ? 'text-dark-text' : 'text-light-text'"
+              >
+                Authorizers
+              </h4>
+              <button
+                type="button"
+                class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                @click.stop="emit('open-authorizers', api)"
+              >
+                View Authorizers
+              </button>
             </div>
           </div>
         </div>
