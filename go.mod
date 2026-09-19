@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.42.0
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.81.0
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.72.0
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.87.0
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.88.0
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.74.0
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.68.0
 	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.41.0
