@@ -19,7 +19,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.98.0
 	github.com/aws/aws-sdk-go-v2/service/elasticache v1.61.0
 	github.com/aws/aws-sdk-go-v2/service/iam v1.64.0
-	github.com/aws/aws-sdk-go-v2/service/kafka v1.64.0
+	github.com/aws/aws-sdk-go-v2/service/kafka v1.65.0
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.54.0
 	github.com/aws/aws-sdk-go-v2/service/kms v1.60.0
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.108.0
