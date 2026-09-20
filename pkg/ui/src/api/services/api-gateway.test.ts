@@ -45,6 +45,7 @@ import {
   deleteHttpApi,
   getHttpApi,
   getHttpRoutes,
+  getHttpRoute,
   createHttpRoute,
   updateHttpRoute,
   deleteHttpRoute,
@@ -374,6 +375,26 @@ describe('API Gateway Service', () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       const result = await getHttpRoutes('http1')
       expect(result.items).toBeUndefined()
+    })
+
+    it('getHttpRoute normalizes authorization fields', async () => {
+      mockFetch.mockResolvedValue(mockResponse({
+        RouteId: 'r1',
+        RouteKey: 'GET /items',
+        Target: 'integrations/int-1',
+        AuthorizationType: 'JWT',
+        AuthorizerId: 'auth-1',
+      }))
+      const result = await getHttpRoute('http1', 'r1')
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/apigateway/apis/http1/routes/r1'),
+        expect.any(Object),
+      )
+      expect(result.routeId).toBe('r1')
+      expect(result.routeKey).toBe('GET /items')
+      expect(result.target).toBe('integrations/int-1')
+      expect(result.authorizationType).toBe('JWT')
+      expect(result.authorizerId).toBe('auth-1')
     })
 
     it('createHttpRoute maps options to SDK names', async () => {

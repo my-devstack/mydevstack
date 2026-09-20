@@ -6,33 +6,29 @@ import FormInput from '@/components/common/FormInput.vue'
 
 const props = defineProps<{
   open: boolean
-  stageName: string
-  description?: string
-  autoDeploy?: boolean
+  deployment?: any | null
   loading?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  'update': [description: string, autoDeploy: boolean]
+  'update': [description: string]
 }>()
 
 const form = ref({
   description: '',
-  autoDeploy: false,
 })
 
 watch(() => props.open, (isOpen) => {
   if (isOpen) {
     form.value = {
-      description: props.description || '',
-      autoDeploy: props.autoDeploy ?? false,
+      description: props.deployment?.description || '',
     }
   }
-}, { immediate: true })
+})
 
 function handleUpdate() {
-  emit('update', form.value.description, form.value.autoDeploy)
+  emit('update', form.value.description)
 }
 
 function handleClose() {
@@ -43,38 +39,25 @@ function handleClose() {
 <template>
   <Modal
     :open="open"
-    title="Edit Stage"
+    title="Edit Deployment"
     size="md"
     @update:open="emit('update:open', $event)"
     @close="handleClose"
   >
     <div class="space-y-4">
       <div>
-        <label class="text-sm font-medium">Stage Name</label>
-        <p class="text-sm mt-1">
-          {{ stageName }}
+        <label class="text-sm font-medium">Deployment ID</label>
+        <p class="text-sm mt-1 font-mono">
+          {{ deployment?.id || deployment?.deploymentId || '-' }}
         </p>
       </div>
-      
+
       <FormInput
         v-model="form.description"
         label="Description"
-        placeholder="Production stage"
+        placeholder="My deployment description"
+        help-text="Deployments are immutable in AWS; only the description can be edited."
       />
-      
-      <div>
-        <label class="flex items-center gap-2">
-          <input
-            v-model="form.autoDeploy"
-            type="checkbox"
-            class="rounded border-gray-300"
-          >
-          <span class="text-sm font-medium">Auto Deploy</span>
-        </label>
-        <p class="text-xs text-light-muted dark:text-dark-muted mt-1">
-          Automatically deploy new changes to this stage
-        </p>
-      </div>
     </div>
     <template #footer>
       <div class="flex justify-end gap-2">

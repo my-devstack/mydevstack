@@ -50,6 +50,10 @@ func (a *APIGatewayV2Adapter) GetRoutes(ctx context.Context, input *apigatewayv2
 	return a.client.GetRoutes(ctx, input)
 }
 
+func (a *APIGatewayV2Adapter) GetRoute(ctx context.Context, input *apigatewayv2.GetRouteInput) (*apigatewayv2.GetRouteOutput, error) {
+	return a.client.GetRoute(ctx, input)
+}
+
 func (a *APIGatewayV2Adapter) CreateRoute(ctx context.Context, input *apigatewayv2.CreateRouteInput) (*apigatewayv2.CreateRouteOutput, error) {
 	return a.client.CreateRoute(ctx, input)
 }

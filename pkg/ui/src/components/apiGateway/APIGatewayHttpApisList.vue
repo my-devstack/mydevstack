@@ -26,12 +26,15 @@ const emit = defineEmits<{
   'delete-api': [api: HTTPAPI]
   'get-invoke-url': [api: HTTPAPI]
   'create-route': [api: HTTPAPI]
+  'view-route': [route: any]
   'edit-route': [route: any, apiId: string]
   'delete-route': [apiId: string, route: any]
   'create-integration': [api: HTTPAPI]
+  'view-integration': [integration: any]
   'edit-integration': [integration: any]
   'delete-integration': [apiId: string, integration: any]
   'create-stage': [api: HTTPAPI]
+  'view-stage': [stage: any]
   'edit-stage': [stage: any, apiId: string]
   'delete-stage': [apiId: string, stage: any]
   'open-authorizers': [api: HTTPAPI]
@@ -201,6 +204,52 @@ const settingsStore = useSettingsStore()
               <div class="col-span-3 flex justify-end gap-2">
                 <button
                   type="button"
+                  class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border"
+                  title="View Route"
+                  @click.stop="emit('view-route', route)"
+                >
+                  <svg
+                    class="w-4 h-4 text-gray-600 dark:text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border"
+                  title="Edit Route"
+                  @click.stop="emit('edit-route', route, api.apiId)"
+                >
+                  <svg
+                    class="w-4 h-4 text-gray-600 dark:text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
                   class="p-1 rounded text-red-500 hover:bg-light-border dark:hover:bg-dark-border"
                   title="Delete"
                   @click.stop="emit('delete-route', api.apiId, route)"
@@ -284,6 +333,52 @@ const settingsStore = useSettingsStore()
               <div class="col-span-3 flex justify-end gap-2">
                 <button
                   type="button"
+                  class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border"
+                  title="View Integration"
+                  @click.stop="emit('view-integration', integration)"
+                >
+                  <svg
+                    class="w-4 h-4 text-gray-600 dark:text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border"
+                  title="Edit Integration"
+                  @click.stop="emit('edit-integration', integration)"
+                >
+                  <svg
+                    class="w-4 h-4 text-gray-600 dark:text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
                   class="p-1 rounded text-red-500 hover:bg-light-border dark:hover:bg-dark-border"
                   title="Delete"
                   @click.stop="emit('delete-integration', api.apiId, integration)"
@@ -365,6 +460,52 @@ const settingsStore = useSettingsStore()
                 -
               </div>
               <div class="col-span-3 flex justify-end gap-2">
+                <button
+                  type="button"
+                  class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border"
+                  title="View Stage"
+                  @click.stop="emit('view-stage', stage)"
+                >
+                  <svg
+                    class="w-4 h-4 text-gray-600 dark:text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border"
+                  title="Edit Stage"
+                  @click.stop="emit('edit-stage', stage, api.apiId)"
+                >
+                  <svg
+                    class="w-4 h-4 text-gray-600 dark:text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                </button>
                 <button
                   type="button"
                   class="p-1 rounded text-red-500 hover:bg-light-border dark:hover:bg-dark-border"

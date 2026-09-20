@@ -1,0 +1,97 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { setActivePinia, createPinia } from 'pinia'
+import APIGatewayEditStageDetailModal from './APIGatewayEditStageDetailModal.vue'
+
+vi.mock('@/stores/settings', () => ({
+  useSettingsStore: () => ({ darkMode: false }),
+}))
+
+const modalStub = {
+  template: '<div v-if="open" data-testid="modal"><slot name="title" /><slot /><slot name="footer" /></div>',
+  props: ['open', 'title'],
+}
+const buttonStub = {
+  template: '<button><slot /></button>',
+  props: ['variant', 'size', 'loading'],
+}
+const formInputStub = { template: '<div>{{label}}<input :value="modelValue" /></div>', props: ['modelValue', 'label'] }
+
+const mockStage = {
+  stageName: 'prod',
+  description: 'Production stage',
+  deploymentId: 'dep-123',
+}
+
+const defaultProps = {
+  open: true,
+  stageName: mockStage.stageName,
+  description: mockStage.description,
+  deploymentId: mockStage.deploymentId,
+  loading: false,
+}
+
+describe('APIGatewayEditStageDetailModal', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
+  })
+
+  it('renders when open', () => {
+    const wrapper = mount(APIGatewayEditStageDetailModal, {
+      props: defaultProps,
+      global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub } },
+    })
+    expect(wrapper.find('[data-testid="modal"]').exists()).toBe(true)
+  })
+
+  it('renders stage name and deployment id', () => {
+    const wrapper = mount(APIGatewayEditStageDetailModal, {
+      props: defaultProps,
+      global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub } },
+    })
+    expect(wrapper.text()).toContain('prod')
+    expect(wrapper.text()).toContain('dep-123')
+  })
+
+  it('pre-fills description from stage', async () => {
+    const wrapper = mount(APIGatewayEditStageDetailModal, {
+      props: { ...defaultProps, open: false },
+      global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub } },
+    })
+    await wrapper.setProps({ open: true })
+    const input = wrapper.find('input')
+    expect((input.element as HTMLInputElement).value).toBe('Production stage')
+  })
+
+  it('emits update:description on Save click', async () => {
+    const wrapper = mount(APIGatewayEditStageDetailModal, {
+      props: { ...defaultProps, open: false },
+      global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub } },
+    })
+    await wrapper.setProps({ open: true })
+    const saveBtn = wrapper.findAll('button').find(b => b.text().includes('Save'))
+    await saveBtn?.trigger('click')
+    expect(wrapper.emitted('update:description')).toBeTruthy()
+    expect(wrapper.emitted('update:description')![0]).toEqual(['Production stage'])
+  })
+
+  it('emits update:open false on Cancel click', async () => {
+    const wrapper = mount(APIGatewayEditStageDetailModal, {
+      props: defaultProps,
+      global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub } },
+    })
+    const cancelBtn = wrapper.findAll('button').find(b => b.text().includes('Cancel'))
+    await cancelBtn?.trigger('click')
+    expect(wrapper.emitted('update:open')).toBeTruthy()
+    expect(wrapper.emitted('update:open')![0]).toEqual([false])
+  })
+
+  it('shows Saving text when loading', () => {
+    const wrapper = mount(APIGatewayEditStageDetailModal, {
+      props: { ...defaultProps, loading: true },
+      global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub } },
+    })
+    expect(wrapper.text()).toContain('Saving...')
+  })
+})

@@ -38,7 +38,7 @@ watch(() => props.open, (isOpen) => {
       authorizerId: props.authorizerId || '',
     }
   }
-})
+}, { immediate: true })
 
 function handleUpdate() {
   emit('update', form.value.routeKey, form.value.authorizationType, form.value.authorizerId)

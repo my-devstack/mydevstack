@@ -8,10 +8,14 @@ import * as lambda from '@/api/services/lambda'
 
 import APIGatewayHttpApisList from '@/components/apiGateway/APIGatewayHttpApisList.vue'
 import APIGatewayIntegrationModal from '@/components/apiGateway/APIGatewayIntegrationModal.vue'
+import APIGatewayEditIntegrationModal from '@/components/apiGateway/APIGatewayEditIntegrationModal.vue'
 import APIGatewayRouteModal from '@/components/apiGateway/APIGatewayRouteModal.vue'
 import APIGatewayStageModal from '@/components/apiGateway/APIGatewayStageModal.vue'
 import APIGatewayEditRouteModal from '@/components/apiGateway/APIGatewayEditRouteModal.vue'
 import APIGatewayEditStageModal from '@/components/apiGateway/APIGatewayEditStageModal.vue'
+import APIGatewayViewRouteModal from '@/components/apiGateway/APIGatewayViewRouteModal.vue'
+import APIGatewayViewIntegrationModal from '@/components/apiGateway/APIGatewayViewIntegrationModal.vue'
+import APIGatewayViewStageModal from '@/components/apiGateway/APIGatewayViewStageModal.vue'
 import APIGatewayAuthorizersList from '@/components/apiGateway/APIGatewayAuthorizersList.vue'
 import APIGatewayAuthorizersModal from '@/components/apiGateway/APIGatewayAuthorizersModal.vue'
 import Modal from '@/components/common/Modal.vue'
@@ -59,10 +63,17 @@ const showRouteModal = ref(false)
 const showStageModal = ref(false)
 const showEditRouteModal = ref(false)
 const showEditStageModal = ref(false)
+const showEditIntegrationModal = ref(false)
+const showViewRouteModal = ref(false)
+const showViewIntegrationModal = ref(false)
+const showViewStageModal = ref(false)
 
 const integrationToEdit = ref<any>(null)
 const routeToEdit = ref<any>(null)
 const stageToEdit = ref<any>(null)
+const routeToView = ref<any>(null)
+const integrationToView = ref<any>(null)
+const stageToView = ref<any>(null)
 
 const showAuthorizers = ref(false)
 const showAuthorizersModal = ref(false)
@@ -171,8 +182,27 @@ function handleCreateIntegration(api: any) {
 }
 
 function handleEditIntegration(integration: any) {
+  const expandedId = Array.from(expandedApis.value)[0]
+  if (expandedId) {
+    selectedApi.value = { apiId: expandedId }
+  }
   integrationToEdit.value = integration
-  showIntegrationModal.value = true
+  showEditIntegrationModal.value = true
+}
+
+function handleViewRoute(route: any) {
+  routeToView.value = route
+  showViewRouteModal.value = true
+}
+
+function handleViewIntegration(integration: any) {
+  integrationToView.value = integration
+  showViewIntegrationModal.value = true
+}
+
+function handleViewStage(stage: any) {
+  stageToView.value = stage
+  showViewStageModal.value = true
 }
 
 function handleCreateRoute(api: any) {
@@ -185,9 +215,16 @@ function handleCreateStage(api: any) {
   showStageModal.value = true
 }
 
-function handleEditRoute(route: any, apiId: string) {
+async function handleEditRoute(route: any, apiId: string) {
   selectedApi.value = { apiId }
-  routeToEdit.value = route
+  try {
+    // Fetch full route details including authorizationType, authorizerId
+    const fullRoute = await apigateway.getHttpRoute(apiId, route.routeId)
+    routeToEdit.value = fullRoute
+  } catch {
+    // Fallback to partial data if getRoute fails
+    routeToEdit.value = route
+  }
   showEditRouteModal.value = true
 }
 
@@ -250,6 +287,7 @@ async function confirmUpdateIntegration(integrationType: string, httpMethod: str
     await apigateway.updateHttpIntegration(selectedApi.value.apiId, integrationToEdit.value.integrationId, options)
     toast.success('Integration updated successfully')
     showIntegrationModal.value = false
+    showEditIntegrationModal.value = false
     await loadDetailsForApi(selectedApi.value.apiId)
   } catch (e: any) {
     toast.error(e?.message || 'Failed to update integration')
@@ -356,12 +394,15 @@ defineExpose({
     @edit-api="handleEditApi"
     @create-integration="handleCreateIntegration"
     @edit-integration="handleEditIntegration"
+    @view-integration="handleViewIntegration"
     @delete-integration="handleDeleteIntegration"
     @create-route="handleCreateRoute"
     @edit-route="handleEditRoute"
+    @view-route="handleViewRoute"
     @delete-route="handleDeleteRoute"
     @create-stage="handleCreateStage"
     @edit-stage="handleEditStage"
+    @view-stage="handleViewStage"
     @delete-stage="handleDeleteStage"
     @open-authorizers="handleOpenAuthorizers"
   />
@@ -431,6 +472,18 @@ defineExpose({
     @update="confirmUpdateIntegration"
   />
 
+  <APIGatewayEditIntegrationModal
+    v-if="showEditIntegrationModal"
+    :open="showEditIntegrationModal"
+    :integration-id="integrationToEdit?.integrationId"
+    :integration-type="integrationToEdit?.integrationType"
+    :integration-uri="integrationToEdit?.integrationUri"
+    :integration-method="integrationToEdit?.integrationMethod"
+    :description="integrationToEdit?.description"
+    @update:open="showEditIntegrationModal = $event"
+    @update="(integrationType: string, integrationUri: string, integrationMethod: string, description: string) => confirmUpdateIntegration(integrationType, integrationMethod, integrationUri, description)"
+  />
+
   <APIGatewayRouteModal
     v-if="showRouteModal"
     :open="showRouteModal"
@@ -493,6 +546,27 @@ defineExpose({
     api-type="http"
     :authorizer="authorizerToEdit"
     @update:open="handleAuthorizersModalClose"
+  />
+
+  <APIGatewayViewRouteModal
+    v-if="showViewRouteModal"
+    :open="showViewRouteModal"
+    :route="routeToView"
+    @update:open="showViewRouteModal = $event"
+  />
+
+  <APIGatewayViewIntegrationModal
+    v-if="showViewIntegrationModal"
+    :open="showViewIntegrationModal"
+    :integration="integrationToView"
+    @update:open="showViewIntegrationModal = $event"
+  />
+
+  <APIGatewayViewStageModal
+    v-if="showViewStageModal"
+    :open="showViewStageModal"
+    :stage="stageToView"
+    @update:open="showViewStageModal = $event"
   />
 
   <Modal

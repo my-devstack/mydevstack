@@ -23,6 +23,7 @@ func (h *ProxyHandler) registerAPIGatewayRoutes(r chi.Router) {
 		r.Get("/apis/{apiId}", h.getApi)
 		r.Delete("/apis/{apiId}", h.deleteApi)
 		r.Get("/apis/{apiId}/routes", h.getRoutes)
+		r.Get("/apis/{apiId}/routes/{routeId}", h.getRoute)
 		r.Post("/apis/{apiId}/routes", h.createRoute)
 		r.Put("/apis/{apiId}/routes/{routeId}", h.updateRoute)
 		r.Delete("/apis/{apiId}/routes/{routeId}", h.deleteRoute)
@@ -619,6 +620,19 @@ func (h *ProxyHandler) getRoutes(w http.ResponseWriter, r *http.Request) {
 	result, err := h.Svc.APIGatewayV2().GetRoutes(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to get routes", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *ProxyHandler) getRoute(w http.ResponseWriter, r *http.Request) {
+	input := &apigatewayv2.GetRouteInput{
+		ApiId:   aws.String(chi.URLParam(r, "apiId")),
+		RouteId: aws.String(chi.URLParam(r, "routeId")),
+	}
+	result, err := h.Svc.APIGatewayV2().GetRoute(h.ctx, input)
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, "Failed to get route", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)

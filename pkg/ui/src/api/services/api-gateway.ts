@@ -274,6 +274,19 @@ export class APIGatewayService {
     return response
   }
 
+  async getRoute(apiId: string, routeId: string): Promise<any> {
+    const response = await restRequest('GET', `/apis/${encodeURIComponent(apiId)}/routes/${encodeURIComponent(routeId)}`)
+    // Normalize case: AWS SDK returns RouteId, RouteKey, Target, AuthorizationType, AuthorizerId (capitalized)
+    if (response) {
+      response.routeId = response.RouteId || response.routeId
+      response.routeKey = response.RouteKey || response.routeKey
+      response.target = response.Target || response.target
+      response.authorizationType = response.AuthorizationType || response.authorizationType
+      response.authorizerId = response.AuthorizerId || response.authorizerId
+    }
+    return response
+  }
+
   async createRoute(apiId: string, options?: any): Promise<any> {
     // Map frontend field names to AWS SDK field names (capitalized)
     const sdkOptions: any = {}
@@ -591,6 +604,7 @@ export const createHttpApi = (options?: any) => apiGatewayService.createApi(opti
 export const deleteHttpApi = (apiId: string) => apiGatewayService.deleteApi(apiId)
 export const getHttpApi = (apiId: string) => apiGatewayService.getApi(apiId)
 export const getHttpRoutes = (apiId: string) => apiGatewayService.getRoutes(apiId)
+export const getHttpRoute = (apiId: string, routeId: string) => apiGatewayService.getRoute(apiId, routeId)
 export const createHttpRoute = (apiId: string, options: any) => apiGatewayService.createRoute(apiId, options)
 export const updateHttpRoute = (apiId: string, routeId: string, options: any) => apiGatewayService.updateRoute(apiId, routeId, options)
 export const deleteHttpRoute = (apiId: string, routeId: string) => apiGatewayService.deleteRoute(apiId, routeId)

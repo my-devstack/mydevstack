@@ -1292,6 +1292,89 @@ func (_c *APIGatewayV2ClientPort_GetIntegrations_Call) RunAndReturn(run func(ctx
 	return _c
 }
 
+// GetRoute provides a mock function for the type APIGatewayV2ClientPort
+func (_mock *APIGatewayV2ClientPort) GetRoute(ctx context.Context, input *apigatewayv2.GetRouteInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.GetRouteOutput, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, input, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, input)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRoute")
+	}
+
+	var r0 *apigatewayv2.GetRouteOutput
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *apigatewayv2.GetRouteInput, ...func(*apigatewayv2.Options)) (*apigatewayv2.GetRouteOutput, error)); ok {
+		return returnFunc(ctx, input, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *apigatewayv2.GetRouteInput, ...func(*apigatewayv2.Options)) *apigatewayv2.GetRouteOutput); ok {
+		r0 = returnFunc(ctx, input, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*apigatewayv2.GetRouteOutput)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *apigatewayv2.GetRouteInput, ...func(*apigatewayv2.Options)) error); ok {
+		r1 = returnFunc(ctx, input, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// APIGatewayV2ClientPort_GetRoute_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRoute'
+type APIGatewayV2ClientPort_GetRoute_Call struct {
+	*mock.Call
+}
+
+// GetRoute is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input *apigatewayv2.GetRouteInput
+//   - opts ...func(*apigatewayv2.Options)
+func (_e *APIGatewayV2ClientPort_Expecter) GetRoute(ctx any, input any, opts ...any) *APIGatewayV2ClientPort_GetRoute_Call {
+	return &APIGatewayV2ClientPort_GetRoute_Call{Call: _e.mock.On("GetRoute",
+		append([]any{ctx, input}, opts...)...)}
+}
+
+func (_c *APIGatewayV2ClientPort_GetRoute_Call) Run(run func(ctx context.Context, input *apigatewayv2.GetRouteInput, opts ...func(*apigatewayv2.Options))) *APIGatewayV2ClientPort_GetRoute_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *apigatewayv2.GetRouteInput
+		if args[1] != nil {
+			arg1 = args[1].(*apigatewayv2.GetRouteInput)
+		}
+		var arg2 []func(*apigatewayv2.Options)
+		var variadicArgs []func(*apigatewayv2.Options)
+		if len(args) > 2 {
+			variadicArgs = args[2].([]func(*apigatewayv2.Options))
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *APIGatewayV2ClientPort_GetRoute_Call) Return(getRouteOutput *apigatewayv2.GetRouteOutput, err error) *APIGatewayV2ClientPort_GetRoute_Call {
+	_c.Call.Return(getRouteOutput, err)
+	return _c
+}
+
+func (_c *APIGatewayV2ClientPort_GetRoute_Call) RunAndReturn(run func(ctx context.Context, input *apigatewayv2.GetRouteInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.GetRouteOutput, error)) *APIGatewayV2ClientPort_GetRoute_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetRoutes provides a mock function for the type APIGatewayV2ClientPort
 func (_mock *APIGatewayV2ClientPort) GetRoutes(ctx context.Context, input *apigatewayv2.GetRoutesInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.GetRoutesOutput, error) {
 	var tmpRet mock.Arguments
