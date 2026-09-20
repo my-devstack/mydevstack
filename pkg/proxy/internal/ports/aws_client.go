@@ -84,6 +84,7 @@ type APIGatewayV2ClientPort interface {
 	DeleteApi(ctx context.Context, input *apigatewayv2.DeleteApiInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.DeleteApiOutput, error)
 	GetApi(ctx context.Context, input *apigatewayv2.GetApiInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.GetApiOutput, error)
 	GetRoutes(ctx context.Context, input *apigatewayv2.GetRoutesInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.GetRoutesOutput, error)
+	GetRoute(ctx context.Context, input *apigatewayv2.GetRouteInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.GetRouteOutput, error)
 	CreateRoute(ctx context.Context, input *apigatewayv2.CreateRouteInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.CreateRouteOutput, error)
 	UpdateRoute(ctx context.Context, input *apigatewayv2.UpdateRouteInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.UpdateRouteOutput, error)
 	DeleteRoute(ctx context.Context, input *apigatewayv2.DeleteRouteInput, opts ...func(*apigatewayv2.Options)) (*apigatewayv2.DeleteRouteOutput, error)

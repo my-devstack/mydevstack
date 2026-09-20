@@ -8,31 +8,29 @@ const props = defineProps<{
   open: boolean
   stageName: string
   description?: string
-  autoDeploy?: boolean
+  deploymentId?: string
   loading?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  'update': [description: string, autoDeploy: boolean]
+  'update:description': [description: string]
 }>()
 
 const form = ref({
   description: '',
-  autoDeploy: false,
 })
 
 watch(() => props.open, (isOpen) => {
   if (isOpen) {
     form.value = {
       description: props.description || '',
-      autoDeploy: props.autoDeploy ?? false,
     }
   }
 }, { immediate: true })
 
 function handleUpdate() {
-  emit('update', form.value.description, form.value.autoDeploy)
+  emit('update:description', form.value.description)
 }
 
 function handleClose() {
@@ -49,32 +47,27 @@ function handleClose() {
     @close="handleClose"
   >
     <div class="space-y-4">
-      <div>
-        <label class="text-sm font-medium">Stage Name</label>
-        <p class="text-sm mt-1">
-          {{ stageName }}
-        </p>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm font-medium">Stage Name</label>
+          <p class="text-sm mt-1 font-mono">
+            {{ stageName }}
+          </p>
+        </div>
+        <div>
+          <label class="text-sm font-medium">Deployment ID</label>
+          <p class="text-sm mt-1 font-mono">
+            {{ deploymentId || '-' }}
+          </p>
+        </div>
       </div>
-      
+
       <FormInput
         v-model="form.description"
         label="Description"
         placeholder="Production stage"
+        help-text="Stage description is mutable via patch operations."
       />
-      
-      <div>
-        <label class="flex items-center gap-2">
-          <input
-            v-model="form.autoDeploy"
-            type="checkbox"
-            class="rounded border-gray-300"
-          >
-          <span class="text-sm font-medium">Auto Deploy</span>
-        </label>
-        <p class="text-xs text-light-muted dark:text-dark-muted mt-1">
-          Automatically deploy new changes to this stage
-        </p>
-      </div>
     </div>
     <template #footer>
       <div class="flex justify-end gap-2">

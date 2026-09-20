@@ -10,6 +10,7 @@ vi.mock('@/api/services/api-gateway', () => ({
   getHttpApis: vi.fn().mockResolvedValue({ items: [] }),
   getHttpApiStages: vi.fn().mockResolvedValue({ items: [] }),
   getHttpRoutes: vi.fn().mockResolvedValue({ items: [] }),
+  getHttpRoute: vi.fn().mockResolvedValue({ routeId: 'route-1' }),
   getHttpIntegrations: vi.fn().mockResolvedValue({ items: [] }),
   deleteHttpApi: vi.fn().mockResolvedValue({}),
   deleteHttpRoute: vi.fn().mockResolvedValue({}),
@@ -77,6 +78,7 @@ function mountView() {
       stubs: {
         APIGatewayHttpApisList: listStub,
         APIGatewayIntegrationModal: true,
+        APIGatewayEditIntegrationModal: true,
         APIGatewayRouteModal: true,
         APIGatewayStageModal: true,
         APIGatewayEditRouteModal: true,
@@ -97,6 +99,7 @@ beforeEach(() => {
   vi.mocked(apigatewayApi.getHttpApis).mockResolvedValue({ items: [] })
   vi.mocked(apigatewayApi.getHttpApiStages).mockResolvedValue({ items: [] })
   vi.mocked(apigatewayApi.getHttpRoutes).mockResolvedValue({ items: [] })
+  vi.mocked(apigatewayApi.getHttpRoute).mockResolvedValue({ routeId: 'route-1' })
   vi.mocked(apigatewayApi.getHttpIntegrations).mockResolvedValue({ items: [] })
   vi.mocked(lambdaApi.listFunctions).mockResolvedValue({ Functions: [] })
 })
@@ -389,14 +392,14 @@ describe('APIGatewayHttpApis.vue — create/edit modal openers', () => {
     expect(wrapper.vm.showIntegrationModal).toBe(true)
   })
 
-  it('handleEditIntegration sets integrationToEdit and opens the modal', async () => {
+  it('handleEditIntegration sets integrationToEdit and opens the edit modal', async () => {
     const wrapper = mountView()
     await flushPromises()
 
     wrapper.vm.handleEditIntegration({ integrationId: 'int-1' })
 
     expect(wrapper.vm.integrationToEdit).toEqual({ integrationId: 'int-1' })
-    expect(wrapper.vm.showIntegrationModal).toBe(true)
+    expect(wrapper.vm.showEditIntegrationModal).toBe(true)
   })
 
   it('handleCreateRoute sets selectedApi and opens the route modal', async () => {
@@ -409,14 +412,40 @@ describe('APIGatewayHttpApis.vue — create/edit modal openers', () => {
     expect(wrapper.vm.showRouteModal).toBe(true)
   })
 
-  it('handleEditRoute sets selectedApi, routeToEdit and opens the edit route modal', async () => {
+  it('handleEditRoute fetches full route, sets selectedApi, routeToEdit and opens the edit route modal', async () => {
     const wrapper = mountView()
     await flushPromises()
 
-    wrapper.vm.handleEditRoute({ routeId: 'route-1' }, 'api-1')
+    vi.mocked(apigatewayApi.getHttpRoute).mockResolvedValue({
+      routeId: 'route-1',
+      routeKey: 'GET /items',
+      authorizationType: 'JWT',
+      authorizerId: 'auth-1',
+    })
+
+    await wrapper.vm.handleEditRoute({ routeId: 'route-1' }, 'api-1')
+
+    expect(apigatewayApi.getHttpRoute).toHaveBeenCalledWith('api-1', 'route-1')
+    expect(wrapper.vm.selectedApi).toEqual({ apiId: 'api-1' })
+    expect(wrapper.vm.routeToEdit).toEqual({
+      routeId: 'route-1',
+      routeKey: 'GET /items',
+      authorizationType: 'JWT',
+      authorizerId: 'auth-1',
+    })
+    expect(wrapper.vm.showEditRouteModal).toBe(true)
+  })
+
+  it('handleEditRoute falls back to partial route when getHttpRoute fails', async () => {
+    const wrapper = mountView()
+    await flushPromises()
+
+    vi.mocked(apigatewayApi.getHttpRoute).mockRejectedValueOnce(new Error('route fetch boom'))
+
+    await wrapper.vm.handleEditRoute({ routeId: 'route-1', routeKey: 'GET /items' }, 'api-1')
 
     expect(wrapper.vm.selectedApi).toEqual({ apiId: 'api-1' })
-    expect(wrapper.vm.routeToEdit).toEqual({ routeId: 'route-1' })
+    expect(wrapper.vm.routeToEdit).toEqual({ routeId: 'route-1', routeKey: 'GET /items' })
     expect(wrapper.vm.showEditRouteModal).toBe(true)
   })
 
@@ -513,13 +542,13 @@ describe('APIGatewayHttpApis.vue — integration create/update', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    // handleEditIntegration opens the modal without assigning selectedApi.
+    // handleEditIntegration opens the edit modal without assigning selectedApi.
     wrapper.vm.handleEditIntegration({ integrationId: 'int-1' })
     await wrapper.vm.confirmCreateIntegration('HTTP', 'GET', 'http://uri')
     await flushPromises()
 
     expect(apigatewayApi.createHttpIntegration).not.toHaveBeenCalled()
-    expect(wrapper.vm.showIntegrationModal).toBe(true)
+    expect(wrapper.vm.showEditIntegrationModal).toBe(true)
   })
 
   it('confirmCreateIntegration shows an error toast when the API call fails', async () => {
@@ -633,12 +662,13 @@ describe('APIGatewayHttpApis.vue — route create/update', () => {
     await flushPromises()
 
     wrapper.vm.handleCreateRoute(mockApi)
-    wrapper.vm.handleEditRoute({ routeId: 'route-1', routeKey: 'GET /items' }, 'api-1')
-    await wrapper.vm.confirmUpdateRoute('GET /items', 'NONE', '')
+    await wrapper.vm.handleEditRoute({ routeId: 'route-1', routeKey: 'GET /items' }, 'api-1')
+    await wrapper.vm.confirmUpdateRoute('GET /items', 'integrations/int-1', 'NONE', '')
     await flushPromises()
 
     expect(apigatewayApi.updateHttpRoute).toHaveBeenCalledWith('api-1', 'route-1', {
       routeKey: 'GET /items',
+      target: 'integrations/int-1',
       authorizationType: 'NONE',
       authorizerId: '',
     })
@@ -651,13 +681,13 @@ describe('APIGatewayHttpApis.vue — route create/update', () => {
     await flushPromises()
 
     // No selectedApi (fresh mount).
-    await wrapper.vm.confirmUpdateRoute('GET /items', 'NONE', '')
+    await wrapper.vm.confirmUpdateRoute('GET /items', 'integrations/int-1', 'NONE', '')
     await flushPromises()
     expect(apigatewayApi.updateHttpRoute).not.toHaveBeenCalled()
 
     // selectedApi set by handleCreateRoute, but routeToEdit is null.
     wrapper.vm.handleCreateRoute(mockApi)
-    await wrapper.vm.confirmUpdateRoute('GET /items', 'NONE', '')
+    await wrapper.vm.confirmUpdateRoute('GET /items', 'integrations/int-1', 'NONE', '')
     await flushPromises()
     expect(apigatewayApi.updateHttpRoute).not.toHaveBeenCalled()
   })
@@ -669,8 +699,8 @@ describe('APIGatewayHttpApis.vue — route create/update', () => {
     await flushPromises()
 
     wrapper.vm.handleCreateRoute(mockApi)
-    wrapper.vm.handleEditRoute({ routeId: 'route-1' }, 'api-1')
-    await wrapper.vm.confirmUpdateRoute('GET /items', 'NONE', '')
+    await wrapper.vm.handleEditRoute({ routeId: 'route-1' }, 'api-1')
+    await wrapper.vm.confirmUpdateRoute('GET /items', 'https://example.com', 'NONE', '')
     await flushPromises()
 
     expect(toastMock.error).toHaveBeenCalledWith('route update boom')
@@ -864,6 +894,33 @@ describe('APIGatewayHttpApis.vue — template inline handlers', () => {
     expect(wrapper.vm.showIntegrationModal).toBe(false)
   })
 
+  it('edit integration modal renders and maps update args to confirmUpdateIntegration', async () => {
+    const wrapper = mountView()
+    await flushPromises()
+
+    wrapper.vm.toggleApiExpansion('api-1')
+    wrapper.vm.handleEditIntegration({ integrationId: 'int-1', integrationType: 'HTTP', integrationUri: 'http://old', integrationMethod: 'GET' })
+    await wrapper.vm.$nextTick()
+
+    const modal = wrapper.findComponent({ name: 'APIGatewayEditIntegrationModal' })
+    expect(modal.exists()).toBe(true)
+    expect(modal.props('integrationId')).toBe('int-1')
+    expect(modal.props('integrationType')).toBe('HTTP')
+    expect(modal.props('integrationUri')).toBe('http://old')
+
+    // Modal emits (integrationType, integrationUri, integrationMethod, description);
+    // the view must map them onto confirmUpdateIntegration(integrationType, httpMethod, uri, ...).
+    await modal.vm.$emit('update', 'AWS_PROXY', 'arn:new', 'POST', 'desc')
+    await flushPromises()
+
+    expect(apigatewayApi.updateHttpIntegration).toHaveBeenCalledWith('api-1', 'int-1', {
+      integrationType: 'AWS_PROXY',
+      integrationUri: 'arn:new',
+    })
+    expect(toastMock.success).toHaveBeenCalledWith('Integration updated successfully')
+    expect(wrapper.vm.showEditIntegrationModal).toBe(false)
+  })
+
   it('route modal close and update:open handlers', async () => {
     const wrapper = mountView()
     await flushPromises()
@@ -917,7 +974,7 @@ describe('APIGatewayHttpApis.vue — template inline handlers', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    wrapper.vm.handleEditRoute({ routeId: 'route-1' }, 'api-1')
+    await wrapper.vm.handleEditRoute({ routeId: 'route-1' }, 'api-1')
     await wrapper.vm.$nextTick()
     const modal = wrapper.findComponent({ name: 'APIGatewayEditRouteModal' })
     expect(modal.exists()).toBe(true)
@@ -925,7 +982,7 @@ describe('APIGatewayHttpApis.vue — template inline handlers', () => {
     await modal.vm.$emit('close')
     expect(wrapper.vm.showEditRouteModal).toBe(false)
 
-    wrapper.vm.handleEditRoute({ routeId: 'route-1' }, 'api-1')
+    await wrapper.vm.handleEditRoute({ routeId: 'route-1' }, 'api-1')
     await wrapper.vm.$nextTick()
     const modal2 = wrapper.findComponent({ name: 'APIGatewayEditRouteModal' })
     await modal2.vm.$emit('update:open', false)

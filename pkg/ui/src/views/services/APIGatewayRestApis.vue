@@ -14,6 +14,10 @@ import APIGatewayIntegrationModal from '@/components/apiGateway/APIGatewayIntegr
 import APIGatewayIntegrationDetailsModal from '@/components/apiGateway/APIGatewayIntegrationDetailsModal.vue'
 import APIGatewayStageModal from '@/components/apiGateway/APIGatewayStageModal.vue'
 import APIGatewayDeploymentsModal from '@/components/apiGateway/APIGatewayDeploymentsModal.vue'
+import APIGatewayViewDeploymentModal from '@/components/apiGateway/APIGatewayViewDeploymentModal.vue'
+import APIGatewayViewStageDetailModal from '@/components/apiGateway/APIGatewayViewStageDetailModal.vue'
+import APIGatewayEditDeploymentModal from '@/components/apiGateway/APIGatewayEditDeploymentModal.vue'
+import APIGatewayEditStageDetailModal from '@/components/apiGateway/APIGatewayEditStageDetailModal.vue'
 import APIGatewayAuthorizersList from '@/components/apiGateway/APIGatewayAuthorizersList.vue'
 import APIGatewayAuthorizersModal from '@/components/apiGateway/APIGatewayAuthorizersModal.vue'
 
@@ -45,8 +49,16 @@ const showIntegrationModal = ref(false)
 const showIntegrationDetailsModal = ref(false)
 const showStageModal = ref(false)
 const showDeploymentModal = ref(false)
+const showViewDeploymentModal = ref(false)
+const showViewStageDetailModal = ref(false)
+const showEditDeploymentModal = ref(false)
+const showEditStageDetailModal = ref(false)
 const showDeleteModal = ref(false)
 const apiToDelete = ref<any>(null)
+const deploymentToView = ref<any>(null)
+const stageToView = ref<any>(null)
+const stageToEdit = ref<any>(null)
+const deploymentToEdit = ref<any>(null)
 
 const showAuthorizers = ref(false)
 const showAuthorizersModal = ref(false)
@@ -228,10 +240,10 @@ async function confirmCreateDeployment(stageName: string, description: string) {
   await loadResourcesForApi(selectedApi.value.id)
 }
 
-async function handleDeleteDeployment(deployment: any) {
+async function handleDeleteDeployment(deploymentId: string) {
   if (!selectedApi.value) return
   try {
-    await apigateway.deleteDeployment(selectedApi.value.id, deployment.id)
+    await apigateway.deleteDeployment(selectedApi.value.id, deploymentId)
     toast.success('Deployment deleted')
   } catch (e: any) {
     toast.error(e?.message || 'Failed to delete deployment')
@@ -239,15 +251,56 @@ async function handleDeleteDeployment(deployment: any) {
   await loadResourcesForApi(selectedApi.value.id)
 }
 
-async function handleDeleteStage(stage: any) {
+async function handleDeleteStage(stageName: string) {
   if (!selectedApi.value) return
   try {
-    await apigateway.deleteStage(selectedApi.value.id, stage.stageName)
+    await apigateway.deleteStage(selectedApi.value.id, stageName)
     toast.success('Stage deleted')
   } catch (e: any) {
     toast.error(e?.message || 'Failed to delete stage')
   }
   await loadResourcesForApi(selectedApi.value.id)
+}
+
+function handleViewDeployment(deployment: any) {
+  deploymentToView.value = deployment
+  showViewDeploymentModal.value = true
+}
+
+function handleViewStage(stage: any) {
+  stageToView.value = stage
+  showViewStageDetailModal.value = true
+}
+
+function handleEditStage(stage: any) {
+  stageToEdit.value = stage
+  showEditStageDetailModal.value = true
+}
+
+async function confirmUpdateStage(description: string) {
+  if (!stageToEdit.value || !selectedApi.value) return
+  try {
+    await apigateway.updateStage(selectedApi.value.id, stageToEdit.value.stageName, [
+      { op: 'replace', path: '/description', value: description }
+    ])
+    toast.success('Stage updated')
+    showEditStageDetailModal.value = false
+    await loadResourcesForApi(selectedApi.value.id)
+  } catch (e: any) {
+    toast.error(e?.message || 'Failed to update stage')
+  }
+}
+
+function handleEditDeployment(deployment: any) {
+  deploymentToEdit.value = deployment
+  showEditDeploymentModal.value = true
+}
+
+async function confirmUpdateDeployment(description: string) {
+  if (!deploymentToEdit.value) return
+  // Deployments are immutable in AWS - show info toast
+  toast.info('Deployment descriptions cannot be updated in AWS API Gateway')
+  showEditDeploymentModal.value = false
 }
 
 function handleCreateStage(api: any) {
@@ -329,12 +382,12 @@ function handleAuthorizersModalClose() {
   authorizersListKey.value++
 }
 
-const confirmDeleteDeployment = async (deployment: any) => {
-  await handleDeleteDeployment(deployment)
+const confirmDeleteDeployment = (apiId: string, deploymentId: string) => {
+  handleDeleteDeployment(deploymentId)
 }
 
-const confirmDeleteStage = async (stage: any) => {
-  await handleDeleteStage(stage)
+const confirmDeleteStage = (apiId: string, stageName: string) => {
+  handleDeleteStage(stageName)
 }
 
 defineExpose({
@@ -370,8 +423,12 @@ defineExpose({
     @view-integration="handleViewIntegration"
     @delete-method="handleDeleteMethod"
     @create-deployment="handleCreateDeployment"
+    @view-deployment="handleViewDeployment"
+    @edit-deployment="handleEditDeployment"
     @delete-deployment="confirmDeleteDeployment"
     @create-stage="handleCreateStage"
+    @view-stage="handleViewStage"
+    @edit-stage="handleEditStage"
     @delete-stage="confirmDeleteStage"
     @open-authorizers="handleOpenAuthorizers"
   />
@@ -491,6 +548,42 @@ defineExpose({
     @delete-deployment="handleDeleteDeployment"
     @close="showDeploymentModal = false"
     @update:open="showDeploymentModal = $event"
+  />
+
+  <!-- View Deployment Modal -->
+  <APIGatewayViewDeploymentModal
+    v-if="showViewDeploymentModal"
+    :open="showViewDeploymentModal"
+    :deployment="deploymentToView"
+    @update:open="showViewDeploymentModal = $event"
+  />
+
+  <!-- View Stage Detail Modal -->
+  <APIGatewayViewStageDetailModal
+    v-if="showViewStageDetailModal"
+    :open="showViewStageDetailModal"
+    :stage="stageToView"
+    @update:open="showViewStageDetailModal = $event"
+  />
+
+  <!-- Edit Deployment Modal -->
+  <APIGatewayEditDeploymentModal
+    v-if="showEditDeploymentModal"
+    :open="showEditDeploymentModal"
+    :deployment="deploymentToEdit"
+    @update:open="showEditDeploymentModal = $event"
+    @update="confirmUpdateDeployment"
+  />
+
+  <!-- Edit Stage Detail Modal -->
+  <APIGatewayEditStageDetailModal
+    v-if="showEditStageDetailModal"
+    :open="showEditStageDetailModal"
+    :stage-name="stageToEdit?.stageName || ''"
+    :description="stageToEdit?.description"
+    :deployment-id="stageToEdit?.deploymentId"
+    @update:open="showEditStageDetailModal = $event"
+    @update:description="confirmUpdateStage"
   />
 
   <!-- Authorizers List Modal -->
