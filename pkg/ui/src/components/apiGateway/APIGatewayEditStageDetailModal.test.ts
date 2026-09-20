@@ -64,6 +64,15 @@ describe('APIGatewayEditStageDetailModal', () => {
     expect((input.element as HTMLInputElement).value).toBe('Production stage')
   })
 
+  it('pre-fills description when mounted with open=true (v-if pattern)', () => {
+    const wrapper = mount(APIGatewayEditStageDetailModal, {
+      props: defaultProps,
+      global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub } },
+    })
+    const input = wrapper.find('input')
+    expect((input.element as HTMLInputElement).value).toBe('Production stage')
+  })
+
   it('emits update:description on Save click', async () => {
     const wrapper = mount(APIGatewayEditStageDetailModal, {
       props: { ...defaultProps, open: false },

@@ -27,7 +27,7 @@ watch(() => props.open, (isOpen) => {
       description: props.description || '',
     }
   }
-})
+}, { immediate: true })
 
 function handleUpdate() {
   emit('update:description', form.value.description)

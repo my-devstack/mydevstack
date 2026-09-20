@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import FormInput from '@/components/common/FormInput.vue'
@@ -8,6 +8,8 @@ import FormSelect from '@/components/common/FormSelect.vue'
 const props = defineProps<{
   open: boolean
   routeKey: string
+  target?: string
+  integrations?: string[]
   authorizationType?: string
   authorizerId?: string
   loading?: boolean
@@ -15,11 +17,13 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  'update': [routeKey: string, authorizationType: string, authorizerId: string]
+  'update': [routeKey: string, target: string, authorizationType: string, authorizerId: string]
 }>()
 
 const form = ref({
   routeKey: '',
+  targetType: 'http',
+  selectedTarget: '',
   authorizationType: 'NONE',
   authorizerId: '',
 })
@@ -30,10 +34,50 @@ const authOptions = [
   { value: 'CUSTOM', label: 'Custom Authorizer' },
 ]
 
+const targetTypeOptions = computed(() => {
+  const options: { value: string; label: string }[] = []
+  if (props.integrations?.length) {
+    options.push({ value: 'integration', label: 'Existing Integration' })
+  }
+  options.push({ value: 'http', label: 'HTTP Proxy' })
+  return options
+})
+
+const integrationOptions = computed(() =>
+  (props.integrations || []).map((id) => ({ value: id, label: id })),
+)
+
+const resolvedTarget = computed(() => {
+  if (form.value.targetType === 'integration') {
+    return form.value.selectedTarget ? `integrations/${form.value.selectedTarget}` : ''
+  }
+  return form.value.selectedTarget.trim()
+})
+
+const isSubmitDisabled = computed(() => {
+  if (!form.value.routeKey.trim()) return true
+  if (form.value.targetType === 'integration') return !form.value.selectedTarget
+  return !form.value.selectedTarget.trim()
+})
+
 watch(() => props.open, (isOpen) => {
   if (isOpen) {
+    const raw = props.target || ''
+    let targetType = 'http'
+    let selectedTarget = raw
+
+    if (raw.startsWith('integrations/')) {
+      targetType = 'integration'
+      selectedTarget = raw.slice('integrations/'.length)
+    } else if (!raw) {
+      targetType = props.integrations?.length ? 'integration' : 'http'
+      selectedTarget = ''
+    }
+
     form.value = {
       routeKey: props.routeKey || '',
+      targetType,
+      selectedTarget,
       authorizationType: props.authorizationType || 'NONE',
       authorizerId: props.authorizerId || '',
     }
@@ -41,7 +85,7 @@ watch(() => props.open, (isOpen) => {
 }, { immediate: true })
 
 function handleUpdate() {
-  emit('update', form.value.routeKey, form.value.authorizationType, form.value.authorizerId)
+  emit('update', form.value.routeKey, resolvedTarget.value, form.value.authorizationType, form.value.authorizerId)
 }
 
 function handleClose() {
@@ -64,13 +108,34 @@ function handleClose() {
         placeholder="GET /items"
         help-text="Format: METHOD /path"
       />
-      
+
+      <FormSelect
+        v-model="form.targetType"
+        label="Target Type"
+        :options="targetTypeOptions"
+      />
+
+      <FormSelect
+        v-if="form.targetType === 'integration'"
+        v-model="form.selectedTarget"
+        label="Integration"
+        :options="integrationOptions"
+        placeholder="Select an integration..."
+      />
+
+      <FormInput
+        v-if="form.targetType === 'http'"
+        v-model="form.selectedTarget"
+        label="HTTP Proxy URL"
+        placeholder="https://api.example.com"
+      />
+
       <FormSelect
         v-model="form.authorizationType"
         label="Authorization"
         :options="authOptions"
       />
-      
+
       <FormInput
         v-if="form.authorizationType === 'CUSTOM'"
         v-model="form.authorizerId"
@@ -88,7 +153,7 @@ function handleClose() {
         </Button>
         <Button
           :loading="loading"
-          :disabled="!form.routeKey.trim()"
+          :disabled="isSubmitDisabled"
           @click="handleUpdate"
         >
           {{ loading ? 'Saving...' : 'Save' }}

@@ -663,11 +663,12 @@ describe('APIGatewayHttpApis.vue — route create/update', () => {
 
     wrapper.vm.handleCreateRoute(mockApi)
     await wrapper.vm.handleEditRoute({ routeId: 'route-1', routeKey: 'GET /items' }, 'api-1')
-    await wrapper.vm.confirmUpdateRoute('GET /items', 'NONE', '')
+    await wrapper.vm.confirmUpdateRoute('GET /items', 'integrations/int-1', 'NONE', '')
     await flushPromises()
 
     expect(apigatewayApi.updateHttpRoute).toHaveBeenCalledWith('api-1', 'route-1', {
       routeKey: 'GET /items',
+      target: 'integrations/int-1',
       authorizationType: 'NONE',
       authorizerId: '',
     })
@@ -680,13 +681,13 @@ describe('APIGatewayHttpApis.vue — route create/update', () => {
     await flushPromises()
 
     // No selectedApi (fresh mount).
-    await wrapper.vm.confirmUpdateRoute('GET /items', 'NONE', '')
+    await wrapper.vm.confirmUpdateRoute('GET /items', 'integrations/int-1', 'NONE', '')
     await flushPromises()
     expect(apigatewayApi.updateHttpRoute).not.toHaveBeenCalled()
 
     // selectedApi set by handleCreateRoute, but routeToEdit is null.
     wrapper.vm.handleCreateRoute(mockApi)
-    await wrapper.vm.confirmUpdateRoute('GET /items', 'NONE', '')
+    await wrapper.vm.confirmUpdateRoute('GET /items', 'integrations/int-1', 'NONE', '')
     await flushPromises()
     expect(apigatewayApi.updateHttpRoute).not.toHaveBeenCalled()
   })
@@ -699,7 +700,7 @@ describe('APIGatewayHttpApis.vue — route create/update', () => {
 
     wrapper.vm.handleCreateRoute(mockApi)
     await wrapper.vm.handleEditRoute({ routeId: 'route-1' }, 'api-1')
-    await wrapper.vm.confirmUpdateRoute('GET /items', 'NONE', '')
+    await wrapper.vm.confirmUpdateRoute('GET /items', 'https://example.com', 'NONE', '')
     await flushPromises()
 
     expect(toastMock.error).toHaveBeenCalledWith('route update boom')

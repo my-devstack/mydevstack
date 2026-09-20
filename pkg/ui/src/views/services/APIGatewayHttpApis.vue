@@ -318,10 +318,10 @@ async function confirmCreateStage(stageName: string, options: any) {
   }
 }
 
-async function confirmUpdateRoute(routeKey: string, authorizationType: string, authorizerId: string) {
+async function confirmUpdateRoute(routeKey: string, target: string, authorizationType: string, authorizerId: string) {
   if (!selectedApi.value || !routeToEdit.value) return
   try {
-    await apigateway.updateHttpRoute(selectedApi.value.apiId, routeToEdit.value.routeId, { routeKey, authorizationType, authorizerId })
+    await apigateway.updateHttpRoute(selectedApi.value.apiId, routeToEdit.value.routeId, { routeKey, target, authorizationType, authorizerId })
     toast.success('Route updated successfully')
     showEditRouteModal.value = false
     await loadDetailsForApi(selectedApi.value.apiId)
@@ -507,6 +507,8 @@ defineExpose({
     v-if="showEditRouteModal"
     :open="showEditRouteModal"
     :route-key="routeToEdit?.routeKey || ''"
+    :target="routeToEdit?.target || ''"
+    :integrations="selectedApi ? (integrations[selectedApi.apiId] || []).map((i: any) => i.integrationId) : []"
     :authorization-type="routeToEdit?.authorizationType"
     :authorizer-id="routeToEdit?.authorizerId"
     @close="showEditRouteModal = false"

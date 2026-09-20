@@ -60,6 +60,15 @@ describe('APIGatewayEditDeploymentModal', () => {
     expect((input.element as HTMLInputElement).value).toBe('Initial deployment')
   })
 
+  it('pre-fills description when mounted with open=true (v-if pattern)', () => {
+    const wrapper = mount(APIGatewayEditDeploymentModal, {
+      props: defaultProps,
+      global: { stubs: { Modal: modalStub, Button: buttonStub, FormInput: formInputStub } },
+    })
+    const input = wrapper.find('input')
+    expect((input.element as HTMLInputElement).value).toBe('Initial deployment')
+  })
+
   it('emits update with description on Save click', async () => {
     const wrapper = mount(APIGatewayEditDeploymentModal, {
       props: { ...defaultProps, open: false },
