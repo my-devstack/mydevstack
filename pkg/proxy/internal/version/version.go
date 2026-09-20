@@ -25,7 +25,9 @@ type VersionService struct {
 
 	mu            sync.RWMutex
 	latestVersion string
-	stopCh        chan struct{}
+
+	stopCh   chan struct{}
+	stopOnce sync.Once
 }
 
 func NewVersionService(cache ports.CachePort, github ports.GitHubClientPort, githubURL string) *VersionService {
@@ -40,7 +42,7 @@ func NewVersionService(cache ports.CachePort, github ports.GitHubClientPort, git
 func (s *VersionService) StartScheduler(ctx context.Context, t *time.Ticker) {
 	defer t.Stop()
 
-	log.Print("[VersionService] Scheduler started)")
+	log.Print("[VersionService] Scheduler started")
 
 	s.checkAndUpdateVersion(ctx)
 	for {
@@ -57,8 +59,42 @@ func (s *VersionService) StartScheduler(ctx context.Context, t *time.Ticker) {
 	}
 }
 
+// Stop signals the scheduler to stop. Safe to call multiple times.
 func (s *VersionService) Stop() {
-	close(s.stopCh)
+	s.stopOnce.Do(func() {
+		close(s.stopCh)
+	})
+}
+
+// stopped reports whether the service has been asked to stop, either through
+// Stop() or through cancellation of the supplied context.
+func (s *VersionService) stopped(ctx context.Context) bool {
+	select {
+	case <-s.stopCh:
+		return true
+	case <-ctx.Done():
+		return true
+	default:
+		return false
+	}
+}
+
+// waitRetry blocks for retryDelay, returning early if the service is stopped or
+// the context is cancelled. It returns true when the full delay elapsed and
+// false when interrupted, so callers can abort promptly on shutdown instead of
+// sleeping for the whole retry delay.
+func (s *VersionService) waitRetry(ctx context.Context) bool {
+	timer := time.NewTimer(retryDelay)
+	defer timer.Stop()
+
+	select {
+	case <-timer.C:
+		return true
+	case <-s.stopCh:
+		return false
+	case <-ctx.Done():
+		return false
+	}
 }
 
 func (s *VersionService) checkAndUpdateVersion(ctx context.Context) {
@@ -70,7 +106,15 @@ func (s *VersionService) checkAndUpdateVersion(ctx context.Context) {
 	for attempt := 0; attempt <= maxRetries; attempt++ {
 		if attempt > 0 {
 			log.Printf("[VersionService] Retry %d/%d after error: %v", attempt, maxRetries, lastErr)
-			time.Sleep(retryDelay)
+			if !s.waitRetry(ctx) {
+				log.Printf("[VersionService] Retry wait interrupted, aborting version check")
+				return
+			}
+		}
+
+		if s.stopped(ctx) {
+			log.Printf("[VersionService] Version check aborted before request")
+			return
 		}
 
 		release, err := s.github.GetLatestRelease(ctx, s.githubURL)

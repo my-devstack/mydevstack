@@ -205,3 +205,111 @@ func TestVersionService_RetryDelayDefault(t *testing.T) {
 	// Verify default retry delay is 5 minutes
 	assert.Equal(t, 5*time.Minute, retryDelay)
 }
+
+func TestVersionService_Stop_Idempotent(t *testing.T) {
+	svc := NewVersionService(nil, nil, "https://github.com/test/repo")
+	assert.NotPanics(t, func() {
+		svc.Stop()
+		svc.Stop()
+	})
+}
+
+func TestVersionService_checkAndUpdateVersion_StopAbortsRetryWait(t *testing.T) {
+	mockCache := portmocks.NewCachePort(t)
+	mockGitHub := portmocks.NewGitHubClientPort(t)
+	ctx := context.Background()
+
+	// Every attempt fails; without a cancellable wait this would block for the
+	// full retry delay (5 minutes) per retry.
+	mockGitHub.EXPECT().GetLatestRelease(mock.Anything, "https://github.com/owner/repo").
+		Return(nil, errors.New("network error")).Once()
+
+	svc := NewVersionService(mockCache, mockGitHub, "https://github.com/owner/repo")
+
+	origDelay := retryDelay
+	retryDelay = time.Hour
+	defer func() { retryDelay = origDelay }()
+
+	done := make(chan struct{})
+	go func() {
+		svc.checkAndUpdateVersion(ctx)
+		close(done)
+	}()
+
+	// Give the first attempt time to fail and enter the retry wait.
+	time.Sleep(20 * time.Millisecond)
+	svc.Stop()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("checkAndUpdateVersion did not return promptly after Stop()")
+	}
+
+	// Must not have retried after being stopped.
+	mockGitHub.AssertNumberOfCalls(t, "GetLatestRelease", 1)
+}
+
+func TestVersionService_checkAndUpdateVersion_ContextCancelAbortsRetryWait(t *testing.T) {
+	mockCache := portmocks.NewCachePort(t)
+	mockGitHub := portmocks.NewGitHubClientPort(t)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	mockGitHub.EXPECT().GetLatestRelease(mock.Anything, "https://github.com/owner/repo").
+		Return(nil, errors.New("network error")).Once()
+
+	svc := NewVersionService(mockCache, mockGitHub, "https://github.com/owner/repo")
+
+	origDelay := retryDelay
+	retryDelay = time.Hour
+	defer func() { retryDelay = origDelay }()
+
+	done := make(chan struct{})
+	go func() {
+		svc.checkAndUpdateVersion(ctx)
+		close(done)
+	}()
+
+	time.Sleep(20 * time.Millisecond)
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("checkAndUpdateVersion did not return promptly after context cancel")
+	}
+
+	mockGitHub.AssertNumberOfCalls(t, "GetLatestRelease", 1)
+}
+
+func TestVersionService_StartScheduler_ContextCancelStopsDuringRetry(t *testing.T) {
+	mockCache := portmocks.NewCachePort(t)
+	mockGitHub := portmocks.NewGitHubClientPort(t)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	mockGitHub.EXPECT().GetLatestRelease(mock.Anything, "https://github.com/owner/repo").
+		Return(nil, errors.New("network error")).Once()
+
+	svc := NewVersionService(mockCache, mockGitHub, "https://github.com/owner/repo")
+
+	origDelay := retryDelay
+	retryDelay = time.Hour
+	defer func() { retryDelay = origDelay }()
+
+	tkr := time.NewTicker(time.Hour) // won't fire during the test
+
+	done := make(chan struct{})
+	go func() {
+		svc.StartScheduler(ctx, tkr)
+		close(done)
+	}()
+
+	time.Sleep(20 * time.Millisecond)
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("StartScheduler did not return promptly after context cancel")
+	}
+}
