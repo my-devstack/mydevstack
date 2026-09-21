@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useContentReload } from '@/composables/useContentReload'
+import { useRouteTab } from '@/composables/useRouteTab'
 import { useToast } from '@/composables/useToast'
 import Button from '@/components/common/Button.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
@@ -82,7 +83,7 @@ const toast = useToast()
 const { reloadTrigger } = useContentReload()
 
 // State
-const activeTab = ref('pools')
+const { activeTab, setTab } = useRouteTab('pools')
 const isLoading = ref(false)
 
 // User pools
@@ -1029,7 +1030,7 @@ async function handleTestLogin(password: string, clientId?: string) {
 
 // Tab switching
 function handleTabChange(tabId: string) {
-  activeTab.value = tabId
+  setTab(tabId)
   if (tabId === 'users' || tabId === 'groups' || tabId === 'clients' || tabId === 'resource-servers') {
     if (!selectedUserPoolId.value && userPools.value.length > 0) {
       selectedUserPoolId.value = userPools.value[0].Id
@@ -1102,7 +1103,7 @@ watch(reloadTrigger, () => {
     <!-- Tabs -->
     <div class="flex-shrink-0 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface px-6">
       <Tabs
-        v-model:active-tab="activeTab"
+        :active-tab="activeTab"
         :tabs="tabs"
         variant="underline"
         @update:active-tab="handleTabChange"

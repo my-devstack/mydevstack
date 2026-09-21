@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useContentReload } from '@/composables/useContentReload'
+import { useRouteTab } from '@/composables/useRouteTab'
 import { usePagination } from '@/composables/usePagination'
 import { useToast } from '@/composables/useToast'
 import Button from '@/components/common/Button.vue'
@@ -87,7 +88,7 @@ interface AttachedPolicy {
 }
 
 // State
-const activeTab = ref('users')
+const { activeTab, setTab } = useRouteTab('users')
 const isLoading = ref(false)
 
 // Users
@@ -770,9 +771,10 @@ watch(reloadTrigger, () => {
     <!-- Tabs -->
     <div class="flex-shrink-0 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface px-6">
       <Tabs
-        v-model:active-tab="activeTab"
+        :active-tab="activeTab"
         :tabs="tabs"
         variant="underline"
+        @update:active-tab="setTab"
       />
     </div>
 
