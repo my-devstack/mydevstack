@@ -2,6 +2,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useContentReload } from '@/composables/useContentReload'
+import { useRouteTab } from '@/composables/useRouteTab'
 import { CubeIcon } from '@heroicons/vue/24/outline'
 import { useECR } from '@/composables/useECR'
 import type { ECRRepository, ECRImageDetail } from '@/api/types/aws'
@@ -32,7 +33,7 @@ const {
   deleteImage,
 } = useECR()
 
-const activeTab = ref('repositories')
+const { activeTab, setTab } = useRouteTab('repositories')
 
 const tabs = [
   { id: 'repositories', label: 'Repositories' },
@@ -48,7 +49,7 @@ const repositoryToDelete = ref<ECRRepository | null>(null)
 const imageToDelete = ref<ECRImageDetail | null>(null)
 
 function handleTabChange(tabId: string) {
-  activeTab.value = tabId
+  setTab(tabId)
   if (tabId === 'images' && !selectedRepository.value && repositories.value.length > 0) {
     selectRepository(repositories.value[0])
   }
@@ -116,7 +117,7 @@ async function handleDeleteImage() {
 
 async function handleSelectRepository(repo: ECRRepository) {
   await selectRepository(repo)
-  activeTab.value = 'images'
+  setTab('images')
 }
 
 onMounted(() => {
@@ -176,7 +177,7 @@ watch(reloadTrigger, () => {
     <!-- Tabs -->
     <div class="flex-shrink-0 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface px-6">
       <Tabs
-        v-model:active-tab="activeTab"
+        :active-tab="activeTab"
         :tabs="tabs"
         variant="underline"
         @update:active-tab="handleTabChange"

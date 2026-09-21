@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { CodeBracketSquareIcon } from '@heroicons/vue/24/outline'
 import { useSettingsStore } from '@/stores/settings'
 import { useApiGateway } from '@/composables/useApiGateway'
+import { useRouteTab } from '@/composables/useRouteTab'
 import Tabs from '@/components/common/Tabs.vue'
 
 import APIGatewayRestApis from './APIGatewayRestApis.vue'
@@ -15,7 +16,7 @@ const settingsStore = useSettingsStore()
 
 const { loadRestStages, loadHttpStages, getRestInvokeUrl, getHttpInvokeUrl, createRestApi: callCreateRestApi, createHttpApi: callCreateHttpApi } = useApiGateway()
 
-const activeTab = ref<'rest' | 'http'>('rest')
+const { activeTab, setTab } = useRouteTab('rest')
 const restApisKey = ref(0)
 const httpApisKey = ref(0)
 const selectedApi = ref<any>(null)
@@ -30,7 +31,7 @@ const tabs = [
 ]
 
 function handleTabChange(tabId: string) {
-  activeTab.value = tabId as 'rest' | 'http'
+  setTab(tabId)
 }
 
 function handleCreateApi() {

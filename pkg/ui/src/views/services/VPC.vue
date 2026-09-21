@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useContentReload } from '@/composables/useContentReload'
+import { useRouteTab } from '@/composables/useRouteTab'
 import { usePagination } from '@/composables/usePagination'
 import { useVPC } from '@/composables/useVPC'
 import {
@@ -120,7 +121,7 @@ const settingsStore = useSettingsStore()
 const { reloadTrigger } = useContentReload()
 
 // Tabs
-const activeTab = ref('vpc-list')
+const { activeTab, setTab } = useRouteTab('vpc-list')
 
 const tabs = computed(() => {
   const allTabs = [
@@ -351,9 +352,10 @@ watch(reloadTrigger, () => {
     <!-- Tabs -->
     <div class="flex-shrink-0 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface px-6">
       <Tabs
-        v-model:active-tab="activeTab"
+        :active-tab="activeTab"
         :tabs="tabs"
         variant="underline"
+        @update:active-tab="setTab"
       />
     </div>
 

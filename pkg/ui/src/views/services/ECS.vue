@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useContentReload } from '@/composables/useContentReload'
+import { useRouteTab } from '@/composables/useRouteTab'
 import { useToast } from '@/composables/useToast'
 import Button from '@/components/common/Button.vue'
 import Tabs from '@/components/common/Tabs.vue'
@@ -50,7 +51,7 @@ const {
 } = useECS()
 
 // State
-const activeTab = ref('clusters')
+const { activeTab, setTab } = useRouteTab('clusters')
 const showModal = ref(false)
 const modalEntity = ref<ECSEntityType>('cluster')
 const selectedCluster = ref('')
@@ -122,7 +123,7 @@ async function loadServicesWithError() {
 
 // Tab switching
 function handleTabChange(tabId: string) {
-  activeTab.value = tabId
+  setTab(tabId)
   if (tabId === 'tasks') {
     if (!selectedCluster.value && clusters.value.length > 0) {
       selectedCluster.value = clusters.value[0].ClusterName || ''
@@ -270,7 +271,7 @@ watch(reloadTrigger, () => {
     <!-- Tabs -->
     <div class="flex-shrink-0 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface px-6">
       <Tabs
-        v-model:active-tab="activeTab"
+        :active-tab="activeTab"
         :tabs="tabs"
         variant="underline"
         @update:active-tab="handleTabChange"
