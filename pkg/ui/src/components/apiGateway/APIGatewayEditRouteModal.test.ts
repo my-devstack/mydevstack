@@ -124,6 +124,26 @@ describe('APIGatewayEditRouteModal', () => {
     expect(wrapper.emitted('update:open')![0]).toEqual([false])
   })
 
+  it('shows JWT option and authorizerId field when authorizationType is JWT', async () => {
+    const wrapper = mountModal({
+      routeKey: 'GET /items',
+      target: 'integrations/int-1',
+      integrations: ['int-1'],
+      authorizationType: 'JWT',
+      authorizerId: 'jwt-auth-123',
+    })
+    // Authorization select should have JWT value
+    const selects = wrapper.findAll('select')
+    const authSelect = selects[2] // targetType, integration, authorization
+    expect((authSelect.element as HTMLSelectElement).value).toBe('JWT')
+    // Authorizer ID field should be visible
+    const authInput = wrapper.findAll('input').find((i: any) => i.element.getAttribute('value') === 'jwt-auth-123' || (i.element as HTMLInputElement).value === 'jwt-auth-123')
+    expect(authInput).toBeTruthy()
+    // Save emits JWT auth fields
+    await saveButton(wrapper).trigger('click')
+    expect(wrapper.emitted('update')![0]).toEqual(['GET /items', 'integrations/int-1', 'JWT', 'jwt-auth-123'])
+  })
+
   it('shows Saving text when loading', () => {
     const wrapper = mountModal({ routeKey: 'GET /items', loading: true })
     expect(wrapper.text()).toContain('Saving...')

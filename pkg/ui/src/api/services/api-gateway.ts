@@ -269,6 +269,8 @@ export class APIGatewayService {
         routeId: item.RouteId || item.routeId,
         routeKey: item.RouteKey || item.routeKey,
         target: item.Target || item.target,
+        authorizationType: item.AuthorizationType || item.authorizationType,
+        authorizerId: item.AuthorizerId || item.authorizerId,
       }))
     }
     return response
