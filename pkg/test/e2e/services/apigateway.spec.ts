@@ -142,6 +142,53 @@ test.describe('API Gateway V2', () => {
     await page.locator('button[title="View Stage"]').first().click()
     await expect(page.getByRole('dialog')).toBeVisible()
   })
+
+  test('edit route with JWT auth pre-populates', async ({ page }) => {
+    // Seed JWT authorizer + route with JWT auth
+    const auth = await apiPost(page, `/apis/${apiId}/authorizers`, {
+      Name: 'test-jwt',
+      AuthorizerType: 'JWT',
+      JwtConfiguration: { Issuer: 'https://test-issuer', Audience: ['test-aud'] },
+    })
+    const authId = auth.AuthorizerId || auth.authorizerId
+    
+    const int = await apiPost(page, `/apis/${apiId}/integrations`, {
+      IntegrationType: 'HTTP_PROXY',
+      IntegrationUri: 'https://jwt.example.com',
+      IntegrationMethod: 'GET',
+      PayloadFormatVersion: '1.0',
+    })
+    const intId = int.IntegrationId || int.integrationId
+    
+    await apiPost(page, `/apis/${apiId}/routes`, {
+      RouteKey: 'GET /jwt-test',
+      Target: `integrations/${intId}`,
+      AuthorizationType: 'JWT',
+      AuthorizerId: authId,
+    })
+
+    // Refresh to see new route
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+    await showAllItems(page)
+    const row = page.locator('.border.rounded-lg').filter({ hasText: apiName }).first()
+    await row.locator('.grid.grid-cols-12').first().click()
+    await page.waitForTimeout(300)
+
+    // Click Edit Route on JWT-authenticated route
+    const jwtRouteRow = row.locator('div').filter({ hasText: /^GET \/jwt-test/ }).first()
+    await jwtRouteRow.locator('button[title="Edit Route"]').click()
+    
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    
+    // Verify Authorization dropdown shows JWT
+    await expect(dialog.getByLabel('Authorization')).toHaveValue('JWT')
+    
+    // Verify Authorizer ID field visible + pre-filled
+    await expect(dialog.getByLabel('Authorizer ID')).toBeVisible()
+    await expect(dialog.getByLabel('Authorizer ID')).toHaveValue(authId)
+  })
 })
 
 test.describe('API Gateway V1', () => {

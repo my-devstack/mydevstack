@@ -27,6 +27,11 @@ export const WithAuthorizer: Story = {
   render: (args) => ({ components: { APIGatewayEditRouteModal }, setup: () => ({ args }), template: '<div class="h-64"><APIGatewayEditRouteModal v-bind="args" /></div>' })
 };
 
+export const WithJwtAuthorizer: Story = {
+  args: { open: true, routeKey: 'GET /users', target: 'integrations/int-1', integrations: ['int-1'], authorizationType: 'JWT', authorizerId: 'jwt-authorizer-1', loading: false },
+  render: (args) => ({ components: { APIGatewayEditRouteModal }, setup: () => ({ args }), template: '<div class="h-64"><APIGatewayEditRouteModal v-bind="args" /></div>' })
+};
+
 export const Loading: Story = {
   args: { open: true, routeKey: 'GET /users', target: 'https://api.example.com', integrations: [], authorizationType: 'NONE', authorizerId: '', loading: true },
   render: (args) => ({ components: { APIGatewayEditRouteModal }, setup: () => ({ args }), template: '<div class="h-64"><APIGatewayEditRouteModal v-bind="args" /></div>' })
