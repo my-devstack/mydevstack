@@ -32,6 +32,7 @@ const authOptions = [
   { value: 'NONE', label: 'None' },
   { value: 'AWS_IAM', label: 'AWS IAM' },
   { value: 'CUSTOM', label: 'Custom Authorizer' },
+  { value: 'JWT', label: 'JWT' },
 ]
 
 const targetTypeOptions = computed(() => {
@@ -137,7 +138,7 @@ function handleClose() {
       />
 
       <FormInput
-        v-if="form.authorizationType === 'CUSTOM'"
+        v-if="form.authorizationType === 'CUSTOM' || form.authorizationType === 'JWT'"
         v-model="form.authorizerId"
         label="Authorizer ID"
         placeholder="abc123"
