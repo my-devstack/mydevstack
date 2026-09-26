@@ -56,8 +56,8 @@ github.com/aws/aws-sdk-go-v2/service/kinesis v1.55.0 h1:1mdKVjPtnjyBv1U3dTj3COMq
 github.com/aws/aws-sdk-go-v2/service/kinesis v1.55.0/go.mod h1:REbx7m7CD9WvxMY2Oy/EoOFb+gbSqO0EoZBZ5yKucME=
 github.com/aws/aws-sdk-go-v2/service/kms v1.61.0 h1:Ux0dqd8Pj64DcFk/HLtPyaDgwv6M6GhipSAsMd9YxbM=
 github.com/aws/aws-sdk-go-v2/service/kms v1.61.0/go.mod h1:/eZ9xj8IZyb7fj+/t3HO7x89X+7Vn+gCDDbQ2NHCVtM=
-github.com/aws/aws-sdk-go-v2/service/lambda v1.108.0 h1:iIjgs1MWp6quM8QyDUorxEjIZEpXV4UgqEp6wbFAz5U=
-github.com/aws/aws-sdk-go-v2/service/lambda v1.108.0/go.mod h1:KYgalOoMYV+Dm9vz0ydRM+SQ3RtFcqGHR/rl36YD6oY=
+github.com/aws/aws-sdk-go-v2/service/lambda v1.109.0 h1:r/JmqiXqHhZ2CpifXgDm83XuVslpE4e72fh3s1jqJMI=
+github.com/aws/aws-sdk-go-v2/service/lambda v1.109.0/go.mod h1:KYgalOoMYV+Dm9vz0ydRM+SQ3RtFcqGHR/rl36YD6oY=
 github.com/aws/aws-sdk-go-v2/service/opensearch v1.80.0 h1:E4cFgebyiuXs8k9Mm/fRUVhK9D1wtJD58GUa4gbfVFI=
 github.com/aws/aws-sdk-go-v2/service/opensearch v1.80.0/go.mod h1:soHkl4mnDqMIOg4ZQiSnDU+DOJLy5KvA+CDJFskXTz8=
 github.com/aws/aws-sdk-go-v2/service/rds v1.129.0 h1:rfqkLgq6+N4R2+03T8VS6B7yU4l1gx21zaK/v54Qaik=

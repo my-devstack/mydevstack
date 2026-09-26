@@ -22,7 +22,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.65.0
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.55.0
 	github.com/aws/aws-sdk-go-v2/service/kms v1.61.0
-	github.com/aws/aws-sdk-go-v2/service/lambda v1.108.0
+	github.com/aws/aws-sdk-go-v2/service/lambda v1.109.0
 	github.com/aws/aws-sdk-go-v2/service/opensearch v1.80.0
 	github.com/aws/aws-sdk-go-v2/service/rds v1.129.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.113.1
