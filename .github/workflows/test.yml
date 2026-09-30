@@ -157,6 +157,8 @@ jobs:
             -e FLOCI_SERVICES_EC2_MOCK=true \
             -e FLOCI_SERVICES_ECS_MOCK=true \
             -e FLOCI_SERVICES_ECR_ENABLED=true \
+            -e FLOCI_SERVICES_CLOUDFRONT_DOMAIN_SUFFIX=cloudfront.localhost.floci.io \
+            -e FLOCI_SERVICES_S3_GLOBAL_BUCKET_NAMESPACE=true \
             floci/floci:latest
           sleep 5
           for i in {1..30}; do

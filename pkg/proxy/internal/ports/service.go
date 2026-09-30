@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	apigatewayv2Types "github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
@@ -64,6 +65,7 @@ type ProxyService interface {
 	Cognito() CognitoPort
 	ECS() ECSPort
 	ECR() ECRPort
+	CloudFront() CloudFrontPort
 	Config() *configloader.Config
 	Region() string
 	SetRegion(region string) error
@@ -574,4 +576,26 @@ type ECRPort interface {
 	TagResource(ctx context.Context, input *ecr.TagResourceInput) (*ecr.TagResourceOutput, error)
 	UntagResource(ctx context.Context, input *ecr.UntagResourceInput) (*ecr.UntagResourceOutput, error)
 	ListTagsForResource(ctx context.Context, input *ecr.ListTagsForResourceInput) (*ecr.ListTagsForResourceOutput, error)
+}
+
+// CloudFrontPort defines the interface for the CloudFront adapter.
+// It exposes a subset of the AWS CloudFront operations supported by the emulator.
+type CloudFrontPort interface {
+	// Distributions
+	ListDistributions(ctx context.Context, input *cloudfront.ListDistributionsInput) (*cloudfront.ListDistributionsOutput, error)
+	GetDistribution(ctx context.Context, input *cloudfront.GetDistributionInput) (*cloudfront.GetDistributionOutput, error)
+	CreateDistribution(ctx context.Context, input *cloudfront.CreateDistributionInput) (*cloudfront.CreateDistributionOutput, error)
+	UpdateDistribution(ctx context.Context, input *cloudfront.UpdateDistributionInput) (*cloudfront.UpdateDistributionOutput, error)
+	DeleteDistribution(ctx context.Context, input *cloudfront.DeleteDistributionInput) error
+	GetDistributionConfig(ctx context.Context, input *cloudfront.GetDistributionConfigInput) (*cloudfront.GetDistributionConfigOutput, error)
+
+	// Invalidations
+	ListInvalidations(ctx context.Context, input *cloudfront.ListInvalidationsInput) (*cloudfront.ListInvalidationsOutput, error)
+	CreateInvalidation(ctx context.Context, input *cloudfront.CreateInvalidationInput) (*cloudfront.CreateInvalidationOutput, error)
+
+	// Origin Access Controls
+	ListOriginAccessControls(ctx context.Context, input *cloudfront.ListOriginAccessControlsInput) (*cloudfront.ListOriginAccessControlsOutput, error)
+	CreateOriginAccessControl(ctx context.Context, input *cloudfront.CreateOriginAccessControlInput) (*cloudfront.CreateOriginAccessControlOutput, error)
+	GetOriginAccessControl(ctx context.Context, input *cloudfront.GetOriginAccessControlInput) (*cloudfront.GetOriginAccessControlOutput, error)
+	DeleteOriginAccessControl(ctx context.Context, input *cloudfront.DeleteOriginAccessControlInput) error
 }

@@ -70,6 +70,7 @@ func main() {
 	log.Printf("  ECS:              http://localhost:%s/ecs/", cfg.Port)
 	log.Printf("  Cognito:          http://localhost:%s/cognito/", cfg.Port)
 	log.Printf("  ECR:              http://localhost:%s/ecr/", cfg.Port)
+	log.Printf("  CloudFront:       http://localhost:%s/cloudfront/", cfg.Port)
 	log.Printf("")
 	log.Println("https://my-devstack.github.io/")
 	log.Println("")

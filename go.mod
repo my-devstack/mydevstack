@@ -9,6 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/apigateway v1.50.0
 	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.44.0
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.81.1
+	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.73.1
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.73.0
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.88.1
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.74.1
@@ -35,6 +36,7 @@ require (
 	github.com/aws/smithy-go v1.28.2
 	github.com/beabys/ayotl v1.1.3
 	github.com/go-chi/chi/v5 v5.3.2
+	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.12.1
 	golang.org/x/sync v0.23.0
 	gopkg.in/yaml.v3 v3.0.1

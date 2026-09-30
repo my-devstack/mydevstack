@@ -168,6 +168,9 @@ mydevstack/
 | MSK | ✅ | Clusters, Bootstrap Brokers (requires LocalStack or FloCi) |
 | ECS | ✅ | Clusters, Task Definitions, Tasks, Services |
 | ECR | ✅ | Repositories, Images, Authorization |
+| CloudFront | ✅ | Distributions, Origins, Behaviors (static content served from S3) |
+
+> **CloudFront on Floci**: static-content distributions require Floci to run with `FLOCI_SERVICES_CLOUDFRONT_DOMAIN_SUFFIX=cloudfront.localhost.floci.io` and `FLOCI_SERVICES_S3_GLOBAL_BUCKET_NAMESPACE=true`. Viewer URL pattern: `http://{distribution-id-lower}.cloudfront.localhost.floci.io:4566/<key>`.
 
 ---
 

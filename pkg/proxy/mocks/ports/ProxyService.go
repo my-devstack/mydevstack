@@ -184,6 +184,52 @@ func (_c *ProxyService_CloudFormation_Call) RunAndReturn(run func() ports.CloudF
 	return _c
 }
 
+// CloudFront provides a mock function for the type ProxyService
+func (_mock *ProxyService) CloudFront() ports.CloudFrontPort {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for CloudFront")
+	}
+
+	var r0 ports.CloudFrontPort
+	if returnFunc, ok := ret.Get(0).(func() ports.CloudFrontPort); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(ports.CloudFrontPort)
+		}
+	}
+	return r0
+}
+
+// ProxyService_CloudFront_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CloudFront'
+type ProxyService_CloudFront_Call struct {
+	*mock.Call
+}
+
+// CloudFront is a helper method to define mock.On call
+func (_e *ProxyService_Expecter) CloudFront() *ProxyService_CloudFront_Call {
+	return &ProxyService_CloudFront_Call{Call: _e.mock.On("CloudFront")}
+}
+
+func (_c *ProxyService_CloudFront_Call) Run(run func()) *ProxyService_CloudFront_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ProxyService_CloudFront_Call) Return(cloudFrontPort ports.CloudFrontPort) *ProxyService_CloudFront_Call {
+	_c.Call.Return(cloudFrontPort)
+	return _c
+}
+
+func (_c *ProxyService_CloudFront_Call) RunAndReturn(run func() ports.CloudFrontPort) *ProxyService_CloudFront_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CloudWatch provides a mock function for the type ProxyService
 func (_mock *ProxyService) CloudWatch() ports.CloudWatchPort {
 	ret := _mock.Called()

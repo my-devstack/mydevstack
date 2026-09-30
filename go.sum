@@ -20,6 +20,8 @@ github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.44.0 h1:+PUmMN8TCOMwE5sk/fb
 github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.44.0/go.mod h1:gy2IdCAIthzCjcS6WsPsW2GD+64llLAC3d3XOIH8p7g=
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.81.1 h1:aQ9rndpdklEc+4PvbsBaK5vZ7lEA577Uv/QZiy0AoN4=
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.81.1/go.mod h1:QXZr5EpgRNj71Y8uj/ACN+VrxiHYKaLRnm+cLgdmccc=
+github.com/aws/aws-sdk-go-v2/service/cloudfront v1.73.1 h1:/U9s1rmIvfAzSP9kg3k9CIB9wYM1l8ukje/+tx1J7yk=
+github.com/aws/aws-sdk-go-v2/service/cloudfront v1.73.1/go.mod h1:LTDZxT77siIgcH1AsJLiEmNkwycK4V0pmbwk8UUqdDc=
 github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.73.0 h1:OP6MlUKPwRwYJulM6brj+OdQzjbcSpVBujPi7GRagng=
 github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.73.0/go.mod h1:7PauoCasn/NoAuZYkmRbZ8TjFJ4dr0i2SX4v64hfcBQ=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.88.1 h1:+pie8Q5EQoy2FvLb9zeoWabVC+Pfzyba4wwm7jgKyLc=
@@ -96,6 +98,8 @@ github.com/go-chi/chi/v5 v5.3.2 h1:5YQkICvTCSZ25hoRsyJazN0scjzKGiu4VAUc7H1o1nY=
 github.com/go-chi/chi/v5 v5.3.2/go.mod h1:R+tYY2hNuVUUjxoPtqUdgBqevM9s9njzkTLutVsOCto=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=

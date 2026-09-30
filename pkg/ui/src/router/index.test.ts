@@ -30,6 +30,7 @@ describe('Router', () => {
     'Cognito',
     'ECS',
     'ECR',
+    'CloudFront',
   ]
 
   it('creates router instance', () => {

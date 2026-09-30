@@ -21,6 +21,7 @@ import { listClusters as fetchECSClusters } from '@/api/services/ecs'
 import { listRepositories as fetchECRRepositories } from '@/api/services/ecr'
 import { listStateMachines as fetchStepFunctionsStateMachines } from '@/api/services/stepfunctions'
 import { listStacks as fetchCloudFormationStacks } from '@/api/services/cloudformation'
+import { listDistributions as fetchCloudFrontDistributions } from '@/api/services/cloudfront'
 import { useSettingsStore } from '@/stores/settings'
 import type { ServiceCategory } from '@/types/services'
 import { SERVICE_COLORS, type ServiceStats, type ServiceStatus, determineStatus } from '@/types/serviceRegistry'
@@ -365,6 +366,20 @@ const SERVICE_CONFIGS: ServiceConfig[] = [
     statsFetcher: async () => {
       const result = await fetchCloudFormationStacks()
       return result.length || 0
+    },
+    enabled: true,
+  },
+  {
+    id: 'cloudfront',
+    name: 'CloudFront Distributions',
+    category: 'networking',
+    icon: 'GlobeAltIcon',
+    route: '/services/cloudfront',
+    color: SERVICE_COLORS.cloudfront.text,
+    bgColor: SERVICE_COLORS.cloudfront.bg,
+    statsFetcher: async () => {
+      const result = await fetchCloudFrontDistributions()
+      return result.DistributionList?.Items?.length || 0
     },
     enabled: true,
   },

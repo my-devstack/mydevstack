@@ -41,6 +41,7 @@ type ProxyService struct {
 	cognito         ports.CognitoPort
 	ecs             ports.ECSPort
 	ecr             ports.ECRPort
+	cloudfront      ports.CloudFrontPort
 	mu              sync.RWMutex
 	ctx             context.Context
 }
@@ -118,6 +119,7 @@ func (s *ProxyService) SetServices() error {
 	s.cognito = awsadapter.NewCognitoAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.ecs = awsadapter.NewECSAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	s.ecr = awsadapter.NewECRAdapter(awsCfg, s.cfg.AWS.Endpoint)
+	s.cloudfront = awsadapter.NewCloudFrontAdapter(awsCfg, s.cfg.AWS.Endpoint)
 	return nil
 }
 
@@ -227,4 +229,8 @@ func (s *ProxyService) ECS() ports.ECSPort {
 
 func (s *ProxyService) ECR() ports.ECRPort {
 	return s.ecr
+}
+
+func (s *ProxyService) CloudFront() ports.CloudFrontPort {
+	return s.cloudfront
 }

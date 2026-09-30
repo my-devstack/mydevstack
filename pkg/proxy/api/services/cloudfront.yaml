@@ -1,0 +1,539 @@
+openapi: 3.0.0
+info:
+  title: "CloudFront"
+  version: "1.0.0"
+
+paths:
+  # ---- Distributions ----
+  /cloudfront/distributions:
+    get:
+      tags: [CloudFront]
+      summary: List distributions
+      description: Returns a list of all CloudFront distributions.
+      operationId: listDistributions
+      responses:
+        "200":
+          description: List of distributions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDistributionsOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [CloudFront]
+      summary: Create distribution
+      description: |
+        Creates a new CloudFront distribution. Accepts a simplified DTO;
+        the backend builds the full DistributionConfig with safe defaults.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createDistribution
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDistributionInput'
+      responses:
+        "201":
+          description: Distribution created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDistributionOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cloudfront/distributions/{id}:
+    get:
+      tags: [CloudFront]
+      summary: Get distribution
+      description: Returns details about a single distribution including its ETag.
+      operationId: getDistribution
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          description: The distribution ID
+      responses:
+        "200":
+          description: Distribution details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDistributionOutput'
+        "404":
+          description: Distribution not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [CloudFront]
+      summary: Update distribution
+      description: |
+        Updates a distribution. The backend fetches the current config and
+        ETag, merges the provided fields, and sends the update with If-Match.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateDistribution
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          description: The distribution ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDistributionInput'
+      responses:
+        "200":
+          description: Distribution updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateDistributionOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "404":
+          description: Distribution not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [CloudFront]
+      summary: Delete distribution
+      description: |
+        Deletes a distribution. If the distribution is enabled, the backend
+        disables it first, then deletes it. Returns a success message.
+      operationId: deleteDistribution
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          description: The distribution ID
+      responses:
+        "200":
+          description: Distribution deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteDistributionOutput'
+        "404":
+          description: Distribution not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Invalidations ----
+  /cloudfront/distributions/{id}/invalidations:
+    get:
+      tags: [CloudFront]
+      summary: List invalidations
+      description: Returns a list of invalidations for a distribution.
+      operationId: listInvalidations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          description: The distribution ID
+      responses:
+        "200":
+          description: List of invalidations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListInvalidationsOutput'
+        "404":
+          description: Distribution not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cloudfront/distributions/{id}/invalidate:
+    post:
+      tags: [CloudFront]
+      summary: Create invalidation
+      description: |
+        Creates an invalidation for the specified paths. If CallerReference
+        is not provided, a UUID is generated automatically.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createInvalidation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          description: The distribution ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvalidationInput'
+      responses:
+        "201":
+          description: Invalidation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateInvalidationOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "404":
+          description: Distribution not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  # ---- Origin Access Controls ----
+  /cloudfront/origin-access-controls:
+    get:
+      tags: [CloudFront]
+      summary: List origin access controls
+      description: Returns a list of all origin access controls.
+      operationId: listOriginAccessControls
+      responses:
+        "200":
+          description: List of origin access controls
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOriginAccessControlsOutput'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [CloudFront]
+      summary: Create origin access control
+      description: |
+        Creates a new origin access control. Accepts the full
+        CreateOriginAccessControlInput passthrough.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createOriginAccessControl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOriginAccessControlInput'
+      responses:
+        "201":
+          description: Origin access control created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOriginAccessControlOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+  /cloudfront/origin-access-controls/{id}:
+    delete:
+      tags: [CloudFront]
+      summary: Delete origin access control
+      description: |
+        Deletes an origin access control. The backend fetches the current
+        ETag and sends the delete with If-Match.
+      operationId: deleteOriginAccessControl
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          description: The origin access control ID
+      responses:
+        "200":
+          description: Origin access control deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteOriginAccessControlOutput'
+        "404":
+          description: Origin access control not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    CreateDistributionInput:
+      type: object
+      required: [Origins]
+      properties:
+        Comment:
+          type: string
+        Enabled:
+          type: boolean
+          default: true
+        DefaultRootObject:
+          type: string
+        Origins:
+          type: array
+          items:
+            $ref: '#/components/schemas/OriginDTO'
+        DefaultCacheBehavior:
+          $ref: '#/components/schemas/DefaultCacheBehaviorDTO'
+        PriceClass:
+          type: string
+          enum: [PriceClass_100, PriceClass_200, PriceClass_All]
+          default: PriceClass_100
+        Aliases:
+          type: array
+          items: { type: string }
+
+    UpdateDistributionInput:
+      type: object
+      properties:
+        Comment:
+          type: string
+        Enabled:
+          type: boolean
+        DefaultRootObject:
+          type: string
+        Origins:
+          type: array
+          items:
+            $ref: '#/components/schemas/OriginDTO'
+        DefaultCacheBehavior:
+          $ref: '#/components/schemas/DefaultCacheBehaviorDTO'
+        PriceClass:
+          type: string
+          enum: [PriceClass_100, PriceClass_200, PriceClass_All]
+        Aliases:
+          type: array
+          items: { type: string }
+
+    OriginDTO:
+      type: object
+      required: [DomainName]
+      properties:
+        Id:
+          type: string
+        DomainName:
+          type: string
+        OriginPath:
+          type: string
+        OriginAccessControlId:
+          type: string
+        S3OriginConfig:
+          type: object
+          properties:
+            OriginAccessIdentity:
+              type: string
+        CustomOriginConfig:
+          type: object
+          properties:
+            HTTPPort:
+              type: integer
+              format: int32
+            HTTPSPort:
+              type: integer
+              format: int32
+            OriginProtocolPolicy:
+              type: string
+              enum: [http-only, https-only, match-viewer]
+
+    DefaultCacheBehaviorDTO:
+      type: object
+      properties:
+        TargetOriginId:
+          type: string
+        ViewerProtocolPolicy:
+          type: string
+          enum: [allow-all, https-only, redirect-to-https]
+          default: redirect-to-https
+        CachePolicyId:
+          type: string
+          default: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        AllowedMethods:
+          type: array
+          items: { type: string }
+          default: [GET, HEAD]
+        Compress:
+          type: boolean
+
+    CreateDistributionOutput:
+      type: object
+      properties:
+        Distribution:
+          type: object
+        ETag:
+          type: string
+
+    GetDistributionOutput:
+      type: object
+      properties:
+        Distribution:
+          type: object
+        ETag:
+          type: string
+
+    UpdateDistributionOutput:
+      type: object
+      properties:
+        Distribution:
+          type: object
+        ETag:
+          type: string
+
+    DeleteDistributionOutput:
+      type: object
+      properties:
+        message:
+          type: string
+
+    ListDistributionsOutput:
+      type: object
+      properties:
+        DistributionList:
+          type: object
+
+    ListInvalidationsOutput:
+      type: object
+      properties:
+        InvalidationList:
+          type: object
+
+    CreateInvalidationInput:
+      type: object
+      required: [Paths]
+      properties:
+        Paths:
+          type: array
+          items: { type: string }
+        CallerReference:
+          type: string
+
+    CreateInvalidationOutput:
+      type: object
+      properties:
+        Invalidation:
+          type: object
+        Location:
+          type: string
+
+    ListOriginAccessControlsOutput:
+      type: object
+      properties:
+        OriginAccessControlList:
+          type: object
+
+    CreateOriginAccessControlInput:
+      type: object
+      required: [OriginAccessControlConfig]
+      properties:
+        OriginAccessControlConfig:
+          type: object
+          required: [Name, SigningBehavior, SigningProtocol]
+          properties:
+            Name:
+              type: string
+            Description:
+              type: string
+            SigningBehavior:
+              type: string
+              enum: [always, no-override, never]
+            SigningProtocol:
+              type: string
+              enum: [sigv4]
+
+    CreateOriginAccessControlOutput:
+      type: object
+      properties:
+        OriginAccessControl:
+          type: object
+        ETag:
+          type: string
+        Location:
+          type: string
+
+    DeleteOriginAccessControlOutput:
+      type: object
+      properties:
+        message:
+          type: string

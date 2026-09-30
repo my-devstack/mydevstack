@@ -44,6 +44,7 @@ import {
   getBucketEncryption,
   getBucketTagging,
   getBucketPolicy,
+  putBucketPolicy,
   createFolder,
   getPresignedUrl,
   getPresignedUploadUrl,
@@ -526,6 +527,22 @@ describe('S3 Service', () => {
     it('throws non-matching errors', async () => {
       mockFetch.mockResolvedValue(mockResponse('AccessDenied', 403))
       await expect(getBucketPolicy('my-bucket')).rejects.toThrow(/S3 GET/)
+    })
+  })
+
+  describe('putBucketPolicy', () => {
+    it('sends policy JSON', async () => {
+      mockFetch.mockResolvedValue(mockResponse({}))
+      const policy = JSON.stringify({ Version: '2012-10-17', Statement: [] })
+      await putBucketPolicy('my-bucket', policy)
+      expect(mockFetch.mock.calls[0][0]).toBe('http://127.0.0.1:8081/s3/buckets/my-bucket/policy')
+      expect(mockFetch.mock.calls[0][1].method).toBe('PUT')
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(body.Policy).toBe(policy)
+    })
+
+    it('throws on invalid JSON', async () => {
+      await expect(putBucketPolicy('my-bucket', 'not-json')).rejects.toThrow('Invalid bucket policy JSON')
     })
   })
 

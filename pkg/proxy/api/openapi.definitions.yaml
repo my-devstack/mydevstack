@@ -65,6 +65,8 @@ tags:
     description: Amazon Elastic Compute Cloud
   - name: Cognito
     description: Amazon Cognito Identity Provider
+  - name: CloudFront
+    description: Amazon CloudFront
 
 services:
   - services/_management.yaml
@@ -92,6 +94,7 @@ services:
   - services/ssm.yaml
   - services/step-functions.yaml
   - services/apigateway.yaml
+  - services/cloudfront.yaml
 
 components:
   securitySchemes:

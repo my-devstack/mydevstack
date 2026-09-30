@@ -44,6 +44,8 @@ services:
       FLOCI_SERVICES_ECR_REGISTRY_BASE_PORT: 5100
       FLOCI_SERVICES_ECR_REGISTRY_MAX_PORT: 5199
       FLOCI_SERVICES_ECR_ENABLED: "true"
+      FLOCI_SERVICES_CLOUDFRONT_DOMAIN_SUFFIX: cloudfront.localhost.floci.io
+      FLOCI_SERVICES_S3_GLOBAL_BUCKET_NAMESPACE: "true"
     networks:
       - mydevstack-network
     restart: unless-stopped
