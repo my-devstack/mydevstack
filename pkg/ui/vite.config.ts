@@ -58,6 +58,7 @@ export default defineConfig(({ mode }) => {
         '/apigateway':     { target, changeOrigin: true },
         '/step-functions': { target, changeOrigin: true },
         '/cognito':        { target, changeOrigin: true },
+        '/cloudfront':     { target, changeOrigin: true },
       },
     },
     build: {

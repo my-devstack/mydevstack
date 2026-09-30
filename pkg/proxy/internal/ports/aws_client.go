@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigateway"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
@@ -567,4 +568,20 @@ type ECRClientPort interface {
 	TagResource(ctx context.Context, input *ecr.TagResourceInput, opts ...func(*ecr.Options)) (*ecr.TagResourceOutput, error)
 	UntagResource(ctx context.Context, input *ecr.UntagResourceInput, opts ...func(*ecr.Options)) (*ecr.UntagResourceOutput, error)
 	ListTagsForResource(ctx context.Context, input *ecr.ListTagsForResourceInput, opts ...func(*ecr.Options)) (*ecr.ListTagsForResourceOutput, error)
+}
+
+// CloudFrontClientPort defines the interface for the AWS CloudFront client
+type CloudFrontClientPort interface {
+	ListDistributions(ctx context.Context, input *cloudfront.ListDistributionsInput, opts ...func(*cloudfront.Options)) (*cloudfront.ListDistributionsOutput, error)
+	GetDistribution(ctx context.Context, input *cloudfront.GetDistributionInput, opts ...func(*cloudfront.Options)) (*cloudfront.GetDistributionOutput, error)
+	CreateDistribution(ctx context.Context, input *cloudfront.CreateDistributionInput, opts ...func(*cloudfront.Options)) (*cloudfront.CreateDistributionOutput, error)
+	UpdateDistribution(ctx context.Context, input *cloudfront.UpdateDistributionInput, opts ...func(*cloudfront.Options)) (*cloudfront.UpdateDistributionOutput, error)
+	DeleteDistribution(ctx context.Context, input *cloudfront.DeleteDistributionInput, opts ...func(*cloudfront.Options)) (*cloudfront.DeleteDistributionOutput, error)
+	GetDistributionConfig(ctx context.Context, input *cloudfront.GetDistributionConfigInput, opts ...func(*cloudfront.Options)) (*cloudfront.GetDistributionConfigOutput, error)
+	ListInvalidations(ctx context.Context, input *cloudfront.ListInvalidationsInput, opts ...func(*cloudfront.Options)) (*cloudfront.ListInvalidationsOutput, error)
+	CreateInvalidation(ctx context.Context, input *cloudfront.CreateInvalidationInput, opts ...func(*cloudfront.Options)) (*cloudfront.CreateInvalidationOutput, error)
+	ListOriginAccessControls(ctx context.Context, input *cloudfront.ListOriginAccessControlsInput, opts ...func(*cloudfront.Options)) (*cloudfront.ListOriginAccessControlsOutput, error)
+	CreateOriginAccessControl(ctx context.Context, input *cloudfront.CreateOriginAccessControlInput, opts ...func(*cloudfront.Options)) (*cloudfront.CreateOriginAccessControlOutput, error)
+	GetOriginAccessControl(ctx context.Context, input *cloudfront.GetOriginAccessControlInput, opts ...func(*cloudfront.Options)) (*cloudfront.GetOriginAccessControlOutput, error)
+	DeleteOriginAccessControl(ctx context.Context, input *cloudfront.DeleteOriginAccessControlInput, opts ...func(*cloudfront.Options)) (*cloudfront.DeleteOriginAccessControlOutput, error)
 }

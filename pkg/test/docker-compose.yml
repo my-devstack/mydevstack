@@ -4,6 +4,9 @@ services:
     container_name: floci
     ports:
       - "4566:4566"
+    environment:
+      FLOCI_SERVICES_CLOUDFRONT_DOMAIN_SUFFIX: cloudfront.localhost.floci.io
+      FLOCI_SERVICES_S3_GLOBAL_BUCKET_NAMESPACE: "true"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
       interval: 10s

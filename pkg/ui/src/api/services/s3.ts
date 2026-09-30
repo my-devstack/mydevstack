@@ -301,6 +301,18 @@ export class S3Service {
     }
   }
 
+  async putBucketPolicy(bucket: string, policy: string): Promise<any> {
+    // Validate JSON before sending
+    try {
+      JSON.parse(policy)
+    } catch {
+      throw new Error('Invalid bucket policy JSON')
+    }
+    return restFetch('PUT', `/s3/buckets/${enc(bucket)}/policy`, {
+      Policy: policy,
+    })
+  }
+
   async putBucketVersioning(bucket: string, status: 'Enabled' | 'Suspended'): Promise<any> {
     return restFetch('PUT', `/s3/buckets/${enc(bucket)}/versioning`, {
       VersioningConfiguration: { Status: status },
@@ -372,6 +384,7 @@ export const putBucketVersioning = (bucket: string, status: 'Enabled' | 'Suspend
 export const getBucketEncryption = (bucket: string) => s3Service.getBucketEncryption(bucket)
 export const getBucketTagging = (bucket: string) => s3Service.getBucketTagging(bucket)
 export const getBucketPolicy = (bucket: string) => s3Service.getBucketPolicy(bucket)
+export const putBucketPolicy = (bucket: string, policy: string) => s3Service.putBucketPolicy(bucket, policy)
 export const getBucketLifecycleConfiguration = (bucket: string) => s3Service.getBucketLifecycleConfiguration(bucket)
 export const putBucketLifecycleConfiguration = (bucket: string, rules: LifecycleRule[]) =>
   s3Service.putBucketLifecycleConfiguration(bucket, rules)

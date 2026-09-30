@@ -1234,3 +1234,167 @@ export interface ECRImageFailure {
   FailureCode?: string
   FailureReason?: string
 }
+
+// CloudFront Types
+export interface CloudFrontOrigin {
+  Id?: string
+  DomainName: string
+  OriginPath?: string
+  OriginAccessControlId?: string
+  S3OriginConfig?: {
+    OriginAccessIdentity?: string
+  }
+  CustomOriginConfig?: {
+    HTTPPort?: number
+    HTTPSPort?: number
+    OriginProtocolPolicy?: string
+    OriginSslProtocols?: string[]
+    OriginReadTimeout?: number
+    OriginKeepaliveTimeout?: number
+  }
+}
+
+export interface CloudFrontDefaultCacheBehavior {
+  TargetOriginId?: string
+  ViewerProtocolPolicy?: 'allow-all' | 'https-only' | 'redirect-to-https'
+  CachePolicyId?: string
+  AllowedMethods?: string[]
+  Compress?: boolean
+  ForwardedValues?: {
+    QueryString?: boolean
+    Cookies?: { Forward?: string }
+    Headers?: { Quantity?: number; Items?: string[] }
+  }
+}
+
+export interface CloudFrontDistributionSummary {
+  Id: string
+  ARN: string
+  Status: string
+  Enabled: boolean
+  DomainName: string
+  Comment?: string
+  PriceClass?: string
+  Origins?: {
+    Quantity?: number
+    Items?: CloudFrontOrigin[]
+  }
+  DefaultCacheBehavior?: CloudFrontDefaultCacheBehavior
+  Aliases?: {
+    Quantity?: number
+    Items?: string[]
+  }
+  DefaultRootObject?: string
+  WebACLId?: string
+  LastModifiedTime?: string
+}
+
+export interface CloudFrontDistributionConfig {
+  Comment?: string
+  Enabled?: boolean
+  DefaultRootObject?: string
+  Origins?: CloudFrontOrigin[]
+  DefaultCacheBehavior?: CloudFrontDefaultCacheBehavior
+  PriceClass?: string
+  Aliases?: string[]
+}
+
+export interface CloudFrontDistribution {
+  Id: string
+  ARN: string
+  Status: string
+  DomainName: string
+  DistributionConfig: CloudFrontDistributionConfig
+  ETag?: string
+  LastModifiedTime?: string
+}
+
+export interface CloudFrontInvalidation {
+  Id: string
+  Status: string
+  CreateTime: string
+  InvalidationBatch?: {
+    Paths: {
+      Quantity: number
+      Items: string[]
+    }
+    CallerReference: string
+  }
+}
+
+export interface CloudFrontOriginAccessControl {
+  Id: string
+  Name: string
+  Description?: string
+  OriginAccessControlOriginType: string
+  SigningBehavior: string
+  SigningProtocol: string
+  ETag?: string
+}
+
+export interface CloudFrontDistributionListResponse {
+  DistributionList: {
+    Items: CloudFrontDistributionSummary[]
+    Quantity: number
+  }
+}
+
+export interface CloudFrontDistributionResponse {
+  Distribution: CloudFrontDistribution
+  ETag?: string
+}
+
+export interface CloudFrontInvalidationListResponse {
+  InvalidationList: {
+    Items: CloudFrontInvalidation[]
+    Quantity: number
+  }
+}
+
+export interface CloudFrontInvalidationResponse {
+  Invalidation: CloudFrontInvalidation
+}
+
+export interface CloudFrontOriginAccessControlListResponse {
+  OriginAccessControlList: {
+    Items: CloudFrontOriginAccessControl[]
+    Quantity: number
+  }
+}
+
+export interface CloudFrontOriginAccessControlResponse {
+  OriginAccessControl: CloudFrontOriginAccessControl
+}
+
+export interface CloudFrontCreateDistributionRequest {
+  Comment?: string
+  Enabled?: boolean
+  DefaultRootObject?: string
+  Origins: CloudFrontOrigin[]
+  DefaultCacheBehavior?: CloudFrontDefaultCacheBehavior
+  PriceClass?: string
+  Aliases?: string[]
+}
+
+export interface CloudFrontUpdateDistributionRequest {
+  Comment?: string
+  Enabled?: boolean
+  DefaultRootObject?: string
+  Origins?: CloudFrontOrigin[]
+  DefaultCacheBehavior?: CloudFrontDefaultCacheBehavior
+  PriceClass?: string
+  Aliases?: string[]
+}
+
+export interface CloudFrontCreateInvalidationRequest {
+  Paths: string[]
+  CallerReference?: string
+}
+
+export interface CloudFrontCreateOriginAccessControlRequest {
+  Name: string
+  Description?: string
+  OriginAccessControlOriginType: string
+  SigningBehavior: string
+  SigningProtocol: string
+}

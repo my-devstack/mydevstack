@@ -182,6 +182,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/services/ECR.vue'),
     meta: { title: 'ECR', service: 'ecr' },
   },
+  // CloudFront
+  {
+    path: '/services/cloudfront',
+    name: 'CloudFront',
+    component: () => import('@/views/services/CloudFront.vue'),
+    meta: { title: 'CloudFront', service: 'cloudfront' },
+  },
   
   // Explicit redirect for /services to dashboard
   {

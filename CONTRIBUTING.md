@@ -126,6 +126,8 @@ cd pkg/ui && pnpm run build-storybook
 
 E2E tests require Floci/LocalStack running on port 4566:
 
+> **CloudFront prerequisite**: to exercise CloudFront E2E, Floci must be started with `FLOCI_SERVICES_CLOUDFRONT_DOMAIN_SUFFIX=cloudfront.localhost.floci.io` and `FLOCI_SERVICES_S3_GLOBAL_BUCKET_NAMESPACE=true` (already set in `docker-compose-floci.yml`, `pkg/test/docker-compose.yml`, and `.github/workflows/test.yml`). Viewer URL: `http://{id-lower}.cloudfront.localhost.floci.io:4566/<key>`.
+
 ```bash
 # Run all E2E tests
 make test-e2e

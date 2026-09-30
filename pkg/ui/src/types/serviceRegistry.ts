@@ -43,6 +43,7 @@ export const SERVICE_COLORS: Record<string, { text: string; bg: string }> = {
   ecr: { text: 'text-blue-400', bg: 'bg-blue-400' },
   stepfunctions: { text: 'text-orange-400', bg: 'bg-orange-400' },
   cloudformation: { text: 'text-blue-400', bg: 'bg-blue-400' },
+  cloudfront: { text: 'text-orange-600', bg: 'bg-orange-600' },
 }
 
 export const getServiceColor = (serviceId: string): string => {

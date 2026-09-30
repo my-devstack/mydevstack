@@ -128,6 +128,7 @@ func (h *ProxyHandler) RegisterServiceRoutes(r chi.Router) {
 	h.registerCognitoRoutes(r)
 	h.registerECSRoutes(r)
 	h.registerECRRoutes(r)
+	h.registerCloudFrontRoutes(r)
 }
 
 // HealthCheck is a simple endpoint to check if the proxy and backend are healthy.
@@ -264,7 +265,9 @@ func isNotFoundError(err error) bool {
 		"NoSuchEntity",
 		"ResourceNotFoundException",
 		"NotFoundException",
-		"NotFound":
+		"NotFound",
+		"NoSuchDistribution",
+		"NoSuchOriginAccessControl":
 		return true
 	}
 	return false
