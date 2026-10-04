@@ -12,7 +12,7 @@ async function showAllItems(page: any) {
 
 async function switchTab(page: any, tabName: string) {
   await page.goto('/#/services/iam')
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
   await page.getByRole('tab', { name: tabName }).click()
   await expect(page.getByRole('tab', { name: tabName })).toBeVisible()
   await showAllItems(page)
@@ -20,7 +20,7 @@ async function switchTab(page: any, tabName: string) {
 
 async function createUser(page: any, userName: string) {
   await page.goto('/#/services/iam')
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
   await expect(page.getByRole('button', { name: 'Create User' }).first()).toBeVisible()
   await page.getByRole('button', { name: 'Create User' }).first().click()
   await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
@@ -209,7 +209,7 @@ test.describe('IAM - Groups', () => {
 test.describe('IAM - Usage Examples', () => {
   test('usage examples section visible', async ({ page }) => {
     await page.goto('/#/services/iam')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('heading', { name: 'Usage Examples' })).toBeVisible()
   })
 })
@@ -217,13 +217,13 @@ test.describe('IAM - Usage Examples', () => {
 test.describe('IAM - Navigation', () => {
   test('navigate to IAM and verify page loads', async ({ page }) => {
     await page.goto('/#/services/iam')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('heading', { name: 'IAM Management' })).toBeVisible({ timeout: 15000 })
   })
 
   test('switch between all tabs', async ({ page }) => {
     await page.goto('/#/services/iam')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Roles' }).click()
     await expect(page.getByRole('tab', { name: 'Roles' })).toBeVisible()
     await page.getByRole('tab', { name: 'Policies' }).click()
@@ -236,7 +236,7 @@ test.describe('IAM - Navigation', () => {
 
   test('create button shows on Users tab', async ({ page }) => {
     await page.goto('/#/services/iam')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('button', { name: 'Create User' }).first()).toBeVisible({ timeout: 10000 })
   })
 })
@@ -244,14 +244,14 @@ test.describe('IAM - Navigation', () => {
 test.describe('IAM - Pagination', () => {
   test('show per-page selector on users tab', async ({ page }) => {
     await page.goto('/#/services/iam')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByText('Show:').first()).toBeVisible()
     await expect(page.getByText('per page').first()).toBeVisible()
   })
 
   test('show per-page selector on roles tab', async ({ page }) => {
     await page.goto('/#/services/iam')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Roles' }).click()
     await expect(page.getByText('Show:').first()).toBeVisible()
     await expect(page.getByText('per page').first()).toBeVisible()
@@ -259,7 +259,7 @@ test.describe('IAM - Pagination', () => {
 
   test('show per-page selector on policies tab', async ({ page }) => {
     await page.goto('/#/services/iam')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Policies' }).click()
     await expect(page.getByText('Show:').first()).toBeVisible()
     await expect(page.getByText('per page').first()).toBeVisible()
@@ -267,7 +267,7 @@ test.describe('IAM - Pagination', () => {
 
   test('show per-page selector on groups tab', async ({ page }) => {
     await page.goto('/#/services/iam')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Groups' }).click()
     await expect(page.getByText('Show:').first()).toBeVisible()
     await expect(page.getByText('per page').first()).toBeVisible()

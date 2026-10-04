@@ -11,7 +11,7 @@ async function showAllItems(page: any) {
 
 async function createUserPool(page: any, poolName: string) {
   await page.goto('/#/services/cognito')
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
   await page.getByRole('button', { name: 'Create User Pool' }).first().click()
   await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
   const dialog = page.getByRole('dialog')
@@ -24,17 +24,17 @@ async function createUserPool(page: any, poolName: string) {
   ).catch(() => null)
   await dialog.getByRole('button', { name: 'Create' }).click()
   await responsePromise
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
   await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
   await showAllItems(page)
 }
 
 async function selectPoolOnTab(page: any, tabName: string, poolName: string) {
   await page.getByRole('tab', { name: new RegExp(tabName, 'i') }).click()
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
   const poolSelect = page.locator('label', { hasText: 'User Pool:' }).locator('..').locator('select')
   await expect(poolSelect).toBeVisible({ timeout: 10000 })
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
   const responsePromise = page.waitForResponse(
     (resp: any) => resp.url().includes('/cognito/user-pools/') &&
       (resp.url().includes('/groups') || resp.url().includes('/users') || resp.url().includes('/resource-servers') || resp.url().includes('/clients')) &&
@@ -43,19 +43,19 @@ async function selectPoolOnTab(page: any, tabName: string, poolName: string) {
   ).catch(() => null)
   await poolSelect.selectOption({ label: poolName })
   await responsePromise
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
 }
 
 test.describe('Cognito - Navigation', () => {
   test('navigate to Cognito and verify page loads', async ({ page }) => {
     await page.goto('/#/services/cognito')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('heading', { name: 'Cognito Management' })).toBeVisible({ timeout: 15000 })
   })
 
   test('switch between all tabs', async ({ page }) => {
     await page.goto('/#/services/cognito')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     await page.getByRole('tab', { name: 'User Pools' }).click()
     await expect(page.getByRole('tab', { name: 'User Pools' })).toBeVisible()
@@ -126,7 +126,7 @@ test.describe('Cognito - Users', () => {
     ).catch(() => null)
     await dialog.getByRole('button', { name: 'Create' }).click()
     await responsePromise
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByText(userName).first()).toBeVisible({ timeout: 15000 })
   })
@@ -153,7 +153,7 @@ test.describe('Cognito - Users', () => {
     ).catch(() => null)
     await dialog.getByRole('button', { name: 'Create' }).click()
     await responsePromise
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     const userRow = page.locator('.rounded-lg').filter({ hasText: userName }).first()
@@ -186,7 +186,7 @@ test.describe('Cognito - Users', () => {
     ).catch(() => null)
     await dialog.getByRole('button', { name: 'Create' }).click()
     await responsePromise
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     const userRow = page.locator('.rounded-lg').filter({ hasText: userName }).first()
@@ -219,7 +219,7 @@ test.describe('Cognito - Groups', () => {
     ).catch(() => null)
     await dialog.getByRole('button', { name: 'Create' }).click()
     await responsePromise
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByText(groupName).first()).toBeVisible({ timeout: 15000 })
   })
@@ -246,7 +246,7 @@ test.describe('Cognito - Groups', () => {
     ).catch(() => null)
     await dialog.getByRole('button', { name: 'Create' }).click()
     await createResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     const groupRow = page.locator('.rounded-lg').filter({ hasText: groupName }).first()
@@ -279,7 +279,7 @@ test.describe('Cognito - Groups', () => {
     ).catch(() => null)
     await dialog.getByRole('button', { name: 'Create' }).click()
     await createResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     const groupRow = page.locator('.rounded-lg').filter({ hasText: groupName }).first()
@@ -312,7 +312,7 @@ test.describe('Cognito - Clients', () => {
     ).catch(() => null)
     await dialog.getByRole('button', { name: 'Create' }).click()
     await createResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByText(clientName).first()).toBeVisible({ timeout: 15000 })
   })
@@ -339,7 +339,7 @@ test.describe('Cognito - Clients', () => {
     ).catch(() => null)
     await dialog.getByRole('button', { name: 'Create' }).click()
     await createResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     const clientRow = page.locator('.rounded-lg').filter({ hasText: clientName }).first()
@@ -374,7 +374,7 @@ test.describe('Cognito - Resource Servers', () => {
     ).catch(() => null)
     await dialog.getByRole('button', { name: 'Create' }).click()
     await createResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByText(rsIdentifier).first()).toBeVisible({ timeout: 15000 })
   })
@@ -401,7 +401,7 @@ test.describe('Cognito - Resource Servers', () => {
     ).catch(() => null)
     await dialog.getByRole('button', { name: 'Create' }).click()
     await createResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     const rsRow = page.locator('.rounded-lg').filter({ hasText: rsIdentifier }).first()
@@ -437,7 +437,7 @@ test.describe('Cognito - Group Membership', () => {
     ).catch(() => null)
     await dialog.getByRole('button', { name: 'Create' }).click()
     await userResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     // Create group
@@ -456,7 +456,7 @@ test.describe('Cognito - Group Membership', () => {
     ).catch(() => null)
     await groupDialog.getByRole('button', { name: 'Create' }).click()
     await groupResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     // Click Members on group row — icon-only button, use nth(1) (Edit=0, Members=1)
@@ -479,14 +479,14 @@ test.describe('Cognito - Group Membership', () => {
       }
     }
     await addBtn.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByText(userName).first()).toBeVisible({ timeout: 10000 })
 
     // Remove user from group
     const removeBtn = page.getByRole('dialog').getByRole('button', { name: /Remove/i }).first()
     if (await removeBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await removeBtn.click()
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
     }
     // Close modal
     const closeBtn = page.getByRole('dialog').getByRole('button', { name: /Close|Cancel|X/i }).first()
@@ -520,7 +520,7 @@ test.describe('Cognito - Reset Password', () => {
     ).catch(() => null)
     await createDialog.getByRole('button', { name: 'Create' }).click()
     await createResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     // Click Reset Password on user row — icon-only button, nth(1) (Edit=0, ResetPassword=1)
@@ -541,7 +541,7 @@ test.describe('Cognito - Reset Password', () => {
     ).catch(() => null)
     await resetDialog.getByRole('button', { name: /Confirm|Save|Update|Reset Password/i }).first().click()
     await resetResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
   })
 })
@@ -570,7 +570,7 @@ test.describe('Cognito - Test Login', () => {
     ).catch(() => null)
     await createDialog.getByRole('button', { name: 'Create' }).click()
     await createResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     // Create a user pool client (required for test login)
@@ -584,12 +584,12 @@ test.describe('Cognito - Test Login', () => {
     await expect(clientNameInput).toBeVisible({ timeout: 5000 })
     await clientNameInput.fill('test-client-' + Date.now())
     await clientDialog.getByRole('button', { name: 'Create' }).click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     // Go back to Users tab
     await page.getByRole('tab', { name: 'Users' }).click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Set password first (via Reset Password) — icon-only button, nth(1)
     const userRow = page.locator('.rounded-lg').filter({ hasText: userName }).first()
@@ -607,7 +607,7 @@ test.describe('Cognito - Test Login', () => {
     ).catch(() => null)
     await resetDialog.getByRole('button', { name: /Confirm|Save|Update|Reset Password/i }).first().click()
     await resetResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     // Click Test Login — icon-only button, nth(2) (Edit=0, ResetPassword=1, TestLogin=2)
@@ -634,7 +634,7 @@ test.describe('Cognito - Test Login', () => {
     ).catch(() => null)
     await loginDialog.getByRole('button', { name: /Test|Login|Submit/i }).first().click()
     await authResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Verify tokens displayed
     await expect(page.getByText(/AccessToken|IdToken|access.token/i).first()).toBeVisible({ timeout: 15000 })
@@ -675,7 +675,7 @@ test.describe('Cognito - Tags', () => {
     // Click Add button to persist tag (addRow + emitUpdate)
     const addTagBtn = page.getByRole('dialog').getByRole('button', { name: /Add/i }).first()
     await addTagBtn.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Save
     await page.getByRole('dialog').getByRole('button', { name: /Save|Update/i }).first().click()
@@ -689,7 +689,7 @@ test.describe('Cognito - Tags', () => {
       (resp: any) => resp.url().includes('/tags') && resp.request().method() === 'PUT',
       { timeout: 15000 }
     ).catch(() => null)
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     // Re-open edit and verify tag persists
@@ -753,7 +753,7 @@ test.describe('Cognito - Edit Operations', () => {
     ).catch(() => null)
     await createDialog.getByRole('button', { name: 'Create' }).click()
     await createResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     // Edit user — icon-only button, nth(0)
@@ -770,7 +770,7 @@ test.describe('Cognito - Edit Operations', () => {
       await emailInput.fill('updated@example.com')
     }
     await page.getByRole('dialog').getByRole('button', { name: /Save|Update/i }).first().click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
   })
 
@@ -797,7 +797,7 @@ test.describe('Cognito - Edit Operations', () => {
     ).catch(() => null)
     await createDialog.getByRole('button', { name: 'Create' }).click()
     await createResponse
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     // Edit group — icon-only button, nth(0)
@@ -813,7 +813,7 @@ test.describe('Cognito - Edit Operations', () => {
       await descInput.fill(newDesc)
     }
     await page.getByRole('dialog').getByRole('button', { name: /Save|Update/i }).first().click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
   })
 })
@@ -821,7 +821,7 @@ test.describe('Cognito - Edit Operations', () => {
 test.describe('Cognito - Pagination', () => {
   test('show per-page selector on User Pools tab', async ({ page }) => {
     await page.goto('/#/services/cognito')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByText('Show:').first()).toBeVisible()
     await expect(page.getByText('per page').first()).toBeVisible()
   })
@@ -848,7 +848,7 @@ test.describe('Cognito - Pagination', () => {
     ).catch(() => null)
     await dialog.getByRole('button', { name: 'Create' }).click()
     await responsePromise
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     await expect(page.getByText('Show:').first()).toBeVisible({ timeout: 15000 })
@@ -877,7 +877,7 @@ test.describe('Cognito - Pagination', () => {
     ).catch(() => null)
     await dialog.getByRole('button', { name: 'Create' }).click()
     await responsePromise
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
     await expect(page.getByText('Show:').first()).toBeVisible({ timeout: 15000 })
@@ -888,7 +888,7 @@ test.describe('Cognito - Pagination', () => {
 test.describe('Cognito - Usage Examples', () => {
   test('usage examples section visible', async ({ page }) => {
     await page.goto('/#/services/cognito')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('heading', { name: 'Usage Examples' })).toBeVisible()
   })
 })

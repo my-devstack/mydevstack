@@ -19,11 +19,14 @@ async function findParameterOnPage(page: any, paramName: string, maxPages = 5): 
 }
 
 async function createParameter(page: any, name: string, value: string, type = 'String') {
-  await page.goto('/#/services/ssm', { waitUntil: 'networkidle' })
+  await Promise.all([
+    page.waitForResponse((r) => r.url().includes('/ssm/parameters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+    page.goto('/#/services/ssm', { waitUntil: 'domcontentloaded' }),
+  ])
 
   // Click Create Parameter button (use .first() as there might be multiple matches)
   await page.getByRole('button', { name: /Create Parameter/i }).first().click()
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
 
   // Wait for modal to appear
   await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
@@ -34,7 +37,7 @@ async function createParameter(page: any, name: string, value: string, type = 'S
   // Select type if not String (default) - use selectOption for native select
   if (type !== 'String') {
     await page.getByRole('dialog').getByRole('combobox').selectOption(type)
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
   }
 
   // Fill in the value (textarea has no placeholder, use locator)
@@ -53,10 +56,13 @@ async function createParameter(page: any, name: string, value: string, type = 'S
   await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 20000 })
 
   // Wait for network idle to ensure all API calls complete
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
 
   // Reload the page to get fresh data
-  await page.reload({ waitUntil: 'networkidle' })
+  await Promise.all([
+    page.waitForResponse((r) => r.url().includes('/ssm/parameters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+    page.reload({ waitUntil: 'domcontentloaded' }),
+  ])
 
   // Wait for parameter to appear in the list (search across pages due to pagination)
   await page.waitForTimeout(2000)
@@ -72,18 +78,21 @@ async function deleteParameter(page: any, paramName: string) {
 
   // Click the delete button (TrashIcon with aria-label="Delete")
   await paramDiv.getByRole('button', { name: 'Delete' }).first().click()
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
 
   // Confirm deletion in the delete modal
   await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
   await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).first().click()
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
 
   // Wait for delete modal to close
   await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
   // Reload page to ensure fresh data load after deletion
-  await page.reload({ waitUntil: 'networkidle' })
+  await Promise.all([
+    page.waitForResponse((r) => r.url().includes('/ssm/parameters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+    page.reload({ waitUntil: 'domcontentloaded' }),
+  ])
 
   // Wait for parameter to be removed from list
   await expect(page.locator('div.cursor-pointer').filter({ hasText: paramName })).not.toBeVisible({ timeout: 15000 })
@@ -126,13 +135,13 @@ test.describe('SSM Parameter Store E2E Tests - Accordion UI', () => {
 
     // Click param div to expand accordion
     await paramDiv.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Click View Value button - find it within the same parameter container
     // The button is in SSMParameterDetails which is a sibling of paramDiv
     const paramContainer = paramDiv.locator('..')
     await paramContainer.getByText('View Value').first().click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Verify value modal appears with correct title
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
@@ -143,7 +152,7 @@ test.describe('SSM Parameter Store E2E Tests - Accordion UI', () => {
 
     // Close the modal
     await page.getByRole('dialog').getByRole('button', { name: 'Close' }).first().click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Verify modal is closed
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5000 })
@@ -165,12 +174,12 @@ test.describe('SSM Parameter Store E2E Tests - Accordion UI', () => {
 
     // Click param div to expand accordion
     await paramDiv.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Click View History button - find it within the same parameter container
     const paramContainer = paramDiv.locator('..')
     await paramContainer.getByText('View History').first().click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Verify history modal appears with correct title
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
@@ -181,7 +190,7 @@ test.describe('SSM Parameter Store E2E Tests - Accordion UI', () => {
 
     // Close the modal
     await page.getByRole('dialog').getByRole('button', { name: 'Close' }).first().click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Verify modal is closed
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5000 })
@@ -224,7 +233,7 @@ test.describe('SSM Parameter Store E2E Tests - Accordion UI', () => {
 
     // Click Delete button (TrashIcon with aria-label="Delete")
     await paramDiv.getByRole('button', { name: 'Delete' }).first().click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Verify delete confirmation modal appears - use heading role for specificity
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
@@ -232,7 +241,7 @@ test.describe('SSM Parameter Store E2E Tests - Accordion UI', () => {
 
     // Confirm deletion
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).first().click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Wait for delete modal to close
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
@@ -271,7 +280,10 @@ test.describe('SSM Parameter Store E2E Tests - Accordion UI', () => {
     await createParameter(page, paramName2, 'value2', 'String')
 
     // Reload to see both
-    await page.reload({ waitUntil: 'networkidle' })
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/ssm/parameters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.reload({ waitUntil: 'domcontentloaded' }),
+    ])
 
     // Find first parameter across pages (handles pagination)
     const found1 = await findParameterOnPage(page, paramName1)
@@ -281,7 +293,7 @@ test.describe('SSM Parameter Store E2E Tests - Accordion UI', () => {
 
     // Click first param div to expand
     await paramDiv1.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Verify first param expanded (View Value button visible in container)
     await expect(paramContainer1.getByText('View Value')).toBeVisible()
@@ -294,7 +306,7 @@ test.describe('SSM Parameter Store E2E Tests - Accordion UI', () => {
 
     // Click second param div to expand (should collapse first)
     await paramDiv2.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Verify second param expanded
     await expect(paramContainer2.getByText('View Value')).toBeVisible()
@@ -312,8 +324,10 @@ test.describe('SSM Parameter Store E2E Tests - Accordion UI', () => {
 
 test.describe('Pagination', () => {
   test('shows per-page selector when items exist', async ({ page }) => {
-    await page.goto('/#/services/ssm')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/ssm/parameters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/ssm', { waitUntil: 'domcontentloaded' }),
+    ])
     // Pagination only renders when parameters exist. Check gracefully.
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
@@ -324,8 +338,10 @@ test.describe('Pagination', () => {
   })
 
   test('change items per page when items exist', async ({ page }) => {
-    await page.goto('/#/services/ssm')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/ssm/parameters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/ssm', { waitUntil: 'domcontentloaded' }),
+    ])
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
       const paginationSection = showLabel.locator('..')
@@ -336,8 +352,10 @@ test.describe('Pagination', () => {
   })
 
   test('page navigation buttons work when paginated', async ({ page }) => {
-    await page.goto('/#/services/ssm')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/ssm/parameters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/ssm', { waitUntil: 'domcontentloaded' }),
+    ])
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
       const paginationSection = showLabel.locator('..')

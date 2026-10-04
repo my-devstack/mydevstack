@@ -24,9 +24,9 @@ async function showAllItems(page: any) {
 
 async function openTabAndExpand(page: any, tabName: string, name: string) {
   await page.goto('/#/services/api-gateway')
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
   await page.getByRole('tab', { name: tabName, exact: true }).click()
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
   await showAllItems(page)
   const row = page.locator('.border.rounded-lg').filter({ hasText: name }).first()
   await expect(row).toBeVisible({ timeout: 10000 })
@@ -169,7 +169,7 @@ test.describe('API Gateway V2', () => {
 
     // Refresh to see new route
     await page.reload()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await showAllItems(page)
     const row = page.locator('.border.rounded-lg').filter({ hasText: apiName }).first()
     await row.locator('.grid.grid-cols-12').first().click()

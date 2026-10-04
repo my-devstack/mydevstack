@@ -26,13 +26,13 @@ test.describe('Kinesis', () => {
 
   test('navigate to Kinesis page', async ({ page }) => {
     await page.goto('/#/services/kinesis')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('main').getByRole('heading', { name: 'Kinesis', exact: true })).toBeVisible()
   })
 
   test('show streams list or empty state', async ({ page }) => {
     await page.goto('/#/services/kinesis')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(1500)
 
     // Check for either streams or empty state
@@ -45,7 +45,7 @@ test.describe('Kinesis', () => {
 
   test('open create stream modal', async ({ page }) => {
     await page.goto('/#/services/kinesis')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: 'Create Stream' }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
     await expect(page.getByText('Create Kinesis Stream')).toBeVisible()
@@ -54,7 +54,7 @@ test.describe('Kinesis', () => {
   test('create stream flow', async ({ page }) => {
     const streamName = `test-create-${Date.now()}`
     await page.goto('/#/services/kinesis')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Open create modal
     await page.getByRole('button', { name: 'Create Stream' }).first().click()
@@ -76,7 +76,7 @@ test.describe('Kinesis', () => {
   test('view stream details', async ({ page }) => {
     const streamName = `test-details-${Date.now()}`
     await page.goto('/#/services/kinesis')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Create a stream first
     await page.getByRole('button', { name: 'Create Stream' }).first().click()
@@ -93,7 +93,7 @@ test.describe('Kinesis', () => {
     await page.getByText(streamName).first().click()
 
     // Wait for stream details to load in accordion
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
 
     // Verify stream details section is visible in accordion
@@ -103,7 +103,7 @@ test.describe('Kinesis', () => {
   test('put record flow', async ({ page }) => {
     const streamName = `test-record-${Date.now()}`
     await page.goto('/#/services/kinesis')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Create a stream first
     await page.getByRole('button', { name: 'Create Stream' }).first().click()
@@ -138,7 +138,7 @@ test.describe('Kinesis', () => {
   test('get records from stream', async ({ page }) => {
     const streamName = `test-records-${Date.now()}`
     await page.goto('/#/services/kinesis')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Create a stream first
     await page.getByRole('button', { name: 'Create Stream' }).first().click()
@@ -182,7 +182,7 @@ test.describe('Kinesis', () => {
 
   test('usage examples section', async ({ page }) => {
     await page.goto('/#/services/kinesis')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Scroll to usage examples
     await page.getByRole('heading', { name: 'Usage Examples' }).scrollIntoViewIfNeeded()
@@ -194,7 +194,7 @@ test.describe('Kinesis', () => {
 
   test('switch language tab', async ({ page }) => {
     await page.goto('/#/services/kinesis')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Scroll to usage examples
     await page.getByRole('heading', { name: 'Usage Examples' }).scrollIntoViewIfNeeded()
@@ -211,7 +211,7 @@ test.describe('Kinesis', () => {
 test.describe('Pagination', () => {
   test('shows per-page selector', async ({ page }) => {
     await page.goto('/#/services/kinesis')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByText('Show:')).toBeVisible({ timeout: 10000 })
     // Find select inside the Show: container (avoids region selector clash)
     const paginationSection = page.getByText('Show:').locator('..')
@@ -221,17 +221,17 @@ test.describe('Pagination', () => {
 
   test('change items per page', async ({ page }) => {
     await page.goto('/#/services/kinesis')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const paginationSection = page.getByText('Show:').locator('..')
     const perPageSelect = paginationSection.locator('select')
     await perPageSelect.selectOption('50')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(paginationSection.getByText('per page')).toBeVisible({ timeout: 5000 })
   })
 
   test('page navigation buttons work when paginated', async ({ page }) => {
     await page.goto('/#/services/kinesis')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
       const paginationSection = showLabel.locator('..')

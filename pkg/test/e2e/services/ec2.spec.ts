@@ -3,7 +3,7 @@ import { test, expect } from '../fixtures.js'
 test.describe('EC2 - Navigation', () => {
   test('navigate to EC2 page and verify 3 tabs visible', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('main').locator('h1')).toContainText('EC2')
     await expect(page.getByRole('tab', { name: 'Instances' })).toBeVisible()
     await expect(page.getByRole('tab', { name: 'Key Pairs' })).toBeVisible()
@@ -14,7 +14,7 @@ test.describe('EC2 - Navigation', () => {
 test.describe('EC2 - Tab Switching', () => {
   test('switch between all tabs', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     await page.getByRole('tab', { name: 'Key Pairs' }).click()
     await expect(page.getByRole('tab', { name: 'Key Pairs' })).toBeVisible()
@@ -30,21 +30,21 @@ test.describe('EC2 - Tab Switching', () => {
 test.describe('EC2 - Instances Tab', () => {
   test('shows instances count or list', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const count = page.getByText(/instance/).first()
     await expect(count).toBeVisible({ timeout: 10000 })
   })
 
   test('open create instance dialog', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: 'Run Instance' }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
   })
 
   test('create instance dialog has form fields', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: 'Run Instance' }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
     await expect(page.getByLabel(/image/i).first()).toBeVisible({ timeout: 5000 })
@@ -53,7 +53,7 @@ test.describe('EC2 - Instances Tab', () => {
 
   test('create instance dialog cancel closes dialog', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: 'Run Instance' }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
     await page.getByRole('button', { name: 'Cancel' }).click()
@@ -62,7 +62,7 @@ test.describe('EC2 - Instances Tab', () => {
 
   test('refresh button works', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const refreshBtn = page.getByRole('button', { name: '' }).first()
     await refreshBtn.click()
     await page.waitForTimeout(2000)
@@ -73,7 +73,7 @@ test.describe('EC2 - Instances Tab', () => {
 test.describe('EC2 - Key Pairs Tab', () => {
   test('shows key pairs content', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Key Pairs' }).click()
     await page.waitForTimeout(1000)
     // Either empty state or key pair list card is fine
@@ -83,7 +83,7 @@ test.describe('EC2 - Key Pairs Tab', () => {
 
   test('open key pair modal', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Key Pairs' }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: 'Manage Key Pairs' }).first().click()
@@ -93,7 +93,7 @@ test.describe('EC2 - Key Pairs Tab', () => {
   test('create key pair shows dialog', async ({ page }) => {
     const keyName = 'test-key-' + Date.now()
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Key Pairs' }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: 'Manage Key Pairs' }).first().click()
@@ -132,7 +132,7 @@ test.describe('EC2 - Key Pairs Tab', () => {
   test('import key pair flow', async ({ page }) => {
     const keyName = 'test-import-key-' + Date.now()
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Key Pairs' }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: 'Manage Key Pairs' }).first().click()
@@ -174,7 +174,7 @@ test.describe('EC2 - Key Pairs Tab', () => {
 test.describe('EC2 - Security Groups Tab', () => {
   test('shows security groups content', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Security Groups' }).click()
     await page.waitForTimeout(1000)
     const hasContent = await page.getByText(/group/i).first().isVisible().catch(() => false)
@@ -183,7 +183,7 @@ test.describe('EC2 - Security Groups Tab', () => {
 
   test('open create security group dialog', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Security Groups' }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: 'Create Security Group' }).first().click()
@@ -192,7 +192,7 @@ test.describe('EC2 - Security Groups Tab', () => {
 
   test('create security group form has fields', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Security Groups' }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: 'Create Security Group' }).first().click()
@@ -204,7 +204,7 @@ test.describe('EC2 - Security Groups Tab', () => {
   test('create security group with ingress rule', async ({ page }) => {
     const groupName = 'test-sg-' + Date.now()
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Security Groups' }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: 'Create Security Group' }).first().click()
@@ -250,7 +250,7 @@ test.describe('EC2 - Pagination', () => {
 
   test('pagination controls present when items exist', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const paginationVisible = await hasPagination(page)
     if (paginationVisible) {
       await expect(page.getByText('Show:').first()).toBeVisible()
@@ -265,20 +265,20 @@ test.describe('EC2 - Pagination', () => {
 test.describe('EC2 - Usage Examples', () => {
   test('usage examples section visible', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('heading', { name: 'Usage Examples' })).toBeVisible({ timeout: 10000 })
   })
 
   test('AWS CLI tab shows command text', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const codeBlock = page.locator('pre').filter({ hasText: /aws ec2/ })
     await expect(codeBlock).toBeVisible({ timeout: 10000 })
   })
 
   test('JavaScript tab shows JS example', async ({ page }) => {
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const jsTab = page.getByRole('tab', { name: /javascript|js/i }).first()
     if (await jsTab.isVisible({ timeout: 2000 }).catch(() => false)) {
       await jsTab.click()
@@ -298,7 +298,7 @@ test.describe('EC2 - Console Errors', () => {
       }
     })
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     expect(errors.length).toBe(0)
   })
 })
@@ -307,7 +307,7 @@ test.describe('EC2 - VPC Configuration', () => {
   test('create instance WITH VPC selection', async ({ page }) => {
     test.setTimeout(60000)
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Open create instance dialog
     await page.getByRole('button', { name: 'Run Instance' }).first().click()
@@ -373,7 +373,7 @@ test.describe('EC2 - VPC Configuration', () => {
   test('create instance WITHOUT VPC (default) still works', async ({ page }) => {
     test.setTimeout(60000)
     await page.goto('/#/services/ec2')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Open create instance dialog
     await page.getByRole('button', { name: 'Run Instance' }).first().click()
