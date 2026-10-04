@@ -29,6 +29,7 @@ const {
   deleteBucket: deleteBucketFromComposable,
   deleteObject: deleteObjectFromComposable,
   uploadObject,
+  uploadFiles,
   getObject,
   getPresignedUrl,
   configureLambdaTrigger,
@@ -115,25 +116,54 @@ async function deleteBucket() {
   }
 }
 
-// Upload file
+// Upload files (multi-select, key = file.name)
 async function uploadFile(event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.length || !selectedBucket.value) return
   
-  const file = input.files[0]
   error.value = null
-  
   try {
-    const arrayBuffer = await file.arrayBuffer()
-    const uint8Array = new Uint8Array(arrayBuffer)
-    await uploadObject(
-      selectedBucket.value,
-      file.name,
-      uint8Array,
-      file.type || 'application/octet-stream'
-    )
+    const entries: Array<{ key: string; body: Uint8Array; contentType: string }> = []
+    for (const file of Array.from(input.files)) {
+      if (!file.name) continue
+      const arrayBuffer = await file.arrayBuffer()
+      entries.push({
+        key: file.name,
+        body: new Uint8Array(arrayBuffer),
+        contentType: file.type || 'application/octet-stream',
+      })
+    }
+    if (entries.length === 0) return
+    await uploadFiles(selectedBucket.value, entries)
   } catch (e: any) {
     error.value = 'Failed to upload: ' + e.message
+  } finally {
+    input.value = ''
+  }
+}
+
+// Upload folder (webkitdirectory, key = file.webkitRelativePath)
+async function uploadFolder(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (!input.files?.length || !selectedBucket.value) return
+  
+  error.value = null
+  try {
+    const entries: Array<{ key: string; body: Uint8Array; contentType: string }> = []
+    for (const file of Array.from(input.files)) {
+      const key = (file as any).webkitRelativePath || file.name
+      if (!key) continue
+      const arrayBuffer = await file.arrayBuffer()
+      entries.push({
+        key,
+        body: new Uint8Array(arrayBuffer),
+        contentType: file.type || 'application/octet-stream',
+      })
+    }
+    if (entries.length === 0) return
+    await uploadFiles(selectedBucket.value, entries)
+  } catch (e: any) {
+    error.value = 'Failed to upload folder: ' + e.message
   } finally {
     input.value = ''
   }
@@ -460,6 +490,7 @@ watch(reloadTrigger, () => {
       @delete-object="confirmDeleteObject"
       @copy-link="copyObjectLink"
       @upload-file="uploadFile"
+      @upload-folder="uploadFolder"
     />
 
     <!-- Create Bucket Modal -->

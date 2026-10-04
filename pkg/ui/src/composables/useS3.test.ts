@@ -37,17 +37,21 @@ vi.mock('@/stores/ui', () => ({
   })),
 }))
 
+const mockToast = {
+  success: vi.fn(),
+  error: vi.fn(),
+}
+
 vi.mock('@/composables/useToast', () => ({
-  useToast: () => ({
-    success: vi.fn(),
-    error: vi.fn(),
-  }),
+  useToast: () => mockToast,
 }))
 
 describe('useS3', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
+    mockToast.success.mockClear()
+    mockToast.error.mockClear()
   })
 
   it('initializes with empty state', () => {
@@ -297,6 +301,141 @@ describe('useS3', () => {
     const { uploadObject, uploading } = useS3()
     await expect(uploadObject('test-bucket', 'file.txt', 'data')).rejects.toThrow('Upload failed')
     expect(uploading.value).toBe(false)
+  })
+
+  it('uploadObject accepts Uint8Array body', async () => {
+    vi.mocked(s3Api.putObject).mockResolvedValue({})
+    vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [] })
+
+    const { uploadObject } = useS3()
+    const body = new Uint8Array([1, 2, 3])
+    await uploadObject('test-bucket', 'file.bin', body, 'application/octet-stream')
+
+    expect(s3Api.putObject).toHaveBeenCalledWith('test-bucket', 'file.bin', body, 'application/octet-stream')
+  })
+
+  it('uploadFiles preserves nested relative-path keys', async () => {
+    vi.mocked(s3Api.putObject).mockResolvedValue({})
+    vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [] })
+
+    const { uploadFiles } = useS3()
+    const entries = [
+      { key: 'folder1/file1', body: new Uint8Array([1]), contentType: 'text/plain' },
+      { key: 'folder1/file2', body: new Uint8Array([2]), contentType: 'text/plain' },
+      { key: 'folder1/folder2/file3', body: new Uint8Array([3]), contentType: 'text/plain' },
+      { key: 'folder1/folder2/file4', body: new Uint8Array([4]), contentType: 'text/plain' },
+    ]
+    const result = await uploadFiles('test-bucket', entries)
+
+    expect(result.uploaded).toEqual(['folder1/file1', 'folder1/file2', 'folder1/folder2/file3', 'folder1/folder2/file4'])
+    expect(result.failed).toEqual([])
+    expect(s3Api.putObject).toHaveBeenCalledTimes(4)
+    // Verify exact keys passed
+    const keys = vi.mocked(s3Api.putObject).mock.calls.map(c => c[1])
+    expect(keys).toEqual(['folder1/file1', 'folder1/file2', 'folder1/folder2/file3', 'folder1/folder2/file4'])
+  })
+
+  it('uploadFiles uploads multiple entries', async () => {
+    vi.mocked(s3Api.putObject).mockResolvedValue({})
+    vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [] })
+
+    const { uploadFiles } = useS3()
+    const entries = [
+      { key: 'a.txt', body: new Uint8Array([1]), contentType: 'text/plain' },
+      { key: 'b.txt', body: new Uint8Array([2]), contentType: 'text/plain' },
+      { key: 'c.txt', body: new Uint8Array([3]), contentType: 'text/plain' },
+    ]
+    const result = await uploadFiles('test-bucket', entries)
+
+    expect(result.uploaded).toHaveLength(3)
+    expect(s3Api.putObject).toHaveBeenCalledTimes(3)
+  })
+
+  it('uploadFiles calls loadObjects exactly once', async () => {
+    vi.mocked(s3Api.putObject).mockResolvedValue({})
+    vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [] })
+
+    const { uploadFiles } = useS3()
+    const entries = [
+      { key: 'a.txt', body: new Uint8Array([1]), contentType: 'text/plain' },
+      { key: 'b.txt', body: new Uint8Array([2]), contentType: 'text/plain' },
+    ]
+    await uploadFiles('test-bucket', entries)
+
+    expect(s3Api.listObjects).toHaveBeenCalledTimes(1)
+    expect(s3Api.listObjects).toHaveBeenCalledWith('test-bucket')
+  })
+
+  it('uploadFiles aggregates partial failures', async () => {
+    vi.mocked(s3Api.putObject)
+      .mockResolvedValueOnce({})
+      .mockRejectedValueOnce(new Error('fail1'))
+      .mockResolvedValueOnce({})
+      .mockRejectedValueOnce(new Error('fail2'))
+    vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [] })
+
+    const { uploadFiles } = useS3()
+    const entries = [
+      { key: 'ok1.txt', body: new Uint8Array([1]), contentType: 'text/plain' },
+      { key: 'bad1.txt', body: new Uint8Array([2]), contentType: 'text/plain' },
+      { key: 'ok2.txt', body: new Uint8Array([3]), contentType: 'text/plain' },
+      { key: 'bad2.txt', body: new Uint8Array([4]), contentType: 'text/plain' },
+    ]
+    // Use concurrency 1 to ensure deterministic ordering
+    const result = await uploadFiles('test-bucket', entries, 1)
+
+    expect(result.uploaded).toEqual(['ok1.txt', 'ok2.txt'])
+    expect(result.failed).toEqual(['bad1.txt', 'bad2.txt'])
+    // loadObjects still called once
+    expect(s3Api.listObjects).toHaveBeenCalledTimes(1)
+  })
+
+  it('uploadFiles returns empty for empty entries', async () => {
+    const { uploadFiles } = useS3()
+    const result = await uploadFiles('test-bucket', [])
+
+    expect(result.uploaded).toEqual([])
+    expect(result.failed).toEqual([])
+    expect(s3Api.putObject).not.toHaveBeenCalled()
+    expect(s3Api.listObjects).not.toHaveBeenCalled()
+  })
+
+  it('uploadFiles sets uploading state', async () => {
+    vi.mocked(s3Api.putObject).mockResolvedValue({})
+    vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [] })
+
+    const { uploadFiles, uploading } = useS3()
+    expect(uploading.value).toBe(false)
+    const promise = uploadFiles('test-bucket', [{ key: 'a.txt', body: new Uint8Array([1]), contentType: 'text/plain' }])
+    // uploading should be true during execution (may already be false after await)
+    await promise
+    expect(uploading.value).toBe(false)
+  })
+
+  it('uploadFiles shows success toast when files uploaded', async () => {
+    vi.mocked(s3Api.putObject).mockResolvedValue({})
+    vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [] })
+
+    const { uploadFiles } = useS3()
+    const entries = [
+      { key: 'a.txt', body: new Uint8Array([1]), contentType: 'text/plain' },
+      { key: 'b.txt', body: new Uint8Array([2]), contentType: 'text/plain' },
+    ]
+    await uploadFiles('test-bucket', entries)
+
+    expect(mockToast.success).toHaveBeenCalledWith('2 file(s) uploaded successfully')
+  })
+
+  it('uploadFiles does not show success toast when 0 uploaded', async () => {
+    vi.mocked(s3Api.putObject).mockRejectedValue(new Error('fail'))
+    vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [] })
+
+    const { uploadFiles } = useS3()
+    const entries = [{ key: 'bad.txt', body: new Uint8Array([1]), contentType: 'text/plain' }]
+    await uploadFiles('test-bucket', entries)
+
+    expect(mockToast.success).not.toHaveBeenCalled()
+    expect(mockToast.error).toHaveBeenCalled()
   })
 
   it('getObject error throws', async () => {

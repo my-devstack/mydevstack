@@ -10,6 +10,7 @@ const mockCreateBucket = vi.fn()
 const mockDeleteBucket = vi.fn()
 const mockDeleteObject = vi.fn()
 const mockUploadObject = vi.fn()
+const mockUploadFiles = vi.fn()
 const mockGetObject = vi.fn()
 const mockGetPresignedUrl = vi.fn()
 const mockConfigureLambdaTrigger = vi.fn()
@@ -37,6 +38,7 @@ vi.mock('@/composables/useS3', () => ({
     deleteBucket: mockDeleteBucket,
     deleteObject: mockDeleteObject,
     uploadObject: mockUploadObject,
+    uploadFiles: mockUploadFiles,
     getObject: mockGetObject,
     getPresignedUrl: mockGetPresignedUrl,
     configureLambdaTrigger: mockConfigureLambdaTrigger,
@@ -364,6 +366,88 @@ describe('S3.vue', () => {
       const wrapper = mount(S3View, { global: { stubs: mountStubs } })
       await wrapper.vm.handleCreateBucket('new-bucket')
       expect(wrapper.vm.error).toContain('Generic failure')
+    })
+  })
+
+  describe('upload file/folder mapping', () => {
+    it('uploadFile maps FileList to entries with file.name as key', async () => {
+      mockUploadFiles.mockResolvedValue({ uploaded: ['a.txt', 'b.txt'], failed: [] })
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.selectedBucket = 'test-bucket'
+
+      // Create mock FileList with files
+      const file1 = new File(['content1'], 'a.txt', { type: 'text/plain' })
+      const file2 = new File(['content2'], 'b.txt', { type: 'text/plain' })
+      const mockFileList = { length: 2, item: (i: number) => [file1, file2][i], 0: file1, 1: file2 } as FileList
+      const mockEvent = { target: { files: mockFileList, value: '' } } as unknown as Event
+
+      await wrapper.vm.uploadFile(mockEvent)
+
+      expect(mockUploadFiles).toHaveBeenCalledWith('test-bucket', [
+        expect.objectContaining({ key: 'a.txt' }),
+        expect.objectContaining({ key: 'b.txt' }),
+      ])
+      // Verify body is Uint8Array
+      const call = mockUploadFiles.mock.calls[0]
+      expect(call[1][0].body).toBeInstanceOf(Uint8Array)
+      expect(call[1][1].body).toBeInstanceOf(Uint8Array)
+    })
+
+    it('uploadFolder maps FileList to entries with webkitRelativePath as key', async () => {
+      mockUploadFiles.mockResolvedValue({ uploaded: ['folder1/file1', 'folder1/file2', 'folder1/folder2/file3', 'folder1/folder2/file4'], failed: [] })
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.selectedBucket = 'test-bucket'
+
+      // Create mock files with webkitRelativePath
+      const file1 = Object.assign(new File(['a'], 'file1', { type: 'text/plain' }), { webkitRelativePath: 'folder1/file1' })
+      const file2 = Object.assign(new File(['b'], 'file2', { type: 'text/plain' }), { webkitRelativePath: 'folder1/file2' })
+      const file3 = Object.assign(new File(['c'], 'file3', { type: 'text/plain' }), { webkitRelativePath: 'folder1/folder2/file3' })
+      const file4 = Object.assign(new File(['d'], 'file4', { type: 'text/plain' }), { webkitRelativePath: 'folder1/folder2/file4' })
+      const mockFileList = { length: 4, item: (i: number) => [file1, file2, file3, file4][i], 0: file1, 1: file2, 2: file3, 3: file4 } as FileList
+      const mockEvent = { target: { files: mockFileList, value: '' } } as unknown as Event
+
+      await wrapper.vm.uploadFolder(mockEvent)
+
+      expect(mockUploadFiles).toHaveBeenCalledWith('test-bucket', [
+        expect.objectContaining({ key: 'folder1/file1' }),
+        expect.objectContaining({ key: 'folder1/file2' }),
+        expect.objectContaining({ key: 'folder1/folder2/file3' }),
+        expect.objectContaining({ key: 'folder1/folder2/file4' }),
+      ])
+      // Verify exact order
+      const call = mockUploadFiles.mock.calls[0]
+      const keys = call[1].map((e: any) => e.key)
+      expect(keys).toEqual(['folder1/file1', 'folder1/file2', 'folder1/folder2/file3', 'folder1/folder2/file4'])
+    })
+
+    it('uploadFile skips files with empty name', async () => {
+      mockUploadFiles.mockResolvedValue({ uploaded: ['a.txt'], failed: [] })
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.selectedBucket = 'test-bucket'
+
+      const file1 = new File(['content'], 'a.txt', { type: 'text/plain' })
+      const file2 = new File(['content'], '', { type: 'text/plain' }) // empty name
+      const mockFileList = { length: 2, item: (i: number) => [file1, file2][i], 0: file1, 1: file2 } as FileList
+      const mockEvent = { target: { files: mockFileList, value: '' } } as unknown as Event
+
+      await wrapper.vm.uploadFile(mockEvent)
+
+      expect(mockUploadFiles).toHaveBeenCalledWith('test-bucket', [
+        expect.objectContaining({ key: 'a.txt' }),
+      ])
+    })
+
+    it('uploadFolder does nothing when no bucket selected', async () => {
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.selectedBucket = null
+
+      const file1 = Object.assign(new File(['a'], 'file1', { type: 'text/plain' }), { webkitRelativePath: 'folder1/file1' })
+      const mockFileList = { length: 1, item: () => file1, 0: file1 } as FileList
+      const mockEvent = { target: { files: mockFileList, value: '' } } as unknown as Event
+
+      await wrapper.vm.uploadFolder(mockEvent)
+
+      expect(mockUploadFiles).not.toHaveBeenCalled()
     })
   })
 })

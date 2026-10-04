@@ -209,7 +209,10 @@ watch(
             class="block w-full rounded-md border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text px-3 py-2"
             :disabled="bucketsLoading"
           >
-            <option value="" disabled>
+            <option
+              value=""
+              disabled
+            >
               {{ bucketsLoading ? 'Loading buckets...' : 'Select an S3 bucket' }}
             </option>
             <option
@@ -295,9 +298,15 @@ watch(
             v-model="form.viewerProtocolPolicy"
             class="block w-full rounded-md border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text px-3 py-2"
           >
-            <option value="redirect-to-https">Redirect to HTTPS</option>
-            <option value="https-only">HTTPS Only</option>
-            <option value="allow-all">HTTP and HTTPS</option>
+            <option value="redirect-to-https">
+              Redirect to HTTPS
+            </option>
+            <option value="https-only">
+              HTTPS Only
+            </option>
+            <option value="allow-all">
+              HTTP and HTTPS
+            </option>
           </select>
         </div>
 
@@ -309,9 +318,15 @@ watch(
             v-model="form.priceClass"
             class="block w-full rounded-md border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text px-3 py-2"
           >
-            <option value="PriceClass_100">PriceClass_100</option>
-            <option value="PriceClass_200">PriceClass_200</option>
-            <option value="PriceClass_All">PriceClass_All</option>
+            <option value="PriceClass_100">
+              PriceClass_100
+            </option>
+            <option value="PriceClass_200">
+              PriceClass_200
+            </option>
+            <option value="PriceClass_All">
+              PriceClass_All
+            </option>
           </select>
         </div>
 
@@ -347,9 +362,15 @@ watch(
             v-model="form.priceClass"
             class="block w-full rounded-md border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text px-3 py-2"
           >
-            <option value="PriceClass_100">PriceClass_100</option>
-            <option value="PriceClass_200">PriceClass_200</option>
-            <option value="PriceClass_All">PriceClass_All</option>
+            <option value="PriceClass_100">
+              PriceClass_100
+            </option>
+            <option value="PriceClass_200">
+              PriceClass_200
+            </option>
+            <option value="PriceClass_All">
+              PriceClass_All
+            </option>
           </select>
         </div>
 

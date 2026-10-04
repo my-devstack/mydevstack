@@ -290,6 +290,68 @@ describe('S3ObjectsList', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('Choose File')
+    expect(wrapper.text()).toContain('Choose Files')
+  })
+
+  it('file input has multiple attribute', () => {
+    const wrapper = mount(S3ObjectsList, {
+      props: {
+        objects: [],
+        bucketName: 'test-bucket',
+      },
+    })
+
+    const fileInput = wrapper.find('input[type="file"][multiple]')
+    expect(fileInput.exists()).toBe(true)
+  })
+
+  it('folder input has webkitdirectory attribute', () => {
+    const wrapper = mount(S3ObjectsList, {
+      props: {
+        objects: [],
+        bucketName: 'test-bucket',
+      },
+    })
+
+    const folderInput = wrapper.find('input[type="file"][webkitdirectory]')
+    expect(folderInput.exists()).toBe(true)
+  })
+
+  it('renders Upload Folder button', () => {
+    const wrapper = mount(S3ObjectsList, {
+      props: {
+        objects: [],
+        bucketName: 'test-bucket',
+      },
+    })
+
+    expect(wrapper.text()).toContain('Upload Folder')
+  })
+
+  it('emits upload-folder when folder selected', async () => {
+    const wrapper = mount(S3ObjectsList, {
+      props: {
+        objects: [],
+        bucketName: 'test-bucket',
+      },
+    })
+
+    const folderInput = wrapper.find('input[type="file"][webkitdirectory]')
+    await folderInput.trigger('change')
+
+    expect(wrapper.emitted('upload-folder')).toBeTruthy()
+  })
+
+  it('folder input disabled when uploading', () => {
+    const wrapper = mount(S3ObjectsList, {
+      props: {
+        objects: [],
+        bucketName: 'test-bucket',
+        uploading: true,
+      },
+    })
+
+    const folderInput = wrapper.find('input[type="file"][webkitdirectory]')
+    expect(folderInput.attributes('disabled')).toBeDefined()
   })
 })

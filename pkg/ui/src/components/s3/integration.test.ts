@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
-import { S3CreateModal, S3DeleteModal, S3ViewModal } from './index'
+import { S3CreateModal, S3DeleteModal, S3ViewModal, S3ObjectsList } from './index'
 
 vi.mock('@/composables/useS3', () => ({
   useS3: vi.fn(() => ({
@@ -232,6 +232,53 @@ describe('S3 Components Integration', () => {
         global: { stubs: createStubs() },
       })
       expect(wrapper.exists()).toBe(true)
+    })
+  })
+
+  describe('Folder Upload Flow', () => {
+    it('folder selection produces nested keys via upload-folder event', async () => {
+      const wrapper = mount(S3ObjectsList, {
+        props: {
+          objects: [],
+          bucketName: 'test-bucket',
+        },
+      })
+
+      const folderInput = wrapper.find('input[type="file"][webkitdirectory]')
+      expect(folderInput.exists()).toBe(true)
+
+      // Simulate folder selection with nested files
+      const files = [
+        new File(['a'], 'file1', { type: 'text/plain' }),
+        new File(['b'], 'file2', { type: 'text/plain' }),
+        new File(['c'], 'file3', { type: 'text/plain' }),
+        new File(['d'], 'file4', { type: 'text/plain' }),
+      ]
+      // Mock webkitRelativePath
+      Object.defineProperty(files[0], 'webkitRelativePath', { value: 'folder1/file1' })
+      Object.defineProperty(files[1], 'webkitRelativePath', { value: 'folder1/file2' })
+      Object.defineProperty(files[2], 'webkitRelativePath', { value: 'folder1/folder2/file3' })
+      Object.defineProperty(files[3], 'webkitRelativePath', { value: 'folder1/folder2/file4' })
+
+      Object.defineProperty(folderInput.element, 'files', {
+        value: files,
+        writable: false,
+      })
+
+      await folderInput.trigger('change')
+
+      expect(wrapper.emitted('upload-folder')).toBeTruthy()
+      const event = wrapper.emitted('upload-folder')![0][0] as Event
+      const target = event.target as HTMLInputElement
+      expect(target.files).toHaveLength(4)
+      // Verify nested paths preserved
+      const paths = Array.from(target.files!).map((f: any) => f.webkitRelativePath)
+      expect(paths).toEqual([
+        'folder1/file1',
+        'folder1/file2',
+        'folder1/folder2/file3',
+        'folder1/folder2/file4',
+      ])
     })
   })
 })
