@@ -20,21 +20,23 @@ async function findBucketOnPage(page: any, bucketName: string, maxPages = 5): Pr
 }
 
 test.describe('S3', () => {
+  test.describe.configure({ timeout: 20000 })
+
   test('navigate to S3 service page', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('heading', { name: 'S3 Buckets' })).toBeVisible({ timeout: 15000 })
   })
 
   test('show bucket count', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByText('bucket(s)')).toBeVisible()
   })
 
   test('open create modal', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('button', { name: '+ Create Bucket' }).first()).toBeVisible({ timeout: 10000 })
     await page.getByRole('button', { name: '+ Create Bucket' }).first().click()
     await expect(page.getByText('Create New Bucket')).toBeVisible({ timeout: 10000 })
@@ -42,14 +44,14 @@ test.describe('S3', () => {
 
   test('create modal has bucket name field', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: '+ Create Bucket' }).first().click()
     await expect(page.getByPlaceholder('Enter bucket name')).toBeVisible()
   })
 
   test('cancel closes create dialog', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: '+ Create Bucket' }).first().click()
     await expect(page.getByText('Create New Bucket')).toBeVisible({ timeout: 10000 })
     await page.getByRole('button', { name: 'Cancel' }).click()
@@ -58,7 +60,7 @@ test.describe('S3', () => {
 
   test('create bucket with basic options', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     const bucketName = `test-e2e-basic-${Date.now()}`
     
@@ -70,8 +72,7 @@ test.describe('S3', () => {
     await expect(page.getByText(`Bucket "${bucketName}" created successfully`)).toBeVisible({ timeout: 10000 })
     
     // Wait for modal to close and list to refresh
-    await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(1000)
+    await page.waitForLoadState('domcontentloaded')
     
     // Verify bucket appears in list (search across pages if needed)
     const found = await findBucketOnPage(page, bucketName)
@@ -80,7 +81,7 @@ test.describe('S3', () => {
 
   test('create bucket with CORS enabled', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     const bucketName = `test-e2e-cors-${Date.now()}`
     
@@ -92,8 +93,7 @@ test.describe('S3', () => {
     await expect(page.getByText(`Bucket "${bucketName}" created successfully`)).toBeVisible({ timeout: 10000 })
     
     // Wait for modal to close and list to refresh
-    await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(2000)
+    await page.waitForLoadState('domcontentloaded')
     
     // Verify bucket appears in list (search across pages if needed)
     const found = await findBucketOnPage(page, bucketName)
@@ -102,7 +102,7 @@ test.describe('S3', () => {
 
   test('create bucket with advanced options visible', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     await page.getByRole('button', { name: '+ Create Bucket' }).first().click()
     await page.getByPlaceholder('Enter bucket name').fill('test-advanced')
@@ -124,7 +124,7 @@ test.describe('S3', () => {
 
   test('create bucket with versioning enabled', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     const bucketName = `test-e2e-versioned-${Date.now()}`
     
@@ -142,8 +142,7 @@ test.describe('S3', () => {
     await expect(page.getByText(`Bucket "${bucketName}" created successfully`)).toBeVisible({ timeout: 10000 })
     
     // Wait for modal to close and list to refresh
-    await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(2000)
+    await page.waitForLoadState('domcontentloaded')
     
     // Verify bucket appears in list (search across pages if needed)
     const found = await findBucketOnPage(page, bucketName)
@@ -152,7 +151,7 @@ test.describe('S3', () => {
 
   test('create bucket with tags', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     const bucketName = `test-e2e-tags-${Date.now()}`
     
@@ -178,8 +177,7 @@ test.describe('S3', () => {
     await expect(page.getByText(`Bucket "${bucketName}" created successfully`)).toBeVisible({ timeout: 10000 })
     
     // Wait for modal to close and list to refresh
-    await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(2000)
+    await page.waitForLoadState('domcontentloaded')
     
     // Verify bucket appears in list (search across pages if needed)
     const found = await findBucketOnPage(page, bucketName)
@@ -188,8 +186,7 @@ test.describe('S3', () => {
 
   test('select bucket to view objects', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(2000)
+    await page.waitForLoadState('domcontentloaded')
     
     // Click View Objects button on first bucket
     const viewObjectsBtn = page.locator('.border.rounded-lg button[title="View Objects"]').first()
@@ -204,7 +201,7 @@ test.describe('S3', () => {
 
   test('objects list shows upload button', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
     
     // Navigate to bucket using View Objects button
@@ -220,7 +217,7 @@ test.describe('S3', () => {
 
   test('upload button opens file dialog', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
     
     // Navigate to bucket
@@ -246,7 +243,7 @@ test.describe('S3', () => {
 
   test('view uploaded object content', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
     
     // Navigate to bucket
@@ -278,7 +275,7 @@ test.describe('S3', () => {
 
   test('copy presigned link from object', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
     
     // Navigate to bucket
@@ -304,14 +301,14 @@ test.describe('S3', () => {
 
   test('toggle versioning on existing bucket', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
 
     // Find a versioned bucket (has "Disable" button) — look for "versioned" in name
     const versionedBucket = page.locator('.border.rounded-lg span.font-medium').filter({ hasText: /versioned/ }).first()
     await expect(versionedBucket).toBeVisible({ timeout: 10000 })
     await versionedBucket.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(1500)
 
     // Find the "Disable" button in the versioning section
@@ -323,7 +320,7 @@ test.describe('S3', () => {
 
     // Click Disable
     await disableBtn.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(1000)
 
     // Verify button changed to "Enable"
@@ -333,14 +330,14 @@ test.describe('S3', () => {
 
   test('open lifecycle modal from bucket details', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
 
     // Expand first bucket by clicking its name
     const bucketName = page.locator('.border.rounded-lg span.font-medium').first()
     await expect(bucketName).toBeVisible({ timeout: 10000 })
     await bucketName.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(1500)
 
     // Click Manage Lifecycle button
@@ -355,14 +352,14 @@ test.describe('S3', () => {
 
   test('add lifecycle rule from modal', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
 
     // Expand first bucket
     const bucketName = page.locator('.border.rounded-lg span.font-medium').first()
     await expect(bucketName).toBeVisible({ timeout: 10000 })
     await bucketName.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(1500)
 
     // Click Manage Lifecycle
@@ -411,14 +408,14 @@ test.describe('S3', () => {
 
   test('delete lifecycle rules', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
 
     // Expand first bucket
     const bucketName = page.locator('.border.rounded-lg span.font-medium').first()
     await expect(bucketName).toBeVisible({ timeout: 10000 })
     await bucketName.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(1500)
 
     // Click Manage Lifecycle
@@ -455,6 +452,7 @@ test.describe('S3', () => {
       await page.waitForLoadState('domcontentloaded')
       await page.locator('.border.rounded-lg').filter({ hasText: bucketName }).getByRole('button', { name: 'View Objects' }).click()
       await page.waitForLoadState('domcontentloaded')
+      await page.locator('input[type=file][webkitdirectory]').waitFor({ state: 'attached', timeout: 5000 })
       await page.evaluate(() => {
         const input = document.querySelector('input[type=file][webkitdirectory]') as HTMLInputElement
         const dt = new DataTransfer()
@@ -484,7 +482,7 @@ test.describe('S3', () => {
 test.describe('Pagination', () => {
   test('shows per-page selector', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByText('Show:')).toBeVisible({ timeout: 10000 })
     // Find select inside the Show: container (avoids region selector clash)
     const paginationSection = page.getByText('Show:').locator('..')
@@ -494,17 +492,17 @@ test.describe('Pagination', () => {
 
   test('change items per page', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const paginationSection = page.getByText('Show:').locator('..')
     const perPageSelect = paginationSection.locator('select')
     await perPageSelect.selectOption('50')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(paginationSection.getByText('per page')).toBeVisible({ timeout: 5000 })
   })
 
   test('page navigation buttons work when paginated', async ({ page }) => {
     await page.goto('/#/services/s3')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
       const paginationSection = showLabel.locator('..')
