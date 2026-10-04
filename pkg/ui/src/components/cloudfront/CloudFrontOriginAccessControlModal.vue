@@ -97,7 +97,9 @@ watch(
           v-model="form.originType"
           class="block w-full rounded-md border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text px-3 py-2"
         >
-          <option value="s3">S3</option>
+          <option value="s3">
+            S3
+          </option>
         </select>
       </div>
 
@@ -109,8 +111,12 @@ watch(
           v-model="form.signingBehavior"
           class="block w-full rounded-md border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text px-3 py-2"
         >
-          <option value="always">Always</option>
-          <option value="never">Never</option>
+          <option value="always">
+            Always
+          </option>
+          <option value="never">
+            Never
+          </option>
         </select>
       </div>
 
@@ -122,7 +128,9 @@ watch(
           v-model="form.signingProtocol"
           class="block w-full rounded-md border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text px-3 py-2"
         >
-          <option value="sigv4">sigv4</option>
+          <option value="sigv4">
+            sigv4
+          </option>
         </select>
       </div>
 

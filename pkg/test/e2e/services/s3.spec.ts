@@ -446,6 +446,39 @@ test.describe('S3', () => {
     // Verify modal closed or empty state
     await expect(dialog).not.toBeVisible({ timeout: 10000 }).catch(() => {})
   })
+
+  test('folder upload preserves nested keys', async ({ page }) => {
+    const bucketName = `test-folder-${Date.now()}`
+    await page.request.post('http://localhost:8081/s3/buckets', { data: { Bucket: bucketName } })
+    try {
+      await page.goto('/#/services/s3')
+      await page.waitForLoadState('domcontentloaded')
+      await page.locator('.border.rounded-lg').filter({ hasText: bucketName }).getByRole('button', { name: 'View Objects' }).click()
+      await page.waitForLoadState('domcontentloaded')
+      await page.evaluate(() => {
+        const input = document.querySelector('input[type=file][webkitdirectory]') as HTMLInputElement
+        const dt = new DataTransfer()
+        const files = [
+          ['file1.txt', 'folder1/file1.txt'],
+          ['file2.txt', 'folder1/file2.txt'],
+          ['file3.txt', 'folder1/folder2/file3.txt'],
+          ['file4.txt', 'folder1/folder2/file4.txt'],
+        ]
+        for (const [name, rel] of files) {
+          const f = new File([name], name, { type: 'text/plain' })
+          Object.defineProperty(f, 'webkitRelativePath', { value: rel })
+          dt.items.add(f)
+        }
+        input.files = dt.files
+        input.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+      await expect(page.getByText('folder1/file1.txt', { exact: true })).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText('folder1/folder2/file3.txt', { exact: true })).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText('4 file(s) uploaded successfully')).toBeVisible({ timeout: 5000 })
+    } finally {
+      await page.request.delete(`http://localhost:8081/s3/buckets/${bucketName}`).catch(() => {})
+    }
+  })
 })
 
 test.describe('Pagination', () => {
@@ -484,3 +517,4 @@ test.describe('Pagination', () => {
     }
   })
 })
+

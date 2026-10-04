@@ -142,7 +142,7 @@ export function useS3() {
     }
   }
 
-  async function uploadObject(bucketName: string, key: string, body: string, contentType: string = 'text/plain') {
+  async function uploadObject(bucketName: string, key: string, body: string | Uint8Array, contentType: string = 'text/plain') {
     uploading.value = true
     try {
       await s3Api.putObject(bucketName, key, body, contentType)
@@ -154,6 +154,45 @@ export function useS3() {
     } finally {
       uploading.value = false
     }
+  }
+
+  async function uploadFiles(
+    bucketName: string,
+    entries: Array<{ key: string; body: Uint8Array; contentType: string }>,
+    concurrency: number = 5
+  ): Promise<{ uploaded: string[]; failed: string[] }> {
+    if (entries.length === 0) return { uploaded: [], failed: [] }
+    uploading.value = true
+    const uploaded: string[] = []
+    const failed: string[] = []
+    let idx = 0
+    const workers = Array.from({ length: Math.min(concurrency, entries.length) }, async () => {
+      while (true) {
+        const i = idx++
+        if (i >= entries.length) break
+        const e = entries[i]
+        try {
+          await s3Api.putObject(bucketName, e.key, e.body, e.contentType)
+          uploaded.push(e.key)
+        } catch {
+          failed.push(e.key)
+        }
+      }
+    })
+    await Promise.all(workers)
+    try {
+      await loadObjects(bucketName)
+    } catch {
+      // loadObjects already toasts; don't fail the batch
+    }
+    uploading.value = false
+    if (uploaded.length > 0) {
+      toast.success(`${uploaded.length} file(s) uploaded successfully`)
+    }
+    if (failed.length > 0) {
+      toast.error(`Upload failed for ${failed.length} file(s): ${failed.join(', ')}`)
+    }
+    return { uploaded, failed }
   }
 
   async function getObject(bucketName: string, key: string) {
@@ -318,6 +357,7 @@ export function useS3() {
     deleteBucket,
     deleteObject,
     uploadObject,
+    uploadFiles,
     getObject,
     getPresignedUrl,
     formatBody,

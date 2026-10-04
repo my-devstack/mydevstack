@@ -21,6 +21,7 @@ const emit = defineEmits<{
   'delete-object': [key: string]
   'copy-link': [key: string]
   'upload-file': [event: Event]
+  'upload-folder': [event: Event]
 }>()
 
 const settingsStore = useSettingsStore()
@@ -59,18 +60,33 @@ function formatDate(dateStr: string | undefined): string {
       class="font-semibold mb-3"
       :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'"
     >
-      Upload File
+      Upload Files
     </h3>
-    <label class="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer">
-      <span v-if="uploading">Uploading...</span>
-      <span v-else>Choose File</span>
-      <input
-        type="file"
-        class="hidden"
-        :disabled="uploading"
-        @change="(e) => emit('upload-file', e)"
-      >
-    </label>
+    <div class="flex flex-wrap gap-2">
+      <label class="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer">
+        <span v-if="uploading">Uploading...</span>
+        <span v-else>Choose Files</span>
+        <input
+          type="file"
+          multiple
+          class="hidden"
+          :disabled="uploading"
+          @change="(e) => emit('upload-file', e)"
+        >
+      </label>
+      <label class="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
+        <span v-if="uploading">Uploading...</span>
+        <span v-else>Upload Folder</span>
+        <input
+          type="file"
+          webkitdirectory
+          directory
+          class="hidden"
+          :disabled="uploading"
+          @change="(e) => emit('upload-folder', e)"
+        >
+      </label>
+    </div>
     <span
       v-if="uploading"
       class="ml-4"
