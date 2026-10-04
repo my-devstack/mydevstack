@@ -14,8 +14,43 @@ type SESv2Adapter struct {
 	client ports.SESv2ClientPort
 }
 
+// sesv2PathRewriter rewrites SDK paths to match Floci/LocalStack SESv2 API.
+// SDK v1.77+ uses different routes than Floci supports.
+type sesv2PathRewriter struct {
+	base http.RoundTripper
+}
+
+// rewriteRules maps SDK method+path to Floci method+path.
+var rewriteRules = map[string]struct {
+	method string
+	path   string
+}{
+	"POST /v2/email/list-identities": {method: "GET", path: "/v2/email/identities"},
+}
+
+func (t *sesv2PathRewriter) RoundTrip(req *http.Request) (*http.Response, error) {
+	key := req.Method + " " + req.URL.Path
+	if rule, ok := rewriteRules[key]; ok {
+		req.Method = rule.method
+		req.URL.Path = rule.path
+		// Strip body for GET requests
+		if rule.method == http.MethodGet {
+			req.Body = http.NoBody
+			req.ContentLength = 0
+			req.Header.Del("Content-Type")
+			req.Header.Del("Content-Length")
+		}
+	}
+	return t.base.RoundTrip(req)
+}
+
 func NewSESv2Adapter(awsCfg aws.Config, endpoint string) *SESv2Adapter {
-	httpClient := &http.Client{Timeout: 30 * time.Second}
+	httpClient := &http.Client{
+		Timeout: 30 * time.Second,
+		Transport: &sesv2PathRewriter{
+			base: http.DefaultTransport,
+		},
+	}
 	client := sesv2.NewFromConfig(awsCfg, func(o *sesv2.Options) {
 		o.BaseEndpoint = aws.String(endpoint)
 		o.HTTPClient = httpClient

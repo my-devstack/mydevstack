@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/sesv2"
+	"github.com/aws/smithy-go"
 	mockports "github.com/my-devstack/mydevstack/pkg/proxy/mocks/ports"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -165,6 +166,60 @@ func TestSESv2_ParseErrors(t *testing.T) {
 			r := setupTestRouter(handler)
 			w := performRequest(r, tt.method, tt.path, []byte(`{bad`))
 			assert.Equal(t, http.StatusBadRequest, w.Code, "method=%s path=%s body=%s", tt.method, tt.path, w.Body.String())
+		})
+	}
+}
+
+func TestSESv2ErrorStatus(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		err            error
+		expectedStatus int
+	}{
+		{
+			name:           "Validation error message",
+			err:            errors.New("validation error: missing field"),
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name: "NotFound APIError",
+			err: &smithy.GenericAPIError{
+				Code:    "NotFoundException",
+				Message: "resource not found",
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name: "Unsupported APIError",
+			err: &smithy.GenericAPIError{
+				Code:    "UnsupportedOperation",
+				Message: "not supported",
+			},
+			expectedStatus: http.StatusNotImplemented,
+		},
+		{
+			name: "ValidationException APIError",
+			err: &smithy.GenericAPIError{
+				Code:    "ValidationException",
+				Message: "invalid input",
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "Generic error",
+			err:            errors.New("something went wrong"),
+			expectedStatus: http.StatusInternalServerError,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			status := sesv2ErrorStatus(tt.err)
+			assert.Equal(t, tt.expectedStatus, status)
 		})
 	}
 }
