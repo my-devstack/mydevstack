@@ -1,12 +1,47 @@
 package httphandlers
 
 import (
+	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sesv2"
+	"github.com/aws/smithy-go"
 	"github.com/go-chi/chi/v5"
 )
+
+// sesv2ErrorStatus maps SESv2 SDK errors to HTTP status codes.
+// Validation errors → 400, unsupported ops → 501, not found → 404, else 500.
+func sesv2ErrorStatus(err error) int {
+	var apiErr smithy.APIError
+	if errors.As(err, &apiErr) {
+		code := apiErr.ErrorCode()
+		// Validation errors
+		if strings.Contains(code, "Validation") || strings.Contains(code, "BadRequest") {
+			return http.StatusBadRequest
+		}
+		// Not found
+		if strings.Contains(code, "NotFound") {
+			return http.StatusNotFound
+		}
+		// Unsupported operation
+		if strings.Contains(code, "Unsupported") || strings.Contains(code, "NotImplemented") {
+			return http.StatusNotImplemented
+		}
+	}
+	// Check error message for validation patterns
+	if strings.Contains(err.Error(), "validation error") {
+		return http.StatusBadRequest
+	}
+	return http.StatusInternalServerError
+}
+
+// sendSESError sends an error response with status derived from the SESv2 error type.
+func sendSESError(w http.ResponseWriter, message string, err error) {
+	status := sesv2ErrorStatus(err)
+	sendError(w, status, message, err)
+}
 
 func (h *ProxyHandler) registerSESRoutes(r chi.Router) {
 	r.Route("/sesv2", func(r chi.Router) {
@@ -45,7 +80,7 @@ func (h *ProxyHandler) listEmailIdentities(w http.ResponseWriter, r *http.Reques
 	}
 	result, err := h.Svc.SESv2().ListEmailIdentities(h.ctx, input)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Failed to list email identities", err)
+		sendSESError(w, "Failed to list email identities", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
@@ -57,7 +92,7 @@ func (h *ProxyHandler) getEmailIdentity(w http.ResponseWriter, r *http.Request) 
 	}
 	result, err := h.Svc.SESv2().GetEmailIdentity(h.ctx, input)
 	if err != nil {
-		sendErrorWithStatus(w, "Failed to get email identity", err)
+		sendSESError(w, "Failed to get email identity", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
@@ -72,7 +107,7 @@ func (h *ProxyHandler) createEmailIdentity(w http.ResponseWriter, r *http.Reques
 	}
 	result, err := h.Svc.SESv2().CreateEmailIdentity(h.ctx, input)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Failed to create email identity", err)
+		sendSESError(w, "Failed to create email identity", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
@@ -84,7 +119,7 @@ func (h *ProxyHandler) deleteEmailIdentity(w http.ResponseWriter, r *http.Reques
 	}
 	result, err := h.Svc.SESv2().DeleteEmailIdentity(h.ctx, input)
 	if err != nil {
-		sendErrorWithStatus(w, "Failed to delete email identity", err)
+		sendSESError(w, "Failed to delete email identity", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
@@ -99,7 +134,7 @@ func (h *ProxyHandler) sendEmail(w http.ResponseWriter, r *http.Request) {
 	}
 	result, err := h.Svc.SESv2().SendEmail(h.ctx, input)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Failed to send email", err)
+		sendSESError(w, "Failed to send email", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
@@ -114,7 +149,7 @@ func (h *ProxyHandler) sendBulkEmail(w http.ResponseWriter, r *http.Request) {
 	}
 	result, err := h.Svc.SESv2().SendBulkEmail(h.ctx, input)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Failed to send bulk email", err)
+		sendSESError(w, "Failed to send bulk email", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
@@ -129,7 +164,7 @@ func (h *ProxyHandler) listEmailTemplates(w http.ResponseWriter, r *http.Request
 	}
 	result, err := h.Svc.SESv2().ListEmailTemplates(h.ctx, input)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Failed to list email templates", err)
+		sendSESError(w, "Failed to list email templates", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
@@ -141,7 +176,7 @@ func (h *ProxyHandler) getEmailTemplate(w http.ResponseWriter, r *http.Request) 
 	}
 	result, err := h.Svc.SESv2().GetEmailTemplate(h.ctx, input)
 	if err != nil {
-		sendErrorWithStatus(w, "Failed to get email template", err)
+		sendSESError(w, "Failed to get email template", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
@@ -156,7 +191,7 @@ func (h *ProxyHandler) createEmailTemplate(w http.ResponseWriter, r *http.Reques
 	}
 	result, err := h.Svc.SESv2().CreateEmailTemplate(h.ctx, input)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Failed to create email template", err)
+		sendSESError(w, "Failed to create email template", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
@@ -172,7 +207,7 @@ func (h *ProxyHandler) updateEmailTemplate(w http.ResponseWriter, r *http.Reques
 	input.TemplateName = aws.String(urlParam(r, "templateName"))
 	result, err := h.Svc.SESv2().UpdateEmailTemplate(h.ctx, input)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Failed to update email template", err)
+		sendSESError(w, "Failed to update email template", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
@@ -184,7 +219,7 @@ func (h *ProxyHandler) deleteEmailTemplate(w http.ResponseWriter, r *http.Reques
 	}
 	result, err := h.Svc.SESv2().DeleteEmailTemplate(h.ctx, input)
 	if err != nil {
-		sendErrorWithStatus(w, "Failed to delete email template", err)
+		sendSESError(w, "Failed to delete email template", err)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)

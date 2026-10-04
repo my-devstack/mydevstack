@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -311,4 +312,84 @@ func TestSESv2Adapter_ListCustomVerificationEmailTemplates(t *testing.T) {
 	output, err := adapter.ListCustomVerificationEmailTemplates(ctx, input)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedOutput, output)
+}
+
+// capturingTransport captures the request after rewrite for assertion.
+type capturingTransport struct {
+	capturedMethod string
+	capturedPath   string
+	capturedBody   bool
+}
+
+func (t *capturingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	t.capturedMethod = req.Method
+	t.capturedPath = req.URL.Path
+	t.capturedBody = req.Body != nil && req.Body != http.NoBody
+	return &http.Response{StatusCode: 200, Body: http.NoBody}, nil
+}
+
+func TestSESv2PathRewriter(t *testing.T) {
+	tests := []struct {
+		name           string
+		method         string
+		path           string
+		expectedMethod string
+		expectedPath   string
+	}{
+		{
+			name:           "ListEmailIdentities rewrite",
+			method:         "POST",
+			path:           "/v2/email/list-identities",
+			expectedMethod: "GET",
+			expectedPath:   "/v2/email/identities",
+		},
+		{
+			name:           "GetEmailIdentity no rewrite",
+			method:         "GET",
+			path:           "/v2/email/identities/test@example.com",
+			expectedMethod: "GET",
+			expectedPath:   "/v2/email/identities/test@example.com",
+		},
+		{
+			name:           "CreateEmailIdentity no rewrite",
+			method:         "POST",
+			path:           "/v2/email/identities",
+			expectedMethod: "POST",
+			expectedPath:   "/v2/email/identities",
+		},
+		{
+			name:           "ListEmailTemplates no rewrite",
+			method:         "GET",
+			path:           "/v2/email/templates",
+			expectedMethod: "GET",
+			expectedPath:   "/v2/email/templates",
+		},
+		{
+			name:           "SendEmail no rewrite",
+			method:         "POST",
+			path:           "/v2/email/outbound-emails",
+			expectedMethod: "POST",
+			expectedPath:   "/v2/email/outbound-emails",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			capture := &capturingTransport{}
+			rewriter := &sesv2PathRewriter{base: capture}
+			req, err := http.NewRequest(tt.method, "http://localhost:4566"+tt.path, nil)
+			assert.NoError(t, err)
+
+			resp, err := rewriter.RoundTrip(req)
+			assert.NoError(t, err)
+			assert.Equal(t, 200, resp.StatusCode)
+			assert.Equal(t, tt.expectedMethod, capture.capturedMethod, "method mismatch")
+			assert.Equal(t, tt.expectedPath, capture.capturedPath, "path mismatch")
+
+			// For rewritten GET requests, body should be stripped
+			if tt.method != tt.expectedMethod {
+				assert.False(t, capture.capturedBody, "body should be stripped for rewritten GET")
+			}
+		})
+	}
 }
