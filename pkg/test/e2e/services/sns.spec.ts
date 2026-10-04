@@ -21,24 +21,24 @@ async function findTopicOnPage(page: any, topicName: string, maxPages = 5): Prom
 test.describe('SNS', () => {
   test('navigate to SNS', async ({ page }) => {
     await page.goto('/#/services/sns')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     await expect(page.getByRole('main').locator('h1')).toContainText('SNS', { timeout: 10000 })
   })
 
   test('load topic list', async ({ page }) => {
     await page.goto('/#/services/sns')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     await expect(page.getByText('topic').first()).toBeVisible({ timeout: 10000 })
   })
 
   test('open create topic modal', async ({ page }) => {
     await page.goto('/#/services/sns')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     await page.locator('.flex-shrink-0 button').filter({ hasText: 'Create Topic' }).click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
   })
@@ -46,7 +46,7 @@ test.describe('SNS', () => {
   test('create topic flow', async ({ page }) => {
     const topicName = `test-topic-${Date.now()}`
     await page.goto('/#/services/sns')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Open create modal
     await page.locator('.flex-shrink-0 button').filter({ hasText: 'Create Topic' }).click()
@@ -96,7 +96,7 @@ test.describe('SNS', () => {
 test.describe('Pagination', () => {
   test('shows per-page selector when items exist', async ({ page }) => {
     await page.goto('/#/services/sns')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     // Pagination only renders when topics exist. Check gracefully.
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
@@ -108,7 +108,7 @@ test.describe('Pagination', () => {
 
   test('change items per page when items exist', async ({ page }) => {
     await page.goto('/#/services/sns')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
       const paginationSection = showLabel.locator('..')
@@ -120,7 +120,7 @@ test.describe('Pagination', () => {
 
   test('page navigation buttons work when paginated', async ({ page }) => {
     await page.goto('/#/services/sns')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
       const paginationSection = showLabel.locator('..')

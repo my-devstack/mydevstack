@@ -3,7 +3,7 @@ import { test, expect } from '../fixtures.js'
 test.describe('VPC - Navigation', () => {
   test('navigate to VPC page and verify tabs visible', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('main').locator('h1')).toContainText('VPC')
     await expect(page.getByRole('tab', { name: 'VPCs' })).toBeVisible()
     await expect(page.getByRole('tab', { name: 'Subnets' })).toBeVisible()
@@ -18,7 +18,7 @@ test.describe('VPC - Navigation', () => {
 test.describe('VPC - Tab Switching', () => {
   test('switch between all VPC tabs', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     const tabs = ['VPCs', 'Subnets', 'Route Tables', 'Internet GWs', 'NAT Gateways', 'Network ACLs', 'Elastic IPs']
     for (const tabName of tabs) {
@@ -32,7 +32,7 @@ test.describe('VPC - Tab Switching', () => {
 test.describe('VPC - VPCs Tab', () => {
   test('Create VPC dialog opens and cancels', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: 'Create VPC' }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
     await page.getByRole('button', { name: 'Cancel' }).click()
@@ -41,7 +41,7 @@ test.describe('VPC - VPCs Tab', () => {
 
   test('Create VPC form has CidrBlock field', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: 'Create VPC' }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
     await expect(page.getByLabel(/cidr/i).first()).toBeVisible({ timeout: 5000 })
@@ -51,7 +51,7 @@ test.describe('VPC - VPCs Tab', () => {
 test.describe('VPC - Subnets Tab', () => {
   test('Create Subnet dialog opens and cancels', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Subnets' }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: 'Create Subnet' }).first().click()
@@ -62,7 +62,7 @@ test.describe('VPC - Subnets Tab', () => {
 
   test('Create Subnet form has form fields', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Subnets' }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: 'Create Subnet' }).first().click()
@@ -77,7 +77,7 @@ test.describe('VPC - Subnets Tab', () => {
 test.describe('VPC - Route Tables Tab', () => {
   test('Create Route Table dialog opens and cancels', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Route Tables' }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: 'Create Route Table' }).first().click()
@@ -90,7 +90,7 @@ test.describe('VPC - Route Tables Tab', () => {
 test.describe('VPC - Internet GWs Tab', () => {
   test('Create IGW dialog opens and cancels', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Internet GWs' }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: 'Create IGW' }).first().click()
@@ -103,7 +103,7 @@ test.describe('VPC - Internet GWs Tab', () => {
 test.describe('VPC - NAT Gateways Tab', () => {
   test('Create NAT Gateway dialog opens and cancels', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'NAT Gateways' }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: 'Create NAT Gateway' }).first().click()
@@ -116,7 +116,7 @@ test.describe('VPC - NAT Gateways Tab', () => {
 test.describe('VPC - Network ACLs Tab', () => {
   test('Create Network ACL dialog opens and cancels', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Network ACLs' }).click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: 'Create Network ACL' }).first().click()
@@ -129,7 +129,7 @@ test.describe('VPC - Network ACLs Tab', () => {
 test.describe('VPC - Elastic IPs Tab', () => {
   test('Elastic IPs tab renders', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Elastic IPs' }).click()
     await page.waitForTimeout(500)
     await expect(page.getByText('elastic IP').first()).toBeVisible()
@@ -137,7 +137,7 @@ test.describe('VPC - Elastic IPs Tab', () => {
 
   test('Elastic IPs tab — Allocate button visible', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('tab', { name: 'Elastic IPs' }).click()
     await page.waitForTimeout(500)
     const allocateBtn = page.getByRole('button', { name: /Allocate/i })
@@ -156,7 +156,7 @@ test.describe('VPC - Pagination', () => {
 
   test('pagination controls present when items exist', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const paginationVisible = await hasPagination(page)
     if (paginationVisible) {
       await expect(page.getByText('Show:').first()).toBeVisible()
@@ -171,20 +171,20 @@ test.describe('VPC - Pagination', () => {
 test.describe('VPC - Usage Examples', () => {
   test('usage examples section visible', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('heading', { name: 'Usage Examples' })).toBeVisible({ timeout: 10000 })
   })
 
   test('AWS CLI tab shows command text', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const codeBlock = page.locator('pre').filter({ hasText: /aws ec2.*vpc|create-vpc|create-subnet/ })
     await expect(codeBlock).toBeVisible({ timeout: 10000 })
   })
 
   test('JavaScript tab shows JS example', async ({ page }) => {
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const jsTab = page.getByRole('tab', { name: /javascript|js/i }).first()
     if (await jsTab.isVisible({ timeout: 2000 }).catch(() => false)) {
       await jsTab.click()
@@ -204,7 +204,7 @@ test.describe('VPC - Console Errors', () => {
       }
     })
     await page.goto('/#/services/vpc')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     expect(errors.length).toBe(0)
   })
 })

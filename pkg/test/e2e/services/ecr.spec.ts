@@ -28,20 +28,20 @@ async function findDeleteButtonForItem(page: any, itemName: string) {
 test.describe('ECR', () => {
   test('navigate to ECR page', async ({ page }) => {
     await page.goto('/#/services/ecr')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('heading', { name: 'ECR' }).first()).toBeVisible({ timeout: 15000 })
   })
 
   test('verify Repositories tab loads', async ({ page }) => {
     await page.goto('/#/services/ecr')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     // Should show repository count
     await expect(page.getByText('repository(ies)')).toBeVisible({ timeout: 10000 })
   })
 
   test.skip('create a repository', async ({ page }) => {
     await page.goto('/#/services/ecr')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     const repoName = `test-repo-${Date.now()}`
 
@@ -70,14 +70,14 @@ test.describe('ECR', () => {
 
   test('view repository details', async ({ page }) => {
     await page.goto('/#/services/ecr')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
 
     // Find and click on a repository to expand details
     const repoRow = page.locator('div.border.rounded-lg').first()
     if (await repoRow.isVisible({ timeout: 5000 }).catch(() => false)) {
       await repoRow.click()
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       await page.waitForTimeout(1500)
 
       // Verify URI is visible in the row
@@ -91,7 +91,7 @@ test.describe('ECR', () => {
   test.skip('delete repository', async ({ page }) => {
     test.setTimeout(60000)
     await page.goto('/#/services/ecr')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     const repoName = `test-delete-${Date.now()}`
 
@@ -130,7 +130,7 @@ test.describe('ECR', () => {
 
   test('verify code examples section shows AWS CLI push/pull commands', async ({ page }) => {
     await page.goto('/#/services/ecr')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Code Examples is a static section at the bottom, not a tab
     // Scroll down to make it visible
@@ -151,14 +151,14 @@ test.describe('ECR', () => {
 
   test('open create modal', async ({ page }) => {
     await page.goto('/#/services/ecr')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: '+ Create Repository' }).first().click()
     await expect(page.getByRole('heading', { name: 'Create ECR Repository' })).toBeVisible({ timeout: 10000 })
   })
 
   test('cancel closes create dialog', async ({ page }) => {
     await page.goto('/#/services/ecr')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: '+ Create Repository' }).first().click()
     await expect(page.getByRole('heading', { name: 'Create ECR Repository' })).toBeVisible({ timeout: 10000 })
     await page.getByRole('button', { name: 'Cancel' }).click()

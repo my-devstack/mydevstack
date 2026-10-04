@@ -7,14 +7,14 @@ test.describe('LambdaEventSourceMapping', () => {
 
   test('navigate to Lambda Event Source Mapping', async ({ page }) => {
     await page.goto('/#/services/lambda-event-source-mapping')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     await expect(page.getByRole('heading', { name: 'Lambda ESM' })).toBeVisible({ timeout: 15000 })
   })
 
   test('show empty state', async ({ page }) => {
     await page.goto('/#/services/lambda-event-source-mapping')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     // Page loads with heading - verify service is functional
     await expect(page.getByRole('heading', { name: 'Lambda ESM' })).toBeVisible({ timeout: 15000 })
@@ -22,7 +22,7 @@ test.describe('LambdaEventSourceMapping', () => {
 
   test('open create modal', async ({ page }) => {
     await page.goto('/#/services/lambda-event-source-mapping')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     await expect(page.getByRole('button', { name: 'Create Mapping' })).toBeVisible({ timeout: 10000 })
     await page.getByRole('button', { name: 'Create Mapping' }).click()
@@ -31,7 +31,7 @@ test.describe('LambdaEventSourceMapping', () => {
 
   test('create modal has required fields', async ({ page }) => {
     await page.goto('/#/services/lambda-event-source-mapping')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     await page.getByRole('button', { name: 'Create Mapping' }).click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
@@ -43,7 +43,7 @@ test.describe('LambdaEventSourceMapping', () => {
 
   test('cancel closes dialog', async ({ page }) => {
     await page.goto('/#/services/lambda-event-source-mapping')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     await page.getByRole('button', { name: 'Create Mapping' }).click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })

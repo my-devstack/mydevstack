@@ -20,7 +20,7 @@ async function findKeyOnPage(page: any, keyDescription: string, maxPages = 5): P
 // Helper function to create a KMS key
 async function createKey(page: any, description: string) {
   await page.goto('/#/services/kms')
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
 
   // Click the Create Key button in the header
   await page.locator('button:has-text("Create Key")').first().click()
@@ -36,7 +36,7 @@ async function createKey(page: any, description: string) {
 test.describe('KMS', () => {
   test('navigate to service', async ({ page }) => {
     await page.goto('/#/services/kms')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.locator('h1').first()).toContainText('KMS', { timeout: 10000 })
   })
 
@@ -146,7 +146,7 @@ test.describe('KMS', () => {
 
 test('usage examples section', async ({ page }) => {
   await page.goto('/#/services/kms')
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
   await expect(page.getByRole('heading', { name: 'Usage Examples' })).toBeVisible()
   // Verify AWS CLI tab is visible
   await expect(page.getByText('AWS CLI')).toBeVisible()
@@ -155,7 +155,7 @@ test('usage examples section', async ({ page }) => {
 test.describe('Pagination', () => {
   test('shows per-page selector', async ({ page }) => {
     await page.goto('/#/services/kms')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByText('Show:')).toBeVisible({ timeout: 10000 })
     // Find select inside the Show: container (avoids region selector clash)
     const paginationSection = page.getByText('Show:').locator('..')
@@ -165,17 +165,17 @@ test.describe('Pagination', () => {
 
   test('change items per page', async ({ page }) => {
     await page.goto('/#/services/kms')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const paginationSection = page.getByText('Show:').locator('..')
     const perPageSelect = paginationSection.locator('select')
     await perPageSelect.selectOption('50')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(paginationSection.getByText('per page')).toBeVisible({ timeout: 5000 })
   })
 
   test('page navigation buttons work when paginated', async ({ page }) => {
     await page.goto('/#/services/kms')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
       const paginationSection = showLabel.locator('..')

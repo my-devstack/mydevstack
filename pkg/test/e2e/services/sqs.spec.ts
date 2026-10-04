@@ -21,7 +21,7 @@ async function findQueueOnPage(page: any, queueName: string, maxPages = 5): Prom
 
 async function createQueue(page: any, queueName: string, fifo = false) {
   await page.goto('/#/services/sqs')
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
 
   await page.getByRole('button', { name: '+ Create Queue' }).click()
   await page.waitForTimeout(1500)
@@ -113,7 +113,7 @@ test('open view messages modal and close via X button', async ({ page }) => {
 test.describe('Pagination', () => {
   test('shows per-page selector when items exist', async ({ page }) => {
     await page.goto('/#/services/sqs')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     // Pagination only renders when queues exist. Check gracefully.
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
@@ -125,7 +125,7 @@ test.describe('Pagination', () => {
 
   test('change items per page when items exist', async ({ page }) => {
     await page.goto('/#/services/sqs')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
       const paginationSection = showLabel.locator('..')
@@ -137,7 +137,7 @@ test.describe('Pagination', () => {
 
   test('page navigation buttons work when paginated', async ({ page }) => {
     await page.goto('/#/services/sqs')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
       const paginationSection = showLabel.locator('..')

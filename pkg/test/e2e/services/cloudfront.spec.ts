@@ -70,13 +70,13 @@ test.describe('CloudFront', () => {
 
   test('navigate to CloudFront page', async ({ page }) => {
     await page.goto('/#/services/cloudfront')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('main').getByRole('heading', { name: 'CloudFront', exact: true })).toBeVisible({ timeout: 10000 })
   })
 
   test('tabs visible', async ({ page }) => {
     await page.goto('/#/services/cloudfront')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('tab', { name: 'Distributions', exact: true })).toBeVisible()
     await expect(page.getByRole('tab', { name: 'Invalidations', exact: true })).toBeVisible()
     await expect(page.getByRole('tab', { name: 'Origin Access', exact: true })).toBeVisible()
@@ -84,7 +84,7 @@ test.describe('CloudFront', () => {
 
   test('distribution visible after seed', async ({ page }) => {
     await page.goto('/#/services/cloudfront')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Set per-page to 50 if pagination exists
     const showSelect = page.getByText('Show:').locator('..').locator('select')
@@ -101,7 +101,7 @@ test.describe('CloudFront', () => {
 
   test('distribution shows domain and local URL', async ({ page }) => {
     await page.goto('/#/services/cloudfront')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     const showSelect = page.getByText('Show:').locator('..').locator('select')
     if (await showSelect.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -134,7 +134,7 @@ test.describe('CloudFront', () => {
 
   test('create invalidation', async ({ page }) => {
     await page.goto('/#/services/cloudfront')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     const showSelect = page.getByText('Show:').locator('..').locator('select')
     if (await showSelect.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -163,7 +163,7 @@ test.describe('CloudFront', () => {
 
     // Switch to Invalidations tab
     await page.getByRole('tab', { name: 'Invalidations', exact: true }).click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Invalidation should appear (may take a moment)
     await page.waitForTimeout(1000)
@@ -172,7 +172,7 @@ test.describe('CloudFront', () => {
 
   test('delete distribution', async ({ page }) => {
     await page.goto('/#/services/cloudfront')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     const showSelect = page.getByText('Show:').locator('..').locator('select')
     if (await showSelect.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -195,7 +195,7 @@ test.describe('CloudFront', () => {
 
     // Wait for dialog to close and list to refresh
     await expect(dialog).not.toBeVisible({ timeout: 10000 })
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Distribution should no longer be visible
     await expect(distRow).not.toBeVisible({ timeout: 5000 })

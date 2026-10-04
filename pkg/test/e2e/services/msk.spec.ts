@@ -16,14 +16,18 @@ test.describe('MSK', () => {
   })
 
   test('navigate to MSK page', async ({ page }) => {
-    await page.goto('/#/services/msk')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/msk/clusters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/msk', { waitUntil: 'domcontentloaded' }),
+    ])
     await expect(page.getByRole('main').getByRole('heading', { name: 'MSK', exact: true })).toBeVisible()
   })
 
   test('show cluster list or empty state', async ({ page }) => {
-    await page.goto('/#/services/msk')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/msk/clusters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/msk', { waitUntil: 'domcontentloaded' }),
+    ])
     await page.waitForTimeout(1500)
 
     // Check for either clusters or empty state
@@ -35,8 +39,10 @@ test.describe('MSK', () => {
   })
 
   test('open create cluster modal', async ({ page }) => {
-    await page.goto('/#/services/msk')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/msk/clusters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/msk', { waitUntil: 'domcontentloaded' }),
+    ])
     await page.getByRole('button', { name: 'Create Cluster' }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
     await expect(page.getByText('Create MSK Cluster')).toBeVisible()
@@ -44,8 +50,10 @@ test.describe('MSK', () => {
 
   test('create cluster flow with VPC selection', async ({ page }) => {
     const clusterName = `test-create-${Date.now()}`
-    await page.goto('/#/services/msk')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/msk/clusters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/msk', { waitUntil: 'domcontentloaded' }),
+    ])
 
     // Open create modal
     await page.getByRole('button', { name: 'Create Cluster' }).first().click()
@@ -88,8 +96,10 @@ test.describe('MSK', () => {
 
   test('create cluster WITHOUT VPC (emulator default)', async ({ page }) => {
     const clusterName = `test-novpc-${Date.now()}`
-    await page.goto('/#/services/msk')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/msk/clusters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/msk', { waitUntil: 'domcontentloaded' }),
+    ])
 
     // Open create modal
     await page.getByRole('button', { name: 'Create Cluster' }).first().click()
@@ -112,8 +122,10 @@ test.describe('MSK', () => {
 
   test('expand cluster details', async ({ page }) => {
     const clusterName = `test-details-${Date.now()}`
-    await page.goto('/#/services/msk')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/msk/clusters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/msk', { waitUntil: 'domcontentloaded' }),
+    ])
 
     // Create a cluster first
     await page.getByRole('button', { name: 'Create Cluster' }).first().click()
@@ -130,7 +142,7 @@ test.describe('MSK', () => {
     await page.getByText(clusterName, { exact: true }).first().click()
 
     // Wait for cluster details to load in accordion
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
 
     // Verify cluster details section is visible in accordion
@@ -141,8 +153,10 @@ test.describe('MSK', () => {
 
   test('view bootstrap brokers', async ({ page }) => {
     const clusterName = `test-brokers-${Date.now()}`
-    await page.goto('/#/services/msk')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/msk/clusters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/msk', { waitUntil: 'domcontentloaded' }),
+    ])
 
     // Create a cluster first
     await page.getByRole('button', { name: 'Create Cluster' }).first().click()
@@ -165,8 +179,10 @@ test.describe('MSK', () => {
 
   test('delete cluster flow', async ({ page }) => {
     const clusterName = `test-delete-${Date.now()}`
-    await page.goto('/#/services/msk')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/msk/clusters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/msk', { waitUntil: 'domcontentloaded' }),
+    ])
 
     // Create a cluster first
     await page.getByRole('button', { name: 'Create Cluster' }).first().click()
@@ -196,8 +212,10 @@ test.describe('MSK', () => {
   })
 
   test('usage examples section', async ({ page }) => {
-    await page.goto('/#/services/msk')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/msk/clusters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/msk', { waitUntil: 'domcontentloaded' }),
+    ])
 
     // Scroll to usage examples
     await page.getByRole('heading', { name: 'Usage Examples' }).scrollIntoViewIfNeeded()
@@ -208,8 +226,10 @@ test.describe('MSK', () => {
   })
 
   test('switch language tab', async ({ page }) => {
-    await page.goto('/#/services/msk')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/msk/clusters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/msk', { waitUntil: 'domcontentloaded' }),
+    ])
 
     // Scroll to usage examples
     await page.getByRole('heading', { name: 'Usage Examples' }).scrollIntoViewIfNeeded()
@@ -232,8 +252,10 @@ test.describe('MSK', () => {
 
 test.describe('Pagination', () => {
   test('shows per-page selector', async ({ page }) => {
-    await page.goto('/#/services/msk')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/msk/clusters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/msk', { waitUntil: 'domcontentloaded' }),
+    ])
     await expect(page.getByText('Show:')).toBeVisible({ timeout: 10000 })
     // Find select inside the Show: container (avoids region selector clash)
     const paginationSection = page.getByText('Show:').locator('..')
@@ -242,18 +264,22 @@ test.describe('Pagination', () => {
   })
 
   test('change items per page', async ({ page }) => {
-    await page.goto('/#/services/msk')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/msk/clusters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/msk', { waitUntil: 'domcontentloaded' }),
+    ])
     const paginationSection = page.getByText('Show:').locator('..')
     const perPageSelect = paginationSection.locator('select')
     await perPageSelect.selectOption('50')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(paginationSection.getByText('per page')).toBeVisible({ timeout: 5000 })
   })
 
   test('page navigation buttons work when paginated', async ({ page }) => {
-    await page.goto('/#/services/msk')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/msk/clusters') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/msk', { waitUntil: 'domcontentloaded' }),
+    ])
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
       const paginationSection = showLabel.locator('..')

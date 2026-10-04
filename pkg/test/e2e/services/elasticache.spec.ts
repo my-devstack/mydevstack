@@ -3,19 +3,19 @@ import { test, expect } from '../fixtures.js'
 test.describe('ElastiCache', () => {
   test('navigate to ElastiCache page', async ({ page }) => {
     await page.goto('/#/services/elasticache')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('main').locator('h1')).toContainText('ElastiCache')
   })
 
   test('show group count', async ({ page }) => {
     await page.goto('/#/services/elasticache')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('main').getByText(/group/).first()).toBeVisible()
   })
 
   test('open create modal', async ({ page }) => {
     await page.goto('/#/services/elasticache')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: 'Create Group' }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
     await expect(page.getByRole('heading', { name: 'Create Replication Group' })).toBeVisible()
@@ -23,7 +23,7 @@ test.describe('ElastiCache', () => {
 
   test('create modal has required fields', async ({ page }) => {
     await page.goto('/#/services/elasticache')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: 'Create Group' }).first().click()
     await expect(page.getByLabel('Replication Group ID')).toBeVisible()
     await expect(page.getByLabel('Description')).toBeVisible()
@@ -33,7 +33,7 @@ test.describe('ElastiCache', () => {
 
   test('create modal cancel closes dialog', async ({ page }) => {
     await page.goto('/#/services/elasticache')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: 'Create Group' }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
     await page.getByRole('button', { name: 'Cancel' }).click()
@@ -42,7 +42,7 @@ test.describe('ElastiCache', () => {
 
   test('refresh button works', async ({ page }) => {
     await page.goto('/#/services/elasticache')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const refreshBtn = page.getByRole('button', { name: '' }).first()
     await refreshBtn.click()
     await page.waitForTimeout(2000)
@@ -51,20 +51,20 @@ test.describe('ElastiCache', () => {
 
   test('usage examples visible', async ({ page }) => {
     await page.goto('/#/services/elasticache')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('heading', { name: 'Usage Examples', level: 3 })).toBeVisible()
   })
 
   test('AWS CLI example visible', async ({ page }) => {
     await page.goto('/#/services/elasticache')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const codeBlock = page.locator('pre').filter({ hasText: /aws elasticache/ })
     await expect(codeBlock).toBeVisible({ timeout: 10000 })
   })
 
   test('region selector visible', async ({ page }) => {
     await page.goto('/#/services/elasticache')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByRole('combobox')).toBeVisible()
   })
 })
@@ -73,7 +73,7 @@ test.describe('ElastiCache - VPC Configuration', () => {
   test('create replication group WITH VPC selection', async ({ page }) => {
     test.setTimeout(60000)
     await page.goto('/#/services/elasticache')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Open create modal
     await page.getByRole('button', { name: 'Create Group' }).first().click()
@@ -130,7 +130,7 @@ test.describe('ElastiCache - VPC Configuration', () => {
   test('create replication group WITHOUT VPC (default) still works', async ({ page }) => {
     test.setTimeout(60000)
     await page.goto('/#/services/elasticache')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     await page.getByRole('button', { name: 'Create Group' }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })

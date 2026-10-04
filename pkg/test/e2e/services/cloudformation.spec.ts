@@ -26,12 +26,12 @@ test.describe('CloudFormation', () => {
   })
 
   test('navigate to CloudFormation', async ({ page }) => {
-    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+    await page.goto('/#/services/cloudformation', { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('main').locator('h1')).toContainText('CloudFormation', { timeout: 10000 })
   })
 
   test('load stack list', async ({ page }) => {
-    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+    await page.goto('/#/services/cloudformation', { waitUntil: 'domcontentloaded' })
 
     // Wait for either stacks or empty state
     await page.waitForSelector('text=/stack|No stacks found/i', { timeout: 10000 })
@@ -42,7 +42,7 @@ test.describe('CloudFormation', () => {
   })
 
   test('open create stack modal', async ({ page }) => {
-    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+    await page.goto('/#/services/cloudformation', { waitUntil: 'domcontentloaded' })
 
     await page.getByText('+ Create Stack').first().click()
     await expect(page.getByText('Create New Stack')).toBeVisible({ timeout: 10000 })
@@ -51,7 +51,7 @@ test.describe('CloudFormation', () => {
   test('create stack flow', async ({ page }) => {
     test.setTimeout(60000) // CF creation async, need more time
 
-    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+    await page.goto('/#/services/cloudformation', { waitUntil: 'domcontentloaded' })
 
     // Step 1: Click to open modal
     await page.getByText('+ Create Stack').first().click()
@@ -75,7 +75,7 @@ test.describe('CloudFormation', () => {
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 20000 })
 
     // Step 6: Wait for page reload (triggered by window.location.reload())
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Step 7: Wait for the new stack to appear in the list (CF async, use long timeout)
     // Handle pagination - search through pages to find the stack
@@ -89,7 +89,7 @@ test.describe('CloudFormation', () => {
         const isDisabled = await nextBtn.isDisabled().catch(() => true)
         if (isDisabled) break
         await nextBtn.click()
-        await page.waitForLoadState('networkidle')
+        await page.waitForLoadState('domcontentloaded')
       }
       stackRow = page.locator('.cursor-pointer').filter({ hasText: stackName })
       found = await stackRow.isVisible().catch(() => false)
@@ -101,7 +101,7 @@ test.describe('CloudFormation', () => {
   })
 
   test('accordion expands and collapses', async ({ page }) => {
-    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+    await page.goto('/#/services/cloudformation', { waitUntil: 'domcontentloaded' })
 
     // Find a stack to test
     const stackRow = page.locator('div.cursor-pointer').first()
@@ -132,7 +132,7 @@ test.describe('CloudFormation', () => {
   test('delete stack flow', async ({ page }) => {
     test.setTimeout(90000) // CF async operations need long timeout
 
-    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+    await page.goto('/#/services/cloudformation', { waitUntil: 'domcontentloaded' })
 
     // Create a stack to delete
     await page.getByText('+ Create Stack').first().click()
@@ -148,7 +148,7 @@ test.describe('CloudFormation', () => {
 
     await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 20000 })
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Search for the stack with pagination
     const maxPages = 10
@@ -161,7 +161,7 @@ test.describe('CloudFormation', () => {
         const isDisabled = await nextBtn.isDisabled().catch(() => true)
         if (isDisabled) break
         await nextBtn.click()
-        await page.waitForLoadState('networkidle')
+        await page.waitForLoadState('domcontentloaded')
       }
       stackRow = page.locator('div.cursor-pointer').filter({ hasText: stackName })
       found = await stackRow.isVisible().catch(() => false)
@@ -189,7 +189,7 @@ test.describe('CloudFormation', () => {
   })
 
   test('error state - invalid template', async ({ page }) => {
-    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+    await page.goto('/#/services/cloudformation', { waitUntil: 'domcontentloaded' })
 
     // Step 1: Click to open modal
     await page.getByText('+ Create Stack').first().click()
@@ -210,7 +210,7 @@ test.describe('CloudFormation', () => {
   })
 
   test('error state - missing stack name', async ({ page }) => {
-    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+    await page.goto('/#/services/cloudformation', { waitUntil: 'domcontentloaded' })
 
     // Step 1: Click to open modal
     await page.getByText('+ Create Stack').first().click()
@@ -230,7 +230,7 @@ test.describe('CloudFormation', () => {
   })
 
   test('switch to YAML format', async ({ page }) => {
-    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+    await page.goto('/#/services/cloudformation', { waitUntil: 'domcontentloaded' })
 
     // Open modal
     await page.getByText('+ Create Stack').first().click()
@@ -249,7 +249,7 @@ test.describe('CloudFormation', () => {
   test('create stack with YAML template', async ({ page }) => {
     test.setTimeout(60000)
 
-    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+    await page.goto('/#/services/cloudformation', { waitUntil: 'domcontentloaded' })
 
     // Open modal
     await page.getByText('+ Create Stack').first().click()
@@ -275,7 +275,7 @@ Resources:
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 20000 })
 
     // Wait for page reload
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Verify the stack appears in list
     const maxPages = 10
@@ -288,7 +288,7 @@ Resources:
         const isDisabled = await nextBtn.isDisabled().catch(() => true)
         if (isDisabled) break
         await nextBtn.click()
-        await page.waitForLoadState('networkidle')
+        await page.waitForLoadState('domcontentloaded')
       }
       stackRow = page.locator('.cursor-pointer').filter({ hasText: stackName })
       found = await stackRow.isVisible().catch(() => false)
@@ -298,7 +298,7 @@ Resources:
   })
 
   test('validation error with invalid YAML', async ({ page }) => {
-    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+    await page.goto('/#/services/cloudformation', { waitUntil: 'domcontentloaded' })
 
     // Open modal
     await page.getByText('+ Create Stack').first().click()
@@ -329,7 +329,7 @@ Resources:
   })
 
   test('usage examples section visible', async ({ page }) => {
-    await page.goto('/#/services/cloudformation', { waitUntil: 'networkidle' })
+    await page.goto('/#/services/cloudformation', { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('heading', { name: 'Usage Examples' })).toBeVisible()
   })
 })

@@ -18,8 +18,10 @@ async function findStateMachineOnPage(page: any, machineName: string, maxPages =
 }
 
 async function createStateMachine(page: any, machineName: string) {
-  await page.goto('/#/services/step-functions')
-  await page.waitForLoadState('networkidle')
+  await Promise.all([
+    page.waitForResponse((r) => r.url().includes('/step-functions/state-machines') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+    page.goto('/#/services/step-functions', { waitUntil: 'domcontentloaded' }),
+  ])
   await expect(page.getByRole('button', { name: 'Create State Machine' }).first()).toBeVisible()
   await page.getByRole('button', { name: 'Create State Machine' }).first().click()
   await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
@@ -28,19 +30,26 @@ async function createStateMachine(page: any, machineName: string) {
   await page.getByLabel('Definition').fill('{"StartAt": "HelloWorld", "States": {"HelloWorld": {"Type": "Pass", "End": true}}}')
   await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
   await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
-  await page.reload({ waitUntil: 'networkidle' })
+  await Promise.all([
+    page.waitForResponse((r) => r.url().includes('/step-functions/state-machines') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+    page.reload({ waitUntil: 'domcontentloaded' }),
+  ])
 }
 
 test.describe('Step Functions', () => {
   test('navigate to step functions page', async ({ page }) => {
-    await page.goto('/#/services/step-functions')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/step-functions/state-machines') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/step-functions', { waitUntil: 'domcontentloaded' }),
+    ])
     await expect(page.getByRole('main').locator('h1')).toContainText('Step Functions')
   })
 
   test('show state machine count', async ({ page }) => {
-    await page.goto('/#/services/step-functions')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/step-functions/state-machines') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/step-functions', { waitUntil: 'domcontentloaded' }),
+    ])
     await expect(page.getByRole('main').getByText(/state machine/i).first()).toBeVisible()
   })
 
@@ -55,7 +64,7 @@ test.describe('Step Functions', () => {
     const machineName = 'test-machine-del-' + Date.now()
     await createStateMachine(page, machineName)
     // Wait for page to settle after creation
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const found = await findStateMachineOnPage(page, machineName)
     expect(found).toBe(true)
     // Use more specific selector: find div with both 'border' and 'rounded-lg' classes
@@ -63,7 +72,7 @@ test.describe('Step Functions', () => {
     await machineRow.locator('[aria-label="Delete"]').click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByText(machineName).first()).not.toBeVisible({ timeout: 15000 })
   })
 
@@ -112,16 +121,20 @@ test.describe('Step Functions', () => {
   })
 
   test('open create modal', async ({ page }) => {
-    await page.goto('/#/services/step-functions')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/step-functions/state-machines') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/step-functions', { waitUntil: 'domcontentloaded' }),
+    ])
     await page.getByRole('button', { name: 'Create State Machine' }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
     await expect(page.getByRole('heading', { name: /create state machine/i })).toBeVisible()
   })
 
   test('create modal has required fields', async ({ page }) => {
-    await page.goto('/#/services/step-functions')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/step-functions/state-machines') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/step-functions', { waitUntil: 'domcontentloaded' }),
+    ])
     await page.getByRole('button', { name: 'Create State Machine' }).first().click()
     await expect(page.getByLabel(/name/i)).toBeVisible()
     await expect(page.getByLabel(/definition/i)).toBeVisible()
@@ -130,7 +143,7 @@ test.describe('Step Functions', () => {
 
   test('create modal cancel closes dialog', async ({ page }) => {
     await page.goto('/#/services/step-functions')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.getByRole('button', { name: 'Create State Machine' }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
     await page.getByRole('button', { name: 'Cancel' }).click()
@@ -170,7 +183,7 @@ test.describe('Step Functions', () => {
     expect(found).toBe(true)
     // Click View Detail to go to detail view
     await page.getByRole('button', { name: 'View Detail' }).first().click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     // Verify detail view shows ARN label and metadata
     await expect(page.getByText(/arn/i).first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText(/status/i).first()).toBeVisible({ timeout: 5000 })
@@ -180,8 +193,10 @@ test.describe('Step Functions', () => {
 
 test.describe('Pagination', () => {
   test('shows per-page selector when items exist', async ({ page }) => {
-    await page.goto('/#/services/step-functions')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/step-functions/state-machines') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/step-functions', { waitUntil: 'domcontentloaded' }),
+    ])
     // Pagination only renders when state machines exist. Check gracefully.
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
@@ -192,8 +207,10 @@ test.describe('Pagination', () => {
   })
 
   test('change items per page when items exist', async ({ page }) => {
-    await page.goto('/#/services/step-functions')
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/step-functions/state-machines') && r.request().method() === 'GET' && r.ok(), { timeout: 15000 }).catch(() => {}),
+      page.goto('/#/services/step-functions', { waitUntil: 'domcontentloaded' }),
+    ])
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
       const paginationSection = showLabel.locator('..')
@@ -205,7 +222,7 @@ test.describe('Pagination', () => {
 
   test('page navigation buttons work when paginated', async ({ page }) => {
     await page.goto('/#/services/step-functions')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     const showLabel = page.getByText('Show:')
     if (await showLabel.isVisible().catch(() => false)) {
       const paginationSection = showLabel.locator('..')
