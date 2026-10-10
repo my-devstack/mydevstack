@@ -31,7 +31,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sesv2 v1.77.0
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.51.1
 	github.com/aws/aws-sdk-go-v2/service/sns v1.47.2
-	github.com/aws/aws-sdk-go-v2/service/sqs v1.52.1
+	github.com/aws/aws-sdk-go-v2/service/sqs v1.52.2
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.79.0
 	github.com/aws/smithy-go v1.28.2
 	github.com/beabys/ayotl v1.1.3
