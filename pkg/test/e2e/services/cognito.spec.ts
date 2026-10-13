@@ -1,5 +1,7 @@
 import { test, expect } from '../fixtures.js'
 
+const PROXY_URL = process.env.PROXY_URL || 'http://localhost:8081'
+
 async function showAllItems(page: any) {
   const showLabel = page.getByText('Show:')
   if (await showLabel.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -548,67 +550,72 @@ test.describe('Cognito - Reset Password', () => {
 
 test.describe('Cognito - Test Login', () => {
   test('test login for user and verify tokens', async ({ page }) => {
-    test.setTimeout(120000)
-    const poolName = 'test-pool-login-' + Date.now()
-    const userName = 'test-user-login-' + Date.now()
+    test.setTimeout(30000)
+    const ts = Date.now()
+    const poolName = 'test-pool-login-' + ts
+    const userName = 'test-user-login-' + ts
+    const clientName = 'test-client-login-' + ts
+    const password = 'TestPass123!'
 
-    await createUserPool(page, poolName)
-    await selectPoolOnTab(page, 'Users', poolName)
+    // Seed pool via Node fetch (not page.request — hangs)
+    const poolResp = await fetch(`${PROXY_URL}/cognito/user-pools`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ PoolName: poolName }),
+    })
+    expect(poolResp.status).toBe(200)
+    const poolJson = await poolResp.json()
+    const poolId = poolJson.UserPool.Id
 
-    // Create user
-    const createBtn = page.getByRole('button', { name: /Create User/i }).first()
-    await expect(createBtn).toBeVisible({ timeout: 10000 })
-    await createBtn.click()
-    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
-    const createDialog = page.getByRole('dialog')
-    const nameInput = createDialog.locator('input[type="text"]').first()
-    await expect(nameInput).toBeVisible({ timeout: 5000 })
-    await nameInput.fill(userName)
-    const createResponse = page.waitForResponse(
-      (resp: any) => resp.url().includes('/users') && resp.request().method() === 'POST',
-      { timeout: 15000 }
-    ).catch(() => null)
-    await createDialog.getByRole('button', { name: 'Create' }).click()
-    await createResponse
+    // Seed user
+    const userResp = await fetch(`${PROXY_URL}/cognito/user-pools/${poolId}/users`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ Username: userName }),
+    })
+    expect(userResp.status).toBe(200)
+
+    // Seed client with ExplicitAuthFlows
+    const clientResp = await fetch(`${PROXY_URL}/cognito/user-pools/${poolId}/clients`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ClientName: clientName,
+        ExplicitAuthFlows: ['ALLOW_ADMIN_USER_PASSWORD_AUTH'],
+      }),
+    })
+    expect(clientResp.status).toBe(200)
+    const clientJson = await clientResp.json()
+    const clientId = clientJson.UserPoolClient.ClientId
+
+    // Set password
+    const pwResp = await fetch(
+      `${PROXY_URL}/cognito/user-pools/${poolId}/users/${userName}/password`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ Password: password, Permanent: true }),
+      }
+    )
+    expect(pwResp.status).toBe(200)
+
+    // Navigate to UI
+    await page.goto('/#/services/cognito')
     await page.waitForLoadState('domcontentloaded')
-    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
 
-    // Create a user pool client (required for test login)
-    await selectPoolOnTab(page, 'Clients', poolName)
-    const createClientBtn = page.getByRole('button', { name: /Create Client/i }).first()
-    await expect(createClientBtn).toBeVisible({ timeout: 10000 })
-    await createClientBtn.click()
-    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
-    const clientDialog = page.getByRole('dialog')
-    const clientNameInput = clientDialog.locator('input[type="text"]').first()
-    await expect(clientNameInput).toBeVisible({ timeout: 5000 })
-    await clientNameInput.fill('test-client-' + Date.now())
-    await clientDialog.getByRole('button', { name: 'Create' }).click()
-    await page.waitForLoadState('domcontentloaded')
-    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
-
-    // Go back to Users tab
+    // Select Users tab
     await page.getByRole('tab', { name: 'Users' }).click()
     await page.waitForLoadState('domcontentloaded')
 
-    // Set password first (via Reset Password) — icon-only button, nth(1)
-    const userRow = page.locator('.rounded-lg').filter({ hasText: userName }).first()
-    const resetBtn = userRow.locator('button').nth(1)
-    await expect(resetBtn).toBeVisible({ timeout: 10000 })
-    await resetBtn.click()
-    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15000 })
-    const resetDialog = page.getByRole('dialog')
-    const pwInput = resetDialog.locator('input[type="password"]').first()
-    await expect(pwInput).toBeVisible({ timeout: 5000 })
-    await pwInput.fill('TestPass123!')
-    const resetResponse = page.waitForResponse(
-      (resp: any) => resp.url().includes('/password') && resp.request().method() === 'PUT',
-      { timeout: 15000 }
-    ).catch(() => null)
-    await resetDialog.getByRole('button', { name: /Confirm|Save|Update|Reset Password/i }).first().click()
-    await resetResponse
+    // Select pool from dropdown
+    const poolSelect = page.locator('label', { hasText: 'User Pool:' }).locator('..').locator('select')
+    await expect(poolSelect).toBeVisible({ timeout: 10000 })
+    await poolSelect.selectOption({ label: poolName })
     await page.waitForLoadState('domcontentloaded')
-    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15000 })
+
+    // Find user row
+    const userRow = page.locator('.rounded-lg').filter({ hasText: userName }).first()
+    await expect(userRow).toBeVisible({ timeout: 10000 })
 
     // Click Test Login — icon-only button, nth(2) (Edit=0, ResetPassword=1, TestLogin=2)
     const testLoginBtn = userRow.locator('button').nth(2)
@@ -618,21 +625,19 @@ test.describe('Cognito - Test Login', () => {
 
     // Enter password and test
     const loginDialog = page.getByRole('dialog')
-
-    // Select the client from dropdown
     const clientSelect = loginDialog.locator('select').first()
     await expect(clientSelect).toBeVisible({ timeout: 5000 })
-    // Select the first (and only) client option (index 0 is "Select a client...")
-    await clientSelect.selectOption({ index: 1 })
+    await clientSelect.selectOption(clientId)
 
     const loginPwInput = loginDialog.locator('input[type="password"]').first()
     await expect(loginPwInput).toBeVisible({ timeout: 5000 })
-    await loginPwInput.fill('TestPass123!')
+    await loginPwInput.fill(password)
+
     const authResponse = page.waitForResponse(
       (resp: any) => resp.url().includes('/admin-initiate-auth'),
       { timeout: 15000 }
     ).catch(() => null)
-    await loginDialog.getByRole('button', { name: /Test|Login|Submit/i }).first().click()
+    await loginDialog.getByRole('button', { name: 'Test Login' }).click()
     await authResponse
     await page.waitForLoadState('domcontentloaded')
 
@@ -644,6 +649,11 @@ test.describe('Cognito - Test Login', () => {
     if (await closeBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
       await closeBtn.click()
     }
+
+    // Cleanup via Node fetch
+    await fetch(`${PROXY_URL}/cognito/user-pools/${poolId}/clients/${clientId}`, { method: 'DELETE' })
+    await fetch(`${PROXY_URL}/cognito/user-pools/${poolId}/users/${userName}`, { method: 'DELETE' })
+    await fetch(`${PROXY_URL}/cognito/user-pools/${poolId}`, { method: 'DELETE' })
   })
 })
 
