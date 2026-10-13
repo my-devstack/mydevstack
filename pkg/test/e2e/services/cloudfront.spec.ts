@@ -113,8 +113,9 @@ test.describe('CloudFront', () => {
     })
 
     // Domain shown (first font-mono span = domain, second = local URL)
+    // floci returns DomainName lowercase, Id uppercase → assert case-insensitive
     const domainSpan = distRow.locator('span.font-mono').first()
-    await expect(domainSpan).toContainText(distributionId)
+    await expect(domainSpan).toContainText(distributionId.toLowerCase())
 
     // Local URL button exists
     const localUrlBtn = distRow.locator('button[title="Copy local viewer URL"]')
