@@ -34,6 +34,7 @@ const emit = defineEmits<{
   'select-object': [key: string]
   'download-object': [key: string]
   'delete-object': [key: string]
+  'delete-folder': [prefix: string]
   'copy-link': [key: string]
   'upload-file': [event: Event]
   'upload-folder': [event: Event]
@@ -290,7 +291,15 @@ const emptyMessage = computed(() => {
             -
           </td>
           <td class="px-4 py-3">
-            <span class="text-gray-400 text-sm">Folder</span>
+            <button
+              type="button"
+              class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+              title="Delete Folder"
+              aria-label="Delete Folder"
+              @click.stop="emit('delete-folder', folder.fullPrefix)"
+            >
+              <TrashIcon class="w-4 h-4" />
+            </button>
           </td>
         </tr>
 

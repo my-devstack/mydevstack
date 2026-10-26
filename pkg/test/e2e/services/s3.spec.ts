@@ -644,5 +644,59 @@ test.describe('S3 folder navigation', () => {
       await cleanupBucket(page, bucket)
     }
   })
+
+  test('deletes folder recursively after confirm', async ({ page }) => {
+    const bucket = `test-s3-delfolder-${Date.now()}`
+    await seedBucket(page, bucket)
+    try {
+      await openBucket(page, bucket)
+      const main = page.locator('main')
+      // Folder 'a' is first alphabetically among folders
+      await main.getByRole('button', { name: 'Delete Folder', exact: true }).first().click()
+      const dialog = page.getByRole('dialog')
+      await expect(dialog).toBeVisible({ timeout: 5000 })
+      await expect(dialog).toContainText('Delete "a/"')
+      await expect(dialog).toContainText('2 object')
+      await expect(dialog).toContainText('cannot be undone')
+      // Confirm delete
+      await dialog.getByRole('button', { name: 'Delete', exact: true }).click()
+      // Dialog closes, folder 'a' gone
+      await expect(dialog).not.toBeVisible({ timeout: 10000 })
+      await expect(main.getByText('a', { exact: true })).not.toBeVisible({ timeout: 10000 })
+      // Siblings intact
+      await expect(main.getByText('root.txt', { exact: true })).toBeVisible()
+      await expect(main.getByText('empty', { exact: true })).toBeVisible()
+      // API verify: keys under a/ are gone
+      const res = await page.request.get(`${PROXY}/s3/buckets/${bucket}/objects?prefix=a%2F`)
+      const json = await res.json()
+      expect(json.Contents == null || (json.Contents as unknown[]).length === 0).toBe(true)
+    } finally {
+      await cleanupBucket(page, bucket)
+    }
+  })
+
+  test('cancel keeps folder', async ({ page }) => {
+    const bucket = `test-s3-delfolder-${Date.now()}`
+    await seedBucket(page, bucket)
+    try {
+      await openBucket(page, bucket)
+      const main = page.locator('main')
+      await main.getByRole('button', { name: 'Delete Folder', exact: true }).first().click()
+      const dialog = page.getByRole('dialog')
+      await expect(dialog).toBeVisible({ timeout: 5000 })
+      await expect(dialog).toContainText('Delete "a/"')
+      // Cancel
+      await dialog.getByRole('button', { name: 'Cancel' }).click()
+      await expect(dialog).not.toBeVisible({ timeout: 5000 })
+      // Folder 'a' still visible
+      await expect(main.getByText('a', { exact: true })).toBeVisible()
+      // API verify: keys under a/ still exist
+      const res = await page.request.get(`${PROXY}/s3/buckets/${bucket}/objects?prefix=a%2F`)
+      const json = await res.json()
+      expect(json.Contents).toHaveLength(2)
+    } finally {
+      await cleanupBucket(page, bucket)
+    }
+  })
 })
 

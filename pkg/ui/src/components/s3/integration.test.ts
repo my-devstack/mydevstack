@@ -1,32 +1,51 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
+import { ref } from 'vue'
 import { S3CreateModal, S3DeleteModal, S3ViewModal, S3ObjectsList } from './index'
+import S3View from '@/views/services/S3.vue'
 
-vi.mock('@/composables/useS3', () => ({
-  useS3: vi.fn(() => ({
-    buckets: { value: [] },
-    objects: { value: [] },
-    prefixes: { value: [] },
-    selectedBucket: { value: null },
-    currentPrefix: { value: '' },
-    viewMode: { value: 'folders' },
-    breadcrumbs: { value: [] },
-    loading: { value: false },
-    uploading: { value: false },
-    loadBuckets: vi.fn(),
-    createBucket: vi.fn(),
-    deleteBucket: vi.fn(),
-    loadObjects: vi.fn(),
-    deleteObject: vi.fn(),
-    getObject: vi.fn(),
-    formatBody: vi.fn(),
-    navigateToPrefix: vi.fn(),
-    navigateUp: vi.fn(),
-    setViewMode: vi.fn(),
-    createFolder: vi.fn(),
-  })),
-}))
+vi.mock('@/composables/useS3', () => {
+  const mockLoadBuckets = vi.fn()
+  const mockLoadObjects = vi.fn()
+  const mockCreateBucket = vi.fn()
+  const mockDeleteBucket = vi.fn()
+  const mockDeleteObject = vi.fn()
+  const mockGetObject = vi.fn()
+  const mockNavigateToPrefix = vi.fn()
+  const mockNavigateUp = vi.fn()
+  const mockSetViewMode = vi.fn()
+  const mockCreateFolder = vi.fn()
+  const mockCountFolderObjects = vi.fn()
+  const mockDeleteFolderObjects = vi.fn()
+
+  return {
+    useS3: vi.fn(() => ({
+      buckets: { value: [] },
+      objects: { value: [] },
+      prefixes: { value: [] },
+      selectedBucket: ref<string | null>('test-bucket'),
+      currentPrefix: { value: '' },
+      viewMode: { value: 'folders' },
+      breadcrumbs: { value: [] },
+      loading: { value: false },
+      uploading: { value: false },
+      loadBuckets: mockLoadBuckets,
+      createBucket: mockCreateBucket,
+      deleteBucket: mockDeleteBucket,
+      loadObjects: mockLoadObjects,
+      deleteObject: mockDeleteObject,
+      getObject: mockGetObject,
+      formatBody: vi.fn(),
+      navigateToPrefix: mockNavigateToPrefix,
+      navigateUp: mockNavigateUp,
+      setViewMode: mockSetViewMode,
+      createFolder: mockCreateFolder,
+      countFolderObjects: mockCountFolderObjects,
+      deleteFolderObjects: mockDeleteFolderObjects,
+    })),
+  }
+})
 
 vi.mock('@/stores/ui', () => ({
   useUIStore: vi.fn(() => ({
@@ -287,6 +306,92 @@ describe('S3 Components Integration', () => {
         'folder1/folder2/file3',
         'folder1/folder2/file4',
       ])
+    })
+  })
+
+  describe('Folder Delete Flow', () => {
+    it('clicking folder delete opens modal with count, confirm calls deleteFolderObjects with exact keys', async () => {
+      const { useS3 } = await import('@/composables/useS3')
+      const mockCountFolderObjects = vi.fn()
+      const mockDeleteFolderObjects = vi.fn()
+      
+      vi.mocked(useS3).mockReturnValue({
+        buckets: { value: [{ Name: 'test-bucket', CreationDate: '2024-01-01' }] },
+        objects: { value: [{ Key: 'other.txt', Size: 100 }] },
+        prefixes: { value: ['folder/', 'sibling/'] },
+        selectedBucket: { value: 'test-bucket' },
+        currentPrefix: { value: '' },
+        viewMode: { value: 'folders' },
+        breadcrumbs: { value: [] },
+        loading: { value: false },
+        uploading: { value: false },
+        bucketDetails: { value: {} },
+        loadBuckets: vi.fn(),
+        loadObjects: vi.fn(),
+        loadBucketDetails: vi.fn(),
+        createBucket: vi.fn(),
+        deleteBucket: vi.fn(),
+        deleteObject: vi.fn(),
+        uploadObject: vi.fn(),
+        uploadFiles: vi.fn(),
+        getObject: vi.fn(),
+        getPresignedUrl: vi.fn(),
+        configureLambdaTrigger: vi.fn(),
+        getLambdaTriggers: vi.fn(),
+        lifecycleRules: { value: {} },
+        lifecycleLoading: { value: false },
+        loadLifecycleRules: vi.fn(),
+        saveLifecycleRules: vi.fn(),
+        deleteLifecycleRule: vi.fn(),
+        toggleVersioning: vi.fn(),
+        navigateToPrefix: vi.fn(),
+        navigateUp: vi.fn(),
+        setViewMode: vi.fn(),
+        createFolder: vi.fn(),
+        countFolderObjects: mockCountFolderObjects,
+        deleteFolderObjects: mockDeleteFolderObjects,
+        formatBody: vi.fn(),
+      })
+
+      const folderKeys = ['folder/a.txt', 'folder/b.txt']
+      mockCountFolderObjects.mockResolvedValue({ keys: folderKeys, total: 2 })
+      mockDeleteFolderObjects.mockResolvedValue({ deleted: 2, failed: 0 })
+
+      const stubs = {
+        ArchiveBoxIcon: true,
+        S3BucketsList: true,
+        S3ObjectsList: true,
+        S3CreateModal: true,
+        S3ViewModal: true,
+        S3DeleteModal: true,
+        S3CodeExamples: true,
+        S3TriggerModal: true,
+        S3PolicyModal: true,
+        S3LifecycleModal: true,
+        Button: { template: '<button><slot /></button>' },
+        LoadingSpinner: true,
+        EmptyState: true,
+      }
+
+      const wrapper = mount(S3View, { global: { stubs } })
+      wrapper.vm.selectedBucket = 'test-bucket'
+      await new Promise(process.nextTick)
+
+      // Trigger folder delete via the view method
+      await wrapper.vm.confirmDeleteFolder('folder/')
+
+      expect(mockCountFolderObjects).toHaveBeenCalledWith('folder/')
+      expect(wrapper.vm.itemToDelete).toEqual({ type: 'folder', name: 'folder/' })
+      expect(wrapper.vm.showDeleteModal).toBe(true)
+      expect(wrapper.vm.pendingFolderKeys).toEqual(folderKeys)
+
+      // Confirm delete
+      await wrapper.vm.deleteFolder()
+
+      expect(mockDeleteFolderObjects).toHaveBeenCalledWith('test-bucket', folderKeys)
+      expect(wrapper.vm.itemToDelete).toBeNull()
+      expect(wrapper.vm.pendingFolderKeys).toEqual([])
+      expect(wrapper.vm.showDeleteModal).toBe(false)
     })
   })
 })

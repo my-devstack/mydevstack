@@ -21,6 +21,8 @@ const mockToggleVersioning = vi.fn()
 const mockNavigateToPrefix = vi.fn()
 const mockSetViewMode = vi.fn()
 const mockCreateFolder = vi.fn()
+const mockCountFolderObjects = vi.fn()
+const mockDeleteFolderObjects = vi.fn()
 const mockBuckets = ref([
   { Name: 'test-bucket', CreationDate: '2024-01-01T00:00:00Z' },
   { Name: 'another-bucket', CreationDate: '2024-02-01T00:00:00Z' },
@@ -35,7 +37,7 @@ vi.mock('@/composables/useS3', () => ({
     buckets: mockBuckets,
     objects: ref<any[]>([]),
     prefixes: mockPrefixes,
-    selectedBucket: ref<any>(null),
+    selectedBucket: ref<string | null>(null),
     currentPrefix: mockCurrentPrefix,
     viewMode: mockViewMode,
     breadcrumbs: mockBreadcrumbs,
@@ -60,11 +62,24 @@ vi.mock('@/composables/useS3', () => ({
     navigateToPrefix: mockNavigateToPrefix,
     setViewMode: mockSetViewMode,
     createFolder: mockCreateFolder,
+    countFolderObjects: mockCountFolderObjects,
+    deleteFolderObjects: mockDeleteFolderObjects,
   }),
 }))
 
+const { mockToastSuccess, mockToastError, mockToastInfo } = vi.hoisted(() => ({
+  mockToastSuccess: vi.fn(),
+  mockToastError: vi.fn(),
+  mockToastInfo: vi.fn(),
+}))
+
 vi.mock('@/composables/useToast', () => ({
-  useToast: () => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() }),
+  useToast: () => ({
+    success: mockToastSuccess,
+    error: mockToastError,
+    info: mockToastInfo,
+    warning: vi.fn(),
+  }),
 }))
 
 vi.mock('@/composables/useContentReload', () => ({
@@ -520,6 +535,90 @@ describe('S3.vue', () => {
       await wrapper.vm.handleCreateFolder('new-folder')
       
       expect(mockCreateFolder).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('Folder Delete Flow', () => {
+    beforeEach(() => {
+      mockCountFolderObjects.mockReset()
+      mockDeleteFolderObjects.mockReset()
+    })
+
+    it('confirmDeleteFolder calls countFolderObjects then opens modal with type folder', async () => {
+      const keys = ['folder/a.txt', 'folder/b.txt', 'folder/c.txt']
+      mockCountFolderObjects.mockResolvedValue({ keys, total: 3 })
+      
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.selectedBucket = 'test-bucket'
+      
+      await wrapper.vm.confirmDeleteFolder('folder/')
+      
+      expect(mockCountFolderObjects).toHaveBeenCalledWith('folder/')
+      expect(wrapper.vm.itemToDelete).toEqual({ type: 'folder', name: 'folder/' })
+      expect(wrapper.vm.showDeleteModal).toBe(true)
+      expect(wrapper.vm.pendingFolderKeys).toEqual(keys)
+      expect(wrapper.vm.folderDeleteCount).toBe(3)
+    })
+
+    it('deleteFolder calls deleteFolderObjects with exact keys from count', async () => {
+      const keys = ['folder/x.txt', 'folder/y.txt']
+      mockCountFolderObjects.mockResolvedValue({ keys, total: 2 })
+      mockDeleteFolderObjects.mockResolvedValue({ deleted: 2, failed: 0 })
+      
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.selectedBucket = 'test-bucket'
+      
+      await wrapper.vm.confirmDeleteFolder('folder/')
+      await wrapper.vm.deleteFolder()
+      
+      expect(mockDeleteFolderObjects).toHaveBeenCalledWith('test-bucket', keys)
+      expect(wrapper.vm.itemToDelete).toBeNull()
+      expect(wrapper.vm.pendingFolderKeys).toEqual([])
+      expect(wrapper.vm.folderDeleteCount).toBe(0)
+    })
+
+    it('deleteFolder partial failure shows error toast with counts', async () => {
+      const keys = ['a.txt', 'b.txt', 'c.txt', 'd.txt']
+      mockCountFolderObjects.mockResolvedValue({ keys, total: 4 })
+      mockDeleteFolderObjects.mockResolvedValue({ deleted: 2, failed: 2 })
+      
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.selectedBucket = 'test-bucket'
+      
+      await wrapper.vm.confirmDeleteFolder('folder/')
+      await wrapper.vm.deleteFolder()
+      
+      expect(mockDeleteFolderObjects).toHaveBeenCalledWith('test-bucket', keys)
+      expect(mockToastError).toHaveBeenCalledWith('Deleted 2 of 4 objects')
+      expect(mockToastSuccess).not.toHaveBeenCalled()
+      expect(wrapper.vm.itemToDelete).toBeNull()
+    })
+
+    it('confirmDeleteFolder does not open modal when count throws', async () => {
+      mockCountFolderObjects.mockRejectedValue(new Error('Count failed'))
+      
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.selectedBucket = 'test-bucket'
+      
+      await wrapper.vm.confirmDeleteFolder('folder/')
+      
+      expect(wrapper.vm.showDeleteModal).toBe(false)
+      expect(wrapper.vm.itemToDelete).toBeNull()
+    })
+
+    it('handleDeleteModalOpen resets state when closing', () => {
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.itemToDelete = { type: 'folder', name: 'test/' }
+      wrapper.vm.pendingFolderKeys = ['test/a.txt']
+      wrapper.vm.folderDeleteCount = 5
+      wrapper.vm.showDeleteModal = true
+      
+      wrapper.vm.handleDeleteModalOpen(false)
+      
+      expect(wrapper.vm.showDeleteModal).toBe(false)
+      expect(wrapper.vm.itemToDelete).toBeNull()
+      expect(wrapper.vm.pendingFolderKeys).toEqual([])
+      expect(wrapper.vm.folderDeleteCount).toBe(0)
     })
   })
 })

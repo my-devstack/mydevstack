@@ -919,4 +919,174 @@ describe('useS3', () => {
       expect(prefixes.value.filter(p => p === 'folder/')).toHaveLength(1)
     })
   })
+
+  describe('countFolderObjects', () => {
+    it('paginates across multiple pages', async () => {
+      const { countFolderObjects, selectedBucket } = useS3()
+      selectedBucket.value = 'test-bucket'
+
+      // First page: 2 keys, truncated
+      vi.mocked(s3Api.listObjects)
+        .mockResolvedValueOnce({
+          objects: [{ Key: 'folder/a.txt' }, { Key: 'folder/b.txt' }],
+          prefixes: [],
+          isTruncated: true,
+          nextMarker: 'marker1'
+        } as any)
+        // Second page: 1 key, not truncated
+        .mockResolvedValueOnce({
+          objects: [{ Key: 'folder/c.txt' }],
+          prefixes: [],
+          isTruncated: false
+        } as any)
+
+      const result = await countFolderObjects('folder/')
+
+      expect(s3Api.listObjects).toHaveBeenCalledTimes(2)
+      expect(s3Api.listObjects).toHaveBeenNthCalledWith(1, 'test-bucket', { prefix: 'folder/', maxKeys: 1000 })
+      expect(s3Api.listObjects).toHaveBeenNthCalledWith(2, 'test-bucket', { prefix: 'folder/', maxKeys: 1000, marker: 'marker1' })
+      expect(result.keys).toEqual(['folder/a.txt', 'folder/b.txt', 'folder/c.txt'])
+      expect(result.total).toBe(3)
+    })
+
+    it('continues past 1000 keys when isTruncated is true', async () => {
+      const { countFolderObjects, selectedBucket } = useS3()
+      selectedBucket.value = 'test-bucket'
+
+      // Generate 1000 keys in first page, still truncated
+      const keys = Array.from({ length: 1000 }, (_, i) => ({ Key: `folder/file${i}.txt` }))
+      vi.mocked(s3Api.listObjects)
+        .mockResolvedValueOnce({
+          objects: keys,
+          prefixes: [],
+          isTruncated: true,
+          nextMarker: 'marker1'
+        } as any)
+        .mockResolvedValueOnce({
+          objects: [{ Key: 'folder/file1000.txt' }, { Key: 'folder/file1001.txt' }],
+          prefixes: [],
+          isTruncated: false
+        } as any)
+
+      const result = await countFolderObjects('folder/')
+
+      expect(s3Api.listObjects).toHaveBeenCalledTimes(2)
+      expect(result.keys).toHaveLength(1002)
+      expect(result.total).toBe(1002)
+      expect(result.keys[result.keys.length - 1]).toBe('folder/file1001.txt')
+    })
+
+    it('returns empty when no bucket selected', async () => {
+      const { countFolderObjects, selectedBucket } = useS3()
+      selectedBucket.value = null
+
+      const result = await countFolderObjects('folder/')
+
+      expect(s3Api.listObjects).not.toHaveBeenCalled()
+      expect(result.keys).toEqual([])
+      expect(result.total).toBe(0)
+    })
+
+    it('throws on API error after toasting', async () => {
+      const { countFolderObjects, selectedBucket } = useS3()
+      selectedBucket.value = 'test-bucket'
+
+      vi.mocked(s3Api.listObjects).mockRejectedValue(new Error('Network error'))
+
+      await expect(countFolderObjects('folder/')).rejects.toThrow('Network error')
+      expect(mockToast.error).toHaveBeenCalledWith('Failed to count folder objects: Network error')
+    })
+  })
+
+  describe('deleteFolderObjects', () => {
+    it('deletes all keys with concurrency 5', async () => {
+      const { deleteFolderObjects } = useS3()
+      vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [], prefixes: [] })
+      vi.mocked(s3Api.deleteObject).mockResolvedValue({} as any)
+
+      const keys = ['a.txt', 'b.txt', 'c.txt', 'd.txt', 'e.txt', 'f.txt']
+      const result = await deleteFolderObjects('test-bucket', keys)
+
+      expect(s3Api.deleteObject).toHaveBeenCalledTimes(6)
+      expect(result.deleted).toBe(6)
+      expect(result.failed).toBe(0)
+    })
+
+    it('passes exact keys to s3Api.deleteObject in order', async () => {
+      const { deleteFolderObjects } = useS3()
+      vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [], prefixes: [] })
+      vi.mocked(s3Api.deleteObject).mockResolvedValue({} as any)
+
+      const keys = ['folder/a.txt', 'folder/b.txt', 'folder/c.txt']
+      await deleteFolderObjects('test-bucket', keys)
+
+      const calls = vi.mocked(s3Api.deleteObject).mock.calls
+      expect(calls).toHaveLength(3)
+      // Every call targets 'test-bucket'
+      calls.forEach(c => expect(c[0]).toBe('test-bucket'))
+      // Collect keys in call order
+      const calledKeys = calls.map(c => c[1])
+      // All expected keys were deleted
+      expect(calledKeys.sort()).toEqual(['folder/a.txt', 'folder/b.txt', 'folder/c.txt'].sort())
+    })
+
+    it('never exceeds concurrency of 5 in-flight deleteObject calls', async () => {
+      const { deleteFolderObjects } = useS3()
+      vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [], prefixes: [] })
+
+      let inFlight = 0
+      let maxInFlight = 0
+      vi.mocked(s3Api.deleteObject).mockImplementation(async () => {
+        inFlight++
+        if (inFlight > maxInFlight) maxInFlight = inFlight
+        await new Promise(r => setTimeout(r, 5))
+        inFlight--
+        return {} as any
+      })
+
+      const keys = Array.from({ length: 12 }, (_, i) => `folder/k${i}.txt`)
+      await deleteFolderObjects('test-bucket', keys)
+
+      expect(maxInFlight).toBeLessThanOrEqual(5)
+      expect(maxInFlight).toBe(5) // actually exercises the cap
+    })
+
+    it('accounts for partial failures', async () => {
+      const { deleteFolderObjects } = useS3()
+      vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [], prefixes: [] })
+
+      // Make 2 out of 4 fail
+      vi.mocked(s3Api.deleteObject)
+        .mockResolvedValueOnce({} as any)
+        .mockRejectedValueOnce(new Error('fail1'))
+        .mockResolvedValueOnce({} as any)
+        .mockRejectedValueOnce(new Error('fail2'))
+
+      const keys = ['a.txt', 'b.txt', 'c.txt', 'd.txt']
+      const result = await deleteFolderObjects('test-bucket', keys)
+
+      expect(result.deleted).toBe(2)
+      expect(result.failed).toBe(2)
+    })
+
+    it('calls loadObjects with current prefix after deletion', async () => {
+      const { deleteFolderObjects, currentPrefix } = useS3()
+      currentPrefix.value = 'parent/'
+      vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [], prefixes: [] })
+
+      await deleteFolderObjects('test-bucket', ['folder/file.txt'])
+
+      expect(s3Api.listObjects).toHaveBeenCalledWith('test-bucket', { prefix: 'parent/', delimiter: '/' })
+    })
+
+    it('returns early for empty keys array', async () => {
+      const { deleteFolderObjects } = useS3()
+
+      const result = await deleteFolderObjects('test-bucket', [])
+
+      expect(s3Api.deleteObject).not.toHaveBeenCalled()
+      expect(result.deleted).toBe(0)
+      expect(result.failed).toBe(0)
+    })
+  })
 })

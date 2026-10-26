@@ -472,7 +472,7 @@ describe('S3ObjectsList', () => {
       expect(cells[2].text()).toContain('-')
     })
 
-    it('shows "Folder" label for folder rows', () => {
+    it('shows delete button for folder rows', () => {
       const wrapper = mount(S3ObjectsList, {
         props: {
           objects: [],
@@ -483,7 +483,58 @@ describe('S3ObjectsList', () => {
       })
 
       const folderRow = wrapper.findAll('tbody tr')[0]
-      expect(folderRow.text()).toContain('Folder')
+      const deleteButton = folderRow.find('button[title="Delete Folder"]')
+      expect(deleteButton.exists()).toBe(true)
+    })
+
+    it('emits delete-folder with full prefix when trash button clicked', async () => {
+      const wrapper = mount(S3ObjectsList, {
+        props: {
+          objects: [],
+          prefixes: ['folder/'],
+          currentPrefix: '',
+          bucketName: 'test-bucket',
+        },
+      })
+
+      const deleteButton = wrapper.find('button[title="Delete Folder"]')
+      await deleteButton.trigger('click')
+
+      expect(wrapper.emitted('delete-folder')).toBeTruthy()
+      expect(wrapper.emitted('delete-folder')?.[0]).toEqual(['folder/'])
+    })
+
+    it('clicking folder delete button does NOT emit open-folder', async () => {
+      const wrapper = mount(S3ObjectsList, {
+        props: {
+          objects: [],
+          prefixes: ['folder/'],
+          currentPrefix: '',
+          bucketName: 'test-bucket',
+        },
+      })
+
+      const deleteButton = wrapper.find('button[title="Delete Folder"]')
+      await deleteButton.trigger('click')
+
+      expect(wrapper.emitted('open-folder')).toBeFalsy()
+      expect(wrapper.emitted('delete-folder')).toBeTruthy()
+    })
+
+    it('delete folder button has red styling classes', () => {
+      const wrapper = mount(S3ObjectsList, {
+        props: {
+          objects: [],
+          prefixes: ['folder/'],
+          currentPrefix: '',
+          bucketName: 'test-bucket',
+        },
+      })
+
+      const deleteButton = wrapper.find('button[title="Delete Folder"]')
+      expect(deleteButton.classes()).toContain('text-red-500')
+      expect(deleteButton.classes()).toContain('hover:text-red-700')
+      expect(deleteButton.classes()).toContain('hover:bg-red-50')
     })
 
     it('renders folder icon', () => {
