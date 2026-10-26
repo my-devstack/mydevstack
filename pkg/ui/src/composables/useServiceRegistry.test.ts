@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useServiceRegistry, SERVICE_CONFIGS, ENABLED_SERVICES } from '@/composables/useServiceRegistry'
+import router from '@/router'
 
 vi.mock('@/api/services/s3', () => ({
   listBuckets: vi.fn(),
@@ -166,7 +167,7 @@ describe('useServiceRegistry', () => {
       const stepfunctions = SERVICE_CONFIGS.find(s => s.id === 'stepfunctions')
       expect(stepfunctions).toBeDefined()
       expect(stepfunctions?.name).toBe('Step Functions')
-      expect(stepfunctions?.route).toBe('/services/stepfunctions')
+      expect(stepfunctions?.route).toBe('/services/step-functions')
       expect(stepfunctions?.color).toBeDefined()
       expect(stepfunctions?.bgColor).toBeDefined()
       expect(stepfunctions?.statsFetcher).toBeInstanceOf(Function)
@@ -178,6 +179,13 @@ describe('useServiceRegistry', () => {
       expect(cloudformation?.color).toBeDefined()
       expect(cloudformation?.bgColor).toBeDefined()
       expect(cloudformation?.statsFetcher).toBeInstanceOf(Function)
+    })
+
+    it('all enabled services have routes that resolve to named routes', () => {
+      ENABLED_SERVICES.forEach(service => {
+        const resolved = router.resolve(service.route)
+        expect(resolved.name, `route ${service.route} for ${service.id} has no name`).toBeDefined()
+      })
     })
   })
 
