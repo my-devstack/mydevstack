@@ -204,7 +204,30 @@ describe('Logs.vue', () => {
           },
         },
       })
-      expect(wrapper.vm.filteredLogs.length).toBeGreaterThan(0)
+      wrapper.vm.timeRange = '24h'
+      wrapper.vm.logs = [
+        {
+          id: 'test-1',
+          timestamp: new Date(),
+          level: 'info',
+          service: 'TestService',
+          action: 'GET',
+          resource: '/test',
+          status: 'success',
+          duration: 100,
+        },
+        {
+          id: 'test-2',
+          timestamp: new Date(),
+          level: 'error',
+          service: 'TestService',
+          action: 'POST',
+          resource: '/test',
+          status: 'error',
+          duration: 200,
+        },
+      ]
+      expect(wrapper.vm.filteredLogs.length).toBe(2)
     })
 
     it('filteredLogs returns empty for unknown service', () => {

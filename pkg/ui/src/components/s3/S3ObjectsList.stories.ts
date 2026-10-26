@@ -54,7 +54,7 @@ export const WithFolders: Story = {
   render: (args) => ({
     components: { S3ObjectsList },
     setup: () => ({ args }),
-    template: '<div class="h-96"><S3ObjectsList v-bind="args" /></div>'
+    template: '<div class="h-96"><S3ObjectsList v-bind="args" @delete-folder="(p) => console.log(\'delete folder:\', p)" /></div>'
   })
 };
 
@@ -69,7 +69,7 @@ export const NestedLevel: Story = {
   render: (args) => ({
     components: { S3ObjectsList },
     setup: () => ({ args }),
-    template: '<div class="h-96"><S3ObjectsList v-bind="args" /></div>'
+    template: '<div class="h-96"><S3ObjectsList v-bind="args" @delete-folder="(p) => console.log(\'delete folder:\', p)" /></div>'
   })
 };
 

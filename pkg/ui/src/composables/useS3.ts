@@ -446,6 +446,59 @@ export function useS3() {
     }
   }
 
+  async function countFolderObjects(prefix: string): Promise<{ keys: string[]; total: number }> {
+    if (!selectedBucket.value) {
+      return { keys: [], total: 0 }
+    }
+    const bucket = selectedBucket.value
+    const keys: string[] = []
+    let marker: string | undefined
+    try {
+      while (true) {
+        const res = await s3Api.listObjects(bucket, {
+          prefix,
+          maxKeys: 1000,
+          ...(marker ? { marker } : {}),
+        })
+        for (const obj of res.objects || []) {
+          if (obj.Key) keys.push(obj.Key)
+        }
+        if (!res.isTruncated || !res.nextMarker) break
+        marker = res.nextMarker
+      }
+      return { keys, total: keys.length }
+    } catch (error) {
+      toast.error('Failed to count folder objects: ' + (error instanceof Error ? error.message : 'Unknown error'))
+      throw error
+    }
+  }
+
+  async function deleteFolderObjects(bucketName: string, keys: string[]): Promise<{ deleted: number; failed: number }> {
+    if (keys.length === 0) return { deleted: 0, failed: 0 }
+    let deleted = 0
+    let failed = 0
+    let idx = 0
+    const workers = Array.from({ length: Math.min(5, keys.length) }, async () => {
+      while (true) {
+        const i = idx++
+        if (i >= keys.length) break
+        try {
+          await s3Api.deleteObject(bucketName, keys[i])
+          deleted++
+        } catch {
+          failed++
+        }
+      }
+    })
+    await Promise.all(workers)
+    try {
+      await loadObjects(bucketName, { prefix: currentPrefix.value })
+    } catch {
+      // loadObjects already toasts; don't fail the batch
+    }
+    return { deleted, failed }
+  }
+
   async function toggleVersioning(bucketName: string, enable: boolean): Promise<void> {
     try {
       await s3Api.putBucketVersioning(bucketName, enable ? 'Enabled' : 'Suspended')
@@ -491,5 +544,7 @@ export function useS3() {
     navigateUp,
     setViewMode,
     createFolder,
+    countFolderObjects,
+    deleteFolderObjects,
   }
 }

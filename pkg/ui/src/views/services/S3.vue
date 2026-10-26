@@ -44,6 +44,8 @@ const {
   navigateToPrefix,
   setViewMode,
   createFolder,
+  countFolderObjects,
+  deleteFolderObjects,
 } = useS3()
 
 // Pagination via composable
@@ -79,7 +81,10 @@ const viewLoading = ref(false)
 const viewError = ref<string | null>(null)
 
 // Delete modal state
-const itemToDelete = ref<{ type: 'bucket' | 'object', name: string } | null>(null)
+const itemToDelete = ref<{ type: 'bucket' | 'object' | 'folder', name: string } | null>(null)
+const pendingFolderKeys = ref<string[]>([])
+const folderDeleteCount = ref(0)
+const folderDeleting = ref(false)
 
 // Load objects in a bucket
 async function loadObjects(bucketName: string) {
@@ -192,6 +197,32 @@ async function deleteObject() {
   }
 }
 
+// Delete folder (recursively delete all objects under prefix)
+async function deleteFolder() {
+  if (!itemToDelete.value || itemToDelete.value.type !== 'folder' || !selectedBucket.value) return
+  
+  error.value = null
+  folderDeleting.value = true
+  
+  try {
+    const keys = pendingFolderKeys.value
+    const result = await deleteFolderObjects(selectedBucket.value, keys)
+    if (result.failed > 0) {
+      toast.error(`Deleted ${result.deleted} of ${result.deleted + result.failed} objects`)
+    } else {
+      toast.success(`Deleted ${result.deleted} object(s)`)
+    }
+    showDeleteModal.value = false
+    itemToDelete.value = null
+    pendingFolderKeys.value = []
+    folderDeleteCount.value = 0
+  } catch (e: any) {
+    error.value = 'Failed to delete folder: ' + e.message
+  } finally {
+    folderDeleting.value = false
+  }
+}
+
 // View object in modal
 async function viewObject(key: string) {
   viewFileName.value = key
@@ -291,6 +322,28 @@ function confirmDeleteBucket(name: string) {
 function confirmDeleteObject(key: string) {
   itemToDelete.value = { type: 'object', name: key }
   showDeleteModal.value = true
+}
+
+function handleDeleteModalOpen(isOpen: boolean) {
+  showDeleteModal.value = isOpen
+  if (!isOpen) {
+    itemToDelete.value = null
+    pendingFolderKeys.value = []
+    folderDeleteCount.value = 0
+  }
+}
+
+async function confirmDeleteFolder(prefix: string) {
+  if (!selectedBucket.value) return
+  try {
+    const result = await countFolderObjects(prefix)
+    pendingFolderKeys.value = result.keys
+    folderDeleteCount.value = result.total
+    itemToDelete.value = { type: 'folder', name: prefix }
+    showDeleteModal.value = true
+  } catch (e: any) {
+    toast.error('Failed to count folder objects: ' + (e.message || 'Unknown error'))
+  }
 }
 
 function closeViewModal() {
@@ -556,6 +609,7 @@ watch(reloadTrigger, () => {
       @select-object="viewObject"
       @download-object="downloadObject"
       @delete-object="confirmDeleteObject"
+      @delete-folder="confirmDeleteFolder"
       @copy-link="copyObjectLink"
       @upload-file="uploadFile"
       @upload-folder="uploadFolder"
@@ -587,9 +641,10 @@ watch(reloadTrigger, () => {
     <S3DeleteModal
       :open="showDeleteModal"
       :item="itemToDelete"
-      :loading="loading"
-      @update:open="showDeleteModal = $event"
-      @delete="itemToDelete?.type === 'bucket' ? deleteBucket() : deleteObject()"
+      :loading="itemToDelete?.type === 'folder' ? folderDeleting : loading"
+      :object-count="folderDeleteCount"
+      @update:open="handleDeleteModalOpen"
+      @delete="itemToDelete?.type === 'bucket' ? deleteBucket() : itemToDelete?.type === 'folder' ? deleteFolder() : deleteObject()"
     />
 
     <!-- Lambda Trigger Modal -->

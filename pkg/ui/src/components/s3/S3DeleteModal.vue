@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import Modal from '@/components/common/Modal.vue'
 import { useSettingsStore } from '@/stores/settings'
+import { computed } from 'vue'
 
 const props = defineProps<{
   open: boolean
-  item: { type: 'bucket' | 'object', name: string } | null
+  item: { type: 'bucket' | 'object' | 'folder', name: string } | null
   loading?: boolean
+  objectCount?: number
 }>()
 
 const emit = defineEmits<{
@@ -14,13 +16,22 @@ const emit = defineEmits<{
 }>()
 
 const settingsStore = useSettingsStore()
+
+const title = computed(() => {
+  if (props.item?.type === 'bucket') return 'Delete Bucket'
+  if (props.item?.type === 'folder') return 'Delete Folder'
+  return 'Delete Object'
+})
 </script>
 
 <template>
   <Modal
     :open="open"
-    :title="item?.type === 'bucket' ? 'Delete Bucket' : 'Delete Object'"
+    :title="title"
     size="sm"
+    :closable="!loading"
+    :close-on-esc="!loading"
+    :close-on-backdrop="!loading"
     @update:open="(v) => emit('update:open', v)"
     @close="emit('update:open', false)"
   >
@@ -54,6 +65,9 @@ const settingsStore = useSettingsStore()
         <template v-if="item?.type === 'bucket'">
           This will permanently delete the bucket and all its objects. This action cannot be undone.
         </template>
+        <template v-else-if="item?.type === 'folder'">
+          This will permanently delete the folder and all {{ objectCount ?? 0 }} object(s) inside it. This action cannot be undone.
+        </template>
         <template v-else>
           This will permanently delete the object. This action cannot be undone.
         </template>
@@ -63,6 +77,7 @@ const settingsStore = useSettingsStore()
     <template #footer>
       <button
         class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 mr-2"
+        :disabled="loading"
         @click="emit('update:open', false)"
       >
         Cancel
