@@ -1,6 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
+import {
+  FolderIcon,
+  FolderArrowDownIcon,
+  DocumentArrowUpIcon,
+  FolderPlusIcon,
+  MagnifyingGlassIcon,
+  ArrowDownTrayIcon,
+  DocumentDuplicateIcon,
+  TrashIcon,
+} from '@heroicons/vue/24/outline'
 
 interface S3Object {
   Key: string
@@ -10,12 +20,17 @@ interface S3Object {
 
 const props = defineProps<{
   objects: S3Object[]
+  prefixes?: string[]
+  currentPrefix?: string
   bucketName: string
   loading?: boolean
   uploading?: boolean
+  error?: string | null
 }>()
 
 const emit = defineEmits<{
+  'open-folder': [prefix: string]
+  'create-folder': [name: string]
   'select-object': [key: string]
   'download-object': [key: string]
   'delete-object': [key: string]
@@ -25,6 +40,21 @@ const emit = defineEmits<{
 }>()
 
 const settingsStore = useSettingsStore()
+
+const folderNames = computed(() => {
+  const prefix = props.currentPrefix || ''
+  return (props.prefixes || []).map(p => {
+    const name = p.replace(prefix, '').replace(/\/$/, '')
+    return { fullPrefix: p, displayName: name }
+  })
+})
+
+function getRelativeName(key: string): string {
+  const prefix = props.currentPrefix || ''
+  if (!prefix) return key
+  if (key.startsWith(prefix)) return key.slice(prefix.length)
+  return key
+}
 
 async function handleCopyLink(key: string) {
   emit('copy-link', key)
@@ -48,6 +78,24 @@ function formatDate(dateStr: string | undefined): string {
     return dateStr
   }
 }
+function handleCreateFolder() {
+  const name = window.prompt('Enter folder name:')
+  if (name && name.trim()) {
+    emit('create-folder', name.trim())
+  }
+}
+
+function handleFolderKeydown(event: KeyboardEvent, prefix: string) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    emit('open-folder', prefix)
+  }
+}
+
+const emptyMessage = computed(() => {
+  const prefix = props.currentPrefix || ''
+  return prefix ? 'This folder is empty. Upload files or create subfolders.' : 'No objects in this bucket. Upload a file to get started!'
+})
 </script>
 
 <template>
@@ -60,12 +108,16 @@ function formatDate(dateStr: string | undefined): string {
       class="font-semibold mb-3"
       :class="settingsStore.darkMode ? 'text-white' : 'text-gray-900'"
     >
-      Upload Files
+      Actions
     </h3>
-    <div class="flex flex-wrap gap-2">
-      <label class="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer">
-        <span v-if="uploading">Uploading...</span>
-        <span v-else>Choose Files</span>
+    <div class="flex flex-wrap items-center gap-2">
+      <label
+        class="inline-flex p-2 rounded text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border"
+        :class="uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
+        title="Upload Files"
+        aria-label="Upload Files"
+      >
+        <DocumentArrowUpIcon class="w-4 h-4" />
         <input
           type="file"
           multiple
@@ -74,9 +126,13 @@ function formatDate(dateStr: string | undefined): string {
           @change="(e) => emit('upload-file', e)"
         >
       </label>
-      <label class="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
-        <span v-if="uploading">Uploading...</span>
-        <span v-else>Upload Folder</span>
+      <label
+        class="inline-flex p-2 rounded text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border"
+        :class="uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
+        title="Upload Folder"
+        aria-label="Upload Folder"
+      >
+        <FolderArrowDownIcon class="w-4 h-4 rotate-180" />
         <input
           type="file"
           webkitdirectory
@@ -86,25 +142,104 @@ function formatDate(dateStr: string | undefined): string {
           @change="(e) => emit('upload-folder', e)"
         >
       </label>
+      <button
+        type="button"
+        class="p-2 rounded text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border"
+        :class="uploading ? 'opacity-50 cursor-not-allowed' : ''"
+        :disabled="uploading"
+        :title="uploading ? 'Uploading...' : 'Create Folder'"
+        aria-label="Create Folder"
+        @click="handleCreateFolder"
+      >
+        <FolderPlusIcon class="w-4 h-4" />
+      </button>
+      <span
+        v-if="uploading"
+        class="sr-only"
+        aria-live="polite"
+      >
+        Uploading...
+      </span>
     </div>
-    <span
-      v-if="uploading"
-      class="ml-4"
-    >
-      <span class="animate-pulse">Uploading...</span>
-    </span>
+  </div>
+
+  <!-- Error Banner -->
+  <div
+    v-if="error"
+    class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg"
+    :class="settingsStore.darkMode ? 'bg-red-900 border-red-700 text-red-200' : ''"
+  >
+    {{ error }}
+  </div>
+
+  <!-- Loading Skeleton -->
+  <div
+    v-if="loading"
+    class="overflow-x-auto"
+  >
+    <table class="w-full">
+      <thead>
+        <tr :class="settingsStore.darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-50 text-gray-600'">
+          <th class="px-4 py-3 text-left text-sm font-medium">
+            Name
+          </th>
+          <th class="px-4 py-3 text-left text-sm font-medium">
+            Size
+          </th>
+          <th class="px-4 py-3 text-left text-sm font-medium">
+            Last Modified
+          </th>
+          <th class="px-4 py-3 text-left text-sm font-medium">
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody :class="settingsStore.darkMode ? 'bg-gray-900 text-gray-300' : 'bg-white text-gray-700'">
+        <tr
+          v-for="i in 5"
+          :key="i"
+          class="border-t"
+          :class="settingsStore.darkMode ? 'border-gray-700' : 'border-gray-200'"
+        >
+          <td class="px-4 py-3">
+            <div
+              class="h-4 bg-gray-200 rounded animate-pulse"
+              :class="settingsStore.darkMode ? 'bg-gray-700' : ''"
+            />
+          </td>
+          <td class="px-4 py-3">
+            <div
+              class="h-4 bg-gray-200 rounded animate-pulse w-16"
+              :class="settingsStore.darkMode ? 'bg-gray-700' : ''"
+            />
+          </td>
+          <td class="px-4 py-3">
+            <div
+              class="h-4 bg-gray-200 rounded animate-pulse w-32"
+              :class="settingsStore.darkMode ? 'bg-gray-700' : ''"
+            />
+          </td>
+          <td class="px-4 py-3">
+            <div
+              class="h-4 bg-gray-200 rounded animate-pulse w-24"
+              :class="settingsStore.darkMode ? 'bg-gray-700' : ''"
+            />
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <!-- Empty State -->
   <div
-    v-if="objects.length === 0"
+    v-else-if="folderNames.length === 0 && objects.length === 0"
     class="text-center py-12"
   >
     <p
       class="text-lg"
       :class="settingsStore.darkMode ? 'text-gray-400' : 'text-gray-600'"
     >
-      No objects in this bucket. Upload a file to get started!
+      {{ emptyMessage }}
     </p>
   </div>
 
@@ -131,6 +266,35 @@ function formatDate(dateStr: string | undefined): string {
         </tr>
       </thead>
       <tbody :class="settingsStore.darkMode ? 'bg-gray-900 text-gray-300' : 'bg-white text-gray-700'">
+        <!-- Folder Rows -->
+        <tr
+          v-for="folder in folderNames"
+          :key="folder.fullPrefix"
+          class="border-t cursor-pointer hover:bg-light-border dark:hover:bg-dark-border"
+          :class="settingsStore.darkMode ? 'border-gray-700' : 'border-gray-200'"
+          role="button"
+          tabindex="0"
+          @click="emit('open-folder', folder.fullPrefix)"
+          @keydown="handleFolderKeydown($event, folder.fullPrefix)"
+        >
+          <td class="px-4 py-3 font-mono text-sm">
+            <div class="flex items-center gap-2">
+              <FolderIcon class="w-5 h-5 text-blue-500" />
+              <span class="font-semibold">{{ folder.displayName }}</span>
+            </div>
+          </td>
+          <td class="px-4 py-3">
+            -
+          </td>
+          <td class="px-4 py-3">
+            -
+          </td>
+          <td class="px-4 py-3">
+            <span class="text-gray-400 text-sm">Folder</span>
+          </td>
+        </tr>
+
+        <!-- File Rows -->
         <tr
           v-for="obj in objects"
           :key="obj.Key"
@@ -138,7 +302,7 @@ function formatDate(dateStr: string | undefined): string {
           :class="settingsStore.darkMode ? 'border-gray-700' : 'border-gray-200'"
         >
           <td class="px-4 py-3 font-mono text-sm">
-            {{ obj.Key }}
+            {{ getRelativeName(obj.Key) }}
           </td>
           <td class="px-4 py-3">
             {{ formatSize(obj.Size) }}
@@ -147,44 +311,44 @@ function formatDate(dateStr: string | undefined): string {
             {{ formatDate(obj.LastModified) }}
           </td>
           <td class="px-4 py-3">
-            <button
-              class="text-blue-500 hover:text-blue-700 text-sm mr-3"
-              @click="emit('select-object', obj.Key)"
-            >
-              View
-            </button>
-            <button
-              class="text-green-500 hover:text-green-700 text-sm mr-3"
-              @click="emit('download-object', obj.Key)"
-            >
-              Download
-            </button>
-            <button
-              class="text-purple-500 hover:text-purple-700 text-sm mr-3"
-              title="Copy Link"
-              @click="handleCopyLink(obj.Key)"
-            >
-              Copy Link
-            </button>
-            <button
-              class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
-              title="Delete"
-              @click="emit('delete-object', obj.Key)"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div class="flex items-center gap-1">
+              <button
+                type="button"
+                class="p-2 rounded text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border"
+                title="View"
+                aria-label="View"
+                @click="emit('select-object', obj.Key)"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-            </button>
+                <MagnifyingGlassIcon class="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                class="p-2 rounded text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border"
+                title="Download"
+                aria-label="Download"
+                @click="emit('download-object', obj.Key)"
+              >
+                <ArrowDownTrayIcon class="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                class="p-2 rounded text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border"
+                title="Copy Link"
+                aria-label="Copy Link"
+                @click="handleCopyLink(obj.Key)"
+              >
+                <DocumentDuplicateIcon class="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                title="Delete"
+                aria-label="Delete"
+                @click="emit('delete-object', obj.Key)"
+              >
+                <TrashIcon class="w-4 h-4" />
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>

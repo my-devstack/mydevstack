@@ -24,6 +24,7 @@ vi.mock('@/api/services/s3', () => ({
   putBucketLifecycleConfiguration: vi.fn(),
   deleteBucketLifecycleConfiguration: vi.fn(),
   putBucketVersioning: vi.fn(),
+  createFolder: vi.fn(),
 }))
 
 vi.mock('@/api/services/lambda', () => ({
@@ -94,7 +95,7 @@ describe('useS3', () => {
     
     await loadObjects('test-bucket')
     
-    expect(s3Api.listObjects).toHaveBeenCalledWith('test-bucket')
+    expect(s3Api.listObjects).toHaveBeenCalledWith('test-bucket', { prefix: '', delimiter: '/' })
     expect(selectedBucket.value).toBe('test-bucket')
     expect(objects.value).toHaveLength(2)
     expect(loading.value).toBe(false)
@@ -192,7 +193,7 @@ describe('useS3', () => {
     await deleteObject('test-bucket', 'file.txt')
     
     expect(s3Api.deleteObject).toHaveBeenCalledWith('test-bucket', 'file.txt')
-    expect(s3Api.listObjects).toHaveBeenCalledWith('test-bucket')
+    expect(s3Api.listObjects).toHaveBeenCalledWith('test-bucket', { prefix: '', delimiter: '/' })
   })
 
   it('uploadObject sets uploading and calls API', async () => {
@@ -363,7 +364,7 @@ describe('useS3', () => {
     await uploadFiles('test-bucket', entries)
 
     expect(s3Api.listObjects).toHaveBeenCalledTimes(1)
-    expect(s3Api.listObjects).toHaveBeenCalledWith('test-bucket')
+    expect(s3Api.listObjects).toHaveBeenCalledWith('test-bucket', { prefix: '', delimiter: '/' })
   })
 
   it('uploadFiles aggregates partial failures', async () => {
@@ -717,5 +718,205 @@ describe('useS3', () => {
 
     expect(s3Api.putBucketVersioning).toHaveBeenCalledWith('test-bucket', 'Suspended')
     expect(bucketDetails.value['test-bucket']?.versioning?.status).toBe('Suspended')
+  })
+
+  describe('navigateToPrefix', () => {
+    it('calls loadObjects with the given prefix', async () => {
+      vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [], prefixes: [] })
+
+      const { navigateToPrefix, selectedBucket, currentPrefix } = useS3()
+      selectedBucket.value = 'test-bucket'
+      
+      await navigateToPrefix('folder/')
+      
+      expect(s3Api.listObjects).toHaveBeenCalledWith('test-bucket', { prefix: 'folder/', delimiter: '/' })
+      expect(currentPrefix.value).toBe('folder/')
+    })
+
+    it('does nothing when no bucket selected', async () => {
+      const { navigateToPrefix } = useS3()
+      await navigateToPrefix('folder/')
+      expect(s3Api.listObjects).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('navigateUp', () => {
+    it('navigates to parent prefix', async () => {
+      vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [], prefixes: [] })
+
+      const { navigateUp, selectedBucket, currentPrefix } = useS3()
+      selectedBucket.value = 'test-bucket'
+      currentPrefix.value = 'a/b/'
+      
+      await navigateUp()
+      
+      expect(s3Api.listObjects).toHaveBeenCalledWith('test-bucket', { prefix: 'a/', delimiter: '/' })
+      expect(currentPrefix.value).toBe('a/')
+    })
+
+    it('navigates to root when at top level', async () => {
+      vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [], prefixes: [] })
+
+      const { navigateUp, selectedBucket, currentPrefix } = useS3()
+      selectedBucket.value = 'test-bucket'
+      currentPrefix.value = 'a/'
+      
+      await navigateUp()
+      
+      expect(s3Api.listObjects).toHaveBeenCalledWith('test-bucket', { prefix: '', delimiter: '/' })
+      expect(currentPrefix.value).toBe('')
+    })
+  })
+
+  describe('breadcrumbs', () => {
+    it('returns bucket name at root', () => {
+      const { breadcrumbs, selectedBucket, currentPrefix } = useS3()
+      selectedBucket.value = 'test-bucket'
+      currentPrefix.value = ''
+      
+      expect(breadcrumbs.value).toEqual([
+        { label: 'test-bucket', prefix: '' }
+      ])
+    })
+
+    it('returns full breadcrumb trail for nested prefix', () => {
+      const { breadcrumbs, selectedBucket, currentPrefix } = useS3()
+      selectedBucket.value = 'test-bucket'
+      currentPrefix.value = 'a/b/c/'
+      
+      expect(breadcrumbs.value).toEqual([
+        { label: 'test-bucket', prefix: '' },
+        { label: 'a', prefix: 'a/' },
+        { label: 'b', prefix: 'a/b/' },
+        { label: 'c', prefix: 'a/b/c/' }
+      ])
+    })
+
+    it('returns empty array when no bucket selected', () => {
+      const { breadcrumbs } = useS3()
+      expect(breadcrumbs.value).toEqual([])
+    })
+  })
+
+  describe('viewMode all', () => {
+    it('lists all objects without delimiter when viewMode is all', async () => {
+      vi.mocked(s3Api.listObjects).mockResolvedValue({ 
+        objects: [{ Key: 'a/b/c.txt' }, { Key: 'a/d.txt' }, { Key: 'root.txt' }],
+        prefixes: []
+      })
+
+      const { setViewMode, selectedBucket, currentPrefix, objects } = useS3()
+      selectedBucket.value = 'test-bucket'
+      currentPrefix.value = 'a/'
+      
+      await setViewMode('all')
+      
+      expect(s3Api.listObjects).toHaveBeenCalledWith('test-bucket', { prefix: 'a/', delimiter: undefined })
+      expect(objects.value).toHaveLength(3)
+    })
+
+    it('preserves currentPrefix when switching to all mode', async () => {
+      vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [], prefixes: [] })
+
+      const { setViewMode, selectedBucket, currentPrefix } = useS3()
+      selectedBucket.value = 'test-bucket'
+      currentPrefix.value = 'a/b/'
+      
+      await setViewMode('all')
+      
+      expect(currentPrefix.value).toBe('a/b/')
+    })
+  })
+
+  describe('createFolder validation', () => {
+    it('rejects empty folder name', async () => {
+      const { createFolder, selectedBucket } = useS3()
+      selectedBucket.value = 'test-bucket'
+      
+      await createFolder('')
+      
+      expect(mockToast.error).toHaveBeenCalledWith('Folder name cannot be empty')
+      expect(s3Api.createFolder).not.toHaveBeenCalled()
+    })
+
+    it('rejects whitespace-only folder name', async () => {
+      const { createFolder, selectedBucket } = useS3()
+      selectedBucket.value = 'test-bucket'
+      
+      await createFolder('   ')
+      
+      expect(mockToast.error).toHaveBeenCalledWith('Folder name cannot be empty')
+      expect(s3Api.createFolder).not.toHaveBeenCalled()
+    })
+
+    it('rejects folder name containing ..', async () => {
+      const { createFolder, selectedBucket } = useS3()
+      selectedBucket.value = 'test-bucket'
+      
+      await createFolder('../parent')
+      
+      expect(mockToast.error).toHaveBeenCalledWith('Folder name cannot contain ".."')
+      expect(s3Api.createFolder).not.toHaveBeenCalled()
+    })
+
+    it('rejects duplicate folder name', async () => {
+      const { createFolder, selectedBucket, prefixes } = useS3()
+      selectedBucket.value = 'test-bucket'
+      prefixes.value = ['existing/']
+      
+      await createFolder('existing')
+      
+      expect(mockToast.error).toHaveBeenCalledWith('Folder "existing" already exists')
+      expect(s3Api.createFolder).not.toHaveBeenCalled()
+    })
+
+    it('normalizes folder name and creates folder', async () => {
+      vi.mocked(s3Api.createFolder).mockResolvedValue({})
+      vi.mocked(s3Api.listObjects).mockResolvedValue({ objects: [], prefixes: [] })
+
+      const { createFolder, selectedBucket } = useS3()
+      selectedBucket.value = 'test-bucket'
+      
+      await createFolder('  new-folder/  ')
+      
+      expect(s3Api.createFolder).toHaveBeenCalledWith('test-bucket', 'new-folder/')
+      expect(mockToast.success).toHaveBeenCalledWith('Folder "new-folder" created')
+    })
+  })
+
+  describe('marker key filtering', () => {
+    it('filters out zero-byte marker keys ending with /', async () => {
+      vi.mocked(s3Api.listObjects).mockResolvedValue({
+        objects: [
+          { Key: 'file1.txt', Size: 100 },
+          { Key: 'folder/', Size: 0 },
+          { Key: 'file2.txt', Size: 200 }
+        ],
+        prefixes: ['folder/']
+      })
+
+      const { loadObjects, objects, prefixes } = useS3()
+      await loadObjects('test-bucket')
+      
+      expect(objects.value).toHaveLength(2)
+      expect(objects.value.map(o => o.Key)).toEqual(['file1.txt', 'file2.txt'])
+      expect(prefixes.value).toContain('folder/')
+    })
+
+    it('deduplicates marker keys when folding into prefixes', async () => {
+      vi.mocked(s3Api.listObjects).mockResolvedValue({
+        objects: [
+          { Key: 'folder/', Size: 0 },
+          { Key: 'file.txt', Size: 100 }
+        ],
+        prefixes: ['folder/']
+      })
+
+      const { loadObjects, prefixes } = useS3()
+      await loadObjects('test-bucket')
+      
+      expect(prefixes.value).toEqual(['folder/'])
+      expect(prefixes.value.filter(p => p === 'folder/')).toHaveLength(1)
+    })
   })
 })

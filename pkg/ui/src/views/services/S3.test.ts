@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, shallowMount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, computed } from 'vue'
 
 const mockLoadBuckets = vi.fn()
 const mockLoadObjects = vi.fn()
@@ -18,16 +18,27 @@ const mockLoadLifecycleRules = vi.fn()
 const mockSaveLifecycleRules = vi.fn()
 const mockDeleteLifecycleRule = vi.fn()
 const mockToggleVersioning = vi.fn()
+const mockNavigateToPrefix = vi.fn()
+const mockSetViewMode = vi.fn()
+const mockCreateFolder = vi.fn()
 const mockBuckets = ref([
   { Name: 'test-bucket', CreationDate: '2024-01-01T00:00:00Z' },
   { Name: 'another-bucket', CreationDate: '2024-02-01T00:00:00Z' },
 ])
+const mockPrefixes = ref<string[]>([])
+const mockCurrentPrefix = ref('')
+const mockViewMode = ref<'folders' | 'all'>('folders')
+const mockBreadcrumbs = computed(() => [{ label: 'test-bucket', prefix: '' }])
 
 vi.mock('@/composables/useS3', () => ({
   useS3: () => ({
     buckets: mockBuckets,
     objects: ref<any[]>([]),
+    prefixes: mockPrefixes,
     selectedBucket: ref<any>(null),
+    currentPrefix: mockCurrentPrefix,
+    viewMode: mockViewMode,
+    breadcrumbs: mockBreadcrumbs,
     loading: ref(false),
     uploading: ref(false),
     bucketDetails: ref<Record<string, any>>({}),
@@ -46,6 +57,9 @@ vi.mock('@/composables/useS3', () => ({
     saveLifecycleRules: mockSaveLifecycleRules,
     deleteLifecycleRule: mockDeleteLifecycleRule,
     toggleVersioning: mockToggleVersioning,
+    navigateToPrefix: mockNavigateToPrefix,
+    setViewMode: mockSetViewMode,
+    createFolder: mockCreateFolder,
   }),
 }))
 
@@ -89,6 +103,9 @@ describe('S3.vue', () => {
       { Name: 'test-bucket', CreationDate: '2024-01-01T00:00:00Z' },
       { Name: 'another-bucket', CreationDate: '2024-02-01T00:00:00Z' },
     ]
+    mockPrefixes.value = []
+    mockCurrentPrefix.value = ''
+    mockViewMode.value = 'folders'
   })
 
   it('renders without crashing', () => {
@@ -448,6 +465,61 @@ describe('S3.vue', () => {
       await wrapper.vm.uploadFolder(mockEvent)
 
       expect(mockUploadFiles).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('Folder Navigation', () => {
+    it('passes prefixes to S3ObjectsList', async () => {
+      mockPrefixes.value = ['folder1/', 'folder2/']
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.selectedBucket = 'test-bucket'
+      await nextTick()
+      
+      const objectsList = wrapper.findComponent('s3-objects-list-stub')
+      expect(objectsList.exists()).toBe(true)
+      expect(objectsList.props('prefixes')).toEqual(['folder1/', 'folder2/'])
+    })
+
+    it('passes currentPrefix to S3ObjectsList', async () => {
+      mockCurrentPrefix.value = 'parent/'
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.selectedBucket = 'test-bucket'
+      await nextTick()
+      
+      const objectsList = wrapper.findComponent('s3-objects-list-stub')
+      expect(objectsList.exists()).toBe(true)
+      expect(objectsList.props('currentPrefix')).toBe('parent/')
+    })
+
+    it('renders breadcrumb segments when in folder', async () => {
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.selectedBucket = 'test-bucket'
+      mockCurrentPrefix.value = 'a/b/'
+      await nextTick()
+      
+      // Breadcrumb should render bucket name and folder segments
+      const breadcrumbNav = wrapper.find('nav')
+      expect(breadcrumbNav.exists()).toBe(true)
+      expect(breadcrumbNav.text()).toContain('test-bucket')
+    })
+
+    it('handleCreateFolder calls createFolder with folder name', async () => {
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.selectedBucket = 'test-bucket'
+      mockCurrentPrefix.value = 'parent/'
+      
+      await wrapper.vm.handleCreateFolder('new-folder')
+      
+      expect(mockCreateFolder).toHaveBeenCalledWith('new-folder')
+    })
+
+    it('handleCreateFolder does nothing when no bucket selected', async () => {
+      const wrapper = mount(S3View, { global: { stubs: mountStubs } })
+      wrapper.vm.selectedBucket = null
+      
+      await wrapper.vm.handleCreateFolder('new-folder')
+      
+      expect(mockCreateFolder).not.toHaveBeenCalled()
     })
   })
 })

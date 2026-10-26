@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useToast } from '@/composables/useToast'
 import * as s3Api from '@/api/services/s3'
 import type { LifecycleRule } from '@/api/services/s3'
@@ -16,11 +16,15 @@ export function useS3() {
 
   const buckets = ref<any[]>([])
   const objects = ref<any[]>([])
+  const prefixes = ref<string[]>([])
   const selectedBucket = ref<string | null>(null)
+  const currentPrefix = ref<string>('')
+  const viewMode = ref<'folders' | 'all'>('folders')
   const bucketDetails = ref<Record<string, {
     versioning: { status: string; mfaDelete: string } | null
     encryption: { algorithm: string; keyId: string } | null
     tags: Array<{ Key: string; Value: string }>
+    lifecycleRules: LifecycleRule[]
     loading: boolean
   }>>({})
   const loading = ref(false)
@@ -40,17 +44,127 @@ export function useS3() {
     }
   }
 
-  async function loadObjects(bucketName: string) {
+  async function loadObjects(bucketName: string, options?: { prefix?: string; delimiter?: string }) {
+    const bucketChanged = selectedBucket.value !== bucketName
     selectedBucket.value = bucketName
+    if (bucketChanged && options?.prefix === undefined) {
+      currentPrefix.value = ''
+      prefixes.value = []
+    }
     loading.value = true
     try {
-      const response = await s3Api.listObjects(bucketName)
-      objects.value = response.objects
+      const requestPrefix = options?.prefix ?? currentPrefix.value
+      let delimiter = options?.delimiter
+      if (!delimiter && viewMode.value === 'folders') {
+        delimiter = '/'
+      }
+      const isAllMode = viewMode.value === 'all'
+      const effectivePrefix = requestPrefix
+      const effectiveDelimiter = isAllMode ? undefined : delimiter
+
+      const response = await s3Api.listObjects(bucketName, { prefix: effectivePrefix, delimiter: effectiveDelimiter })
+
+      // Defensive: strip marker keys (ending with /) from file rows; fold into prefixes (dedupe, keep order).
+      // Skip the "self" marker whose key matches the real requested prefix.
+      const newPrefixes = [...(response.prefixes || [])]
+      const filteredObjects: any[] = []
+      for (const obj of response.objects || []) {
+        if (obj.Key === requestPrefix) continue
+        if (obj.Key && obj.Key.endsWith('/')) {
+          if (!newPrefixes.includes(obj.Key)) newPrefixes.push(obj.Key)
+          continue
+        }
+        filteredObjects.push(obj)
+      }
+      objects.value = filteredObjects
+      prefixes.value = newPrefixes
+      // Do NOT clobber currentPrefix in 'all' mode — keep folder context for returning.
+      currentPrefix.value = requestPrefix
     } catch (error) {
       toast.error('Failed to load objects: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       loading.value = false
     }
+  }
+
+  function navigateToPrefix(prefix: string) {
+    if (!selectedBucket.value) return
+    loadObjects(selectedBucket.value, { prefix })
+  }
+
+  function navigateUp() {
+    if (!selectedBucket.value) return
+    const parent = getParentPrefix(currentPrefix.value)
+    loadObjects(selectedBucket.value, { prefix: parent })
+  }
+
+  function setViewMode(mode: 'folders' | 'all') {
+    viewMode.value = mode
+    if (selectedBucket.value) {
+      loadObjects(selectedBucket.value, { prefix: currentPrefix.value })
+    }
+  }
+
+  async function createFolder(folderName: string) {
+    if (!selectedBucket.value) {
+      toast.error('No bucket selected')
+      return
+    }
+    const raw = typeof folderName === 'string' ? folderName : ''
+    const trimmed = raw.trim()
+    if (!trimmed) {
+      toast.error('Folder name cannot be empty')
+      return
+    }
+    // Normalize: collapse repeated slashes, strip leading/trailing slashes
+    const sanitized = trimmed.replace(/\/+/g, '/').replace(/^\/+|\/+$/g, '')
+    if (!sanitized) {
+      toast.error('Folder name cannot be empty')
+      return
+    }
+    // Reject any segment that is exactly ".." (directory traversal)
+    if (sanitized.split('/').some(seg => seg === '..')) {
+      toast.error('Folder name cannot contain ".."')
+      return
+    }
+    const fullPath = currentPrefix.value + sanitized + '/'
+    if (prefixes.value.includes(fullPath)) {
+      toast.error(`Folder "${sanitized}" already exists`)
+      return
+    }
+    loading.value = true
+    try {
+      await s3Api.createFolder(selectedBucket.value, fullPath)
+      toast.success(`Folder "${sanitized}" created`)
+      await loadObjects(selectedBucket.value, { prefix: currentPrefix.value })
+    } catch (error) {
+      toast.error('Failed to create folder: ' + (error instanceof Error ? error.message : 'Unknown error'))
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const breadcrumbs = computed(() => {
+    if (!selectedBucket.value) return []
+    const crumbs: Array<{ label: string; prefix: string }> = [
+      { label: selectedBucket.value, prefix: '' },
+    ]
+    if (!currentPrefix.value) return crumbs
+    const segments = currentPrefix.value.split('/').filter(Boolean)
+    let acc = ''
+    for (const seg of segments) {
+      acc += seg + '/'
+      crumbs.push({ label: seg, prefix: acc })
+    }
+    return crumbs
+  })
+
+  function getParentPrefix(prefix: string): string {
+    if (!prefix) return ''
+    const trimmed = prefix.replace(/\/$/, '')
+    const idx = trimmed.lastIndexOf('/')
+    if (idx < 0) return ''
+    return trimmed.slice(0, idx + 1)
   }
 
   async function loadBucketDetails(bucketName: string) {
@@ -346,7 +460,11 @@ export function useS3() {
   return {
     buckets,
     objects,
+    prefixes,
     selectedBucket,
+    currentPrefix,
+    viewMode,
+    breadcrumbs,
     bucketDetails,
     loading,
     uploading,
@@ -369,5 +487,9 @@ export function useS3() {
     saveLifecycleRules,
     deleteLifecycleRule,
     toggleVersioning,
+    navigateToPrefix,
+    navigateUp,
+    setViewMode,
+    createFolder,
   }
 }

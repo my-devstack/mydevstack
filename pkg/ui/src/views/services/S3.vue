@@ -18,7 +18,11 @@ const toast = useToast()
 const {
   buckets,
   objects,
+  prefixes,
   selectedBucket,
+  currentPrefix,
+  viewMode,
+  breadcrumbs,
   loading,
   uploading,
   bucketDetails,
@@ -37,6 +41,9 @@ const {
   saveLifecycleRules,
   deleteLifecycleRule,
   toggleVersioning,
+  navigateToPrefix,
+  setViewMode,
+  createFolder,
 } = useS3()
 
 // Pagination via composable
@@ -116,7 +123,7 @@ async function deleteBucket() {
   }
 }
 
-// Upload files (multi-select, key = file.name)
+// Upload files (multi-select, key = currentPrefix + file.name)
 async function uploadFile(event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.length || !selectedBucket.value) return
@@ -128,7 +135,7 @@ async function uploadFile(event: Event) {
       if (!file.name) continue
       const arrayBuffer = await file.arrayBuffer()
       entries.push({
-        key: file.name,
+        key: currentPrefix.value + file.name,
         body: new Uint8Array(arrayBuffer),
         contentType: file.type || 'application/octet-stream',
       })
@@ -142,7 +149,7 @@ async function uploadFile(event: Event) {
   }
 }
 
-// Upload folder (webkitdirectory, key = file.webkitRelativePath)
+// Upload folder (webkitdirectory, key = currentPrefix + webkitRelativePath)
 async function uploadFolder(event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.length || !selectedBucket.value) return
@@ -151,11 +158,11 @@ async function uploadFolder(event: Event) {
   try {
     const entries: Array<{ key: string; body: Uint8Array; contentType: string }> = []
     for (const file of Array.from(input.files)) {
-      const key = (file as any).webkitRelativePath || file.name
-      if (!key) continue
+      const relativePath = (file as any).webkitRelativePath || file.name
+      if (!relativePath) continue
       const arrayBuffer = await file.arrayBuffer()
       entries.push({
-        key,
+        key: currentPrefix.value + relativePath,
         body: new Uint8Array(arrayBuffer),
         contentType: file.type || 'application/octet-stream',
       })
@@ -294,10 +301,17 @@ function closeViewModal() {
   viewError.value = null
 }
 
+function handleCreateFolder(folderName: string) {
+  if (!selectedBucket.value) return
+  createFolder(folderName)
+}
+
 // Navigation
 function goBack() {
   selectedBucket.value = null
   objects.value = []
+  prefixes.value = []
+  currentPrefix.value = ''
 }
 
 onMounted(() => {
@@ -308,6 +322,8 @@ watch(reloadTrigger, () => {
   loadBuckets()
   selectedBucket.value = null
   objects.value = []
+  prefixes.value = []
+  currentPrefix.value = ''
 })
 </script>
 
@@ -315,14 +331,14 @@ watch(reloadTrigger, () => {
   <div class="h-full flex flex-col">
     <!-- Header -->
     <div class="flex-shrink-0 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface px-6 py-4">
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-4">
           <ArchiveBoxIcon class="h-6 w-6 text-light-text dark:text-dark-text" />
           <h1 class="text-xl font-semibold text-light-text dark:text-dark-text">
             {{ selectedBucket ? selectedBucket : 'S3 Buckets' }}
           </h1>
           <span class="text-sm text-light-muted dark:text-dark-muted">
-            {{ selectedBucket ? `${objects.length} object(s)` : `${buckets.length} bucket(s)` }}
+            {{ selectedBucket ? `${objects.length + prefixes.length} item(s)` : `${buckets.length} bucket(s)` }}
           </span>
         </div>
         
@@ -381,6 +397,54 @@ watch(reloadTrigger, () => {
               />
             </svg>
           </button>
+        </div>
+      </div>
+
+      <!-- Breadcrumb and View Toggle -->
+      <div
+        v-if="selectedBucket"
+        class="flex items-center justify-between"
+      >
+        <!-- Breadcrumb -->
+        <nav class="flex items-center gap-2 text-sm">
+          <template
+            v-for="(crumb, index) in breadcrumbs"
+            :key="crumb.prefix"
+          >
+            <button
+              v-if="index < breadcrumbs.length - 1"
+              class="text-blue-500 hover:text-blue-700 hover:underline"
+              @click="navigateToPrefix(crumb.prefix)"
+            >
+              {{ crumb.label }}
+            </button>
+            <span
+              v-else
+              class="text-light-text dark:text-dark-text font-medium"
+            >
+              {{ crumb.label }}
+            </span>
+            <span
+              v-if="index < breadcrumbs.length - 1"
+              class="text-light-muted dark:text-dark-muted"
+            >
+              /
+            </span>
+          </template>
+        </nav>
+
+        <!-- View Toggle -->
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-light-muted dark:text-dark-muted">View:</label>
+          <select
+            v-model="viewMode"
+            class="text-sm border rounded px-2 py-1"
+            :class="settingsStore.darkMode ? 'bg-dark-surface border-dark-border text-dark-text' : 'bg-white border-light-border text-light-text'"
+            @change="setViewMode(viewMode)"
+          >
+            <option value="folders">Folders</option>
+            <option value="all">All files</option>
+          </select>
         </div>
       </div>
     </div>
@@ -484,7 +548,11 @@ watch(reloadTrigger, () => {
       v-if="!loading && selectedBucket"
       :bucket-name="selectedBucket"
       :objects="objects"
+      :prefixes="prefixes"
+      :current-prefix="currentPrefix"
       :uploading="uploading"
+      @open-folder="navigateToPrefix"
+      @create-folder="handleCreateFolder"
       @select-object="viewObject"
       @download-object="downloadObject"
       @delete-object="confirmDeleteObject"

@@ -210,8 +210,12 @@ test.describe('S3', () => {
       await viewObjectsBtn.click()
       await page.waitForTimeout(2000)
       
-      // Check for upload button
-      await expect(page.getByText('Upload File')).toBeVisible({ timeout: 5000 })
+      // Check for upload label
+      const uploadLabel = page.locator('label[title="Upload Files"]')
+      await expect(uploadLabel).toBeVisible({ timeout: 5000 })
+      await expect(uploadLabel).toHaveAttribute('aria-label', 'Upload Files')
+      // Assert the wrapped file input exists (may be hidden)
+      await expect(uploadLabel.locator('input[type="file"]')).toBeAttached({ timeout: 5000 })
     }
   })
 
@@ -470,6 +474,11 @@ test.describe('S3', () => {
         input.files = dt.files
         input.dispatchEvent(new Event('change', { bubbles: true }))
       })
+      // Switch to "All files" mode to see full paths (folder nav hides nested files)
+      const main = page.locator('main')
+      const viewSelect = main.locator('select').first()
+      await viewSelect.selectOption('All files')
+      await page.waitForLoadState('networkidle')
       await expect(page.getByText('folder1/file1.txt', { exact: true })).toBeVisible({ timeout: 5000 })
       await expect(page.getByText('folder1/folder2/file3.txt', { exact: true })).toBeVisible({ timeout: 5000 })
       await expect(page.getByText('4 file(s) uploaded successfully')).toBeVisible({ timeout: 5000 })
@@ -512,6 +521,127 @@ test.describe('Pagination', () => {
       if (await nextButton.isVisible().catch(() => false)) {
         await expect(nextButton).toBeVisible({ timeout: 5000 })
       }
+    }
+  })
+})
+
+test.describe('S3 folder navigation', () => {
+  test.describe.configure({ timeout: 10000 })
+  const PROXY = process.env.PROXY_URL || 'http://localhost:8081'
+
+  async function seedBucket(page: any, bucket: string) {
+    await page.request.post(`${PROXY}/s3/buckets`, { data: { Bucket: bucket } })
+    await page.request.post(`${PROXY}/s3/buckets/${bucket}/objects`, { data: { Key: 'a/b/c.txt', Body: 'nested c' } })
+    await page.request.post(`${PROXY}/s3/buckets/${bucket}/objects`, { data: { Key: 'a/d.txt', Body: 'file d' } })
+    await page.request.post(`${PROXY}/s3/buckets/${bucket}/objects`, { data: { Key: 'root.txt', Body: 'root file' } })
+    await page.request.post(`${PROXY}/s3/buckets/${bucket}/objects`, { data: { Key: 'empty/', Body: '' } })
+  }
+
+  const FLOCI = 'http://localhost:4566'
+  async function cleanupBucket(page: any, bucket: string) {
+    // Use Floci directly — proxy {key} route can't match keys with '/'
+    await page.request.delete(`${FLOCI}/${bucket}/a/b/c.txt`).catch(() => {})
+    await page.request.delete(`${FLOCI}/${bucket}/a/d.txt`).catch(() => {})
+    await page.request.delete(`${FLOCI}/${bucket}/root.txt`).catch(() => {})
+    await page.request.delete(`${FLOCI}/${bucket}/empty/`).catch(() => {})
+    await page.request.delete(`${FLOCI}/${bucket}`).catch(() => {})
+  }
+
+  async function openBucket(page: any, bucket: string) {
+    await page.goto('/#/services/s3')
+    await page.waitForLoadState('networkidle')
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+    // Set per-page to 50 to avoid pagination hiding the bucket
+    const showSection = page.getByText('Show:').locator('..')
+    const perPageSelect = showSection.locator('select')
+    if (await perPageSelect.isVisible().catch(() => false)) {
+      await perPageSelect.selectOption('50')
+      await page.waitForLoadState('networkidle')
+    }
+    // Wait for bucket row, click View Objects by title
+    const bucketRow = page.locator('.border.rounded-lg').filter({ hasText: bucket })
+    await expect(bucketRow).toBeVisible({ timeout: 5000 })
+    await bucketRow.locator('button[title="View Objects"]').click()
+    await page.waitForLoadState('networkidle')
+  }
+
+  test('root listing: folders above files, relative names', async ({ page }) => {
+    const bucket = `test-s3-folders-${Date.now()}`
+    await seedBucket(page, bucket)
+    try {
+      await openBucket(page, bucket)
+      const main = page.locator('main')
+      const folderA = main.getByText('a', { exact: true })
+      const folderEmpty = main.getByText('empty', { exact: true })
+      const fileRoot = main.getByText('root.txt', { exact: true })
+      await expect(folderA).toBeVisible()
+      await expect(folderEmpty).toBeVisible()
+      await expect(fileRoot).toBeVisible()
+      await expect(main.getByText('a/b/c.txt', { exact: true })).not.toBeVisible()
+      // Folders precede files: folderA DOM position before fileRoot
+      expect(await folderA.evaluate(el => el.getBoundingClientRect().y)).toBeLessThan(await fileRoot.evaluate(el => el.getBoundingClientRect().y))
+    } finally {
+      await cleanupBucket(page, bucket)
+    }
+  })
+
+  test('drill-down: click folder enters it', async ({ page }) => {
+    const bucket = `test-s3-folders-${Date.now()}`
+    await seedBucket(page, bucket)
+    try {
+      await openBucket(page, bucket)
+      const main = page.locator('main')
+      // Click folder 'a' - button contains text "a" as first element
+      await main.getByText('a', { exact: true }).click()
+      await page.waitForLoadState('networkidle')
+      await expect(main.getByRole('navigation')).toContainText('a')
+      await expect(main.getByText('d.txt', { exact: true })).toBeVisible()
+      await expect(main.getByText('c.txt', { exact: true })).not.toBeVisible()
+      // Click folder 'b'
+      await main.getByText('b', { exact: true }).click()
+      await page.waitForLoadState('networkidle')
+      await expect(main.getByText('c.txt', { exact: true })).toBeVisible()
+    } finally {
+      await cleanupBucket(page, bucket)
+    }
+  })
+
+  test('breadcrumb back: click bucket name returns to root', async ({ page }) => {
+    const bucket = `test-s3-folders-${Date.now()}`
+    await seedBucket(page, bucket)
+    try {
+      await openBucket(page, bucket)
+      const main = page.locator('main')
+      await main.getByText('a', { exact: true }).click()
+      await page.waitForLoadState('networkidle')
+      await page.getByRole('button', { name: bucket, exact: true }).click()
+      await page.waitForLoadState('networkidle')
+      await expect(main.getByText('root.txt', { exact: true })).toBeVisible()
+    } finally {
+      await cleanupBucket(page, bucket)
+    }
+  })
+
+  test('All files toggle: flat listing with full keys', async ({ page }) => {
+    const bucket = `test-s3-folders-${Date.now()}`
+    await seedBucket(page, bucket)
+    try {
+      await openBucket(page, bucket)
+      const main = page.locator('main')
+      const viewSelect = main.locator('select').first()
+      await viewSelect.selectOption('All files')
+      await page.waitForLoadState('networkidle')
+      await expect(main.getByText('a/b/c.txt', { exact: true })).toBeVisible()
+      await expect(main.getByText('a/d.txt', { exact: true })).toBeVisible()
+      await expect(main.getByText('root.txt', { exact: true })).toBeVisible()
+      await expect(main.getByText('empty', { exact: true })).toBeVisible()
+      await viewSelect.selectOption('Folders')
+      await page.waitForLoadState('networkidle')
+      await expect(main.getByText('a', { exact: true })).toBeVisible()
+      await expect(main.getByText('empty', { exact: true })).toBeVisible()
+    } finally {
+      await cleanupBucket(page, bucket)
     }
   })
 })

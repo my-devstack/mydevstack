@@ -7,7 +7,11 @@ vi.mock('@/composables/useS3', () => ({
   useS3: vi.fn(() => ({
     buckets: { value: [] },
     objects: { value: [] },
+    prefixes: { value: [] },
     selectedBucket: { value: null },
+    currentPrefix: { value: '' },
+    viewMode: { value: 'folders' },
+    breadcrumbs: { value: [] },
     loading: { value: false },
     uploading: { value: false },
     loadBuckets: vi.fn(),
@@ -17,6 +21,10 @@ vi.mock('@/composables/useS3', () => ({
     deleteObject: vi.fn(),
     getObject: vi.fn(),
     formatBody: vi.fn(),
+    navigateToPrefix: vi.fn(),
+    navigateUp: vi.fn(),
+    setViewMode: vi.fn(),
+    createFolder: vi.fn(),
   })),
 }))
 

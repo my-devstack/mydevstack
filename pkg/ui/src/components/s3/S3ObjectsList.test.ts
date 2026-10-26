@@ -28,11 +28,11 @@ describe('S3ObjectsList', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('Upload File')
+    expect(wrapper.find('h3').text()).toContain('Actions')
     expect(wrapper.find('input[type="file"]').exists()).toBe(true)
   })
 
-  it('renders empty state when no objects', () => {
+  it('renders empty state when no objects and no folders', () => {
     const wrapper = mount(S3ObjectsList, {
       props: {
         objects: [],
@@ -99,8 +99,8 @@ describe('S3ObjectsList', () => {
       },
     })
 
-    const viewButton = wrapper.findAll('button').find(b => b.text() === 'View')
-    await viewButton?.trigger('click')
+    const viewButton = wrapper.find('button[title="View"]')
+    await viewButton.trigger('click')
 
     expect(wrapper.emitted('select-object')).toBeTruthy()
     expect(wrapper.emitted('select-object')?.[0]).toEqual(['file1.txt'])
@@ -114,8 +114,8 @@ describe('S3ObjectsList', () => {
       },
     })
 
-    const downloadButton = wrapper.findAll('button').find(b => b.text() === 'Download')
-    await downloadButton?.trigger('click')
+    const downloadButton = wrapper.find('button[title="Download"]')
+    await downloadButton.trigger('click')
 
     expect(wrapper.emitted('download-object')).toBeTruthy()
     expect(wrapper.emitted('download-object')?.[0]).toEqual(['file1.txt'])
@@ -281,7 +281,7 @@ describe('S3ObjectsList', () => {
     expect(fileInput.attributes('disabled')).toBe('')
   })
 
-  it('shows choose file text when not uploading', () => {
+  it('renders upload files icon button', () => {
     const wrapper = mount(S3ObjectsList, {
       props: {
         objects: [],
@@ -290,7 +290,8 @@ describe('S3ObjectsList', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('Choose Files')
+    const uploadLabel = wrapper.find('label[title="Upload Files"]')
+    expect(uploadLabel.exists()).toBe(true)
   })
 
   it('file input has multiple attribute', () => {
@@ -317,7 +318,7 @@ describe('S3ObjectsList', () => {
     expect(folderInput.exists()).toBe(true)
   })
 
-  it('renders Upload Folder button', () => {
+  it('renders upload folder icon button', () => {
     const wrapper = mount(S3ObjectsList, {
       props: {
         objects: [],
@@ -325,7 +326,8 @@ describe('S3ObjectsList', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('Upload Folder')
+    const uploadFolderLabel = wrapper.find('label[title="Upload Folder"]')
+    expect(uploadFolderLabel.exists()).toBe(true)
   })
 
   it('emits upload-folder when folder selected', async () => {
@@ -353,5 +355,149 @@ describe('S3ObjectsList', () => {
 
     const folderInput = wrapper.find('input[type="file"][webkitdirectory]')
     expect(folderInput.attributes('disabled')).toBeDefined()
+  })
+
+  it('every action has accessible name (title and aria-label)', () => {
+    const wrapper = mount(S3ObjectsList, {
+      props: {
+        objects: [{ Key: 'file.txt', Size: 100 }],
+        prefixes: ['folder/'],
+        currentPrefix: '',
+        bucketName: 'test-bucket',
+      },
+    })
+
+    const expectedTitles = ['Upload Files', 'Upload Folder', 'Create Folder', 'View', 'Download', 'Copy Link', 'Delete']
+    for (const title of expectedTitles) {
+      const control = wrapper.find(`[title="${title}"]`)
+      expect(control.exists(), `missing title="${title}"`).toBe(true)
+      expect(control.attributes('aria-label'), `missing aria-label for "${title}"`).toBe(title)
+    }
+  })
+
+  it('action buttons in rows have title and aria-label', () => {
+    const wrapper = mount(S3ObjectsList, {
+      props: {
+        objects: [{ Key: 'file.txt', Size: 100 }],
+        bucketName: 'test-bucket',
+      },
+    })
+
+    const rowTitles = ['View', 'Download', 'Copy Link', 'Delete']
+    for (const title of rowTitles) {
+      const button = wrapper.find(`button[title="${title}"]`)
+      expect(button.exists(), `missing button[title="${title}"]`).toBe(true)
+      expect(button.attributes('aria-label')).toBe(title)
+    }
+  })
+
+  // New folder navigation tests
+  describe('Folder Navigation', () => {
+    it('renders folder rows when prefixes provided', () => {
+      const wrapper = mount(S3ObjectsList, {
+        props: {
+          objects: [],
+          prefixes: ['folder1/', 'folder2/'],
+          currentPrefix: '',
+          bucketName: 'test-bucket',
+        },
+      })
+
+      const folderRows = wrapper.findAll('tbody tr').filter(tr => !tr.find('button[title="Delete"]').exists())
+      expect(folderRows).toHaveLength(2)
+      expect(wrapper.text()).toContain('folder1')
+      expect(wrapper.text()).toContain('folder2')
+    })
+
+    it('shows folders above files', () => {
+      const wrapper = mount(S3ObjectsList, {
+        props: {
+          objects: [{ Key: 'file.txt', Size: 100 }],
+          prefixes: ['folder/'],
+          currentPrefix: '',
+          bucketName: 'test-bucket',
+        },
+      })
+
+      const rows = wrapper.findAll('tbody tr')
+      expect(rows).toHaveLength(2)
+      expect(rows[0].text()).toContain('folder')
+      expect(rows[1].text()).toContain('file.txt')
+    })
+
+    it('emits open-folder when folder row clicked', async () => {
+      const wrapper = mount(S3ObjectsList, {
+        props: {
+          objects: [],
+          prefixes: ['folder/'],
+          currentPrefix: '',
+          bucketName: 'test-bucket',
+        },
+      })
+
+      const folderRow = wrapper.findAll('tbody tr')[0]
+      await folderRow.trigger('click')
+
+      expect(wrapper.emitted('open-folder')).toBeTruthy()
+      expect(wrapper.emitted('open-folder')?.[0]).toEqual(['folder/'])
+    })
+
+    it('displays relative file names when in folder', () => {
+      const wrapper = mount(S3ObjectsList, {
+        props: {
+          objects: [{ Key: 'folder/file.txt', Size: 100 }],
+          prefixes: [],
+          currentPrefix: 'folder/',
+          bucketName: 'test-bucket',
+        },
+      })
+
+      expect(wrapper.text()).toContain('file.txt')
+      expect(wrapper.text()).not.toContain('folder/file.txt')
+    })
+
+    it('shows "-" for folder size and date', () => {
+      const wrapper = mount(S3ObjectsList, {
+        props: {
+          objects: [],
+          prefixes: ['folder/'],
+          currentPrefix: '',
+          bucketName: 'test-bucket',
+        },
+      })
+
+      const folderRow = wrapper.findAll('tbody tr')[0]
+      const cells = folderRow.findAll('td')
+      expect(cells[1].text()).toContain('-')
+      expect(cells[2].text()).toContain('-')
+    })
+
+    it('shows "Folder" label for folder rows', () => {
+      const wrapper = mount(S3ObjectsList, {
+        props: {
+          objects: [],
+          prefixes: ['folder/'],
+          currentPrefix: '',
+          bucketName: 'test-bucket',
+        },
+      })
+
+      const folderRow = wrapper.findAll('tbody tr')[0]
+      expect(folderRow.text()).toContain('Folder')
+    })
+
+    it('renders folder icon', () => {
+      const wrapper = mount(S3ObjectsList, {
+        props: {
+          objects: [],
+          prefixes: ['folder/'],
+          currentPrefix: '',
+          bucketName: 'test-bucket',
+        },
+      })
+
+      const folderIcon = wrapper.find('tbody tr svg')
+      expect(folderIcon.exists()).toBe(true)
+    })
   })
 })
