@@ -178,7 +178,7 @@ const SERVICE_CONFIGS: ServiceConfig[] = [
     name: 'API Gateway APIs',
     category: 'networking',
     icon: 'GlobeAltIcon',
-    route: '/services/apigateway',
+    route: '/services/api-gateway',
     color: SERVICE_COLORS.apigateway.text,
     bgColor: SERVICE_COLORS.apigateway.bg,
     statsFetcher: async () => {
@@ -234,7 +234,7 @@ const SERVICE_CONFIGS: ServiceConfig[] = [
     name: 'Secrets Manager Secrets',
     category: 'security',
     icon: 'LockClosedIcon',
-    route: '/services/secretsmanager',
+    route: '/services/secrets-manager',
     color: SERVICE_COLORS.secretsmanager.text,
     bgColor: SERVICE_COLORS.secretsmanager.bg,
     statsFetcher: async () => {
@@ -346,7 +346,7 @@ const SERVICE_CONFIGS: ServiceConfig[] = [
     name: 'Step Functions',
     category: 'analytics',
     icon: 'CircleStackIcon',
-    route: '/services/stepfunctions',
+    route: '/services/step-functions',
     color: SERVICE_COLORS.stepfunctions.text,
     bgColor: SERVICE_COLORS.stepfunctions.bg,
     statsFetcher: async () => {
