@@ -1,14 +1,29 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect } from '../fixtures.js'
 import { spawn, execSync, type ChildProcess } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import path from 'node:path'
+import os from 'node:os'
 
 const PROXY_URL = process.env.PROXY_URL || 'http://localhost:8081'
 const RO_PORT = 8091
 const RO_URL = `http://localhost:${RO_PORT}`
-const GO_BIN = process.env.GO_BIN || '/usr/local/go/bin/go'
-const RO_BINARY = '/tmp/mydevstack-proxy-ro'
+const RO_BINARY = path.join(os.tmpdir(), `mydevstack-proxy-ro-${process.pid}`)
+// Resolve pkg/proxy absolutely — Playwright cwd is pkg/test.
+const PROXY_SRC_DIR = path.resolve(__dirname, '../../../proxy')
 
 test.describe.configure({ timeout: 10000 })
+
+// Probe Go toolchain + source dir ONCE at module load. Never call test.skip()
+// inside beforeAll (Playwright warns and behavior is racy).
+let buildOk = false
+let buildErr = ''
+try {
+  execSync('go version', { stdio: 'pipe' })
+  // sanity: source tree reachable
+  execSync('ls cmd/server/main.go', { cwd: PROXY_SRC_DIR, stdio: 'pipe' })
+  buildOk = true
+} catch (e: any) {
+  buildErr = e?.message ?? String(e)
+}
 
 // ─── Test A: flag-OFF regression ─────────────────────────────────────────────
 test.describe('read-only flag OFF — regression', () => {
@@ -77,26 +92,18 @@ test.describe('read-only flag OFF — regression', () => {
 test.describe('read-only contract (isolated proxy on :8091)', () => {
   let roProc: ChildProcess | null = null
 
+  // Per-test skip if toolchain missing. Never test.skip() inside beforeAll.
+  test.skip(!buildOk, `go toolchain unavailable: ${buildErr}`)
+
   test.beforeAll(async () => {
-    // Build binary if not already present
-    if (!existsSync(RO_BINARY)) {
-      if (!existsSync(GO_BIN)) {
-        test.skip()
-        return
-      }
-      try {
-        execSync(`${GO_BIN} build -o ${RO_BINARY} ./cmd/server`, {
-          cwd: 'pkg/proxy',
-          stdio: 'pipe',
-        })
-      } catch (e: any) {
-        test.skip()
-        return
-      }
-    }
+    // Always build fresh into per-pid binary — avoids stale artifacts.
+    execSync(`go build -o ${RO_BINARY} ./cmd/server`, {
+      cwd: PROXY_SRC_DIR,
+      stdio: 'pipe',
+    })
 
     // Spawn RO proxy
-    roProc = spawn('/tmp/mydevstack-proxy-ro', [], {
+    roProc = spawn(RO_BINARY, [], {
       env: {
         ...process.env,
         PROXY_PORT: String(RO_PORT),
@@ -127,6 +134,11 @@ test.describe('read-only contract (isolated proxy on :8091)', () => {
     if (roProc) {
       roProc.kill('SIGTERM')
       roProc = null
+    }
+    try {
+      execSync(`rm -f ${RO_BINARY}`)
+    } catch {
+      // ignore
     }
   })
 

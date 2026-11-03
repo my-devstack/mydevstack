@@ -166,6 +166,8 @@ const settingsStore = useSettingsStore()
             <button
               type="button"
               class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
+              :disabled="settingsStore.readOnly"
               @click.stop="emit('create-route', api)"
             >
               Create Route
@@ -232,7 +234,8 @@ const settingsStore = useSettingsStore()
                 <button
                   type="button"
                   class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border"
-                  title="Edit Route"
+                  :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Edit Route'"
+                  :disabled="settingsStore.readOnly"
                   @click.stop="emit('edit-route', route, api.apiId)"
                 >
                   <svg
@@ -290,6 +293,8 @@ const settingsStore = useSettingsStore()
             <button
               type="button"
               class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
+              :disabled="settingsStore.readOnly"
               @click.stop="emit('create-integration', api)"
             >
               Create Integration
@@ -362,7 +367,8 @@ const settingsStore = useSettingsStore()
                 <button
                   type="button"
                   class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border"
-                  title="Edit Integration"
+                  :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Edit Integration'"
+                  :disabled="settingsStore.readOnly"
                   @click.stop="emit('edit-integration', integration)"
                 >
                   <svg
@@ -420,6 +426,8 @@ const settingsStore = useSettingsStore()
             <button
               type="button"
               class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
+              :disabled="settingsStore.readOnly"
               @click.stop="emit('create-stage', api)"
             >
               Create Stage
@@ -492,7 +500,8 @@ const settingsStore = useSettingsStore()
                 <button
                   type="button"
                   class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border"
-                  title="Edit Stage"
+                  :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Edit Stage'"
+                  :disabled="settingsStore.readOnly"
                   @click.stop="emit('edit-stage', stage, api.apiId)"
                 >
                   <svg

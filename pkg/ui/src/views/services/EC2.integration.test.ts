@@ -54,6 +54,17 @@ vi.mock('@/composables/useToast', () => ({
   useToast: () => ({ success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() }),
 }))
 
+vi.mock('@/stores/settings', () => ({
+  useSettingsStore: vi.fn(() => ({
+    emulator: 'aws',
+    darkMode: false,
+    region: 'us-east-1',
+    accessKey: 'test',
+    secretKey: 'test',
+    readOnly: false,
+  })),
+}))
+
 import EC2 from './EC2.vue'
 
 describe('EC2 Integration', () => {
@@ -80,5 +91,92 @@ describe('EC2 Integration', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.exists()).toBe(true)
     expect(wrapper.vm.loading).toBe(false)
+  })
+
+  describe('read-only gating', () => {
+    const makeStubs = (opts: { stubButton?: boolean } = {}) => ({
+      Tabs: { template: '<div class="tabs-stub"><slot /></div>', props: ['activeTab', 'tabs'] },
+      ...(opts.stubButton !== false
+        ? { Button: { template: '<button><slot /></button>' } }
+        : {}),
+      StatusBadge: true,
+      EmptyState: true,
+      Modal: { template: '<div v-if="open" class="modal-stub"><slot /><slot name="footer" /></div>', props: ['open', 'title'] },
+      FormInput: true,
+      FormSelect: true,
+      LoadingSpinner: { template: '<span />' },
+    })
+
+    it('readOnly true: Run Instance button (real Button with mutating) is disabled', async () => {
+      const { useSettingsStore } = await import('@/stores/settings')
+      vi.mocked(useSettingsStore).mockReturnValue({
+        emulator: 'aws',
+        darkMode: false,
+        region: 'us-east-1',
+        accessKey: 'test',
+        secretKey: 'test',
+        readOnly: true,
+      } as any)
+
+      const wrapper = mount(EC2, {
+        global: { stubs: makeStubs({ stubButton: false }) },
+      })
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      const runBtn = wrapper.findAll('button').find(b => b.text().includes('Run Instance'))
+      expect(runBtn).toBeTruthy()
+      expect(runBtn!.attributes('disabled')).toBeDefined()
+      expect(runBtn!.attributes('title')).toBe('Read-only mode: action not allowed')
+    })
+
+    it('readOnly false: Run Instance button is enabled', async () => {
+      const { useSettingsStore } = await import('@/stores/settings')
+      vi.mocked(useSettingsStore).mockReturnValue({
+        emulator: 'aws',
+        darkMode: false,
+        region: 'us-east-1',
+        accessKey: 'test',
+        secretKey: 'test',
+        readOnly: false,
+      } as any)
+
+      const wrapper = mount(EC2, {
+        global: { stubs: makeStubs({ stubButton: false }) },
+      })
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      const runBtn = wrapper.findAll('button').find(b => b.text().includes('Run Instance'))
+      expect(runBtn).toBeTruthy()
+      expect(runBtn!.attributes('disabled')).toBeUndefined()
+    })
+
+    it('readOnly true: clicking Run Instance does NOT call runInstances API', async () => {
+      const ec2Module = await import('@/api/services/ec2')
+
+      const { useSettingsStore } = await import('@/stores/settings')
+      vi.mocked(useSettingsStore).mockReturnValue({
+        emulator: 'aws',
+        darkMode: false,
+        region: 'us-east-1',
+        accessKey: 'test',
+        secretKey: 'test',
+        readOnly: true,
+      } as any)
+
+      const wrapper = mount(EC2, {
+        global: { stubs: makeStubs({ stubButton: false }) },
+      })
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      const runBtn = wrapper.findAll('button').find(b => b.text().includes('Run Instance'))!
+      await runBtn.trigger('click')
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      expect(ec2Module.runInstances).not.toHaveBeenCalled()
+    })
   })
 })

@@ -179,7 +179,8 @@ function formatDate(dateStr: string | undefined): string {
             <button
               type="button"
               class="p-1.5 rounded hover:bg-light-border dark:hover:bg-dark-border"
-              title="Edit"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Edit'"
+              :disabled="settingsStore.readOnly"
               @click.stop="emit('edit-api', api)"
             >
               <svg
@@ -252,6 +253,8 @@ function formatDate(dateStr: string | undefined): string {
             <button
               type="button"
               class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
+              :disabled="settingsStore.readOnly"
               @click.stop="emit('create-resource', api, resources?.[0])"
             >
               + Create Resource
@@ -329,7 +332,8 @@ function formatDate(dateStr: string | undefined): string {
                   <button
                     type="button"
                     class="px-2 py-1 text-xs rounded hover:bg-light-border dark:hover:bg-dark-border"
-                    title="Add Method"
+                    :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Add Method'"
+                    :disabled="settingsStore.readOnly"
                     @click.stop="emit('add-method', resource, api)"
                   >
                     + Method
@@ -424,7 +428,8 @@ function formatDate(dateStr: string | undefined): string {
                       <button
                         type="button"
                         class="px-2 py-1 text-xs rounded hover:bg-light-border dark:hover:bg-dark-border"
-                        title="Setup Integration"
+                        :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Setup Integration'"
+                        :disabled="settingsStore.readOnly"
                         @click.stop="emit('setup-integration', method as string, resource)"
                       >
                         Integration
@@ -472,6 +477,8 @@ function formatDate(dateStr: string | undefined): string {
               <button
                 type="button"
                 class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
+                :disabled="settingsStore.readOnly"
                 @click.stop="emit('create-deployment', api)"
               >
                 + Create Deployment
@@ -530,7 +537,8 @@ function formatDate(dateStr: string | undefined): string {
                   <button
                     type="button"
                     class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border"
-                    title="Edit Deployment"
+                    :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Edit Deployment'"
+                    :disabled="settingsStore.readOnly"
                     @click.stop="emit('edit-deployment', deployment)"
                   >
                     <svg
@@ -594,6 +602,8 @@ function formatDate(dateStr: string | undefined): string {
               <button
                 type="button"
                 class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
+                :disabled="settingsStore.readOnly"
                 @click.stop="emit('create-stage', api)"
               >
                 + Create Stage
@@ -652,7 +662,8 @@ function formatDate(dateStr: string | undefined): string {
                   <button
                     type="button"
                     class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border"
-                    title="Edit Stage"
+                    :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Edit Stage'"
+                    :disabled="settingsStore.readOnly"
                     @click.stop="emit('edit-stage', stage)"
                   >
                     <svg

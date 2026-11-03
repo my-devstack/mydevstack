@@ -2,11 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import { LambdaCreateModal } from './index'
+import { useSettingsStore } from '@/stores/settings'
 
 vi.mock('@/stores/settings', () => ({
   useSettingsStore: vi.fn(() => ({
     darkMode: false,
     region: 'us-east-1',
+    readOnly: false,
   })),
 }))
 
@@ -180,5 +182,29 @@ describe('LambdaCreateModal', () => {
     const cancelButton = buttons.find(b => /cancel/i.test(b.text()))
     expect(cancelButton).toBeTruthy()
     expect(cancelButton!.props('mutating')).toBeFalsy()
+  })
+
+  it('disables ZIP file input and applies disabled styling when readOnly true', () => {
+    vi.mocked(useSettingsStore).mockReturnValue({ darkMode: false, region: 'us-east-1', readOnly: true } as any)
+    const wrapper = mount(LambdaCreateModal, {
+      props: { open: true, loading: false },
+      global: { stubs: createStubs() },
+    })
+    const input = wrapper.find('input[type="file"]')
+    expect(input.attributes('disabled')).toBeDefined()
+    expect(input.classes()).toContain('opacity-50')
+    expect(input.classes()).toContain('cursor-not-allowed')
+  })
+
+  it('ZIP file input is enabled when readOnly false', () => {
+    vi.mocked(useSettingsStore).mockReturnValue({ darkMode: false, region: 'us-east-1', readOnly: false } as any)
+    const wrapper = mount(LambdaCreateModal, {
+      props: { open: true, loading: false },
+      global: { stubs: createStubs() },
+    })
+    const input = wrapper.find('input[type="file"]')
+    expect(input.attributes('disabled')).toBeUndefined()
+    expect(input.classes()).not.toContain('opacity-50')
+    expect(input.classes()).not.toContain('cursor-not-allowed')
   })
 })

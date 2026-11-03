@@ -114,24 +114,26 @@ const emptyMessage = computed(() => {
     <div class="flex flex-wrap items-center gap-2">
       <label
         class="inline-flex p-2 rounded text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border"
-        :class="uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
-        title="Upload Files"
+        :class="settingsStore.readOnly ? 'opacity-50 cursor-not-allowed pointer-events-none' : (uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer')"
+        :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Upload Files'"
         aria-label="Upload Files"
+        :aria-disabled="settingsStore.readOnly ? 'true' : undefined"
       >
         <DocumentArrowUpIcon class="w-4 h-4" />
         <input
           type="file"
           multiple
           class="hidden"
-          :disabled="uploading"
+          :disabled="uploading || settingsStore.readOnly"
           @change="(e) => emit('upload-file', e)"
         >
       </label>
       <label
         class="inline-flex p-2 rounded text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border"
-        :class="uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
-        title="Upload Folder"
+        :class="settingsStore.readOnly ? 'opacity-50 cursor-not-allowed pointer-events-none' : (uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer')"
+        :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Upload Folder'"
         aria-label="Upload Folder"
+        :aria-disabled="settingsStore.readOnly ? 'true' : undefined"
       >
         <FolderArrowDownIcon class="w-4 h-4 rotate-180" />
         <input
@@ -139,7 +141,7 @@ const emptyMessage = computed(() => {
           webkitdirectory
           directory
           class="hidden"
-          :disabled="uploading"
+          :disabled="uploading || settingsStore.readOnly"
           @change="(e) => emit('upload-folder', e)"
         >
       </label>

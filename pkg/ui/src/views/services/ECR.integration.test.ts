@@ -18,12 +18,15 @@ vi.mock('@/composables/useToast', () => ({
   useToast: () => ({ success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() }),
 }))
 
+const ecrReadOnly = { value: false }
+
 vi.mock('@/stores/settings', () => ({
   useSettingsStore: vi.fn(() => ({
     darkMode: false,
     region: 'us-east-1',
     accessKey: 'test-key',
     secretKey: 'test-secret',
+    get readOnly() { return ecrReadOnly.value },
   })),
 }))
 
@@ -109,6 +112,7 @@ describe('ECR View Integration', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
+    ecrReadOnly.value = false
   })
 
   it('renders the view with tabs and code examples section on mount', async () => {
@@ -191,5 +195,73 @@ describe('ECR View Integration', () => {
 
     expect(wrapper.vm.repositories).toHaveLength(25)
     expect(wrapper.text()).toContain('25 repository(ies)')
+  })
+
+  describe('read-only gating', () => {
+    it('readOnly true: Create Repository button is disabled', async () => {
+      ecrReadOnly.value = true
+      vi.mocked(ecrApi.listRepositories).mockResolvedValue({ Repositories: [] })
+
+      const wrapper = mount(ECR, {
+        global: { stubs: makeStubs() },
+      })
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      const createBtn = wrapper.findAll('button').find(b => b.text().includes('+ Create Repository'))
+      expect(createBtn).toBeTruthy()
+      expect(createBtn!.attributes('disabled')).toBeDefined()
+      expect(createBtn!.attributes('title')).toBe('Read-only mode: action not allowed')
+    })
+
+    it('readOnly false: Create Repository button is enabled', async () => {
+      ecrReadOnly.value = false
+      vi.mocked(ecrApi.listRepositories).mockResolvedValue({ Repositories: [] })
+
+      const wrapper = mount(ECR, {
+        global: { stubs: makeStubs() },
+      })
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      const createBtn = wrapper.findAll('button').find(b => b.text().includes('+ Create Repository'))
+      expect(createBtn).toBeTruthy()
+      expect(createBtn!.attributes('disabled')).toBeUndefined()
+    })
+
+    it('readOnly true: clicking Create Repository does NOT call createRepository API', async () => {
+      ecrReadOnly.value = true
+      vi.mocked(ecrApi.listRepositories).mockResolvedValue({ Repositories: [] })
+
+      const wrapper = mount(ECR, {
+        global: { stubs: makeStubs() },
+      })
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      const createBtn = wrapper.findAll('button').find(b => b.text().includes('+ Create Repository'))!
+      await createBtn.trigger('click')
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      expect(ecrApi.createRepository).not.toHaveBeenCalled()
+    })
+
+    it('readOnly false: clicking Create Repository calls openCreateModal (modal opens)', async () => {
+      ecrReadOnly.value = false
+      vi.mocked(ecrApi.listRepositories).mockResolvedValue({ Repositories: [] })
+
+      const wrapper = mount(ECR, {
+        global: { stubs: makeStubs() },
+      })
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      const createBtn = wrapper.findAll('button').find(b => b.text().includes('+ Create Repository'))!
+      await createBtn.trigger('click')
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.find('[data-testid="ecr-modal"]').exists()).toBe(true)
+    })
   })
 })

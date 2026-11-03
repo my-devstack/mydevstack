@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
+import { createPinia, setActivePinia } from 'pinia';
+import { useSettingsStore } from '@/stores/settings';
 import S3ObjectsList from './S3ObjectsList.vue';
 
 const meta: Meta<typeof S3ObjectsList> = {
@@ -152,5 +154,35 @@ export const CopyLinkAction: Story = {
       return { args, handleCopyLink }
     },
     template: '<div class="h-96"><S3ObjectsList v-bind="args" @copy-link="handleCopyLink" /></div>'
+  })
+};
+
+export const ReadOnlyMode: Story = {
+  args: {
+    objects: mockObjects,
+    prefixes: ['a/'],
+    currentPrefix: '',
+    bucketName: 'my-bucket',
+    loading: false
+  },
+  decorators: [
+    (story) => ({
+      components: { story },
+      setup() {
+        const localPinia = createPinia();
+        setActivePinia(localPinia);
+        const store = useSettingsStore();
+        store.setReadOnly(true);
+        return {};
+      },
+      template: '<div class="h-96"><story /></div>'
+    })
+  ],
+  render: (args) => ({
+    components: { S3ObjectsList },
+    setup() {
+      return { args };
+    },
+    template: '<S3ObjectsList v-bind="args" />'
   })
 };

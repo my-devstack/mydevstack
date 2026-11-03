@@ -3,8 +3,13 @@ import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import APIGatewayRestApisList from './APIGatewayRestApisList.vue'
 
+const mockSettingsStore = {
+  darkMode: false,
+  readOnly: false,
+}
+
 vi.mock('@/stores/settings', () => ({
-  useSettingsStore: () => ({ darkMode: false }),
+  useSettingsStore: () => mockSettingsStore,
 }))
 
 const mockApi = {
@@ -37,6 +42,8 @@ describe('APIGatewayRestApisList', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
+    mockSettingsStore.readOnly = false
+    mockSettingsStore.darkMode = false
   })
 
   it('renders empty state when no apis', () => {
@@ -159,5 +166,55 @@ describe('APIGatewayRestApisList', () => {
       props: { ...defaultProps, expandedApis: new Set(['api-123']) },
     })
     expect(wrapper.text()).toContain('No stages found')
+  })
+
+  it('disables Edit button and shows read-only title when readOnly', () => {
+    mockSettingsStore.readOnly = true
+    const wrapper = mount(APIGatewayRestApisList, { props: defaultProps })
+    const editBtn = wrapper.find('button[title="Read-only mode: action not allowed"]')
+    expect(editBtn.exists()).toBe(true)
+    expect(editBtn.attributes('disabled')).toBeDefined()
+  })
+
+  it('enables Edit button with original title when not readOnly', () => {
+    mockSettingsStore.readOnly = false
+    const wrapper = mount(APIGatewayRestApisList, { props: defaultProps })
+    const editBtn = wrapper.find('button[title="Edit"]')
+    expect(editBtn.exists()).toBe(true)
+    expect(editBtn.attributes('disabled')).toBeUndefined()
+  })
+
+  it('disables Edit Deployment and Edit Stage in expanded section when readOnly', () => {
+    mockSettingsStore.readOnly = true
+    const wrapper = mount(APIGatewayRestApisList, {
+      props: {
+        ...defaultProps,
+        expandedApis: new Set(['api-123']),
+        deployments: [{ id: 'dep-1', createdDate: '2024-01-15T10:00:00Z' }],
+        stages: [{ stageName: 'prod', deploymentId: 'dep-1' }],
+      },
+    })
+    const gated = wrapper.findAll('button[title="Read-only mode: action not allowed"]')
+    // Edit API + Edit Deployment + Edit Stage (plus Create/Delete/Add/Setup gated)
+    expect(gated.length).toBeGreaterThanOrEqual(3)
+    expect(gated.every((b) => b.attributes('disabled') !== undefined)).toBe(true)
+  })
+
+  it('enables Edit Deployment and Edit Stage with original titles when not readOnly', () => {
+    mockSettingsStore.readOnly = false
+    const wrapper = mount(APIGatewayRestApisList, {
+      props: {
+        ...defaultProps,
+        expandedApis: new Set(['api-123']),
+        deployments: [{ id: 'dep-1', createdDate: '2024-01-15T10:00:00Z' }],
+        stages: [{ stageName: 'prod', deploymentId: 'dep-1' }],
+      },
+    })
+    const editDep = wrapper.find('button[title="Edit Deployment"]')
+    const editStg = wrapper.find('button[title="Edit Stage"]')
+    expect(editDep.exists()).toBe(true)
+    expect(editStg.exists()).toBe(true)
+    expect(editDep.attributes('disabled')).toBeUndefined()
+    expect(editStg.attributes('disabled')).toBeUndefined()
   })
 })
