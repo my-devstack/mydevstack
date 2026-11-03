@@ -64,7 +64,8 @@ function handleCancel() {
           </button>
           <button
             class="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-red-500 hover:bg-red-600 disabled:opacity-50"
-            :disabled="loading"
+            :disabled="loading || settingsStore.readOnly"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
             @click="handleConfirm"
           >
             {{ loading ? 'Deleting...' : 'Delete' }}

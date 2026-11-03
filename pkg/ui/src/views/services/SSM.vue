@@ -93,6 +93,7 @@ const {
         <Button
           size="sm"
           aria-label="Create Parameter"
+          mutating
           @click="showCreateModal = true"
         >
           <PlusIcon class="h-4 w-4 mr-1" />Create Parameter

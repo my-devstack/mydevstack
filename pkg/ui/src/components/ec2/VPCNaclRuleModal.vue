@@ -168,6 +168,7 @@ function getProtocolLabel(protocol: string): string {
                 </td>
                 <td class="py-2 px-3 text-right">
                   <Button
+                    mutating
                     variant="ghost"
                     size="sm"
                     @click="handleDeleteRule(entry.RuleNumber)"
@@ -238,6 +239,7 @@ function getProtocolLabel(protocol: string): string {
           </div>
           <div class="flex justify-end">
             <Button
+              mutating
               size="sm"
               @click="handleAddRule"
             >

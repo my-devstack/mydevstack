@@ -60,6 +60,7 @@ function handleClose() {
         Cancel
       </Button>
       <Button
+        mutating
         variant="primary"
         @click="handleCreate"
       >

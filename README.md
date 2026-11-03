@@ -24,6 +24,7 @@ cp .env.example .env
 | `AWS_ENDPOINT` | `http://localhost:4566` | AWS emulator endpoint |
 | `AWS_ACCESS_KEY` | `test` | AWS access key |
 | `AWS_SECRET_KEY` | `test` | AWS secret key |
+| `READ_ONLY_MODE` | `false` | When `true`, all mutating proxy requests (`POST`/`PUT`/`PATCH`/`DELETE`) return `403 {"error":"Action not allowed: server is in read-only mode","code":"READ_ONLY"}`, except `POST /proxy/region` (still allowed). UI shows a read-only banner and disables create/edit/delete actions; read/view flows keep working. Read at boot — requires backend restart to change. |
 
 ---
 

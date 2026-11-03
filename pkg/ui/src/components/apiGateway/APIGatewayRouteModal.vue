@@ -134,6 +134,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="loading"
           :disabled="!routeKey.trim() || (targetType === 'integration' && !selectedTarget)"
           @click="handleCreate"

@@ -363,6 +363,8 @@ function getStatusBadgeClass(status: string): string {
           <span class="text-xs text-red-600 dark:text-red-400">Delete all rules?</span>
           <button
             type="button"
+            :disabled="settingsStore.readOnly"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Confirm delete all rules'"
             class="px-3 py-1.5 text-xs rounded-lg bg-red-600 text-white hover:bg-red-700"
             @click="handleDeleteAll"
           >
@@ -398,7 +400,8 @@ function getStatusBadgeClass(status: string): string {
         </button>
         <button
           type="button"
-          :disabled="rules.length === 0 || loading"
+          :disabled="rules.length === 0 || loading || settingsStore.readOnly"
+          :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Save lifecycle changes'"
           class="px-3 py-1.5 text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
           @click="handleSaveChanges"
         >

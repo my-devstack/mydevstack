@@ -752,6 +752,7 @@ watch(reloadTrigger, () => {
         </div>
 
         <Button
+          mutating
           variant="primary"
           @click="() => {
             if (activeTab === 'users') showCreateUserModal = true
@@ -827,6 +828,7 @@ watch(reloadTrigger, () => {
               </div>
               <div class="flex items-center gap-2">
                 <Button
+                  mutating
                   variant="ghost"
                   size="sm"
                   @click.stop="selectUserForAction(user, 'delete')"
@@ -862,6 +864,7 @@ watch(reloadTrigger, () => {
               <div class="flex items-center justify-between mb-3">
                 <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase">Access Keys</label>
                 <Button
+                  mutating
                   variant="primary"
                   size="sm"
                   @click.stop="selectedUser = user; showCreateKeyModal = true"
@@ -903,6 +906,7 @@ watch(reloadTrigger, () => {
                     />
                     <Button
                       v-if="key.Status === 'Active'"
+                      mutating
                       variant="ghost"
                       size="sm"
                       @click.stop="openDeleteKeyModal(key.AccessKeyId, user.UserName)"
@@ -1009,6 +1013,7 @@ watch(reloadTrigger, () => {
               </div>
               <div class="flex items-center gap-2">
                 <Button
+                  mutating
                   variant="ghost"
                   size="sm"
                   @click.stop="selectRoleForAction(role, 'delete')"
@@ -1044,6 +1049,7 @@ watch(reloadTrigger, () => {
               <div class="flex items-center justify-between mb-3">
                 <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase">Attached Policies</label>
                 <Button
+                  mutating
                   variant="primary"
                   size="sm"
                   @click.stop="selectedRole = role; openAttachPolicy()"
@@ -1079,6 +1085,7 @@ watch(reloadTrigger, () => {
                     </p>
                   </div>
                   <Button
+                    mutating
                     variant="ghost"
                     size="sm"
                     @click.stop="openDetachPolicyModal(role.RoleName, policy.PolicyArn, policy.PolicyName)"
@@ -1187,6 +1194,7 @@ watch(reloadTrigger, () => {
                 />
                 <Button
                   v-if="!policy.Arn.startsWith('arn:aws:iam::aws:')"
+                  mutating
                   variant="ghost"
                   size="sm"
                   @click.stop="selectedPolicy = policy; showDeletePolicyModal = true"
@@ -1345,6 +1353,7 @@ watch(reloadTrigger, () => {
               </div>
               <div class="flex items-center gap-2">
                 <Button
+                  mutating
                   variant="ghost"
                   size="sm"
                   @click.stop="selectGroupForAction(group, 'delete')"
@@ -1392,6 +1401,7 @@ watch(reloadTrigger, () => {
               <div class="flex items-center justify-between mb-3">
                 <label class="block text-xs font-medium text-light-muted dark:text-dark-muted uppercase">Users</label>
                 <Button
+                  mutating
                   variant="primary"
                   size="sm"
                   @click.stop="selectedGroup = group; showAddUserToGroupModal = true"
@@ -1427,6 +1437,7 @@ watch(reloadTrigger, () => {
                     </p>
                   </div>
                   <Button
+                    mutating
                     variant="ghost"
                     size="sm"
                     @click.stop="openRemoveUserModal(group.GroupName, user.UserName)"

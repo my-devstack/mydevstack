@@ -123,6 +123,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="loading"
           :disabled="!resourceId"
           @click="handleCreate"

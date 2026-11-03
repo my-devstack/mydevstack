@@ -153,6 +153,8 @@ func TestHealthCheck(t *testing.T) {
 	assert.Equal(t, "healthy", response["status"])
 	assert.Equal(t, "aws-proxy", response["proxy"])
 	assert.Equal(t, "us-east-1", response["region"])
+	// read_only_mode field defaults to false when config is not set
+	assert.Equal(t, false, response["read_only_mode"])
 }
 
 func TestHealthCheck_EmulatorUnreachable(t *testing.T) {

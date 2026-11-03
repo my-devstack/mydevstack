@@ -209,6 +209,7 @@ defineExpose({ updateInvokeResult })
           <button
             class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
             title="Delete"
+            :disabled="settingsStore.readOnly"
             @click.stop="emit('delete-function', func)"
           >
             <svg
@@ -394,7 +395,8 @@ defineExpose({ updateInvokeResult })
             <button
               class="px-3 py-1.5 text-sm rounded border hover:bg-light-border dark:hover:bg-dark-border"
               :class="settingsStore.darkMode ? 'border-dark-border text-dark-text' : 'border-light-border text-light-text'"
-              :disabled="isLoading(func.FunctionName)"
+              :disabled="settingsStore.readOnly || isLoading(func.FunctionName)"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Invoke function'"
               @click.stop="handleInvoke(func.FunctionName)"
             >
               {{ isLoading(func.FunctionName) ? 'Invoking...' : 'Invoke' }}

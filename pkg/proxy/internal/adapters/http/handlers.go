@@ -149,6 +149,7 @@ func (h *ProxyHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		"emulator":      h.Svc.Config().Emulator,
 		"github_repo":   h.VersionSvc.GetGitHubRepo(),
 		"latestVersion": "",
+		"read_only_mode": h.Svc.Config().ReadOnlyMode,
 	}
 
 	// Add latest version if available

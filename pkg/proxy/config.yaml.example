@@ -1,4 +1,5 @@
 port: ${PROXY_PORT}
+read_only_mode: ${READ_ONLY_MODE:-false}
 aws:
   endpoint: ${AWS_ENDPOINT}
   access_key: ${AWS_ACCESS_KEY}

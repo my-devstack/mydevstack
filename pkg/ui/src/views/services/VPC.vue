@@ -284,6 +284,7 @@ watch(reloadTrigger, () => {
           <Button
             v-if="activeTab === 'vpc-list'"
             size="sm"
+            mutating
             @click="showVpcModal = true"
           >
             <PlusIcon class="h-4 w-4 mr-1" />
@@ -292,6 +293,7 @@ watch(reloadTrigger, () => {
           <Button
             v-else-if="activeTab === 'subnet-list'"
             size="sm"
+            mutating
             @click="showSubnetModal = true"
           >
             <PlusIcon class="h-4 w-4 mr-1" />
@@ -300,6 +302,7 @@ watch(reloadTrigger, () => {
           <Button
             v-else-if="activeTab === 'route-tables'"
             size="sm"
+            mutating
             @click="showRouteTableModal = true"
           >
             <PlusIcon class="h-4 w-4 mr-1" />
@@ -308,6 +311,7 @@ watch(reloadTrigger, () => {
           <Button
             v-else-if="activeTab === 'internet-gateways'"
             size="sm"
+            mutating
             @click="showIgwModal = true"
           >
             <PlusIcon class="h-4 w-4 mr-1" />
@@ -316,6 +320,7 @@ watch(reloadTrigger, () => {
           <Button
             v-else-if="activeTab === 'nat-gateways'"
             size="sm"
+            mutating
             @click="showNatGatewayModal = true"
           >
             <PlusIcon class="h-4 w-4 mr-1" />
@@ -324,6 +329,7 @@ watch(reloadTrigger, () => {
           <Button
             v-else-if="activeTab === 'network-acls'"
             size="sm"
+            mutating
             @click="showNaclModal = true"
           >
             <PlusIcon class="h-4 w-4 mr-1" />
@@ -332,6 +338,7 @@ watch(reloadTrigger, () => {
           <Button
             v-else-if="activeTab === 'flow-logs'"
             size="sm"
+            mutating
             @click="showFlowLogModal = true"
           >
             <PlusIcon class="h-4 w-4 mr-1" />
@@ -340,6 +347,7 @@ watch(reloadTrigger, () => {
           <Button
             v-else-if="activeTab === 'elastic-ips'"
             size="sm"
+            mutating
             @click="handleAllocateElasticIp"
           >
             <PlusIcon class="h-4 w-4 mr-1" />
@@ -412,6 +420,7 @@ watch(reloadTrigger, () => {
                 <Button
                   variant="ghost"
                   size="sm"
+                  mutating
                   @click.stop="openDeleteConfirm(vpc, 'vpc')"
                 >
                   <TrashIcon class="h-4 w-4 text-red-500" />
@@ -559,6 +568,7 @@ watch(reloadTrigger, () => {
                 <Button
                   variant="ghost"
                   size="sm"
+                  mutating
                   @click.stop="openDeleteConfirm(subnet, 'subnet')"
                 >
                   <TrashIcon class="h-4 w-4 text-red-500" />
@@ -716,6 +726,7 @@ watch(reloadTrigger, () => {
                 <Button
                   variant="ghost"
                   size="sm"
+                  mutating
                   @click.stop="openDeleteConfirm(rt, 'routetable')"
                 >
                   <TrashIcon class="h-4 w-4 text-red-500" />
@@ -856,6 +867,7 @@ watch(reloadTrigger, () => {
                 <Button
                   variant="ghost"
                   size="sm"
+                  mutating
                   @click.stop="openDeleteConfirm(igw, 'igw')"
                 >
                   <TrashIcon class="h-4 w-4 text-red-500" />
@@ -987,6 +999,7 @@ watch(reloadTrigger, () => {
                 <Button
                   variant="ghost"
                   size="sm"
+                  mutating
                   @click.stop="openDeleteConfirm(nat, 'natgw')"
                 >
                   <TrashIcon class="h-4 w-4 text-red-500" />
@@ -1138,6 +1151,7 @@ watch(reloadTrigger, () => {
                 <Button
                   variant="ghost"
                   size="sm"
+                  mutating
                   @click.stop="openDeleteConfirm(nacl, 'nacl')"
                 >
                   <TrashIcon class="h-4 w-4 text-red-500" />
@@ -1290,6 +1304,7 @@ watch(reloadTrigger, () => {
                 <Button
                   variant="ghost"
                   size="sm"
+                  mutating
                   @click.stop="openDeleteConfirm(fl, 'flowlog')"
                 >
                   <TrashIcon class="h-4 w-4 text-red-500" />
@@ -1437,6 +1452,7 @@ watch(reloadTrigger, () => {
                 <Button
                   variant="ghost"
                   size="sm"
+                  mutating
                   @click.stop="openDeleteConfirm(eip, 'eip')"
                 >
                   <TrashIcon class="h-4 w-4 text-red-500" />

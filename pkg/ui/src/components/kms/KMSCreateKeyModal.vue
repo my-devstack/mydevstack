@@ -87,7 +87,10 @@ function handleCreate() {
       >
         Cancel
       </Button>
-      <Button @click="handleCreate">
+      <Button
+        mutating
+        @click="handleCreate"
+      >
         Create
       </Button>
     </template>

@@ -119,6 +119,7 @@ function handleClose() {
       <div class="flex items-center gap-2 pt-4 border-t border-light-border dark:border-dark-border">
         <Button
           v-if="props.selectedKey.keyMetadata.KeyState === 'Disabled'"
+          mutating
           variant="primary"
           @click="emit('enable-key')"
         >
@@ -129,6 +130,7 @@ function handleClose() {
         </Button>
         <Button
           v-else-if="props.selectedKey.keyMetadata.KeyState === 'Enabled'"
+          mutating
           variant="secondary"
           @click="emit('disable-key')"
         >
@@ -138,6 +140,7 @@ function handleClose() {
           Disable Key
         </Button>
         <Button
+          mutating
           variant="danger"
           :disabled="props.selectedKey.keyMetadata.KeyState === 'PendingDeletion'"
           @click="emit('delete-key')"

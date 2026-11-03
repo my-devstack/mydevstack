@@ -116,7 +116,8 @@ const settingsStore = useSettingsStore()
             <button
               type="button"
               class="p-1.5 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
-              title="Delete"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
+              :disabled="settingsStore.readOnly"
               @click.stop="emit('delete-api', api)"
             >
               <svg
@@ -251,7 +252,8 @@ const settingsStore = useSettingsStore()
                 <button
                   type="button"
                   class="p-1 rounded text-red-500 hover:bg-light-border dark:hover:bg-dark-border"
-                  title="Delete"
+                  :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
+                  :disabled="settingsStore.readOnly"
                   @click.stop="emit('delete-route', api.apiId, route)"
                 >
                   <svg
@@ -380,7 +382,8 @@ const settingsStore = useSettingsStore()
                 <button
                   type="button"
                   class="p-1 rounded text-red-500 hover:bg-light-border dark:hover:bg-dark-border"
-                  title="Delete"
+                  :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
+                  :disabled="settingsStore.readOnly"
                   @click.stop="emit('delete-integration', api.apiId, integration)"
                 >
                   <svg
@@ -509,7 +512,8 @@ const settingsStore = useSettingsStore()
                 <button
                   type="button"
                   class="p-1 rounded text-red-500 hover:bg-light-border dark:hover:bg-dark-border"
-                  title="Delete"
+                  :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
+                  :disabled="settingsStore.readOnly"
                   @click.stop="emit('delete-stage', api.apiId, stage)"
                 >
                   <svg

@@ -91,6 +91,7 @@ function handleClose() {
                 </div>
               </div>
               <Button
+                mutating
                 variant="ghost"
                 size="sm"
                 @click="emit('remove-user', member.Username)"
@@ -124,6 +125,7 @@ function handleClose() {
               </option>
             </select>
             <Button
+              mutating
               variant="primary"
               :disabled="!selectedUsername"
               @click="handleAdd"

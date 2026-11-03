@@ -71,6 +71,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="loading"
           :disabled="!form.name.trim()"
           @click="handleUpdate"

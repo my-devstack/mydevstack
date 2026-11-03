@@ -154,6 +154,7 @@ function getAlarmStatus(state: string): 'active' | 'pending' | 'inactive' {
               Set INSUFFICIENT
             </Button>
             <Button
+              mutating
               variant="danger"
               size="sm"
               @click.stop="emit('deleteAlarm', alarm.AlarmName)"

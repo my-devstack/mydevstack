@@ -5,6 +5,7 @@ import { useUIStore } from '@/stores/ui'
 import { useToast } from '@/composables/useToast'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import TopBar from '@/components/layout/TopBar.vue'
+import ReadOnlyBanner from '@/components/layout/ReadOnlyBanner.vue'
 import Toast from '@/components/common/Toast.vue'
 
 const settingsStore = useSettingsStore()
@@ -20,6 +21,8 @@ onMounted(() => {
   } else {
     document.documentElement.classList.remove('dark')
   }
+  // Fetch read-only flag from backend (fire-and-forget)
+  void settingsStore.fetchReadOnly()
 })
 
 watch(isDark, (dark) => {
@@ -49,6 +52,9 @@ watch(isDark, (dark) => {
     >
       <!-- Top Bar -->
       <TopBar />
+
+      <!-- Read-only banner -->
+      <ReadOnlyBanner />
 
       <!-- Page Content -->
       <main class="p-6">

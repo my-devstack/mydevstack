@@ -230,6 +230,7 @@ watch(reloadTrigger, () => {
           </Button>
           <Button
             v-if="activeTab === 'instances'"
+            mutating
             size="sm"
             @click="showCreateModal = true"
           >
@@ -238,6 +239,7 @@ watch(reloadTrigger, () => {
           </Button>
           <Button
             v-else-if="activeTab === 'key-pairs'"
+            mutating
             size="sm"
             @click="showKeyPairModal = true"
           >
@@ -246,6 +248,7 @@ watch(reloadTrigger, () => {
           </Button>
           <Button
             v-else-if="activeTab === 'security-groups'"
+            mutating
             size="sm"
             @click="showSecurityGroupModal = true"
           >

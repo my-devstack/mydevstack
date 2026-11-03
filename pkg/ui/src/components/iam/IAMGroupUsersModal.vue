@@ -80,6 +80,7 @@ function handleClose() {
             </p>
           </div>
           <Button
+            mutating
             variant="ghost"
             size="sm"
             @click="emit('remove-user', user.UserName)"

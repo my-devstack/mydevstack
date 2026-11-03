@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { setActivePinia, createPinia } from 'pinia'
 import { useSettingsStore } from '@/stores/settings'
@@ -355,6 +355,96 @@ describe('Settings Store', () => {
       store.darkMode = true
       await nextTick()
       expect(localStorage.getItem('darkMode')).toBe('true')
+    })
+  })
+
+  describe('readOnly flag', () => {
+    let originalFetch: typeof globalThis.fetch
+
+    beforeEach(() => {
+      originalFetch = globalThis.fetch
+    })
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch
+    })
+
+    it('defaults to false', () => {
+      const store = useSettingsStore()
+      expect(store.readOnly).toBe(false)
+    })
+
+    it('setReadOnly updates flag', () => {
+      const store = useSettingsStore()
+      store.setReadOnly(true)
+      expect(store.readOnly).toBe(true)
+      store.setReadOnly(false)
+      expect(store.readOnly).toBe(false)
+    })
+
+    it('fetchReadOnly sets true when backend returns read_only_mode=true', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ read_only_mode: true }),
+      }) as typeof fetch
+      const store = useSettingsStore()
+      await store.fetchReadOnly()
+      expect(store.readOnly).toBe(true)
+    })
+
+    it('fetchReadOnly sets false when backend returns read_only_mode=false', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ read_only_mode: false }),
+      }) as typeof fetch
+      const store = useSettingsStore()
+      store.setReadOnly(true)
+      await store.fetchReadOnly()
+      expect(store.readOnly).toBe(false)
+    })
+
+    it('fetchReadOnly falls back to false on non-2xx', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+      }) as typeof fetch
+      const store = useSettingsStore()
+      store.setReadOnly(true)
+      await store.fetchReadOnly()
+      expect(store.readOnly).toBe(false)
+    })
+
+    it('fetchReadOnly falls back to false on network error', async () => {
+      globalThis.fetch = vi.fn().mockRejectedValue(new Error('network')) as typeof fetch
+      const store = useSettingsStore()
+      store.setReadOnly(true)
+      await store.fetchReadOnly()
+      expect(store.readOnly).toBe(false)
+    })
+
+    it('fetchReadOnly falls back to false on malformed JSON', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.reject(new Error('bad json')),
+      }) as typeof fetch
+      const store = useSettingsStore()
+      store.setReadOnly(true)
+      await store.fetchReadOnly()
+      expect(store.readOnly).toBe(false)
+    })
+
+    it('fetchReadOnly falls back to false when read_only_mode is not boolean', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ read_only_mode: 'yes' }),
+      }) as typeof fetch
+      const store = useSettingsStore()
+      await store.fetchReadOnly()
+      expect(store.readOnly).toBe(false)
     })
   })
 })

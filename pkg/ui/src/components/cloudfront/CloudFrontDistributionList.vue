@@ -203,7 +203,8 @@ async function copyToClipboard(text: string) {
           </button>
           <button
             class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-green-500"
-            title="Grant Bucket Access"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Grant Bucket Access'"
+            :disabled="settingsStore.readOnly"
             @click="emit('grant-access', dist)"
           >
             <svg
@@ -222,7 +223,8 @@ async function copyToClipboard(text: string) {
           </button>
           <button
             class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
-            title="Delete Distribution"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete Distribution'"
+            :disabled="settingsStore.readOnly"
             @click="emit('delete', dist)"
           >
             <svg

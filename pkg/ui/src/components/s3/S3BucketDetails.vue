@@ -107,6 +107,8 @@ function getEncryptionClass(algorithm: string): string {
         type="button"
         class="ml-2 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded"
         :class="getVersioningToggleClass(false)"
+        :disabled="settingsStore.readOnly"
+        :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Disable versioning'"
         @click="emit('toggleVersioning', bucketName, false)"
       >
         <ArrowPathIcon class="w-3 h-3" />
@@ -117,6 +119,8 @@ function getEncryptionClass(algorithm: string): string {
         type="button"
         class="ml-2 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded"
         :class="getVersioningToggleClass(true)"
+        :disabled="settingsStore.readOnly"
+        :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Enable versioning'"
         @click="emit('toggleVersioning', bucketName, true)"
       >
         <ArrowPathIcon class="w-3 h-3" />

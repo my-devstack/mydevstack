@@ -65,6 +65,7 @@ function handleClose() {
         Cancel
       </Button>
       <Button
+        mutating
         variant="primary"
         :disabled="!newClient.ClientName.trim()"
         @click="handleCreate"

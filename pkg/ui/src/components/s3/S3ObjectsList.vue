@@ -147,8 +147,8 @@ const emptyMessage = computed(() => {
         type="button"
         class="p-2 rounded text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border"
         :class="uploading ? 'opacity-50 cursor-not-allowed' : ''"
-        :disabled="uploading"
-        :title="uploading ? 'Uploading...' : 'Create Folder'"
+        :disabled="uploading || settingsStore.readOnly"
+        :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : (uploading ? 'Uploading...' : 'Create Folder')"
         aria-label="Create Folder"
         @click="handleCreateFolder"
       >
@@ -294,8 +294,9 @@ const emptyMessage = computed(() => {
             <button
               type="button"
               class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
-              title="Delete Folder"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete Folder'"
               aria-label="Delete Folder"
+              :disabled="settingsStore.readOnly"
               @click.stop="emit('delete-folder', folder.fullPrefix)"
             >
               <TrashIcon class="w-4 h-4" />
@@ -351,8 +352,9 @@ const emptyMessage = computed(() => {
               <button
                 type="button"
                 class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
-                title="Delete"
+                :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
                 aria-label="Delete"
+                :disabled="settingsStore.readOnly"
                 @click="emit('delete-object', obj.Key)"
               >
                 <TrashIcon class="w-4 h-4" />

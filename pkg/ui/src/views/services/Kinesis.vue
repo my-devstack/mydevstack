@@ -75,6 +75,7 @@ watch(reloadTrigger, () => {
             <ArrowPathIcon class="h-4 w-4" />
           </Button>
           <Button
+            mutating
             size="sm"
             @click="showCreateModal = true"
           >

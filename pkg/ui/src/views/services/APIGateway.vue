@@ -96,6 +96,8 @@ async function createHttpApi(name: string, desc?: string, protocol?: string) {
         </div>
         <button
           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          :disabled="settingsStore.readOnly"
+          :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
           @click="handleCreateApi"
         >
           + Create {{ activeTab === 'rest' ? 'REST API' : 'API' }}

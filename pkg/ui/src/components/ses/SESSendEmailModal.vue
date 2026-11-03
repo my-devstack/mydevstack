@@ -227,6 +227,7 @@ function switchMode(newMode: SendMode) {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="props.sending"
           @click="handleSend"
         >

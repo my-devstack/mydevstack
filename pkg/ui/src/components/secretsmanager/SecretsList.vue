@@ -120,6 +120,7 @@ function formatDate(dateStr: string | undefined): string {
             <button
               type="button"
               aria-label="Delete"
+              :disabled="settingsStore.readOnly"
               class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
               @click.stop="handleDelete(secret.Name)"
             >

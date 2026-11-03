@@ -18,6 +18,7 @@ func clearConfigEnv() {
 		"EMULATOR",
 		"GITHUB_REPO",
 		"VERSION_CHECK_HOURS",
+		"READ_ONLY_MODE",
 	}
 	for _, ev := range envVars {
 		_ = os.Unsetenv(ev)
@@ -259,6 +260,55 @@ version_check_hours: "not_a_number"
 	if err == nil {
 		t.Error("LoadConfig() expected Unmarshal error for bad int value, got nil")
 	}
+}
+
+func TestLoadConfig_ReadOnly(t *testing.T) {
+	t.Run("default is false", func(t *testing.T) {
+		clearConfigEnv()
+		defer clearConfigEnv()
+
+		cfg, err := LoadConfig(context.Background())
+		if err != nil {
+			t.Fatalf("LoadConfig() error = %v", err)
+		}
+		if cfg.ReadOnlyMode != false {
+			t.Errorf("ReadOnlyMode = %v, want false", cfg.ReadOnlyMode)
+		}
+	})
+
+	t.Run("env true parses to true", func(t *testing.T) {
+		clearConfigEnv()
+		defer clearConfigEnv()
+
+		if err := os.Setenv("READ_ONLY_MODE", "true"); err != nil {
+			t.Fatalf("Setenv failed: %v", err)
+		}
+
+		cfg, err := LoadConfig(context.Background())
+		if err != nil {
+			t.Fatalf("LoadConfig() error = %v", err)
+		}
+		if cfg.ReadOnlyMode != true {
+			t.Errorf("ReadOnlyMode = %v, want true", cfg.ReadOnlyMode)
+		}
+	})
+
+	t.Run("env false parses to false", func(t *testing.T) {
+		clearConfigEnv()
+		defer clearConfigEnv()
+
+		if err := os.Setenv("READ_ONLY_MODE", "false"); err != nil {
+			t.Fatalf("Setenv failed: %v", err)
+		}
+
+		cfg, err := LoadConfig(context.Background())
+		if err != nil {
+			t.Fatalf("LoadConfig() error = %v", err)
+		}
+		if cfg.ReadOnlyMode != false {
+			t.Errorf("ReadOnlyMode = %v, want false", cfg.ReadOnlyMode)
+		}
+	})
 }
 
 func TestLoadConfig_InvalidYamlFile(t *testing.T) {

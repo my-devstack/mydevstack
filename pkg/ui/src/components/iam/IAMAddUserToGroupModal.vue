@@ -61,6 +61,7 @@ function handleClose() {
         Cancel
       </Button>
       <Button
+        mutating
         variant="primary"
         :loading="props.loading"
         :disabled="!selectedUser"

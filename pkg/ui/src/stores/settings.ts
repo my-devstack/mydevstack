@@ -65,6 +65,9 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.getItem('desktopNotificationsEnabled') === 'true'
   )
 
+  // State - Read-only (boot-time flag, NOT persisted)
+  const readOnly = ref<boolean>(false)
+
   // State - Advanced
   const requestTimeout = ref<number>(
     parseInt(localStorage.getItem('requestTimeout') || '30', 10)
@@ -174,6 +177,40 @@ export const useSettingsStore = defineStore('settings', () => {
     debugMode.value = !debugMode.value
   }
 
+  function setReadOnly(v: boolean) {
+    readOnly.value = v
+  }
+
+  async function fetchReadOnly() {
+    try {
+      const url = `${PROXY_BACKEND}/health`
+      const res = await fetch(url)
+      if (!res.ok) {
+        readOnly.value = false
+        return
+      }
+      let data: unknown
+      try {
+        data = await res.json()
+      } catch {
+        readOnly.value = false
+        return
+      }
+      if (
+        data &&
+        typeof data === 'object' &&
+        'read_only_mode' in data &&
+        typeof (data as { read_only_mode: unknown }).read_only_mode === 'boolean'
+      ) {
+        readOnly.value = (data as { read_only_mode: boolean }).read_only_mode
+      } else {
+        readOnly.value = false
+      }
+    } catch {
+      readOnly.value = false
+    }
+  }
+
   function clearLocalStorage() {
     localStorage.clear()
     // Reset to defaults (endpoint is computed from config, not stored)
@@ -232,6 +269,8 @@ export const useSettingsStore = defineStore('settings', () => {
     requestTimeout,
     maxRetries,
     debugMode,
+    // State - Read-only
+    readOnly,
     // Computed
     isDarkMode,
     // Actions - Connection
@@ -256,5 +295,8 @@ export const useSettingsStore = defineStore('settings', () => {
     toggleDebugMode,
     clearLocalStorage,
     resetSettings,
+    // Actions - Read-only
+    setReadOnly,
+    fetchReadOnly,
   }
 })

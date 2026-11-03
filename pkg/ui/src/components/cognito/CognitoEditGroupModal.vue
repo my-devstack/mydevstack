@@ -74,6 +74,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           @click="handleUpdate"
         >
           Save

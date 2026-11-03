@@ -85,6 +85,7 @@ function close() {
           Cancel
         </Button>
         <Button
+          mutating
           variant="danger"
           @click="handleDelete"
         >

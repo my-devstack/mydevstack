@@ -76,6 +76,8 @@ function goBack() {
         <button
           v-if="!selectedStateMachine"
           class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+          :disabled="settingsStore.readOnly"
+          :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
           @click="showCreateModal = true"
         >
           Create State Machine
@@ -167,6 +169,8 @@ function goBack() {
           </h2>
           <button
             class="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm"
+            :disabled="settingsStore.readOnly"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
             @click="showStartExecutionModal = true"
           >
             Start Execution

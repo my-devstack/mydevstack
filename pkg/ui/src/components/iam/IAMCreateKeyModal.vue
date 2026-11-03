@@ -91,6 +91,7 @@ function copyToClipboard(text: string) {
       </Button>
       <Button
         v-if="!props.newAccessKey"
+        mutating
         variant="primary"
         @click="emit('create')"
       >

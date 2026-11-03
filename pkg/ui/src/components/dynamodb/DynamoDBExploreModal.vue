@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useSettingsStore } from '@/stores/settings'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
@@ -29,6 +30,8 @@ const emit = defineEmits<{
   'deleteItem': [item: Record<string, any>]
   'addItem': []
 }>()
+
+const settingsStore = useSettingsStore()
 
 const allAttributes = computed(() => {
   const attrs = new Set<string>()
@@ -108,6 +111,7 @@ function formatAttributeValue(attr: any): string {
       </div>
       
       <Button
+        mutating
         size="sm"
         @click="emit('addItem')"
       >
@@ -182,6 +186,7 @@ function formatAttributeValue(attr: any): string {
         </div>
       </div>
       <Button
+        mutating
         size="sm"
         class="mt-3"
         @click="emit('query')"
@@ -277,7 +282,8 @@ function formatAttributeValue(attr: any): string {
               <td class="px-3 py-2 text-right">
                 <button
                   class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
-                  title="Delete"
+                  :disabled="settingsStore.readOnly"
+                  :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
                   @click="emit('deleteItem', item)"
                 >
                   <svg

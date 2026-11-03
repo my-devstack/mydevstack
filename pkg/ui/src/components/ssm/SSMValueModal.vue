@@ -116,6 +116,7 @@ function getParamTypeStatus(type: string): 'active' | 'pending' | 'inactive' {
           @input="emit('update:new-param-value', ($event.target as HTMLTextAreaElement).value)"
         />
         <Button
+          mutating
           class="mt-2"
           size="sm"
           aria-label="Update"

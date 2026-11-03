@@ -199,7 +199,8 @@ function formatDate(dateStr: string | undefined): string {
             <button
               type="button"
               class="p-1.5 rounded hover:bg-light-border dark:hover:bg-dark-border"
-              title="Delete"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
+              :disabled="settingsStore.readOnly"
               @click.stop="emit('delete-api', api)"
             >
               <svg
@@ -336,7 +337,8 @@ function formatDate(dateStr: string | undefined): string {
                   <button
                     type="button"
                     class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
-                    title="Delete"
+                    :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
+                    :disabled="settingsStore.readOnly"
                     @click.stop="emit('delete-resource', resource)"
                   >
                     <svg
@@ -430,7 +432,8 @@ function formatDate(dateStr: string | undefined): string {
                       <button
                         type="button"
                         class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
-                        title="Delete Method"
+                        :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete Method'"
+                        :disabled="settingsStore.readOnly"
                         @click.stop="emit('delete-method', method as string, resource)"
                       >
                         <svg
@@ -547,7 +550,8 @@ function formatDate(dateStr: string | undefined): string {
                   <button
                     type="button"
                     class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
-                    title="Delete Deployment"
+                    :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete Deployment'"
+                    :disabled="settingsStore.readOnly"
                     @click.stop="emit('delete-deployment', api.id, deployment.id)"
                   >
                     <svg
@@ -668,7 +672,8 @@ function formatDate(dateStr: string | undefined): string {
                   <button
                     type="button"
                     class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
-                    title="Delete Stage"
+                    :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete Stage'"
+                    :disabled="settingsStore.readOnly"
                     @click.stop="emit('delete-stage', api.id, stage.stageName)"
                   >
                     <svg

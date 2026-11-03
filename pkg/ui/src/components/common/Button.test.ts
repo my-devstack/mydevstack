@@ -1,10 +1,12 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { setActivePinia, createPinia } from 'pinia'
+import { useSettingsStore } from '@/stores/settings'
 import Button from './Button.vue'
 
 describe('Button', () => {
   beforeEach(() => {
-    vi.resetAllMocks()
+    setActivePinia(createPinia())
   })
 
   it('should render with default props', () => {
@@ -111,5 +113,72 @@ describe('Button', () => {
       props: { type: 'submit' }
     })
     expect(wrapper.find('button').attributes('type')).toBe('submit')
+  })
+
+  // mutating + readOnly tests
+  it('mutating + readOnly=true → disabled, aria-disabled, title, no click emit', async () => {
+    const store = useSettingsStore()
+    store.setReadOnly(true)
+    const wrapper = mount(Button, {
+      props: { mutating: true },
+    })
+    const btn = wrapper.find('button')
+    expect(btn.attributes('disabled')).toBeDefined()
+    expect(btn.attributes('aria-disabled')).toBe('true')
+    expect(btn.attributes('title')).toBe('Read-only mode: action not allowed')
+    await btn.trigger('click')
+    expect(wrapper.emitted('click')).toBeUndefined()
+  })
+
+  it('mutating + readOnly=false → enabled, click emits', async () => {
+    const store = useSettingsStore()
+    store.setReadOnly(false)
+    const wrapper = mount(Button, {
+      props: { mutating: true },
+    })
+    const btn = wrapper.find('button')
+    expect(btn.attributes('disabled')).toBeUndefined()
+    expect(btn.attributes('aria-disabled')).toBeUndefined()
+    expect(btn.attributes('title')).toBeUndefined()
+    await btn.trigger('click')
+    expect(wrapper.emitted('click')).toBeDefined()
+  })
+
+  it('no mutating + readOnly=true → enabled', () => {
+    const store = useSettingsStore()
+    store.setReadOnly(true)
+    const wrapper = mount(Button)
+    const btn = wrapper.find('button')
+    expect(btn.attributes('disabled')).toBeUndefined()
+    expect(btn.attributes('aria-disabled')).toBeUndefined()
+  })
+
+  it('explicit disabled still works alongside readOnly', () => {
+    const wrapper = mount(Button, {
+      props: { disabled: true },
+    })
+    const btn = wrapper.find('button')
+    expect(btn.attributes('disabled')).toBeDefined()
+    // No read-only blocked here, so no aria-disabled from our logic
+    expect(btn.attributes('aria-disabled')).toBeUndefined()
+  })
+
+  it('caller title wins over read-only hint', () => {
+    const store = useSettingsStore()
+    store.setReadOnly(true)
+    const wrapper = mount(Button, {
+      props: { mutating: true },
+      attrs: { title: 'Custom title' },
+    })
+    const btn = wrapper.find('button')
+    expect(btn.attributes('title')).toBe('Custom title')
+  })
+
+  it('mutating prop does not leak as DOM attribute', () => {
+    const wrapper = mount(Button, {
+      props: { mutating: true },
+    })
+    const btn = wrapper.find('button')
+    expect(btn.attributes('mutating')).toBeUndefined()
   })
 })

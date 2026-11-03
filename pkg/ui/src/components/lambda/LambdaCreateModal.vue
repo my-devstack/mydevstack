@@ -222,6 +222,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :disabled="!form.functionName.trim() || loading"
           @click="handleCreate"
         >

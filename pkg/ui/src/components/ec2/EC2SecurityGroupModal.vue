@@ -118,6 +118,7 @@ function resetForm() {
             Ingress Rules
           </label>
           <Button
+            mutating
             variant="ghost"
             size="sm"
             @click="addRule"
@@ -182,6 +183,7 @@ function resetForm() {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="props.creating"
           @click="handleCreate"
         >

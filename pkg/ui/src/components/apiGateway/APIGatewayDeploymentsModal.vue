@@ -154,6 +154,7 @@ function handleClose() {
         </div>
         <div class="mt-3">
           <Button
+            mutating
             size="sm"
             :disabled="!newDeploymentStageName.trim()"
             @click="handleCreateDeployment"
@@ -205,7 +206,8 @@ function handleClose() {
           <button
             type="button"
             class="p-2 text-red-500 hover:text-red-700 rounded"
-            title="Delete"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
+            :disabled="settingsStore.readOnly"
             @click="handleDeleteDeployment(deployment.id)"
           >
             <svg
@@ -257,6 +259,7 @@ function handleClose() {
         </div>
         <div class="mt-3">
           <Button
+            mutating
             size="sm"
             :disabled="!newStageName.trim()"
             @click="handleCreateStage"
@@ -311,7 +314,8 @@ function handleClose() {
           <button
             type="button"
             class="p-2 text-red-500 hover:text-red-700 rounded"
-            title="Delete"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
+            :disabled="settingsStore.readOnly"
             @click="handleDeleteStage(stage.stageName)"
           >
             <svg

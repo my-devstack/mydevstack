@@ -122,6 +122,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :disabled="!form.PoolName.trim()"
           @click="handleUpdate"
         >

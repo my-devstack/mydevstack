@@ -206,6 +206,7 @@ function handleDelete(machine: StateMachineItem) {
             <button
               type="button"
               aria-label="Delete"
+              :disabled="settingsStore.readOnly"
               class="p-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600"
               @click.stop="handleDelete(machine)"
             >

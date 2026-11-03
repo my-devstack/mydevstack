@@ -38,6 +38,7 @@ const emit = defineEmits<{
           Cancel
         </Button>
         <Button
+          mutating
           variant="danger"
           :loading="loading"
           @click="emit('confirm')"

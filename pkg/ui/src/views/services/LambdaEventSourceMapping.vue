@@ -135,7 +135,8 @@ async function handleDelete() {
       <div class="flex items-center gap-2">
         <button
           class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
-          :disabled="loading"
+          :disabled="loading || settingsStore.readOnly"
+          :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
           @click="showCreateModal = true"
         >
           Create Mapping

@@ -143,6 +143,7 @@ function handleImport() {
         </Button>
         <Button
           v-if="activeSubTab === 'create'"
+          mutating
           :loading="props.creating"
           @click="handleCreate"
         >
@@ -150,6 +151,7 @@ function handleImport() {
         </Button>
         <Button
           v-else
+          mutating
           :loading="props.creating"
           @click="handleImport"
         >

@@ -113,7 +113,8 @@ function handleClose() {
             Cancel
           </button>
           <button
-            :disabled="!newSecretName.trim() || !newSecretValue.trim() || creating"
+            :disabled="!newSecretName.trim() || !newSecretValue.trim() || creating || settingsStore.readOnly"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Create'"
             class="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
             @click="emit('create')"
           >

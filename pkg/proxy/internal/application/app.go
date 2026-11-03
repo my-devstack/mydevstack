@@ -124,6 +124,9 @@ func (c *Container) setupRoutes() http.Handler {
 		})
 	})
 
+	// Apply read-only middleware after CORS
+	r.Use(readOnlyMiddleware(c.Config))
+
 	r.Get("/health", handler.HealthCheck)
 	r.Post("/proxy/region", handler.SetRegion)
 

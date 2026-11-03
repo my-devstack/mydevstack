@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
+import { createPinia, setActivePinia } from 'pinia';
+import { useSettingsStore } from '@/stores/settings';
 import Button from './Button.vue';
 
 const meta: Meta<typeof Button> = {
@@ -16,6 +18,7 @@ const meta: Meta<typeof Button> = {
     },
     loading: { control: 'boolean' },
     disabled: { control: 'boolean' },
+    mutating: { control: 'boolean' },
     fullWidth: { control: 'boolean' },
     click: { action: 'clicked' }
   },
@@ -156,5 +159,32 @@ export const FullWidth: Story = {
       return { args };
     },
     template: '<div class="w-64"><Button v-bind="args">{{ args.default }}</Button></div>'
+  })
+};
+
+export const ReadOnlyDisabled: Story = {
+  args: {
+    mutating: true,
+    default: 'Create'
+  },
+  decorators: [
+    (story) => ({
+      components: { story },
+      setup() {
+        const pinia = createPinia();
+        setActivePinia(pinia);
+        const store = useSettingsStore();
+        store.setReadOnly(true);
+        return { pinia };
+      },
+      template: '<story />'
+    })
+  ],
+  render: (args) => ({
+    components: { Button },
+    setup() {
+      return { args };
+    },
+    template: '<Button v-bind="args">{{ args.default }}</Button>'
   })
 };

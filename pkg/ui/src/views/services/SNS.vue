@@ -144,6 +144,7 @@ const {
           </span>
         </div>
         <Button
+          mutating
           variant="primary"
           @click="showCreateTopicModal = true"
         >
@@ -284,6 +285,7 @@ const {
 
               <div class="flex gap-2">
                 <Button
+                  mutating
                   size="sm"
                   variant="secondary"
                   @click="openSubscribeModal(topic)"
@@ -291,6 +293,7 @@ const {
                   Subscribe
                 </Button>
                 <Button
+                  mutating
                   size="sm"
                   variant="secondary"
                   @click="openPublishModal(topic)"
