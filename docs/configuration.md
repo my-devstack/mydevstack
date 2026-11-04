@@ -143,8 +143,6 @@ Most AWS reads are now served over `GET` and work under read-only mode. The foll
 - **Kinesis** — `GetShardIterator` (`GET /kinesis/streams/{streamName}/shards/{shardId}/iterator`)
 - **Secrets Manager** — `GetRandomPassword` (`GET /secretsmanager/random-password`)
 
-The legacy `POST` twins of the converted reads are kept for one release and tagged `deprecated: true` in OpenAPI — they return the same payload and are **also** allowed in read-only mode. After the deprecation window they are removed.
-
 ### Reads that stay POST (by design)
 
 A small set of read operations keep their `POST` route and are **blocked** by read-only mode, because their request body is a nested JSON structure that cannot fit reliably into a URL:
