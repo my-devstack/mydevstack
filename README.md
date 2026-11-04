@@ -18,6 +18,8 @@ Create a `.env` file based on `.env.example`:
 cp .env.example .env
 ```
 
+Full reference: [`docs/configuration.md`](docs/configuration.md).
+
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PROXY_PORT` | `8081` | Backend proxy port |
@@ -40,13 +42,17 @@ make run-ui     # Terminal 2
 
 ---
 
-## Docker Compose Files
+## Docker Compose
+
+Ready-made stacks for MyDevStack + an AWS emulator live in
+[`examples/docker-compose/`](examples/docker-compose/) (LocalStack, FloCi, MiniStack).
+See [`docs/getting-started.md`](docs/getting-started.md) for the full quickstart.
 
 | File | Description |
 |------|-------------|
-| `docker-compose.yml` | MyDevStack + aws emulator on port 4566 |
-| `docker-compose-floci.yml` | FloCi + MyDevStack |
-| `docker-compose-ministack.yml` | MiniStack + MyDevStack |
+| `examples/docker-compose/docker-compose.yml` | MyDevStack only — point `AWS_ENDPOINT` at an emulator you already run on `:4566` |
+| `examples/docker-compose/docker-compose-floci.yml` | FloCi + Mailpit + MyDevStack (self-contained) |
+| `examples/docker-compose/docker-compose-ministack.yml` | MiniStack + Redis + MyDevStack (self-contained) |
 
 ### Using Docker Directly
 
@@ -66,49 +72,7 @@ docker run -d \
 
 ## Development
 
-### Prerequisites
-
-- **Go** 1.26+
-- **Node.js** 24+
-- **Docker** (for running emulators)
-
-### Running Locally
-
-```bash
-# Clone the repo
-git clone https://github.com/beabys/mydevstack.git
-cd mydevstack
-
-# Install UI dependencies
-cd pkg/ui && pnpm install
-
-# Start Go proxy (port 8081)
-go run ./pkg/proxy/cmd/server
-
-# Start Vue dev server (port 3000) - in another terminal
-cd pkg/ui && pnpm run dev
-```
-
-### Running Tests
-
-```bash
-# Go backend
-make test
-
-# Vue frontend
-cd pkg/ui && pnpm run test:run
-
-# E2E tests
-make test-e2e
-```
-
-### Building
-
-```bash
-# Full build
-make dist    # Vue only
-make build   # Go + Vue
-```
+Full from-source workflow lives in [`docs/development.md`](docs/development.md).
 
 ---
 
@@ -117,6 +81,8 @@ make build   # Go + Vue
 ```
 mydevstack/
 ├── .github/                 # GitHub workflows
+├── docs/                    # Documentation
+├── examples/                # Docker Compose examples
 ├── pkg/
 │   ├── proxy/              # Go backend API proxy
 │   │   ├── cmd/            # Entry points
@@ -131,8 +97,6 @@ mydevstack/
 │   │   │   └── views/      # Page views
 │   │   └── package.json
 │   └── test/               # Playwright E2E tests
-├── docker-compose-floci.yml
-├── docker-compose-ministack.yml
 └── .env.example
 ```
 
