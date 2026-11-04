@@ -984,3 +984,18 @@ func TestIAM_GetPolicy_POST_Still200(t *testing.T) {
 	w := performIAMRequest(handler, "POST", "/iam/policies/get", []byte(`{"PolicyArn":"arn:aws:iam::123456789012:policy/test"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
+
+func TestIAM_GetPolicy_DeprecatedPOST(t *testing.T) {
+	t.Parallel()
+	_, mp, handler := setupIAMTest(t)
+	mp.EXPECT().GetPolicy(mock.Anything, mock.Anything).Return(&iam.GetPolicyOutput{}, nil).Times(2)
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performIAMRequest(handler, "POST", "/iam/policies/get", []byte(`{"PolicyArn":"arn:aws:iam::123456789012:policy/test"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performIAMRequest(handler, "GET", "/iam/policies?policyArn=arn:aws:iam::123456789012:policy/test", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}

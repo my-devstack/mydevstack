@@ -856,7 +856,10 @@ func (h *ProxyHandler) deleteStageV2(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Deprecated: use GET /apigateway/rest-apis/{restApiId}/invoke-url instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getInvokeUrl(w http.ResponseWriter, r *http.Request) {
+	markDeprecated(w, "GET /apigateway/rest-apis/{restApiId}/invoke-url")
 	bodyBytes := readBody(r)
 	var bodyData struct {
 		ApiID     string `json:"apiId"`
@@ -898,7 +901,10 @@ func (h *ProxyHandler) invokeUrlCore(w http.ResponseWriter, apiID, stageName str
 	writeJSON(w, http.StatusOK, map[string]interface{}{"invokeUrl": url})
 }
 
+// Deprecated: use GET /apigateway/apis/{apiId}/invoke-url instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getInvokeUrlV2(w http.ResponseWriter, r *http.Request) {
+	markDeprecated(w, "GET /apigateway/apis/{apiId}/invoke-url")
 	bodyBytes := readBody(r)
 	var bodyData struct {
 		ApiID        string `json:"apiId"`

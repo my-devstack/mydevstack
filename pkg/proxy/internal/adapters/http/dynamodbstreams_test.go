@@ -231,4 +231,33 @@ func TestHandleDynamoDBStreams_ParseErrors(t *testing.T) {
 	}
 }
 
+func TestHandleDynamoDBStreams_DeprecatedPOST_Shards(t *testing.T) {
+	t.Parallel()
+	svc := createMockSvc(t, nil)
+	mp := mockports.NewDynamoDBStreamsPort(t)
+	mp.EXPECT().GetShardIterator(mock.Anything, mock.Anything).Return(&dynamodbstreams.GetShardIteratorOutput{}, nil).Times(2)
+	mp.EXPECT().GetRecords(mock.Anything, mock.Anything).Return(&dynamodbstreams.GetRecordsOutput{}, nil).Times(2)
+	svc.EXPECT().DynamoDBStreams().Return(mp).Times(4)
+	versionSvc := createTestVersionService(t)
+	handler := NewProxyHandler(context.Background(), svc, versionSvc)
+	r := setupTestRouter(handler)
+	// POST twin for iterator must carry Deprecation: true + Warning header.
+	w := performRequest(r, "POST", "/dynamodb-streams/streams/myStreamArn/shards/myShardId/iterator", []byte(`{"ShardIteratorType":"TRIM_HORIZON"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// POST twin for records must also carry Deprecation: true.
+	w2 := performRequest(r, "POST", "/dynamodb-streams/streams/myStreamArn/shards/myShardId/records", []byte(`{"ShardIterator":"abc"}`))
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Equal(t, "true", w2.Header().Get("Deprecation"))
+	assert.Contains(t, w2.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twins must NOT carry Deprecation header.
+	w3 := performRequest(r, "GET", "/dynamodb-streams/streams/myStreamArn/shards/myShardId/iterator?shardIteratorType=TRIM_HORIZON", nil)
+	assert.Equal(t, http.StatusOK, w3.Code)
+	assert.Empty(t, w3.Header().Get("Deprecation"))
+	w4 := performRequest(r, "GET", "/dynamodb-streams/streams/myStreamArn/shards/myShardId/records?shardIterator=abc&limit=10", nil)
+	assert.Equal(t, http.StatusOK, w4.Code)
+	assert.Empty(t, w4.Header().Get("Deprecation"))
+}
+
 

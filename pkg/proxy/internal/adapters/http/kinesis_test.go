@@ -258,6 +258,22 @@ func TestKinesis_GetShardIterator_GET_MissingType(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestKinesis_GetShardIterator_Deprecation(t *testing.T) {
+	t.Parallel()
+	_, mp, handler := setupKinesisTest(t)
+	mp.EXPECT().GetShardIterator(mock.Anything, mock.Anything).Return(&kinesis.GetShardIteratorOutput{}, nil).Times(2)
+	r := setupTestRouter(handler)
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performRequest(r, "POST", "/kinesis/streams/teststream/shards/testshard/iterator", []byte(`{"ShardIteratorType":"TRIM_HORIZON"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performRequest(r, "GET", "/kinesis/streams/teststream/shards/testshard/iterator?shardIteratorType=TRIM_HORIZON", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}
+
 // ---------------------------------------------------------------------------
 // GetRecords
 // ---------------------------------------------------------------------------

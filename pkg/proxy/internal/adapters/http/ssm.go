@@ -37,7 +37,10 @@ func (h *ProxyHandler) getParameter(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Deprecated: use GET /ssm/parameters?names= instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getParameters(w http.ResponseWriter, r *http.Request) {
+	markDeprecated(w, "GET /ssm/parameters?names=")
 	bodyBytes := readBody(r)
 	input := &ssm.GetParametersInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
@@ -189,7 +192,10 @@ func (h *ProxyHandler) getParameterHistory(w http.ResponseWriter, r *http.Reques
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Deprecated: use GET /ssm/tags instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) listTagsForResource(w http.ResponseWriter, r *http.Request) {
+	markDeprecated(w, "GET /ssm/tags")
 	bodyBytes := readBody(r)
 	input := &ssm.ListTagsForResourceInput{}
 	if err := parseBody(bodyBytes, input); err != nil {

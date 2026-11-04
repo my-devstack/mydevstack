@@ -296,6 +296,14 @@ func sendErrorWithStatus(w http.ResponseWriter, message string, err error) {
 	sendError(w, status, message, err)
 }
 
+// markDeprecated sets HTTP deprecation headers on a legacy POST twin response.
+// The `replacement` should describe the GET twin, e.g. "GET /ssm/parameters?names=".
+// Clients see Deprecation: true and a Warning pointing them at the new path.
+func markDeprecated(w http.ResponseWriter, replacement string) {
+	w.Header().Set("Deprecation", "true")
+	w.Header().Set("Warning", `299 - "Deprecated endpoint: use `+replacement+`"`)
+}
+
 // splitCSV splits a comma-separated string, trimming whitespace and dropping empty entries.
 func splitCSV(s string) []string {
 	if s == "" {

@@ -140,6 +140,9 @@ func (h *ProxyHandler) listMetrics(w http.ResponseWriter, r *http.Request) {
 
 // getMetricData serves both GET (query param `params`=url-encoded JSON) and
 // POST (JSON body). Both paths build a GetMetricDataInput and share the core call.
+//
+// Deprecated: use GET /cloudwatch/metrics/data?params=... instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getMetricData(w http.ResponseWriter, r *http.Request) {
 	input := &cloudwatch.GetMetricDataInput{}
 	if r.Method == http.MethodGet {
@@ -153,6 +156,7 @@ func (h *ProxyHandler) getMetricData(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
+		markDeprecated(w, "GET /cloudwatch/metrics/data?params=...")
 		bodyBytes := readBody(r)
 		if err := parseBody(bodyBytes, input); err != nil {
 			sendError(w, http.StatusBadRequest, "Invalid request body", err)
@@ -170,6 +174,9 @@ func (h *ProxyHandler) getMetricData(w http.ResponseWriter, r *http.Request) {
 // getMetricStatistics serves both GET (query params) and POST (JSON body).
 // GET contract: namespace, metricName, startTime, endTime, period (int seconds),
 // statistics (csv), dimensions (url-encoded JSON array), unit.
+//
+// Deprecated: use GET /cloudwatch/metrics/statistics instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getMetricStatistics(w http.ResponseWriter, r *http.Request) {
 	input := &cloudwatch.GetMetricStatisticsInput{}
 	if r.Method == http.MethodGet {
@@ -222,6 +229,7 @@ func (h *ProxyHandler) getMetricStatistics(w http.ResponseWriter, r *http.Reques
 			input.Unit = cwtypes.StandardUnit(v)
 		}
 	} else {
+		markDeprecated(w, "GET /cloudwatch/metrics/statistics")
 		bodyBytes := readBody(r)
 		if err := parseBody(bodyBytes, input); err != nil {
 			sendError(w, http.StatusBadRequest, "Invalid request body", err)

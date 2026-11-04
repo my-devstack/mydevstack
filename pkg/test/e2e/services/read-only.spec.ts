@@ -177,4 +177,72 @@ test.describe('read-only contract (isolated proxy on :8091)', () => {
     const res = await request.get(`${RO_URL}/s3/buckets`)
     expect(res.status()).toBe(200)
   })
+
+  // ─── Test C: 12 GET reads not blocked by READ_ONLY_MODE ────────────────
+  test.describe('Test C — GET reads not 403 under flag ON', () => {
+    const cwDataParams = encodeURIComponent(
+      JSON.stringify({ MetricDataQueries: [] }),
+    )
+    const cases: Array<[string, string]> = [
+      ['secrets-manager random-password', '/secrets-manager/random-password?passwordLength=20'],
+      ['ssm parameters', '/ssm/parameters?names=/nonexistent'],
+      ['iam policies', '/iam/policies?policyArn=arn:aws:iam::123456789012:policy/nope'],
+      ['cloudwatch statistics', '/cloudwatch/metrics/statistics?namespace=AWS/EC2&metricName=CPUUtilization&startTime=2026-01-01T00:00:00Z&endTime=2026-01-01T01:00:00Z&period=60&statistics=Average'],
+      ['cloudwatch data', `/cloudwatch/metrics/data?params=${cwDataParams}`],
+      ['ecr batch-get imageTags', '/ecr/images/batch-get/nope?imageTags=latest'],
+      ['ecr batch-get imageDigests', '/ecr/images/batch-get/nope?imageDigests=sha256:0'],
+      ['kinesis iterator', '/kinesis/streams/nope/shards/shardId-0/iterator?shardIteratorType=TRIM_HORIZON'],
+      ['dynamodb-streams iterator', '/dynamodb-streams/streams/nope/shards/shardId-0/iterator?shardIteratorType=TRIM_HORIZON'],
+      ['dynamodb-streams records', '/dynamodb-streams/streams/nope/shards/shardId-0/records?shardIterator=x'],
+      ['apigateway invoke-url', '/apigateway/rest-apis/nope/invoke-url?apiId=nope&stage=prod'],
+      ['ssm tags', '/ssm/tags?resourceId=/x&resourceType=Parameter'],
+    ]
+    for (const [label, path] of cases) {
+      test(`GET ${label} not 403`, async ({ request }) => {
+        const res = await request.get(`${RO_URL}${path}`)
+        expect(res.status()).not.toBe(403)
+      })
+    }
+
+    const blocked: Array<[string, string, string?]> = [
+      ['POST dynamodb query', 'POST', '/dynamodb/tables/x/query'],
+      ['POST s3 presign-get', 'POST', '/s3/buckets/x/presign-get'],
+      ['DELETE s3 bucket', 'DELETE', '/s3/buckets/x'],
+      ['POST ecr batch-get (legacy)', 'POST', '/ecr/images/batch-get/x'],
+    ]
+    for (const [label, method, path] of blocked) {
+      test(`${label} → 403 READ_ONLY`, async ({ request }) => {
+        const res =
+          method === 'POST'
+            ? await request.post(`${RO_URL}${path}`, { data: {} })
+            : await request.delete(`${RO_URL}${path}`)
+        expect(res.status()).toBe(403)
+        const json = await res.json()
+        expect(json.code).toBe('READ_ONLY')
+      })
+    }
+  })
+})
+
+// ─── Test D: flag OFF — deprecation header + random-password contract ─────
+test.describe('Test D — flag OFF — deprecation + random-password', () => {
+  test('GET /secrets-manager/random-password?passwordLength=16 → 200 with RandomPassword', async ({ request }) => {
+    const res = await request.get(
+      `${PROXY_URL}/secrets-manager/random-password?passwordLength=16`,
+    )
+    expect(res.status()).toBe(200)
+    const json = await res.json()
+    expect(typeof json.RandomPassword).toBe('string')
+    expect(json.RandomPassword.length).toBeGreaterThan(0)
+  })
+
+  test('legacy POST /ecr/images/batch-get/x not 403 and carries Deprecation header', async ({ request }) => {
+    const res = await request.post(`${PROXY_URL}/ecr/images/batch-get/x`, {
+      data: {},
+    })
+    expect(res.status()).not.toBe(403)
+    const h = res.headers()
+    expect(String(h['deprecation'] ?? '').toLowerCase()).toBe('true')
+    expect(String(h['warning'] ?? '')).toContain('Deprecated endpoint')
+  })
 })

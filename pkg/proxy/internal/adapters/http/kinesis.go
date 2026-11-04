@@ -149,6 +149,9 @@ func (h *ProxyHandler) listShards(w http.ResponseWriter, r *http.Request) {
 // getShardIterator serves both GET (query params) and POST (JSON body).
 // GET contract: shardIteratorType, startingSequenceNumber, startingTimestamp.
 // POST contract (deprecated): ShardIteratorType, StartingSequenceNumber.
+//
+// Deprecated: use GET /kinesis/streams/{streamName}/shards/{shardId}/iterator instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getShardIterator(w http.ResponseWriter, r *http.Request) {
 	input := &kinesis.GetShardIteratorInput{
 		StreamName: aws.String(chi.URLParam(r, "streamName")),
@@ -171,6 +174,7 @@ func (h *ProxyHandler) getShardIterator(w http.ResponseWriter, r *http.Request) 
 			input.Timestamp = aws.Time(ts)
 		}
 	} else {
+		markDeprecated(w, "GET /kinesis/streams/{streamName}/shards/{shardId}/iterator")
 		bodyBytes := readBody(r)
 		var body struct {
 			ShardIteratorType      string `json:"ShardIteratorType"`

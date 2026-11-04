@@ -163,7 +163,10 @@ func (h *ProxyHandler) rotateSecret(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Deprecated: use GET /secrets-manager/random-password instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getRandomPassword(w http.ResponseWriter, r *http.Request) {
+	markDeprecated(w, "GET /secrets-manager/random-password")
 	bodyBytes := readBody(r)
 	input := &secretsmanager.GetRandomPasswordInput{}
 	if err := parseBody(bodyBytes, input); err != nil {

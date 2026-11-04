@@ -410,3 +410,41 @@ func TestSSM_ListTagsForResource_POST_Still200(t *testing.T) {
 	w := performRequest(r, "POST", "/ssm/tags/list", []byte(`{"ResourceId":"x","ResourceType":"Parameter"}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
+
+func TestSSM_DeprecatedPOST_ParametersBatch(t *testing.T) {
+	t.Parallel()
+	mp := mockports.NewSSMPort(t)
+	mp.EXPECT().GetParameters(mock.Anything, mock.Anything).Return(&ssm.GetParametersOutput{}, nil).Times(2)
+	svc := createMockSvc(t, nil)
+	svc.EXPECT().SSM().Return(mp)
+	handler := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(handler)
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performRequest(r, "POST", "/ssm/parameters/batch", []byte(`{"Names":["a"]}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performRequest(r, "GET", "/ssm/parameters?names=a", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}
+
+func TestSSM_DeprecatedPOST_TagsList(t *testing.T) {
+	t.Parallel()
+	mp := mockports.NewSSMPort(t)
+	mp.EXPECT().ListTagsForResource(mock.Anything, mock.Anything).Return(&ssm.ListTagsForResourceOutput{}, nil).Times(2)
+	svc := createMockSvc(t, nil)
+	svc.EXPECT().SSM().Return(mp)
+	handler := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(handler)
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performRequest(r, "POST", "/ssm/tags/list", []byte(`{"ResourceId":"x","ResourceType":"Parameter"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performRequest(r, "GET", "/ssm/tags?resourceId=x&resourceType=Parameter", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}

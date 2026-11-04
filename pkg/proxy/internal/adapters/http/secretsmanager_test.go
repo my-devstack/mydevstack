@@ -281,3 +281,25 @@ func TestSecretsManager_GetRandomPassword_POST_Still200(t *testing.T) {
 	w := performRequest(r, "POST", "/secrets-manager/random-password", []byte(`{"passwordLength": 32}`))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
+
+func TestSecretsManager_GetRandomPassword_DeprecatedPOST(t *testing.T) {
+	t.Parallel()
+
+	svc := createMockSvc(t, nil)
+	mp := mockports.NewSecretsManagerPort(t)
+	svc.EXPECT().SecretsManager().Return(mp)
+	mp.EXPECT().GetRandomPassword(mock.Anything, mock.Anything).Return(&secretsmanager.GetRandomPasswordOutput{}, nil).Times(2)
+	versionSvc := createTestVersionService(t)
+	handler := createHandler(svc, versionSvc)
+	r := setupTestRouter(handler)
+
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performRequest(r, "POST", "/secrets-manager/random-password", []byte(`{"passwordLength": 32}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performRequest(r, "GET", "/secrets-manager/random-password?passwordLength=32", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}

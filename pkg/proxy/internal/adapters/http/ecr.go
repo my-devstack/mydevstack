@@ -208,6 +208,9 @@ func (h *ProxyHandler) ecrDescribeImages(w http.ResponseWriter, r *http.Request)
 // ecrBatchGetImage serves both GET (query params) and POST (JSON body).
 // GET contract: imageTags (csv), imageDigests (csv), acceptedMediaTypes (csv).
 // POST contract (deprecated): ImageIds list of {ImageTag,ImageDigest}, AcceptedMediaTypes.
+//
+// Deprecated: use GET /ecr/images/batch-get/{repositoryName} instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) ecrBatchGetImage(w http.ResponseWriter, r *http.Request) {
 	input := &ecr.BatchGetImageInput{
 		RepositoryName: aws.String(urlParam(r, "repositoryName")),
@@ -238,6 +241,7 @@ func (h *ProxyHandler) ecrBatchGetImage(w http.ResponseWriter, r *http.Request) 
 			}
 		}
 	} else {
+		markDeprecated(w, "GET /ecr/images/batch-get/{repositoryName}")
 		bodyBytes := readBody(r)
 		var body struct {
 			ImageIds           []ecrtypes.ImageIdentifier `json:"ImageIds"`

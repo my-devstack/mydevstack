@@ -309,6 +309,21 @@ func TestECR_BatchGetImage_GET_NoIds(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
+func TestECR_BatchGetImage_Deprecation(t *testing.T) {
+	t.Parallel()
+	_, mp, handler := setupECRTest(t)
+	mp.EXPECT().BatchGetImage(mock.Anything, mock.Anything).Return(&ecr.BatchGetImageOutput{}, nil).Times(2)
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performECRRequest(handler, "POST", "/ecr/images/batch-get/my-repo", []byte(`{"ImageIds":[{"ImageTag":"v1"}]}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performECRRequest(handler, "GET", "/ecr/images/batch-get/my-repo?imageTags=v1", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}
+
 // ---------------------------------------------------------------------------
 // BatchDeleteImage
 // ---------------------------------------------------------------------------

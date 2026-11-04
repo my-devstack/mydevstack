@@ -2057,3 +2057,39 @@ func TestAPIGateway_GetInvokeUrl_V2_GET_MissingStage(t *testing.T) {
 	w := performRequest(r, "GET", "/apigateway/apis/testid/invoke-url?protocolType=HTTP", nil)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
+
+func TestAPIGateway_GetInvokeUrl_DeprecatedPOST_V1(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestDual(t)
+	r := setupTestRouter(s.h)
+
+	s.mp.EXPECT().GetInvokeUrl(mock.Anything, "my-api", "prod").
+		Return("https://my-api.execute-api.us-east-1.amazonaws.com/prod", nil).Times(2)
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performRequest(r, "POST", "/apigateway/rest-apis/testid/invoke-url", []byte(`{"apiId":"my-api","stageName":"prod"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performRequest(r, "GET", "/apigateway/rest-apis/testid/invoke-url?apiId=my-api&stage=prod", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}
+
+func TestAPIGateway_GetInvokeUrl_DeprecatedPOST_V2(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestDual(t)
+	r := setupTestRouter(s.h)
+
+	s.mpV2.EXPECT().GetInvokeUrl(mock.Anything, "my-api", "prod", "HTTP").
+		Return("https://my-api.execute-api.us-east-1.amazonaws.com/prod", nil).Times(2)
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performRequest(r, "POST", "/apigateway/apis/testid/invoke-url", []byte(`{"apiId":"my-api","stageName":"prod"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performRequest(r, "GET", "/apigateway/apis/testid/invoke-url?apiId=my-api&stage=prod", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}

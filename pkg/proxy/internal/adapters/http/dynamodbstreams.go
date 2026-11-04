@@ -54,6 +54,9 @@ func (h *ProxyHandler) describeStreamStreams(w http.ResponseWriter, r *http.Requ
 // getShardIteratorStreams serves both GET (query params) and POST (JSON body).
 // GET contract: shardIteratorType, startingSequenceNumber, startingTimestamp.
 // POST contract (deprecated): ShardIteratorType, SequenceNumber.
+//
+// Deprecated: use GET /dynamodb-streams/streams/{streamArn}/shards/{shardId}/iterator instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getShardIteratorStreams(w http.ResponseWriter, r *http.Request) {
 	input := &dynamodbstreams.GetShardIteratorInput{
 		StreamArn: aws.String(urlParam(r, "streamArn")),
@@ -76,6 +79,7 @@ func (h *ProxyHandler) getShardIteratorStreams(w http.ResponseWriter, r *http.Re
 			input.Timestamp = aws.Time(ts)
 		}
 	} else {
+		markDeprecated(w, "GET /dynamodb-streams/streams/{streamArn}/shards/{shardId}/iterator")
 		bodyBytes := readBody(r)
 		var body struct {
 			ShardIteratorType string `json:"ShardIteratorType"`
@@ -102,6 +106,9 @@ func (h *ProxyHandler) getShardIteratorStreams(w http.ResponseWriter, r *http.Re
 
 // getRecordsStreams serves both GET (query params) and POST (JSON body).
 // GET contract: shardIterator, limit.
+//
+// Deprecated: use GET /dynamodb-streams/streams/{streamArn}/shards/{shardId}/records instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getRecordsStreams(w http.ResponseWriter, r *http.Request) {
 	input := &dynamodbstreams.GetRecordsInput{}
 	if r.Method == http.MethodGet {
@@ -118,6 +125,7 @@ func (h *ProxyHandler) getRecordsStreams(w http.ResponseWriter, r *http.Request)
 			input.Limit = aws.Int32(int32(n))
 		}
 	} else {
+		markDeprecated(w, "GET /dynamodb-streams/streams/{streamArn}/shards/{shardId}/records")
 		bodyBytes := readBody(r)
 		var body struct {
 			ShardIterator string `json:"ShardIterator"`

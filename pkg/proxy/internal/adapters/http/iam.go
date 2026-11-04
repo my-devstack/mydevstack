@@ -187,7 +187,10 @@ func (h *ProxyHandler) listPoliciesCore(w http.ResponseWriter, input *iam.ListPo
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Deprecated: use GET /iam/policies?policyArn= instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getPolicy(w http.ResponseWriter, r *http.Request) {
+	markDeprecated(w, "GET /iam/policies?policyArn=")
 	bodyBytes := readBody(r)
 	var body struct {
 		PolicyArn string `json:"PolicyArn"`
