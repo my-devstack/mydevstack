@@ -223,6 +223,57 @@ func TestKinesis_GetShardIterator_Error(t *testing.T) {
 	assert.Contains(t, resp["error"], "Failed to get shard iterator")
 }
 
+func TestKinesis_GetShardIterator_GET_Success(t *testing.T) {
+	t.Parallel()
+	_, mp, handler := setupKinesisTest(t)
+	mp.EXPECT().GetShardIterator(mock.Anything, mock.Anything).Return(&kinesis.GetShardIteratorOutput{}, nil)
+
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/kinesis/streams/teststream/shards/testshard/iterator?shardIteratorType=TRIM_HORIZON", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestKinesis_GetShardIterator_GET_InvalidTimestamp(t *testing.T) {
+	t.Parallel()
+	_, _, handler := setupKinesisTest(t)
+
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/kinesis/streams/teststream/shards/testshard/iterator?shardIteratorType=AT_TIMESTAMP&startingTimestamp=garbage", nil)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestKinesis_GetShardIterator_GET_MissingType(t *testing.T) {
+	t.Parallel()
+	// shardIteratorType missing — handler still succeeds (no required-param enforcement).
+	// Test documents current behavior: missing type → no ShardIteratorType set → service decides.
+	// If we later enforce required params, this test will need updating to expect 400.
+	mp := mockports.NewKinesisPort(t)
+	mp.EXPECT().GetShardIterator(mock.Anything, mock.Anything).Return(&kinesis.GetShardIteratorOutput{}, nil)
+	svc := createMockSvc(t, nil)
+	svc.EXPECT().Kinesis().Return(mp)
+	versionSvc := createTestVersionService(t)
+	handler := createHandler(svc, versionSvc)
+	r := setupTestRouter(handler)
+	w := performRequest(r, "GET", "/kinesis/streams/teststream/shards/testshard/iterator", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestKinesis_GetShardIterator_Deprecation(t *testing.T) {
+	t.Parallel()
+	_, mp, handler := setupKinesisTest(t)
+	mp.EXPECT().GetShardIterator(mock.Anything, mock.Anything).Return(&kinesis.GetShardIteratorOutput{}, nil).Times(2)
+	r := setupTestRouter(handler)
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performRequest(r, "POST", "/kinesis/streams/teststream/shards/testshard/iterator", []byte(`{"ShardIteratorType":"TRIM_HORIZON"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performRequest(r, "GET", "/kinesis/streams/teststream/shards/testshard/iterator?shardIteratorType=TRIM_HORIZON", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}
+
 // ---------------------------------------------------------------------------
 // GetRecords
 // ---------------------------------------------------------------------------

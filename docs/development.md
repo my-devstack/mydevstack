@@ -154,6 +154,7 @@ See [`upgrade.md`](./upgrade.md) for the upgrade and rollback procedures.
 - [ ] `make lint` clean.
 - [ ] `make test` green (Go unit + integration).
 - [ ] `pnpm run test:run` green from `pkg/ui`.
+- [ ] Changed `pkg/proxy/api/services/*.yaml`? Ran `make openapi` and committed the regenerated `pkg/proxy/api/openapi.yaml`. CI runs `git diff --exit-code pkg/proxy/api/openapi.yaml` to enforce determinism — never hand-edit the bundle. The GET contract is guarded by `pkg/proxy/api/spec_contract_test.go`.
 - [ ] New AWS service? Followed [`ADDING_SERVICES.md`](../ADDING_SERVICES.md) end-to-end (API client + composable + components + Storybook + view + route + sidebar + E2E).
 - [ ] New component? Stories for Default / Loading / Empty / Error.
 - [ ] Changed an interface in `internal/ports/`? Ran `make mockery`.

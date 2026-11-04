@@ -81,6 +81,7 @@ services:
   - services/cloudformation.yaml
   - services/cloudwatch.yaml
   - services/cloudwatch-logs.yaml
+  - services/ecr.yaml
   - services/kinesis.yaml
   - services/kms.yaml
   - services/secrets-manager.yaml

@@ -33,7 +33,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sns v1.47.7
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.52.8
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.81.2
-	github.com/aws/smithy-go v1.28.7
+	github.com/aws/smithy-go v1.28.8
 	github.com/beabys/ayotl v1.1.3
 	github.com/go-chi/chi/v5 v5.5.0
 	github.com/google/uuid v1.6.0

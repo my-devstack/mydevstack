@@ -323,3 +323,128 @@ func TestSSM_ParseErrors(t *testing.T) {
 		})
 	}
 }
+
+// ---------------------------------------------------------------------------
+// GET endpoints (new GET routes)
+// ---------------------------------------------------------------------------
+
+func TestSSM_GetParametersBatch_ViaGET(t *testing.T) {
+	t.Parallel()
+	mp := mockports.NewSSMPort(t)
+	mp.EXPECT().GetParameters(mock.Anything, mock.MatchedBy(func(in *ssm.GetParametersInput) bool {
+		return len(in.Names) == 2 && in.Names[0] == "a" && in.Names[1] == "b" &&
+			in.WithDecryption != nil && *in.WithDecryption
+	})).Return(&ssm.GetParametersOutput{}, nil)
+	svc := createMockSvc(t, nil)
+	svc.EXPECT().SSM().Return(mp)
+	handler := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(handler)
+
+	w := performRequest(r, "GET", "/ssm/parameters?names=a,b&withDecryption=true", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestSSM_GetParametersBatch_ViaGET_MissingNames(t *testing.T) {
+	t.Parallel()
+	mp := mockports.NewSSMPort(t)
+	mp.EXPECT().DescribeParameters(mock.Anything, mock.Anything).Return(&ssm.DescribeParametersOutput{}, nil)
+	svc := createMockSvc(t, nil)
+	svc.EXPECT().SSM().Return(mp)
+	handler := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(handler)
+
+	// No names → falls through to DescribeParameters
+	w := performRequest(r, "GET", "/ssm/parameters", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestSSM_ListTagsForResource_ViaGET(t *testing.T) {
+	t.Parallel()
+	mp := mockports.NewSSMPort(t)
+	mp.EXPECT().ListTagsForResource(mock.Anything, mock.Anything).Return(&ssm.ListTagsForResourceOutput{}, nil)
+	svc := createMockSvc(t, nil)
+	svc.EXPECT().SSM().Return(mp)
+	handler := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(handler)
+
+	w := performRequest(r, "GET", "/ssm/tags?resourceId=test-resource&resourceType=Parameter", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestSSM_ListTagsForResource_ViaGET_MissingParams(t *testing.T) {
+	t.Parallel()
+	mp := mockports.NewSSMPort(t)
+	// No mock expectation - should fail before calling service
+	svc := createMockSvc(t, nil)
+	svc.EXPECT().SSM().Return(mp).Maybe()
+	handler := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(handler)
+
+	w := performRequest(r, "GET", "/ssm/tags?resourceId=test-resource", nil)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+// POST twins still work (regression guard)
+func TestSSM_GetParametersBatch_POST_Still200(t *testing.T) {
+	t.Parallel()
+	mp := mockports.NewSSMPort(t)
+	mp.EXPECT().GetParameters(mock.Anything, mock.Anything).Return(&ssm.GetParametersOutput{}, nil)
+	svc := createMockSvc(t, nil)
+	svc.EXPECT().SSM().Return(mp)
+	handler := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(handler)
+
+	w := performRequest(r, "POST", "/ssm/parameters/batch", []byte(`{"Names":["a","b"]}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestSSM_ListTagsForResource_POST_Still200(t *testing.T) {
+	t.Parallel()
+	mp := mockports.NewSSMPort(t)
+	mp.EXPECT().ListTagsForResource(mock.Anything, mock.Anything).Return(&ssm.ListTagsForResourceOutput{}, nil)
+	svc := createMockSvc(t, nil)
+	svc.EXPECT().SSM().Return(mp)
+	handler := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(handler)
+
+	w := performRequest(r, "POST", "/ssm/tags/list", []byte(`{"ResourceId":"x","ResourceType":"Parameter"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestSSM_DeprecatedPOST_ParametersBatch(t *testing.T) {
+	t.Parallel()
+	mp := mockports.NewSSMPort(t)
+	mp.EXPECT().GetParameters(mock.Anything, mock.Anything).Return(&ssm.GetParametersOutput{}, nil).Times(2)
+	svc := createMockSvc(t, nil)
+	svc.EXPECT().SSM().Return(mp)
+	handler := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(handler)
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performRequest(r, "POST", "/ssm/parameters/batch", []byte(`{"Names":["a"]}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performRequest(r, "GET", "/ssm/parameters?names=a", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}
+
+func TestSSM_DeprecatedPOST_TagsList(t *testing.T) {
+	t.Parallel()
+	mp := mockports.NewSSMPort(t)
+	mp.EXPECT().ListTagsForResource(mock.Anything, mock.Anything).Return(&ssm.ListTagsForResourceOutput{}, nil).Times(2)
+	svc := createMockSvc(t, nil)
+	svc.EXPECT().SSM().Return(mp)
+	handler := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(handler)
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performRequest(r, "POST", "/ssm/tags/list", []byte(`{"ResourceId":"x","ResourceType":"Parameter"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performRequest(r, "GET", "/ssm/tags?resourceId=x&resourceType=Parameter", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}

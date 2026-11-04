@@ -13,8 +13,18 @@ export class CloudWatchService {
     this.baseUrl = PROXY_BACKEND.replace(/\/$/, '')
   }
 
-  private async request(method: string, path: string, options?: { body?: unknown; label?: string }): Promise<any> {
-    const url = `${this.baseUrl}${path}`
+  private async request(method: string, path: string, options?: { body?: unknown; query?: Record<string, string | undefined>; label?: string }): Promise<any> {
+    let url = `${this.baseUrl}${path}`
+    if (options?.query) {
+      const params = new URLSearchParams()
+      for (const [key, value] of Object.entries(options.query)) {
+        if (value !== undefined && value !== '') {
+          params.set(key, value)
+        }
+      }
+      const qs = params.toString()
+      if (qs) url += `?${qs}`
+    }
     const label = options?.label || `${method} ${path}`
     const fetchOptions: RequestInit = { method }
 
@@ -68,11 +78,35 @@ export class CloudWatchService {
   }
 
   async getMetricData(params: any): Promise<any> {
-    return this.request('POST', '/cloudwatch/metrics/data', { body: params, label: 'GetMetricData' })
+    const query: Record<string, string | undefined> = {}
+    const encoded = JSON.stringify(params)
+    query.params = encoded
+    // Build candidate URL to check length
+    const qs = new URLSearchParams()
+    qs.set('params', encoded)
+    const candidateUrl = `${this.baseUrl}/cloudwatch/metrics/data?${qs.toString()}`
+    if (candidateUrl.length > 6000) {
+      return this.request('POST', '/cloudwatch/metrics/data', { body: params, label: 'GetMetricData' })
+    }
+    return this.request('GET', '/cloudwatch/metrics/data', { query, label: 'GetMetricData' })
   }
 
   async getMetricStatistics(params: any): Promise<any> {
-    return this.request('POST', '/cloudwatch/metrics/statistics', { body: params, label: 'GetMetricStatistics' })
+    const query: Record<string, string | undefined> = {}
+    if (params?.Namespace !== undefined) query.namespace = String(params.Namespace)
+    if (params?.MetricName !== undefined) query.metricName = String(params.MetricName)
+    if (params?.StartTime !== undefined) query.startTime = String(params.StartTime)
+    if (params?.EndTime !== undefined) query.endTime = String(params.EndTime)
+    if (params?.Period !== undefined) query.period = String(params.Period)
+    if (params?.Statistics !== undefined) {
+      const stats = Array.isArray(params.Statistics) ? params.Statistics : [params.Statistics]
+      if (stats.length) query.statistics = stats.join(',')
+    }
+    if (params?.Dimensions !== undefined) {
+      query.dimensions = JSON.stringify(params.Dimensions)
+    }
+    if (params?.Unit !== undefined) query.unit = String(params.Unit)
+    return this.request('GET', '/cloudwatch/metrics/statistics', { query, label: 'GetMetricStatistics' })
   }
 
   async putMetricData(params: any): Promise<any> {

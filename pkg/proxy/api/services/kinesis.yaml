@@ -220,13 +220,61 @@ paths:
                 $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
 
   /kinesis/streams/{streamName}/shards/{shardId}/iterator:
-    post:
+    get:
       tags: [Kinesis]
       summary: Get shard iterator
       description: |
         Gets a shard iterator for reading records from a shard.
-        Accepts both camelCase and TitleCase JSON keys.
       operationId: getShardIterator
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
+        - $ref: '../common/_parameters.yaml#/components/parameters/ShardIdPath'
+        - name: shardIteratorType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [TRIM_HORIZON, LATEST, AT_SEQUENCE_NUMBER, AFTER_SEQUENCE_NUMBER, AT_TIMESTAMP]
+          example: TRIM_HORIZON
+        - name: startingSequenceNumber
+          in: query
+          required: false
+          schema: { type: string }
+          description: Required when shardIteratorType is AT_SEQUENCE_NUMBER or AFTER_SEQUENCE_NUMBER
+        - name: startingTimestamp
+          in: query
+          required: false
+          schema: { type: string }
+          description: Required when shardIteratorType is AT_TIMESTAMP. RFC3339 or Unix seconds/milliseconds.
+          example: "2024-01-01T00:00:00Z"
+      responses:
+        "200":
+          description: Shard iterator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetShardIteratorOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+    post:
+      tags: [Kinesis]
+      summary: Get shard iterator (deprecated)
+      description: |
+        Deprecated: use GET /kinesis/streams/{streamName}/shards/{shardId}/iterator.
+        Gets a shard iterator for reading records from a shard.
+        Accepts both camelCase and TitleCase JSON keys.
+      deprecated: true
+      operationId: getShardIteratorLegacy
       parameters:
         - $ref: '../common/_parameters.yaml#/components/parameters/StreamNamePath'
         - $ref: '../common/_parameters.yaml#/components/parameters/ShardIdPath'

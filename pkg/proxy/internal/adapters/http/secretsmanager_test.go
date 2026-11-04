@@ -188,3 +188,118 @@ func TestSecretsManagerHandler(t *testing.T) {
 		})
 	}
 }
+
+// ---------------------------------------------------------------------------
+// GET /secrets-manager/random-password (new GET route)
+// ---------------------------------------------------------------------------
+
+func TestSecretsManager_GetRandomPassword_GET(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name       string
+		query      string
+		setupMock  func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService)
+		wantStatus int
+	}{
+		{
+			name:  "GET with passwordLength",
+			query: "?passwordLength=20",
+			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
+				svc.EXPECT().SecretsManager().Return(mp)
+				mp.EXPECT().GetRandomPassword(mock.Anything, mock.MatchedBy(func(in *secretsmanager.GetRandomPasswordInput) bool {
+					return in.PasswordLength != nil && *in.PasswordLength == 20
+				})).Return(&secretsmanager.GetRandomPasswordOutput{}, nil)
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:  "GET with invalid passwordLength",
+			query: "?passwordLength=invalid",
+			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
+				svc.EXPECT().SecretsManager().Return(mp)
+				// parseQueryInto silently treats unparseable int as zero → no PasswordLength set → service uses default
+				mp.EXPECT().GetRandomPassword(mock.Anything, mock.MatchedBy(func(in *secretsmanager.GetRandomPasswordInput) bool {
+					return in.PasswordLength == nil
+				})).Return(&secretsmanager.GetRandomPasswordOutput{}, nil)
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:  "GET with all boolean params",
+			query: "?excludeNumbers=true&excludePunctuation=true&excludeUppercase=true",
+			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
+				svc.EXPECT().SecretsManager().Return(mp)
+				mp.EXPECT().GetRandomPassword(mock.Anything, mock.MatchedBy(func(in *secretsmanager.GetRandomPasswordInput) bool {
+					return in.ExcludeNumbers != nil && *in.ExcludeNumbers &&
+						in.ExcludePunctuation != nil && *in.ExcludePunctuation &&
+						in.ExcludeUppercase != nil && *in.ExcludeUppercase
+				})).Return(&secretsmanager.GetRandomPasswordOutput{}, nil)
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:  "GET with no params (defaults)",
+			query: "",
+			setupMock: func(mp *mockports.SecretsManagerPort, svc *mockports.ProxyService) {
+				svc.EXPECT().SecretsManager().Return(mp)
+				mp.EXPECT().GetRandomPassword(mock.Anything, mock.Anything).Return(&secretsmanager.GetRandomPasswordOutput{}, nil)
+			},
+			wantStatus: http.StatusOK,
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			svc := createMockSvc(t, nil)
+			mp := mockports.NewSecretsManagerPort(t)
+			tc.setupMock(mp, svc)
+			versionSvc := createTestVersionService(t)
+			handler := createHandler(svc, versionSvc)
+			r := setupTestRouter(handler)
+
+			w := performRequest(r, "GET", "/secrets-manager/random-password"+tc.query, nil)
+			assert.Equal(t, tc.wantStatus, w.Code, "method=GET path=/secrets-manager/random-password%s response=%s", tc.query, w.Body.String())
+		})
+	}
+}
+
+func TestSecretsManager_GetRandomPassword_POST_Still200(t *testing.T) {
+	t.Parallel()
+
+	svc := createMockSvc(t, nil)
+	mp := mockports.NewSecretsManagerPort(t)
+	svc.EXPECT().SecretsManager().Return(mp)
+	mp.EXPECT().GetRandomPassword(mock.Anything, mock.Anything).Return(&secretsmanager.GetRandomPasswordOutput{}, nil)
+	versionSvc := createTestVersionService(t)
+	handler := createHandler(svc, versionSvc)
+	r := setupTestRouter(handler)
+
+	w := performRequest(r, "POST", "/secrets-manager/random-password", []byte(`{"passwordLength": 32}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestSecretsManager_GetRandomPassword_DeprecatedPOST(t *testing.T) {
+	t.Parallel()
+
+	svc := createMockSvc(t, nil)
+	mp := mockports.NewSecretsManagerPort(t)
+	svc.EXPECT().SecretsManager().Return(mp)
+	mp.EXPECT().GetRandomPassword(mock.Anything, mock.Anything).Return(&secretsmanager.GetRandomPasswordOutput{}, nil).Times(2)
+	versionSvc := createTestVersionService(t)
+	handler := createHandler(svc, versionSvc)
+	r := setupTestRouter(handler)
+
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performRequest(r, "POST", "/secrets-manager/random-password", []byte(`{"passwordLength": 32}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performRequest(r, "GET", "/secrets-manager/random-password?passwordLength=32", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}

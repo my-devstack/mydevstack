@@ -37,6 +37,7 @@ func (h *ProxyHandler) registerAPIGatewayRoutes(r chi.Router) {
 		r.Delete("/apis/{apiId}/stages/{stageName}", h.deleteStageV2)
 		r.Get("/apis/{apiId}/stages/{stageName}", h.getStageV2)
 		r.Post("/apis/{apiId}/invoke-url", h.getInvokeUrlV2)
+		r.Get("/apis/{apiId}/invoke-url", h.getInvokeUrlV2GET)
 		r.Get("/apis/{apiId}/authorizers", h.getAuthorizersV2)
 		r.Post("/apis/{apiId}/authorizers", h.createAuthorizerV2)
 		r.Get("/apis/{apiId}/authorizers/{authorizerId}", h.getAuthorizerV2)
@@ -73,6 +74,7 @@ func (h *ProxyHandler) registerAPIGatewayRoutes(r chi.Router) {
 		r.Put("/rest-apis/{restApiId}/stages/{stageName}", h.updateStage)
 		r.Delete("/rest-apis/{restApiId}/stages/{stageName}", h.deleteStage)
 		r.Post("/rest-apis/{restApiId}/invoke-url", h.getInvokeUrl)
+		r.Get("/rest-apis/{restApiId}/invoke-url", h.getInvokeUrlGET)
 		r.Get("/rest-apis/{restApiId}/authorizers", h.getAuthorizers)
 		r.Post("/rest-apis/{restApiId}/authorizers", h.createAuthorizer)
 		r.Get("/rest-apis/{restApiId}/authorizers/{authorizerId}", h.getAuthorizer)
@@ -854,7 +856,10 @@ func (h *ProxyHandler) deleteStageV2(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Deprecated: use GET /apigateway/rest-apis/{restApiId}/invoke-url instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getInvokeUrl(w http.ResponseWriter, r *http.Request) {
+	markDeprecated(w, "GET /apigateway/rest-apis/{restApiId}/invoke-url")
 	bodyBytes := readBody(r)
 	var bodyData struct {
 		ApiID     string `json:"apiId"`
@@ -864,7 +869,31 @@ func (h *ProxyHandler) getInvokeUrl(w http.ResponseWriter, r *http.Request) {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	url, err := h.Svc.APIGateway().GetInvokeUrl(h.ctx, bodyData.ApiID, bodyData.StageName)
+	h.invokeUrlCore(w, bodyData.ApiID, bodyData.StageName)
+}
+
+func (h *ProxyHandler) getInvokeUrlGET(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		ApiID     string `json:"apiId"`
+		StageName string `json:"stage"`
+	}
+	if err := parseQueryInto(r, &req); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid query parameters", err)
+		return
+	}
+	if req.ApiID == "" || req.StageName == "" {
+		sendError(w, http.StatusBadRequest, "apiId and stage are required", nil)
+		return
+	}
+	h.invokeUrlCore(w, req.ApiID, req.StageName)
+}
+
+func (h *ProxyHandler) invokeUrlCore(w http.ResponseWriter, apiID, stageName string) {
+	if apiID == "" || stageName == "" {
+		sendError(w, http.StatusBadRequest, "apiId and stage are required", nil)
+		return
+	}
+	url, err := h.Svc.APIGateway().GetInvokeUrl(h.ctx, apiID, stageName)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to get invoke URL", err)
 		return
@@ -872,7 +901,10 @@ func (h *ProxyHandler) getInvokeUrl(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"invokeUrl": url})
 }
 
+// Deprecated: use GET /apigateway/apis/{apiId}/invoke-url instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getInvokeUrlV2(w http.ResponseWriter, r *http.Request) {
+	markDeprecated(w, "GET /apigateway/apis/{apiId}/invoke-url")
 	bodyBytes := readBody(r)
 	var bodyData struct {
 		ApiID        string `json:"apiId"`
@@ -883,11 +915,35 @@ func (h *ProxyHandler) getInvokeUrlV2(w http.ResponseWriter, r *http.Request) {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	protocolType := bodyData.ProtocolType
+	h.invokeUrlV2Core(w, bodyData.ApiID, bodyData.StageName, bodyData.ProtocolType)
+}
+
+func (h *ProxyHandler) getInvokeUrlV2GET(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		ApiID        string `json:"apiId"`
+		StageName    string `json:"stage"`
+		ProtocolType string `json:"protocolType"`
+	}
+	if err := parseQueryInto(r, &req); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid query parameters", err)
+		return
+	}
+	if req.ApiID == "" || req.StageName == "" {
+		sendError(w, http.StatusBadRequest, "apiId and stage are required", nil)
+		return
+	}
+	h.invokeUrlV2Core(w, req.ApiID, req.StageName, req.ProtocolType)
+}
+
+func (h *ProxyHandler) invokeUrlV2Core(w http.ResponseWriter, apiID, stageName, protocolType string) {
+	if apiID == "" || stageName == "" {
+		sendError(w, http.StatusBadRequest, "apiId and stage are required", nil)
+		return
+	}
 	if protocolType == "" {
 		protocolType = "HTTP"
 	}
-	url, err := h.Svc.APIGatewayV2().GetInvokeUrl(h.ctx, bodyData.ApiID, bodyData.StageName, protocolType)
+	url, err := h.Svc.APIGatewayV2().GetInvokeUrl(h.ctx, apiID, stageName, protocolType)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to get invoke URL", err)
 		return

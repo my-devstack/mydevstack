@@ -287,6 +287,43 @@ func TestECR_BatchGetImage_Error(t *testing.T) {
 	assert.Contains(t, resp["error"], "Failed to batch get images")
 }
 
+func TestECR_BatchGetImage_GET_Success(t *testing.T) {
+	t.Parallel()
+	_, mp, handler := setupECRTest(t)
+	mp.EXPECT().BatchGetImage(mock.Anything, mock.MatchedBy(func(in *ecr.BatchGetImageInput) bool {
+		return len(in.ImageIds) == 2 &&
+			in.ImageIds[0].ImageTag != nil && *in.ImageIds[0].ImageTag == "v1" &&
+			in.ImageIds[1].ImageDigest != nil && *in.ImageIds[1].ImageDigest == "sha256:abc" &&
+			len(in.AcceptedMediaTypes) == 1 && in.AcceptedMediaTypes[0] == "application/vnd.oci.image.manifest.v1+json"
+	})).Return(&ecr.BatchGetImageOutput{}, nil)
+
+	w := performECRRequest(handler, "GET", "/ecr/images/batch-get/my-repo?imageTags=v1&imageDigests=sha256:abc&acceptedMediaTypes=application/vnd.oci.image.manifest.v1%2Bjson", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestECR_BatchGetImage_GET_NoIds(t *testing.T) {
+	t.Parallel()
+	_, _, handler := setupECRTest(t)
+	// GET with no imageTags or imageDigests → 400.
+	w := performECRRequest(handler, "GET", "/ecr/images/batch-get/my-repo", nil)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestECR_BatchGetImage_Deprecation(t *testing.T) {
+	t.Parallel()
+	_, mp, handler := setupECRTest(t)
+	mp.EXPECT().BatchGetImage(mock.Anything, mock.Anything).Return(&ecr.BatchGetImageOutput{}, nil).Times(2)
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performECRRequest(handler, "POST", "/ecr/images/batch-get/my-repo", []byte(`{"ImageIds":[{"ImageTag":"v1"}]}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performECRRequest(handler, "GET", "/ecr/images/batch-get/my-repo?imageTags=v1", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}
+
 // ---------------------------------------------------------------------------
 // BatchDeleteImage
 // ---------------------------------------------------------------------------

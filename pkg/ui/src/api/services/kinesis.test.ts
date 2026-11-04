@@ -95,26 +95,47 @@ describe('Kinesis Service', () => {
   })
 
   describe('getRecords', () => {
-    it('GET /kinesis/streams/{streamName}/shards/{shardId}/records with ShardIterator', async () => {
+    it('GET /kinesis/streams/{streamName}/shards/{shardId}/records with query params', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Records: [] }))
       const result = await getRecords('test-stream', 'shard-1', 'iter1')
       expect(result.Records).toEqual([])
-      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/test-stream\/shards\/shard-1\/records$/)
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.pathname).toBe(`/kinesis/streams/test-stream/shards/shard-1/records`)
       expect(mockFetch.mock.calls[0][1].method).toBe('GET')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.ShardIterator).toBe('iter1')
+      expect(mockFetch.mock.calls[0][1].body).toBeUndefined()
+      expect(url.searchParams.get('shardIterator')).toBe('iter1')
+    })
+
+    it('passes limit as query param', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ Records: [] }))
+      await getRecords('test-stream', 'shard-1', 'iter1', { Limit: 50 })
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.searchParams.get('limit')).toBe('50')
     })
   })
 
   describe('getShardIterator', () => {
-    it('POST /kinesis/streams/{streamName}/shards/{shardId}/iterator with default type', async () => {
+    it('GET /kinesis/streams/{streamName}/shards/{shardId}/iterator with query params', async () => {
       mockFetch.mockResolvedValue(mockResponse({ ShardIterator: 'iter1' }))
       const result = await getShardIterator('my-stream', 'shard-1')
       expect(result.ShardIterator).toBe('iter1')
-      expect(mockFetch.mock.calls[0][0]).toMatch(/\/kinesis\/streams\/my-stream\/shards\/shard-1\/iterator$/)
-      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.ShardIteratorType).toBe('LATEST')
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.pathname).toBe(`/kinesis/streams/my-stream/shards/shard-1/iterator`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+      expect(mockFetch.mock.calls[0][1].body).toBeUndefined()
+      expect(url.searchParams.get('shardIteratorType')).toBe('LATEST')
+    })
+
+    it('passes startingSequenceNumber and startingTimestamp', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ ShardIterator: 'iter1' }))
+      await getShardIterator('my-stream', 'shard-1', 'AT_SEQUENCE_NUMBER', {
+        startingSequenceNumber: '12345',
+        startingTimestamp: '2026-01-01T00:00:00Z',
+      })
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.searchParams.get('shardIteratorType')).toBe('AT_SEQUENCE_NUMBER')
+      expect(url.searchParams.get('startingSequenceNumber')).toBe('12345')
+      expect(url.searchParams.get('startingTimestamp')).toBe('2026-01-01T00:00:00Z')
     })
   })
 

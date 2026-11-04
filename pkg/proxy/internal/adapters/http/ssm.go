@@ -5,12 +5,13 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/go-chi/chi/v5"
 )
 
 func (h *ProxyHandler) registerSSMRoutes(r chi.Router) {
 	r.Route("/ssm", func(r chi.Router) {
-		r.Get("/parameters", h.describeParameters)
+		r.Get("/parameters", h.parametersGETDispatcher)
 		r.Get("/parameters/{parameterName}", h.getParameter)
 		r.Post("/parameters", h.putParameter)
 		r.Delete("/parameters/{parameterName}", h.deleteParameter)
@@ -19,6 +20,7 @@ func (h *ProxyHandler) registerSSMRoutes(r chi.Router) {
 		r.Get("/parameters-by-path/*", h.getParametersByPath)
 		r.Post("/tags", h.addTagsToResource)
 		r.Post("/tags/list", h.listTagsForResource)
+		r.Get("/tags", h.listTagsForResourceGET)
 		r.Post("/tags/delete", h.removeTagsFromResource)
 	})
 }
@@ -35,13 +37,49 @@ func (h *ProxyHandler) getParameter(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Deprecated: use GET /ssm/parameters?names= instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getParameters(w http.ResponseWriter, r *http.Request) {
+	markDeprecated(w, "GET /ssm/parameters?names=")
 	bodyBytes := readBody(r)
 	input := &ssm.GetParametersInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	h.getParametersCore(w, input)
+}
+
+// parametersGETDispatcher multiplexes GET /ssm/parameters:
+//   - ?names=... → batch GetParameters (shared with POST /parameters/batch)
+//   - otherwise  → DescribeParameters (list)
+func (h *ProxyHandler) parametersGETDispatcher(w http.ResponseWriter, r *http.Request) {
+	if names := r.URL.Query().Get("names"); names != "" {
+		var req struct {
+			Names          []string `json:"names"`
+			WithDecryption bool     `json:"withDecryption"`
+		}
+		if err := parseQueryInto(r, &req); err != nil {
+			sendError(w, http.StatusBadRequest, "Invalid query parameters", err)
+			return
+		}
+		if len(req.Names) == 0 {
+			sendError(w, http.StatusBadRequest, "names is required", nil)
+			return
+		}
+		input := &ssm.GetParametersInput{
+			Names: req.Names,
+		}
+		if req.WithDecryption {
+			input.WithDecryption = aws.Bool(true)
+		}
+		h.getParametersCore(w, input)
+		return
+	}
+	h.describeParameters(w, r)
+}
+
+func (h *ProxyHandler) getParametersCore(w http.ResponseWriter, input *ssm.GetParametersInput) {
 	result, err := h.Svc.SSM().GetParameters(h.ctx, input)
 	if err != nil {
 		sendErrorWithStatus(w, "Failed to get parameters", err)
@@ -154,13 +192,41 @@ func (h *ProxyHandler) getParameterHistory(w http.ResponseWriter, r *http.Reques
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Deprecated: use GET /ssm/tags instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) listTagsForResource(w http.ResponseWriter, r *http.Request) {
+	markDeprecated(w, "GET /ssm/tags")
 	bodyBytes := readBody(r)
 	input := &ssm.ListTagsForResourceInput{}
 	if err := parseBody(bodyBytes, input); err != nil {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	h.listTagsForResourceCore(w, input)
+}
+
+// listTagsForResourceGET serves GET /ssm/tags?resourceId=&resourceType=.
+func (h *ProxyHandler) listTagsForResourceGET(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		ResourceId   string `json:"resourceId"`
+		ResourceType string `json:"resourceType"`
+	}
+	if err := parseQueryInto(r, &req); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid query parameters", err)
+		return
+	}
+	if req.ResourceId == "" || req.ResourceType == "" {
+		sendError(w, http.StatusBadRequest, "resourceId and resourceType are required", nil)
+		return
+	}
+	input := &ssm.ListTagsForResourceInput{
+		ResourceId:   aws.String(req.ResourceId),
+		ResourceType: ssmtypes.ResourceTypeForTagging(req.ResourceType),
+	}
+	h.listTagsForResourceCore(w, input)
+}
+
+func (h *ProxyHandler) listTagsForResourceCore(w http.ResponseWriter, input *ssm.ListTagsForResourceInput) {
 	result, err := h.Svc.SSM().ListTagsForResource(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to list tags for resource", err)

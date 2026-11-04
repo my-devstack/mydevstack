@@ -2,6 +2,7 @@ package httphandlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
@@ -19,6 +20,10 @@ func (h *ProxyHandler) registerCloudWatchRoutes(r chi.Router) {
 
 		r.Post("/metrics", h.putMetricData)
 		r.Get("/metrics", h.listMetrics)
+		// GET variants for read operations (read-only-mode friendly).
+		r.Get("/metrics/statistics", h.getMetricStatistics)
+		r.Get("/metrics/data", h.getMetricData)
+		// Deprecated POST twins (kept one release for backward compatibility).
 		r.Post("/metrics/statistics", h.getMetricStatistics)
 		r.Post("/metrics/data", h.getMetricData)
 	})
@@ -133,12 +138,30 @@ func (h *ProxyHandler) listMetrics(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// getMetricData serves both GET (query param `params`=url-encoded JSON) and
+// POST (JSON body). Both paths build a GetMetricDataInput and share the core call.
+//
+// Deprecated: use GET /cloudwatch/metrics/data?params=... instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getMetricData(w http.ResponseWriter, r *http.Request) {
-	bodyBytes := readBody(r)
 	input := &cloudwatch.GetMetricDataInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+	if r.Method == http.MethodGet {
+		raw := r.URL.Query().Get("params")
+		if raw == "" {
+			sendError(w, http.StatusBadRequest, "Missing required query parameter: params", nil)
+			return
+		}
+		if err := parseBody([]byte(raw), input); err != nil {
+			sendError(w, http.StatusBadRequest, "Invalid params JSON", err)
+			return
+		}
+	} else {
+		markDeprecated(w, "GET /cloudwatch/metrics/data?params=...")
+		bodyBytes := readBody(r)
+		if err := parseBody(bodyBytes, input); err != nil {
+			sendError(w, http.StatusBadRequest, "Invalid request body", err)
+			return
+		}
 	}
 	result, err := h.Svc.CloudWatch().GetMetricData(h.ctx, input)
 	if err != nil {
@@ -148,12 +171,70 @@ func (h *ProxyHandler) getMetricData(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// getMetricStatistics serves both GET (query params) and POST (JSON body).
+// GET contract: namespace, metricName, startTime, endTime, period (int seconds),
+// statistics (csv), dimensions (url-encoded JSON array), unit.
+//
+// Deprecated: use GET /cloudwatch/metrics/statistics instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getMetricStatistics(w http.ResponseWriter, r *http.Request) {
-	bodyBytes := readBody(r)
 	input := &cloudwatch.GetMetricStatisticsInput{}
-	if err := parseBody(bodyBytes, input); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
+	if r.Method == http.MethodGet {
+		q := r.URL.Query()
+		if v := q.Get("namespace"); v != "" {
+			input.Namespace = aws.String(v)
+		}
+		if v := q.Get("metricName"); v != "" {
+			input.MetricName = aws.String(v)
+		}
+		if v := q.Get("startTime"); v != "" {
+			ts, err := parseTimestamp(v)
+			if err != nil {
+				sendError(w, http.StatusBadRequest, "Invalid startTime", err)
+				return
+			}
+			input.StartTime = aws.Time(ts)
+		}
+		if v := q.Get("endTime"); v != "" {
+			ts, err := parseTimestamp(v)
+			if err != nil {
+				sendError(w, http.StatusBadRequest, "Invalid endTime", err)
+				return
+			}
+			input.EndTime = aws.Time(ts)
+		}
+		if v := q.Get("period"); v != "" {
+			n, err := strconv.Atoi(v)
+			if err != nil || n <= 0 {
+				sendError(w, http.StatusBadRequest, "Invalid period", err)
+				return
+			}
+			input.Period = aws.Int32(int32(n))
+		}
+		if v := q.Get("statistics"); v != "" {
+			parts := splitCSV(v)
+			for _, s := range parts {
+				input.Statistics = append(input.Statistics, cwtypes.Statistic(s))
+			}
+		}
+		if v := q.Get("dimensions"); v != "" {
+			var dims []cwtypes.Dimension
+			if err := parseBody([]byte(v), &dims); err != nil {
+				sendError(w, http.StatusBadRequest, "Invalid dimensions JSON", err)
+				return
+			}
+			input.Dimensions = dims
+		}
+		if v := q.Get("unit"); v != "" {
+			input.Unit = cwtypes.StandardUnit(v)
+		}
+	} else {
+		markDeprecated(w, "GET /cloudwatch/metrics/statistics")
+		bodyBytes := readBody(r)
+		if err := parseBody(bodyBytes, input); err != nil {
+			sendError(w, http.StatusBadRequest, "Invalid request body", err)
+			return
+		}
 	}
 	result, err := h.Svc.CloudWatch().GetMetricStatistics(h.ctx, input)
 	if err != nil {

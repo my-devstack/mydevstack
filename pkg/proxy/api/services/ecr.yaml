@@ -276,14 +276,72 @@ paths:
                 $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
 
   /ecr/images/batch-get/{repositoryName}:
-    post:
+    get:
       tags: [ECR]
       summary: Batch get images
       description: |
+        Fetches image manifests for the given image IDs (by tag and/or digest).
+      operationId: batchGetImage
+      parameters:
+        - name: repositoryName
+          in: path
+          required: true
+          schema: { type: string }
+          description: The repository name
+          example: my-app
+        - name: imageTags
+          in: query
+          required: false
+          schema: { type: string }
+          description: Comma-separated list of image tags
+          example: "v1,latest"
+        - name: imageDigests
+          in: query
+          required: false
+          schema: { type: string }
+          description: Comma-separated list of image digests
+          example: "sha256:abc123"
+        - name: acceptedMediaTypes
+          in: query
+          required: false
+          schema: { type: string }
+          description: Comma-separated list of accepted media types
+          example: "application/vnd.oci.image.manifest.v1+json"
+      responses:
+        "200":
+          description: Image manifests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchGetImageOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "404":
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+    post:
+      tags: [ECR]
+      summary: Batch get images (deprecated)
+      description: |
+        Deprecated: use GET /ecr/images/batch-get/{repositoryName}.
         Fetches image manifests for the given image IDs. Honors
         acceptedMediaTypes (e.g. application/vnd.oci.image.manifest.v1+json).
         Accepts both camelCase and TitleCase JSON keys.
-      operationId: batchGetImage
+      deprecated: true
+      operationId: batchGetImageLegacy
       parameters:
         - name: repositoryName
           in: path

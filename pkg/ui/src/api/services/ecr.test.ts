@@ -198,20 +198,33 @@ describe('ECR Service', () => {
   })
 
   describe('batchGetImage', () => {
-    it('POST /ecr/images/batch-get/{repo} with image ids', async () => {
+    it('GET /ecr/images/batch-get/{repo} with image ids as query params', async () => {
       mockFetch.mockResolvedValue(
         mockResponse({
           Images: [{ ImageId: { ImageTag: 'latest' }, ImageManifest: '{}' }],
           Failures: [],
         }),
       )
-      const result = await batchGetImage('repo-a', { ImageIds: [{ ImageTag: 'latest' }], AcceptedMediaTypes: ['application/vnd.docker.distribution.manifest.v2+json'] })
+      const result = await batchGetImage('repo-a', {
+        ImageIds: [{ ImageTag: 'v1' }, { ImageDigest: 'sha256:abc' }],
+        AcceptedMediaTypes: ['application/vnd.docker.distribution.manifest.v2+json'],
+      })
       expect(result.Images).toHaveLength(1)
-      expect(mockFetch.mock.calls[0][0]).toMatch(/\/ecr\/images\/batch-get\/repo-a$/)
-      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.ImageIds).toEqual([{ ImageTag: 'latest' }])
-      expect(body.AcceptedMediaTypes).toHaveLength(1)
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.pathname).toMatch(/\/ecr\/images\/batch-get\/repo-a$/)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+      expect(mockFetch.mock.calls[0][1].body).toBeUndefined()
+      expect(url.searchParams.get('imageTags')).toBe('v1')
+      expect(url.searchParams.get('imageDigests')).toBe('sha256:abc')
+      expect(url.searchParams.get('acceptedMediaTypes')).toBe('application/vnd.docker.distribution.manifest.v2+json')
+    })
+
+    it('omits empty query params when ImageIds have no tags/digests', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ Images: [] }))
+      await batchGetImage('repo-a', { ImageIds: [] })
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.searchParams.has('imageTags')).toBe(false)
+      expect(url.searchParams.has('imageDigests')).toBe(false)
     })
   })
 

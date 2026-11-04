@@ -112,7 +112,17 @@ export class ECRService {
   }
 
   async batchGetImage(repositoryName: string, params: { ImageIds: ECRImageIdentifier[]; AcceptedMediaTypes?: string[] }): Promise<any> {
-    return this.request('POST', `/ecr/images/batch-get/${encodeURIComponent(repositoryName)}`, { body: params })
+    const imageTags: string[] = []
+    const imageDigests: string[] = []
+    for (const id of params.ImageIds || []) {
+      if (id.ImageTag) imageTags.push(id.ImageTag)
+      if (id.ImageDigest) imageDigests.push(id.ImageDigest)
+    }
+    const query: Record<string, string | undefined> = {}
+    if (imageTags.length) query.imageTags = imageTags.join(',')
+    if (imageDigests.length) query.imageDigests = imageDigests.join(',')
+    if (params.AcceptedMediaTypes?.length) query.acceptedMediaTypes = params.AcceptedMediaTypes.join(',')
+    return this.request('GET', `/ecr/images/batch-get/${encodeURIComponent(repositoryName)}`, { query })
   }
 
   async batchDeleteImage(repositoryName: string, params: { ImageIds: ECRImageIdentifier[] }): Promise<any> {

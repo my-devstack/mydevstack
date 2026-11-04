@@ -915,27 +915,30 @@ describe('DynamoDB Standalone Functions', () => {
   })
 
   describe('getShardIterator', () => {
-    it('should get shard iterator', async () => {
+    it('GET /dynamodb-streams/.../iterator with shardIteratorType query', async () => {
       const mockShardIterator = { ShardIterator: 'AAAAA' }
       mockFetch.mockResolvedValueOnce(mockJsonResponse(mockShardIterator))
       const result = await getShardIterator('stream-arn', 'shard-123')
       expect(result.ShardIterator).toBe('AAAAA')
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/dynamodb-streams/streams/stream-arn/shards/shard-123/iterator'),
-        expect.objectContaining({ method: 'POST' })
-      )
+      const call = mockFetch.mock.calls[0]
+      const url = new URL(call[0])
+      expect(url.pathname).toContain('/dynamodb-streams/streams/stream-arn/shards/shard-123/iterator')
+      expect(call[1].method).toBe('GET')
+      expect(call[1].body).toBeUndefined()
+      expect(url.searchParams.get('shardIteratorType')).toBe('TRIM_HORIZON')
     })
 
-    it('should use provided iterator type', async () => {
+    it('uses provided iterator type and optional starting params', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({ ShardIterator: 'AAAAA' }))
-      await getShardIterator('stream-arn', 'shard-123', 'LATEST')
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callBody.ShardIteratorType).toBe('LATEST')
+      await getShardIterator('stream-arn', 'shard-123', 'AT_SEQUENCE_NUMBER', { startingSequenceNumber: '999' })
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.searchParams.get('shardIteratorType')).toBe('AT_SEQUENCE_NUMBER')
+      expect(url.searchParams.get('startingSequenceNumber')).toBe('999')
     })
   })
 
   describe('getRecords', () => {
-    it('should get records from shard iterator', async () => {
+    it('GET /dynamodb-streams/.../records with shardIterator query', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({
         Records: [
           {
@@ -951,10 +954,12 @@ describe('DynamoDB Standalone Functions', () => {
       expect(result.Records[0].dynamodb).toBeDefined()
       expect(result.Records[0].Dynamodb).toBeUndefined()
       expect(typeof result.Records[0].dynamodb.ApproximateCreationDateTime).toBe('number')
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/dynamodb-streams/streams/stream-arn/shards/shard-1/records'),
-        expect.objectContaining({ method: 'POST' })
-      )
+      const call = mockFetch.mock.calls[0]
+      const url = new URL(call[0])
+      expect(url.pathname).toContain('/dynamodb-streams/streams/stream-arn/shards/shard-1/records')
+      expect(call[1].method).toBe('GET')
+      expect(call[1].body).toBeUndefined()
+      expect(url.searchParams.get('shardIterator')).toBe('shard-iterator-aaaa')
     })
 
     it('should handle records without Dynamodb field', async () => {
@@ -972,11 +977,11 @@ describe('DynamoDB Standalone Functions', () => {
       expect(result.Records).toEqual([])
     })
 
-    it('should use default limit', async () => {
+    it('passes limit as query param', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse({ Records: [] }))
-      await getRecords('stream-arn', 'shard-1', 'shard-iterator')
-      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callBody.Limit).toBe(100)
+      await getRecords('stream-arn', 'shard-1', 'shard-iterator', 50)
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.searchParams.get('limit')).toBe('50')
     })
 
     it('should handle ApproximateCreationDateTime as number', async () => {

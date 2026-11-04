@@ -130,9 +130,29 @@ Set `READ_ONLY_MODE=true` (or `read_only_mode: true` in YAML) and restart the pr
 - The UI shows a persistent banner reading **"Read-only mode — create, edit and delete are disabled"** and every mutating button is disabled with `title="Read-only mode: action not allowed"`.
 - If the user somehow triggers a mutating call, `api/client.ts` surfaces the same message as a toast.
 
-### Known limitation
+### Read operations in read-only mode
 
-Some AWS reads are issued over `POST` by the SDK. Under read-only mode those return 403 even though they do not mutate state. Affected calls include EC2 `DescribeInstances`, DynamoDB `Query` / `Scan` and stream-record fetches, ECR `BatchGetImage`, CloudWatch `GetMetricData` / `GetMetricStatistics`, API Gateway invoke-URL tests, SSM `GetParameters` (batch), and Kinesis `GetShardIterator`. See the migration plan in [`.opencode/plans/2026-11-03-read-endpoints-get-migration.md`](../.opencode/plans/2026-11-03-read-endpoints-get-migration.md).
+Most AWS reads are now served over `GET` and work under read-only mode. The following return data normally (no 403) when `READ_ONLY_MODE=true`:
+
+- **DynamoDB Streams** — shard iterator and records (`GET /dynamodb-streams/streams/{arn}/shards/{shardId}/iterator`, `GET .../records`)
+- **ECR** — `BatchGetImage` (`GET /ecr/images/batch-get/{repositoryName}`)
+- **CloudWatch** — `GetMetricStatistics` and `GetMetricData` (`GET /cloudwatch/metrics/statistics`, `GET /cloudwatch/metrics/data`)
+- **API Gateway** — invoke-URL test for both REST and HTTP APIs (`GET /apigateway/rest-apis/{restApiId}/invoke-url`, `GET /apigateway/apis/{apiId}/invoke-url`)
+- **SSM** — `GetParameters` batch and `ListTagsForResource` (`GET /ssm/parameters`, `GET /ssm/tags`)
+- **IAM** — `GetPolicy` (`GET /iam/policies?policyArn=...`)
+- **Kinesis** — `GetShardIterator` (`GET /kinesis/streams/{streamName}/shards/{shardId}/iterator`)
+- **Secrets Manager** — `GetRandomPassword` (`GET /secretsmanager/random-password`)
+
+### Reads that stay POST (by design)
+
+A small set of read operations keep their `POST` route and are **blocked** by read-only mode, because their request body is a nested JSON structure that cannot fit reliably into a URL:
+
+- DynamoDB `query` (`POST /dynamodb/tables/{tableName}/query`)
+- DynamoDB `scan` (`POST /dynamodb/tables/{tableName}/scan`)
+- DynamoDB `batch-get-item` (`POST /dynamodb/batch-get-item`)
+- S3 `presign-get` (`POST /s3/buckets/{bucket}/presign-get`) — generates a presigned download URL
+
+These four are documented exceptions in the OpenAPI bundle via the `x-read-operation` vendor extension. There is no workaround — use `READ_ONLY_MODE=false` when you need them.
 
 ## UI backend resolution
 

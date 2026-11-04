@@ -554,12 +554,24 @@ paths:
   /iam/policies:
     get:
       tags: [IAM]
-      summary: List policies
+      summary: List policies or get policy by ARN
       description: |
-        Lists all managed policies in the account.
-        Supports pagination via Marker and MaxItems.
+        Multiplexed endpoint:
+        - If `policyArn` query parameter is provided: returns the specific policy by ARN (same as POST /iam/policies/get)
+        - Otherwise: lists all managed policies in the account with optional filtering and pagination
+        
+        Query parameter: policyArn (string, optional)
+        List mode supports: Scope, OnlyAttached, PathPrefix, PolicyUsageFilter, Marker, MaxItems.
         Accepts both camelCase and TitleCase JSON keys.
-      operationId: listPolicies
+      operationId: listPoliciesOrGetByArn
+      parameters:
+        - name: policyArn
+          in: query
+          required: false
+          description: The ARN of the policy to retrieve (if provided, returns single policy instead of list)
+          schema:
+            type: string
+          example: "arn:aws:iam::123456789012:policy/TestPolicy"
       requestBody:
         required: false
         content:
@@ -568,11 +580,13 @@ paths:
               $ref: '#/components/schemas/ListPoliciesInput'
       responses:
         "200":
-          description: List of policies
+          description: List of policies or single policy by ARN
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListPoliciesOutput'
+                oneOf:
+                  - $ref: '#/components/schemas/ListPoliciesOutput'
+                  - $ref: '#/components/schemas/GetPolicyOutput'
         "400":
           description: Invalid request
           content:
@@ -625,9 +639,11 @@ paths:
       tags: [IAM]
       summary: Get policy
       description: |
+        Deprecated: use GET /iam/policies?policyArn=... instead.
         Retrieves information about the specified managed policy.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: getPolicy
+      deprecated: true
       requestBody:
         required: true
         content:

@@ -161,11 +161,8 @@ export async function listPolicies(param1?: string | { Scope?: string; OnlyAttac
 }
 
 export async function getPolicy(PolicyArn: string): Promise<any> {
-  const res = await fetch(`${api}/iam/policies/get`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ PolicyArn }),
-  })
+  const url = `${api}/iam/policies?policyArn=${encodeURIComponent(PolicyArn)}`
+  const res = await fetch(url)
   if (!res.ok) throw new APIError(`Get policy failed`, res.status, 'iam')
   return res.json()
 }

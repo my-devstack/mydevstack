@@ -375,6 +375,15 @@ func (h *ProxyHandler) updateItem(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// query reads items from a DynamoDB table using key conditions.
+//
+// Read-operation note: this is a read operation but is exposed as POST because
+// the request carries nested JSON bodies (KeyConditionExpression,
+// ExpressionAttributeValues, ExclusiveStartKey as AttributeValue maps) that
+// exceed practical URL length limits for a GET query string. As a consequence,
+// when READ_ONLY_MODE=true the read-only middleware blocks this endpoint — that
+// is a known limitation. Future work: convert to GET with a structured encoding
+// or allowlist this path under read-only mode.
 func (h *ProxyHandler) query(w http.ResponseWriter, r *http.Request) {
 	bodyBytes := readBody(r)
 	// Parse the body into a generic map first
@@ -417,6 +426,15 @@ func (h *ProxyHandler) query(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// scan reads every item in a DynamoDB table (or a subset specified by Filter).
+//
+// Read-operation note: this is a read operation but is exposed as POST because
+// the request carries nested JSON bodies (ExpressionAttributeValues,
+// ExclusiveStartKey as AttributeValue maps) that exceed practical URL length
+// limits for a GET query string. As a consequence, when READ_ONLY_MODE=true the
+// read-only middleware blocks this endpoint — that is a known limitation.
+// Future work: convert to GET with a structured encoding or allowlist this path
+// under read-only mode.
 func (h *ProxyHandler) scan(w http.ResponseWriter, r *http.Request) {
 	bodyBytes := readBody(r)
 	// Parse the body into a generic map first
@@ -480,6 +498,15 @@ func (h *ProxyHandler) batchWriteItem(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// batchGetItem retrieves multiple items from one or more tables in a single call.
+//
+// Read-operation note: this is a read operation but is exposed as POST because
+// the request carries nested JSON bodies (RequestItems map of tables →
+// Keys/ProjectionExpression/ConsistentRead) that exceed practical URL length
+// limits for a GET query string. As a consequence, when READ_ONLY_MODE=true the
+// read-only middleware blocks this endpoint — that is a known limitation.
+// Future work: convert to GET with a structured encoding or allowlist this path
+// under read-only mode.
 func (h *ProxyHandler) batchGetItem(w http.ResponseWriter, r *http.Request) {
 	bodyBytes := readBody(r)
 	input := &dynamodb.BatchGetItemInput{}

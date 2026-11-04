@@ -20,6 +20,9 @@ func (h *ProxyHandler) registerKinesisRoutes(r chi.Router) {
 		r.Put("/streams/{streamName}", h.updateShardCount)
 
 		r.Get("/streams/{streamName}/shards", h.listShards)
+		// GET variant for read operation (read-only-mode friendly).
+		r.Get("/streams/{streamName}/shards/{shardId}/iterator", h.getShardIterator)
+		// Deprecated POST twin (kept one release for backward compatibility).
 		r.Post("/streams/{streamName}/shards/{shardId}/iterator", h.getShardIterator)
 		r.Get("/streams/{streamName}/shards/{shardId}/records", h.getRecords)
 
@@ -143,26 +146,50 @@ func (h *ProxyHandler) listShards(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// getShardIterator serves both GET (query params) and POST (JSON body).
+// GET contract: shardIteratorType, startingSequenceNumber, startingTimestamp.
+// POST contract (deprecated): ShardIteratorType, StartingSequenceNumber.
+//
+// Deprecated: use GET /kinesis/streams/{streamName}/shards/{shardId}/iterator instead.
+// This POST twin is kept for one release and will be removed in the next minor version.
 func (h *ProxyHandler) getShardIterator(w http.ResponseWriter, r *http.Request) {
-	bodyBytes := readBody(r)
-	var body struct {
-		ShardIteratorType string `json:"ShardIteratorType"`
-		StartingSequenceNumber string `json:"StartingSequenceNumber"`
-		Timestamp          int64  `json:"Timestamp"`
-	}
-	if err := parseBody(bodyBytes, &body); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
-	}
 	input := &kinesis.GetShardIteratorInput{
 		StreamName: aws.String(chi.URLParam(r, "streamName")),
 		ShardId:    aws.String(chi.URLParam(r, "shardId")),
 	}
-	if body.ShardIteratorType != "" {
-		input.ShardIteratorType = kinesistypes.ShardIteratorType(body.ShardIteratorType)
-	}
-	if body.StartingSequenceNumber != "" {
-		input.StartingSequenceNumber = aws.String(body.StartingSequenceNumber)
+	if r.Method == http.MethodGet {
+		q := r.URL.Query()
+		if v := q.Get("shardIteratorType"); v != "" {
+			input.ShardIteratorType = kinesistypes.ShardIteratorType(v)
+		}
+		if v := q.Get("startingSequenceNumber"); v != "" {
+			input.StartingSequenceNumber = aws.String(v)
+		}
+		if v := q.Get("startingTimestamp"); v != "" {
+			ts, err := parseTimestamp(v)
+			if err != nil {
+				sendError(w, http.StatusBadRequest, "Invalid startingTimestamp", err)
+				return
+			}
+			input.Timestamp = aws.Time(ts)
+		}
+	} else {
+		markDeprecated(w, "GET /kinesis/streams/{streamName}/shards/{shardId}/iterator")
+		bodyBytes := readBody(r)
+		var body struct {
+			ShardIteratorType      string `json:"ShardIteratorType"`
+			StartingSequenceNumber string `json:"StartingSequenceNumber"`
+		}
+		if err := parseBody(bodyBytes, &body); err != nil {
+			sendError(w, http.StatusBadRequest, "Invalid request body", err)
+			return
+		}
+		if body.ShardIteratorType != "" {
+			input.ShardIteratorType = kinesistypes.ShardIteratorType(body.ShardIteratorType)
+		}
+		if body.StartingSequenceNumber != "" {
+			input.StartingSequenceNumber = aws.String(body.StartingSequenceNumber)
+		}
 	}
 	result, err := h.Svc.Kinesis().GetShardIterator(h.ctx, input)
 	if err != nil {

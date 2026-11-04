@@ -274,14 +274,86 @@ paths:
                 $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
 
   /cloudwatch/metrics/statistics:
-    post:
+    get:
       tags: [CloudWatch]
       summary: Get metric statistics
       description: |
         Returns statistics for a specific metric over a time range.
+      operationId: getMetricStatistics
+      parameters:
+        - name: namespace
+          in: query
+          required: true
+          schema: { type: string }
+          example: "AWS/EC2"
+        - name: metricName
+          in: query
+          required: true
+          schema: { type: string }
+          example: "CPUUtilization"
+        - name: startTime
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+          description: RFC3339 or Unix seconds/milliseconds
+          example: "2024-01-01T00:00:00Z"
+        - name: endTime
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+          example: "2024-01-02T00:00:00Z"
+        - name: period
+          in: query
+          required: true
+          schema: { type: integer, format: int32 }
+          description: Granularity in seconds
+          example: 3600
+        - name: statistics
+          in: query
+          required: false
+          schema: { type: string }
+          description: Comma-separated list (SampleCount, Average, Sum, Minimum, Maximum)
+          example: "Average,Sum"
+        - name: dimensions
+          in: query
+          required: false
+          schema: { type: string }
+          description: URL-encoded JSON array of {Name,Value} objects
+          example: '[{"Name":"InstanceId","Value":"i-1234"}]'
+        - name: unit
+          in: query
+          required: false
+          schema: { type: string }
+          example: "Percent"
+      responses:
+        "200":
+          description: Metric statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMetricStatisticsOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+    post:
+      tags: [CloudWatch]
+      summary: Get metric statistics (deprecated)
+      description: |
+        Deprecated: use GET /cloudwatch/metrics/statistics.
+        Returns statistics for a specific metric over a time range.
         Requires Namespace, MetricName, StartTime, EndTime, and Period.
         Accepts both camelCase and TitleCase JSON keys.
-      operationId: getMetricStatistics
+      deprecated: true
+      operationId: getMetricStatisticsLegacy
       requestBody:
         required: true
         content:
@@ -309,14 +381,49 @@ paths:
                 $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
 
   /cloudwatch/metrics/data:
-    post:
+    get:
       tags: [CloudWatch]
       summary: Get metric data
       description: |
         Returns metric data with advanced querying support using
         MetricDataQueries, including math expressions and metric insights.
-        Accepts both camelCase and TitleCase JSON keys.
       operationId: getMetricData
+      parameters:
+        - name: params
+          in: query
+          required: true
+          schema: { type: string }
+          description: URL-encoded JSON of GetMetricDataInput
+          example: '{"MetricDataQueries":[{"Id":"m1"}]}'
+      responses:
+        "200":
+          description: Metric data results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMetricDataOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+    post:
+      tags: [CloudWatch]
+      summary: Get metric data (deprecated)
+      description: |
+        Deprecated: use GET /cloudwatch/metrics/data.
+        Returns metric data with advanced querying support using
+        MetricDataQueries, including math expressions and metric insights.
+        Accepts both camelCase and TitleCase JSON keys.
+      deprecated: true
+      operationId: getMetricDataLegacy
       requestBody:
         required: true
         content:

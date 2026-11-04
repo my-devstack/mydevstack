@@ -44,6 +44,12 @@ func TestCloudWatchActions(t *testing.T) {
 		{name: "GetMetricStatistics", method: "POST", path: "/cloudwatch/metrics/statistics", setupMock: func(mp *mockports.CloudWatchPort) {
 			mp.EXPECT().GetMetricStatistics(mock.Anything, mock.Anything).Return(&cloudwatch.GetMetricStatisticsOutput{}, nil)
 		}},
+		{name: "GetMetricData_GET", method: "GET", path: "/cloudwatch/metrics/data?params={\"MetricDataQueries\":[{\"Id\":\"m1\"}]}", setupMock: func(mp *mockports.CloudWatchPort) {
+			mp.EXPECT().GetMetricData(mock.Anything, mock.Anything).Return(&cloudwatch.GetMetricDataOutput{}, nil)
+		}},
+		{name: "GetMetricStatistics_GET", method: "GET", path: "/cloudwatch/metrics/statistics?namespace=AWS/EC2&metricName=CPUUtilization&startTime=2024-01-01T00:00:00Z&endTime=2024-01-02T00:00:00Z&period=3600&statistics=Average,Sum", setupMock: func(mp *mockports.CloudWatchPort) {
+			mp.EXPECT().GetMetricStatistics(mock.Anything, mock.Anything).Return(&cloudwatch.GetMetricStatisticsOutput{}, nil)
+		}},
 		{name: "PutMetricData", method: "POST", path: "/cloudwatch/metrics", setupMock: func(mp *mockports.CloudWatchPort) {
 			mp.EXPECT().PutMetricData(mock.Anything, mock.Anything).Return(&cloudwatch.PutMetricDataOutput{}, nil)
 		}},
@@ -73,6 +79,17 @@ func TestCloudWatch_InvalidBody(t *testing.T) {
 	r := setupTestRouter(handler)
 
 	w := performRequest(r, "GET", "/cloudwatch/alarms", []byte(`{bad`))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestCloudWatch_GetMetricData_GET_InvalidParams(t *testing.T) {
+	t.Parallel()
+
+	svc := createMockSvc(t, nil)
+	handler := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(handler)
+
+	w := performRequest(r, "GET", "/cloudwatch/metrics/data?params=not-json", nil)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -214,4 +231,42 @@ func TestCloudWatch_ParseErrors(t *testing.T) {
 			assert.Equal(t, http.StatusBadRequest, w.Code, "method=%s path=%s body=%s", tt.method, tt.path, w.Body.String())
 		})
 	}
+}
+
+func TestCloudWatch_DeprecatedPOST_MetricStatistics(t *testing.T) {
+	t.Parallel()
+	mp := mockports.NewCloudWatchPort(t)
+	mp.EXPECT().GetMetricStatistics(mock.Anything, mock.Anything).Return(&cloudwatch.GetMetricStatisticsOutput{}, nil).Times(2)
+	svc := createMockSvc(t, nil)
+	svc.EXPECT().CloudWatch().Return(mp)
+	handler := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(handler)
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performRequest(r, "POST", "/cloudwatch/metrics/statistics", []byte(`{"Namespace":"AWS/EC2","MetricName":"CPU","StartTime":"2024-01-01T00:00:00Z","EndTime":"2024-01-02T00:00:00Z","Period":3600,"Statistics":["Average"]}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performRequest(r, "GET", "/cloudwatch/metrics/statistics?namespace=AWS/EC2&metricName=CPU&startTime=2024-01-01T00:00:00Z&endTime=2024-01-02T00:00:00Z&period=3600&statistics=Average", nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
+}
+
+func TestCloudWatch_DeprecatedPOST_MetricData(t *testing.T) {
+	t.Parallel()
+	mp := mockports.NewCloudWatchPort(t)
+	mp.EXPECT().GetMetricData(mock.Anything, mock.Anything).Return(&cloudwatch.GetMetricDataOutput{}, nil).Times(2)
+	svc := createMockSvc(t, nil)
+	svc.EXPECT().CloudWatch().Return(mp)
+	handler := createHandler(svc, createTestVersionService(t))
+	r := setupTestRouter(handler)
+	// POST twin must carry Deprecation: true + Warning header.
+	w := performRequest(r, "POST", "/cloudwatch/metrics/data", []byte(`{"MetricDataQueries":[{"Id":"m1"}]}`))
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "true", w.Header().Get("Deprecation"))
+	assert.Contains(t, w.Header().Get("Warning"), "Deprecated endpoint")
+	// GET twin must NOT carry Deprecation header.
+	w2 := performRequest(r, "GET", `/cloudwatch/metrics/data?params={"MetricDataQueries":[{"Id":"m1"}]}`, nil)
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("Deprecation"))
 }
