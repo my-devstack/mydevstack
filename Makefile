@@ -6,7 +6,7 @@ ifneq ("$(wildcard $(FILE))","")
 	export $(shell grep -v '^$(HASH)' $(FILE) | sed 's/=.*//')
 endif
 
-.PHONY: help run-proxy run-ui build dist lint lint-proxy lint-ui test clean unit unit-coverage test-e2e openapi openapi-bundle
+.PHONY: help run-proxy run-ui build dist lint lint-proxy lint-ui test clean unit unit-coverage test-e2e openapi openapi-bundle compose-up compose-up-floci compose-up-ministack compose-down
 
 .DEFAULT_GOAL := help
 
@@ -29,6 +29,18 @@ run-proxy:
 
 run-ui:
 	cd pkg/ui && pnpm run dev
+
+compose-up:
+	docker compose -f examples/docker-compose/docker-compose.yml up -d
+
+compose-up-floci:
+	docker compose -f examples/docker-compose/docker-compose-floci.yml up -d
+
+compose-up-ministack:
+	docker compose -f examples/docker-compose/docker-compose-ministack.yml up -d
+
+compose-down:
+	docker compose -f examples/docker-compose/docker-compose.yml down
 
 build:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o mydevstack-proxy-linux-amd64 ./pkg/proxy/cmd/server
