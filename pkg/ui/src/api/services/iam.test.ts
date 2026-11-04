@@ -159,13 +159,13 @@ describe('IAM Service', () => {
       expect(result.Policies[0].PolicyArn).toBe('arn:test')
     })
 
-    it('getPolicy sends POST to /iam/policies/get with PolicyArn', async () => {
+    it('getPolicy sends GET to /iam/policies with policyArn query', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Policy: {} }))
       await getPolicy('arn:aws:iam::policy/Admin')
-      expect(mockFetch.mock.calls[0][0]).toContain('/iam/policies/get')
-      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.PolicyArn).toBe('arn:aws:iam::policy/Admin')
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.pathname).toBe('/iam/policies')
+      expect(mockFetch.mock.calls[0][1]?.method).toBeUndefined() // GET default
+      expect(url.searchParams.get('policyArn')).toBe('arn:aws:iam::policy/Admin')
     })
   })
 

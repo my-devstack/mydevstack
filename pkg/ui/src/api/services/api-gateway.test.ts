@@ -653,31 +653,32 @@ describe('API Gateway Service', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1)
     })
 
-    it('getRestApiInvokeUrl sends POST to rest-apis invoke-url', async () => {
+    it('getRestApiInvokeUrl sends GET to rest-apis invoke-url with query params', async () => {
       mockFetch.mockResolvedValue(mockResponse({ url: 'https://api.example.com' }))
       const result = await getRestApiInvokeUrl('api1', 'prod')
-      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/rest-apis/api1/invoke-url`)
-      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
-      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callArgs.apiId).toBe('api1')
-      expect(callArgs.stageName).toBe('prod')
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.pathname).toBe(`/apigateway/rest-apis/api1/invoke-url`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+      expect(mockFetch.mock.calls[0][1].body).toBeUndefined()
+      expect(url.searchParams.get('apiId')).toBe('api1')
+      expect(url.searchParams.get('stage')).toBe('prod')
     })
 
-    it('getHttpApiInvokeUrl sends POST to V2 apis invoke-url', async () => {
+    it('getHttpApiInvokeUrl sends GET to V2 apis invoke-url with query params', async () => {
       mockFetch.mockResolvedValue(mockResponse({ url: 'https://http-api.example.com' }))
       const result = await getHttpApiInvokeUrl('http1', 'prod')
-      expect(mockFetch.mock.calls[0][0]).toBe(`${BASE}/apigateway/apis/http1/invoke-url`)
-      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
-      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callArgs.apiId).toBe('http1')
-      expect(callArgs.stageName).toBe('prod')
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.pathname).toBe(`/apigateway/apis/http1/invoke-url`)
+      expect(mockFetch.mock.calls[0][1].method).toBe('GET')
+      expect(mockFetch.mock.calls[0][1].body).toBeUndefined()
+      expect(url.searchParams.get('stage')).toBe('prod')
     })
 
     it('getHttpApiInvokeUrl passes protocolType when given', async () => {
       mockFetch.mockResolvedValue(mockResponse({ url: 'https://ws-api.example.com' }))
-      const result = await getHttpApiInvokeUrl('ws1', 'prod', 'WEBSOCKET')
-      const callArgs = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(callArgs.protocolType).toBe('WEBSOCKET')
+      await getHttpApiInvokeUrl('ws1', 'prod', 'WEBSOCKET')
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.searchParams.get('protocolType')).toBe('WEBSOCKET')
     })
   })
 

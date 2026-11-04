@@ -18,11 +18,12 @@ export class SSMService {
   }
 
   async getParameters(names: string[], options?: { WithDecryption?: boolean }): Promise<any> {
-    const res = await fetch(`${api}/ssm/parameters/batch`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ Names: names, ...options }),
-    })
+    const params = new URLSearchParams()
+    if (names.length) params.set('names', names.join(','))
+    if (options?.WithDecryption !== undefined) params.set('withDecryption', options.WithDecryption ? 'true' : 'false')
+    const qs = params.toString()
+    const url = qs ? `${api}/ssm/parameters?${qs}` : `${api}/ssm/parameters`
+    const res = await fetch(url)
     if (!res.ok) throw new APIError(`GetParameters failed`, res.status, 'ssm')
     return res.json()
   }
@@ -91,11 +92,10 @@ export class SSMService {
   }
 
   async listTagsForResource(resourceType: string, resourceId: string): Promise<any> {
-    const res = await fetch(`${api}/ssm/tags/list`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ResourceType: resourceType, ResourceId: resourceId }),
-    })
+    const params = new URLSearchParams()
+    params.set('resourceId', resourceId)
+    params.set('resourceType', resourceType)
+    const res = await fetch(`${api}/ssm/tags?${params.toString()}`)
     if (!res.ok) throw new APIError(`ListTagsForResource failed`, res.status, 'ssm')
     return res.json()
   }

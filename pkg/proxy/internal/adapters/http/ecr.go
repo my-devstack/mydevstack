@@ -23,6 +23,9 @@ func (h *ProxyHandler) registerECRRoutes(r chi.Router) {
 
 		// Images (specific routes must be registered before the generic one)
 		r.Get("/images/details/{repositoryName:*}", h.ecrDescribeImages)
+		// GET variant for read operation (read-only-mode friendly).
+		r.Get("/images/batch-get/{repositoryName:*}", h.ecrBatchGetImage)
+		// Deprecated POST twin (kept one release for backward compatibility).
 		r.Post("/images/batch-get/{repositoryName:*}", h.ecrBatchGetImage)
 		r.Post("/images/batch-delete/{repositoryName:*}", h.ecrBatchDeleteImage)
 		r.Get("/images/{repositoryName:*}", h.ecrListImages)
@@ -202,24 +205,54 @@ func (h *ProxyHandler) ecrDescribeImages(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusOK, result)
 }
 
+// ecrBatchGetImage serves both GET (query params) and POST (JSON body).
+// GET contract: imageTags (csv), imageDigests (csv), acceptedMediaTypes (csv).
+// POST contract (deprecated): ImageIds list of {ImageTag,ImageDigest}, AcceptedMediaTypes.
 func (h *ProxyHandler) ecrBatchGetImage(w http.ResponseWriter, r *http.Request) {
-	bodyBytes := readBody(r)
-	var body struct {
-		ImageIds           []ecrtypes.ImageIdentifier `json:"ImageIds"`
-		AcceptedMediaTypes []string                   `json:"AcceptedMediaTypes"`
-	}
-	if err := parseBody(bodyBytes, &body); err != nil {
-		sendError(w, http.StatusBadRequest, "Invalid request body", err)
-		return
-	}
 	input := &ecr.BatchGetImageInput{
 		RepositoryName: aws.String(urlParam(r, "repositoryName")),
 	}
-	if len(body.ImageIds) > 0 {
-		input.ImageIds = body.ImageIds
-	}
-	if len(body.AcceptedMediaTypes) > 0 {
-		input.AcceptedMediaTypes = body.AcceptedMediaTypes
+	if r.Method == http.MethodGet {
+		q := r.URL.Query()
+		var ids []ecrtypes.ImageIdentifier
+		for _, t := range splitCSV(q.Get("imageTags")) {
+			if t == "" {
+				continue
+			}
+			ids = append(ids, ecrtypes.ImageIdentifier{ImageTag: aws.String(t)})
+		}
+		for _, d := range splitCSV(q.Get("imageDigests")) {
+			if d == "" {
+				continue
+			}
+			ids = append(ids, ecrtypes.ImageIdentifier{ImageDigest: aws.String(d)})
+		}
+		if len(ids) == 0 {
+			sendError(w, http.StatusBadRequest, "Missing required query parameters: imageTags or imageDigests", nil)
+			return
+		}
+		input.ImageIds = ids
+		if v := q.Get("acceptedMediaTypes"); v != "" {
+			if mts := splitCSV(v); len(mts) > 0 {
+				input.AcceptedMediaTypes = mts
+			}
+		}
+	} else {
+		bodyBytes := readBody(r)
+		var body struct {
+			ImageIds           []ecrtypes.ImageIdentifier `json:"ImageIds"`
+			AcceptedMediaTypes []string                   `json:"AcceptedMediaTypes"`
+		}
+		if err := parseBody(bodyBytes, &body); err != nil {
+			sendError(w, http.StatusBadRequest, "Invalid request body", err)
+			return
+		}
+		if len(body.ImageIds) > 0 {
+			input.ImageIds = body.ImageIds
+		}
+		if len(body.AcceptedMediaTypes) > 0 {
+			input.AcceptedMediaTypes = body.AcceptedMediaTypes
+		}
 	}
 	result, err := h.Svc.ECR().BatchGetImage(h.ctx, input)
 	if err != nil {

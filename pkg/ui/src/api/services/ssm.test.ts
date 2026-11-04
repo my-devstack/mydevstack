@@ -52,13 +52,22 @@ describe('SSM Service (REST)', () => {
   })
 
   describe('getParameters', () => {
-    it('POST /ssm/parameters/batch with Names array', async () => {
+    it('GET /ssm/parameters with names CSV and withDecryption', async () => {
       mockFetch.mockResolvedValue(mockResponse({ Parameters: [] }))
-      await getParameters(['param1', 'param2'])
-      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/parameters/batch`)
-      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.Names).toEqual(['param1', 'param2'])
+      await getParameters(['param1', 'param2'], { WithDecryption: true })
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.pathname).toBe(`/ssm/parameters`)
+      expect(mockFetch.mock.calls[0][1]?.method).toBeUndefined() // GET default
+      expect(url.searchParams.get('names')).toBe('param1,param2')
+      expect(url.searchParams.get('withDecryption')).toBe('true')
+    })
+
+    it('omits withDecryption when not set', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ Parameters: [] }))
+      await getParameters(['p1'])
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.searchParams.has('withDecryption')).toBe(false)
+      expect(url.searchParams.get('names')).toBe('p1')
     })
   })
 
@@ -122,14 +131,14 @@ describe('SSM Service (REST)', () => {
   })
 
   describe('listTagsForResource', () => {
-    it('POST /ssm/tags/list', async () => {
+    it('GET /ssm/tags with resourceId and resourceType query params', async () => {
       mockFetch.mockResolvedValue(mockResponse({ TagList: [] }))
       await listTagsForResource('Parameter', 'my-param')
-      expect(mockFetch.mock.calls[0][0]).toBe(`${base}/ssm/tags/list`)
-      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.ResourceType).toBe('Parameter')
-      expect(body.ResourceId).toBe('my-param')
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.pathname).toBe(`/ssm/tags`)
+      expect(mockFetch.mock.calls[0][1]?.method).toBeUndefined() // GET default
+      expect(url.searchParams.get('resourceId')).toBe('my-param')
+      expect(url.searchParams.get('resourceType')).toBe('Parameter')
     })
   })
 

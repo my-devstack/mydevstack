@@ -1978,3 +1978,82 @@ func TestAPIGateway_DeleteAuthorizer_ServiceError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
+
+// ---------------------------------------------------------------------------
+// GET invoke-url tests (new GET endpoints)
+// ---------------------------------------------------------------------------
+
+func TestAPIGateway_GetInvokeUrl_V1_GET(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestDual(t)
+	r := setupTestRouter(s.h)
+
+	s.mp.EXPECT().GetInvokeUrl(mock.Anything, "my-api", "prod").
+		Return("https://my-api.execute-api.us-east-1.amazonaws.com/prod", nil)
+
+	w := performRequest(r, "GET", "/apigateway/rest-apis/testid/invoke-url?apiId=my-api&stage=prod", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]interface{}
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "https://my-api.execute-api.us-east-1.amazonaws.com/prod", resp["invokeUrl"])
+}
+
+func TestAPIGateway_GetInvokeUrl_V1_GET_MissingStage(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestDual(t)
+	r := setupTestRouter(s.h)
+
+	w := performRequest(r, "GET", "/apigateway/rest-apis/testid/invoke-url?apiId=my-api", nil)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestAPIGateway_GetInvokeUrl_V1_GET_MissingApiId(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestDual(t)
+	r := setupTestRouter(s.h)
+
+	w := performRequest(r, "GET", "/apigateway/rest-apis/testid/invoke-url?stage=prod", nil)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestAPIGateway_GetInvokeUrl_V2_GET(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestDual(t)
+	r := setupTestRouter(s.h)
+
+	s.mpV2.EXPECT().GetInvokeUrl(mock.Anything, "my-api", "prod", "HTTP").
+		Return("https://my-api.execute-api.us-east-1.amazonaws.com/prod", nil)
+
+	w := performRequest(r, "GET", "/apigateway/apis/testid/invoke-url?apiId=my-api&stage=prod", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]interface{}
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "https://my-api.execute-api.us-east-1.amazonaws.com/prod", resp["invokeUrl"])
+}
+
+func TestAPIGateway_GetInvokeUrl_V2_GET_WebSocket(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestDual(t)
+	r := setupTestRouter(s.h)
+
+	s.mpV2.EXPECT().GetInvokeUrl(mock.Anything, "ws-api", "prod", "WEBSOCKET").
+		Return("wss://ws-api.execute-api.us-east-1.amazonaws.com/prod", nil)
+
+	w := performRequest(r, "GET", "/apigateway/apis/testid/invoke-url?apiId=ws-api&stage=prod&protocolType=WEBSOCKET", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]interface{}
+	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "wss://ws-api.execute-api.us-east-1.amazonaws.com/prod", resp["invokeUrl"])
+}
+
+func TestAPIGateway_GetInvokeUrl_V2_GET_MissingStage(t *testing.T) {
+	t.Parallel()
+	s := setupAGTestDual(t)
+	r := setupTestRouter(s.h)
+
+	w := performRequest(r, "GET", "/apigateway/apis/testid/invoke-url?protocolType=HTTP", nil)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}

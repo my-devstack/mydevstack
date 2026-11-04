@@ -10,11 +10,31 @@ paths:
   /ssm/parameters:
     get:
       tags: [SSM]
-      summary: Describe parameters
+      summary: Describe parameters or batch get
       description: |
-        Returns a list of SSM parameters with optional filtering.
-        Accepts both camelCase and TitleCase JSON keys.
-      operationId: describeParameters
+        Multiplexed endpoint:
+        - If `names` query parameter is provided: performs batch GetParameters (same as POST /ssm/parameters/batch)
+        - Otherwise: performs DescribeParameters (list)
+        
+        Query parameters for batch mode: names (CSV, required), withDecryption (boolean, optional).
+        
+        For describe mode, accepts optional filter/match options in request body.
+      operationId: describeParametersOrBatchGet
+      parameters:
+        - name: names
+          in: query
+          required: false
+          description: Comma-separated list of parameter names for batch get mode
+          schema:
+            type: string
+          example: "/app/db/host,/app/db/port"
+        - name: withDecryption
+          in: query
+          required: false
+          description: Whether to decrypt SecureString parameters (batch mode only)
+          schema:
+            type: boolean
+          example: true
       requestBody:
         required: false
         content:
@@ -23,11 +43,13 @@ paths:
               $ref: '#/components/schemas/DescribeParametersInput'
       responses:
         "200":
-          description: List of parameters
+          description: List of parameters or batch get results
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DescribeParametersOutput'
+                oneOf:
+                  - $ref: '#/components/schemas/DescribeParametersOutput'
+                  - $ref: '#/components/schemas/GetParametersOutput'
         "400":
           description: Invalid request
           content:
@@ -176,9 +198,11 @@ paths:
 
   /ssm/parameters/batch:
     post:
+      deprecated: true
       tags: [SSM]
       summary: Get parameters (batch)
       description: |
+        Deprecated: use GET /ssm/parameters?names=...&withDecryption=... instead.
         Returns the values of multiple SSM parameters by name.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: getParameters
@@ -259,6 +283,47 @@ paths:
   # Tags
   # ============================================================
   /ssm/tags:
+    get:
+      tags: [SSM]
+      summary: List tags for resource
+      description: |
+        Returns all tags on an SSM resource.
+        Query parameters: resourceId (required), resourceType (required).
+      operationId: listTagsForResourceGET
+      parameters:
+        - name: resourceId
+          in: query
+          required: true
+          description: The ID of the SSM resource to list tags for
+          schema:
+            type: string
+          example: "my-parameter"
+        - name: resourceType
+          in: query
+          required: true
+          description: The type of SSM resource (e.g., Parameter, Document, ManagedInstance)
+          schema:
+            type: string
+          example: "Parameter"
+      responses:
+        "200":
+          description: Tags listed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTagsForResourceOutput'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
     post:
       tags: [SSM]
       summary: Add tags to resource
@@ -294,9 +359,11 @@ paths:
 
   /ssm/tags/list:
     post:
+      deprecated: true
       tags: [SSM]
       summary: List tags for resource
       description: |
+        Deprecated: use GET /ssm/tags?resourceId=...&resourceType=... instead.
         Returns all tags on an SSM resource.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: listTagsForResource

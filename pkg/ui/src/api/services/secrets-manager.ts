@@ -104,12 +104,28 @@ export class SecretsManagerService {
     return res.json()
   }
 
-  async getRandomPassword(options?: { PasswordLength?: number }): Promise<any> {
-    const res = await fetch(`${api}/secrets-manager/random-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(options || {}),
-    })
+  async getRandomPassword(options?: {
+    PasswordLength?: number
+    ExcludeCharacters?: string
+    ExcludeNumbers?: boolean
+    ExcludePunctuation?: boolean
+    ExcludeUppercase?: boolean
+    ExcludeLowercase?: boolean
+    IncludeSpace?: boolean
+    RequireEachIncludedType?: boolean
+  }): Promise<any> {
+    const params = new URLSearchParams()
+    if (options?.PasswordLength !== undefined) params.set('passwordLength', String(options.PasswordLength))
+    if (options?.ExcludeCharacters !== undefined) params.set('excludeCharacters', options.ExcludeCharacters)
+    if (options?.ExcludeNumbers !== undefined) params.set('excludeNumbers', options.ExcludeNumbers ? 'true' : 'false')
+    if (options?.ExcludePunctuation !== undefined) params.set('excludePunctuation', options.ExcludePunctuation ? 'true' : 'false')
+    if (options?.ExcludeUppercase !== undefined) params.set('excludeUppercase', options.ExcludeUppercase ? 'true' : 'false')
+    if (options?.ExcludeLowercase !== undefined) params.set('excludeLowercase', options.ExcludeLowercase ? 'true' : 'false')
+    if (options?.IncludeSpace !== undefined) params.set('includeSpace', options.IncludeSpace ? 'true' : 'false')
+    if (options?.RequireEachIncludedType !== undefined) params.set('requireEachIncludedType', options.RequireEachIncludedType ? 'true' : 'false')
+    const qs = params.toString()
+    const url = qs ? `${api}/secrets-manager/random-password?${qs}` : `${api}/secrets-manager/random-password`
+    const res = await fetch(url)
     if (!res.ok) throw new APIError(`Get random password failed`, res.status, 'secrets-manager')
     return res.json()
   }

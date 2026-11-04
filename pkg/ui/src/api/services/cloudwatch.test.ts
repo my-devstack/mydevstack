@@ -141,34 +141,66 @@ describe('CloudWatch Service', () => {
   })
 
   describe('getMetricData', () => {
-    it('sends params as body', async () => {
+    it('GET /cloudwatch/metrics/data with params=<encoded JSON>', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await getMetricData({ MetricDataQueries: [{ Id: 'm1' }] })
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.MetricDataQueries[0].Id).toBe('m1')
+      const call = mockFetch.mock.calls[0]
+      const url = new URL(call[0])
+      expect(url.pathname).toContain('/cloudwatch/metrics/data')
+      expect(call[1].method).toBe('GET')
+      expect(call[1].body).toBeUndefined()
+      const paramsVal = url.searchParams.get('params')
+      expect(paramsVal).toBeTruthy()
+      expect(JSON.parse(paramsVal as string)).toEqual({ MetricDataQueries: [{ Id: 'm1' }] })
     })
 
-    it('sends POST to /cloudwatch/metrics/data', async () => {
+    it('falls back to POST when URL exceeds 6000 chars', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
-      await getMetricData({ MetricDataQueries: [] })
-      expect(mockFetch.mock.calls[0][0]).toContain('/cloudwatch/metrics/data')
-      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+      const huge = { MetricDataQueries: [{ Id: 'm1', MetricStat: { Metric: { Dimensions: [{ Name: 'x'.repeat(7000), Value: 'v' }] } } }] }
+      await getMetricData(huge)
+      const call = mockFetch.mock.calls[0]
+      expect(call[1].method).toBe('POST')
+      expect(call[0]).toContain('/cloudwatch/metrics/data')
+      const body = JSON.parse(call[1].body)
+      expect(body.MetricDataQueries[0].Id).toBe('m1')
     })
   })
 
   describe('getMetricStatistics', () => {
-    it('sends params as body', async () => {
+    it('GET /cloudwatch/metrics/statistics with query params', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
-      await getMetricStatistics({ Namespace: 'AWS/EC2', MetricName: 'CPUUtilization' })
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.Namespace).toBe('AWS/EC2')
+      await getMetricStatistics({
+        Namespace: 'AWS/EC2',
+        MetricName: 'CPUUtilization',
+        StartTime: '2026-01-01T00:00:00Z',
+        EndTime: '2026-01-02T00:00:00Z',
+        Period: 300,
+        Statistics: ['Average', 'Sum'],
+        Dimensions: [{ Name: 'InstanceId', Value: 'i-1' }],
+        Unit: 'Percent',
+      })
+      const call = mockFetch.mock.calls[0]
+      const url = new URL(call[0])
+      expect(url.pathname).toContain('/cloudwatch/metrics/statistics')
+      expect(call[1].method).toBe('GET')
+      expect(call[1].body).toBeUndefined()
+      expect(url.searchParams.get('namespace')).toBe('AWS/EC2')
+      expect(url.searchParams.get('metricName')).toBe('CPUUtilization')
+      expect(url.searchParams.get('startTime')).toBe('2026-01-01T00:00:00Z')
+      expect(url.searchParams.get('endTime')).toBe('2026-01-02T00:00:00Z')
+      expect(url.searchParams.get('period')).toBe('300')
+      expect(url.searchParams.get('statistics')).toBe('Average,Sum')
+      expect(url.searchParams.get('dimensions')).toBe(JSON.stringify([{ Name: 'InstanceId', Value: 'i-1' }]))
+      expect(url.searchParams.get('unit')).toBe('Percent')
     })
 
-    it('sends POST to /cloudwatch/metrics/statistics', async () => {
+    it('omits undefined params', async () => {
       mockFetch.mockResolvedValue(mockResponse({}))
       await getMetricStatistics({ Namespace: 'AWS/EC2' })
-      expect(mockFetch.mock.calls[0][0]).toContain('/cloudwatch/metrics/statistics')
-      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.searchParams.get('namespace')).toBe('AWS/EC2')
+      expect(url.searchParams.has('metricName')).toBe(false)
+      expect(url.searchParams.has('statistics')).toBe(false)
     })
   })
 

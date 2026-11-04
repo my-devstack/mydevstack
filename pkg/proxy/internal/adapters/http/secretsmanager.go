@@ -20,6 +20,7 @@ func (h *ProxyHandler) registerSecretsManagerRoutes(r chi.Router) {
 		r.Put("/secrets/{secretId}/value", h.putSecretValue)
 		r.Get("/secrets/{secretId}/value", h.getSecretValue)
 		r.Post("/random-password", h.getRandomPassword)
+		r.Get("/random-password", h.getRandomPasswordGET)
 	})
 }
 
@@ -169,6 +170,54 @@ func (h *ProxyHandler) getRandomPassword(w http.ResponseWriter, r *http.Request)
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	h.getRandomPasswordCore(w, input)
+}
+
+// getRandomPasswordGET serves GET /secrets-manager/random-password with query params.
+func (h *ProxyHandler) getRandomPasswordGET(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		PasswordLength        int64  `json:"passwordLength"`
+		ExcludeCharacters     string `json:"excludeCharacters"`
+		ExcludeNumbers        bool   `json:"excludeNumbers"`
+		ExcludePunctuation    bool   `json:"excludePunctuation"`
+		ExcludeUppercase      bool   `json:"excludeUppercase"`
+		ExcludeLowercase      bool   `json:"excludeLowercase"`
+		IncludeSpace          bool   `json:"includeSpace"`
+		RequireEachIncludedType bool `json:"requireEachIncludedType"`
+	}
+	if err := parseQueryInto(r, &req); err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid query parameters", err)
+		return
+	}
+	input := &secretsmanager.GetRandomPasswordInput{}
+	if req.PasswordLength > 0 {
+		input.PasswordLength = &req.PasswordLength
+	}
+	if req.ExcludeCharacters != "" {
+		input.ExcludeCharacters = aws.String(req.ExcludeCharacters)
+	}
+	if req.ExcludeNumbers {
+		input.ExcludeNumbers = aws.Bool(true)
+	}
+	if req.ExcludePunctuation {
+		input.ExcludePunctuation = aws.Bool(true)
+	}
+	if req.ExcludeUppercase {
+		input.ExcludeUppercase = aws.Bool(true)
+	}
+	if req.ExcludeLowercase {
+		input.ExcludeLowercase = aws.Bool(true)
+	}
+	if req.IncludeSpace {
+		input.IncludeSpace = aws.Bool(true)
+	}
+	if req.RequireEachIncludedType {
+		input.RequireEachIncludedType = aws.Bool(true)
+	}
+	h.getRandomPasswordCore(w, input)
+}
+
+func (h *ProxyHandler) getRandomPasswordCore(w http.ResponseWriter, input *secretsmanager.GetRandomPasswordInput) {
 	result, err := h.Svc.SecretsManager().GetRandomPassword(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to get random password", err)

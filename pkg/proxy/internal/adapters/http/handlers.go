@@ -9,6 +9,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -292,4 +294,66 @@ func sendErrorWithStatus(w http.ResponseWriter, message string, err error) {
 		status = http.StatusNotFound
 	}
 	sendError(w, status, message, err)
+}
+
+// splitCSV splits a comma-separated string, trimming whitespace and dropping empty entries.
+func splitCSV(s string) []string {
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+// parseQueryInto populates a struct from URL query parameters using JSON struct tags.// Supports: string, bool, int32, int64, []string (CSV).
+func parseQueryInto(r *http.Request, dst any) error {
+	q := r.URL.Query()
+	v := reflect.ValueOf(dst)
+	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("parseQueryInto: dst must be pointer to struct")
+	}
+	v = v.Elem()
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		tag := f.Tag.Get("json")
+		if tag == "" || tag == "-" {
+			continue
+		}
+		name := strings.Split(tag, ",")[0]
+		if name == "" {
+			continue
+		}
+		vals, ok := q[name]
+		if !ok || len(vals) == 0 || vals[0] == "" {
+			continue
+		}
+		fv := v.Field(i)
+		if !fv.CanSet() {
+			continue
+		}
+		switch fv.Kind() {
+		case reflect.String:
+			fv.SetString(vals[0])
+		case reflect.Bool:
+			b, _ := strconv.ParseBool(vals[0])
+			fv.SetBool(b)
+		case reflect.Int, reflect.Int32, reflect.Int64:
+			n, _ := strconv.ParseInt(vals[0], 10, 64)
+			fv.SetInt(n)
+		case reflect.Slice:
+			if fv.Type().Elem().Kind() == reflect.String {
+				parts := strings.Split(vals[0], ",")
+				fv.Set(reflect.ValueOf(parts))
+			}
+		}
+	}
+	return nil
 }

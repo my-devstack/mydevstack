@@ -89,20 +89,23 @@ export class KinesisService {
   }
 
   async getRecords(streamName: string, shardId: string, shardIterator: string, options?: { Limit?: number }): Promise<any> {
-    return this.request('GET', `/kinesis/streams/${enc(streamName)}/shards/${enc(shardId)}/records`, {
-      ShardIterator: shardIterator,
-      ...options,
-    })
+    const qs = new URLSearchParams()
+    qs.set('shardIterator', shardIterator)
+    if (options?.Limit !== undefined) qs.set('limit', String(options.Limit))
+    return this.request('GET', `/kinesis/streams/${enc(streamName)}/shards/${enc(shardId)}/records?${qs.toString()}`)
   }
 
   async getShardIterator(
     streamName: string,
     shardId: string,
     iteratorType: string = 'LATEST',
+    options?: { startingSequenceNumber?: string; startingTimestamp?: string },
   ): Promise<any> {
-    return this.request('POST', `/kinesis/streams/${enc(streamName)}/shards/${enc(shardId)}/iterator`, {
-      ShardIteratorType: iteratorType,
-    })
+    const qs = new URLSearchParams()
+    qs.set('shardIteratorType', iteratorType)
+    if (options?.startingSequenceNumber !== undefined) qs.set('startingSequenceNumber', options.startingSequenceNumber)
+    if (options?.startingTimestamp !== undefined) qs.set('startingTimestamp', options.startingTimestamp)
+    return this.request('GET', `/kinesis/streams/${enc(streamName)}/shards/${enc(shardId)}/iterator?${qs.toString()}`)
   }
 
 }
@@ -118,8 +121,8 @@ export const deleteStream = (streamName: string) =>
   kinesisService.deleteStream(streamName)
 export const listStreams = (options?: any) =>
   kinesisService.listStreams(options)
-export const getShardIterator = (streamName: string, shardId: string, iteratorType?: string) =>
-  kinesisService.getShardIterator(streamName, shardId, iteratorType || 'LATEST')
+export const getShardIterator = (streamName: string, shardId: string, iteratorType?: string, options?: { startingSequenceNumber?: string; startingTimestamp?: string }) =>
+  kinesisService.getShardIterator(streamName, shardId, iteratorType || 'LATEST', options)
 export const getRecords = (streamName: string, shardId: string, shardIterator: string, options?: any) =>
   kinesisService.getRecords(streamName, shardId, shardIterator, options)
 export const putRecord = (streamName: string, data: string, partitionKey: string, options?: any) =>

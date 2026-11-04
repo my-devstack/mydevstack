@@ -104,6 +104,42 @@ func TestHandleDynamoDBStreams_GetShardIterator(t *testing.T) {
 		w := performRequest(r, "POST", "/dynamodb-streams/streams/myStreamArn/shards/myShardId/iterator", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
+
+	t.Run("GET success", func(t *testing.T) {
+		t.Parallel()
+		svc := createMockSvc(t, nil)
+		mp := mockports.NewDynamoDBStreamsPort(t)
+		mp.EXPECT().GetShardIterator(mock.Anything, mock.Anything).Return(&dynamodbstreams.GetShardIteratorOutput{}, nil)
+		svc.EXPECT().DynamoDBStreams().Return(mp)
+		versionSvc := createTestVersionService(t)
+		handler := NewProxyHandler(context.Background(), svc, versionSvc)
+		r := setupTestRouter(handler)
+		w := performRequest(r, "GET", "/dynamodb-streams/streams/myStreamArn/shards/myShardId/iterator?shardIteratorType=TRIM_HORIZON", nil)
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("GET success with optional params", func(t *testing.T) {
+		t.Parallel()
+		svc := createMockSvc(t, nil)
+		mp := mockports.NewDynamoDBStreamsPort(t)
+		mp.EXPECT().GetShardIterator(mock.Anything, mock.Anything).Return(&dynamodbstreams.GetShardIteratorOutput{}, nil)
+		svc.EXPECT().DynamoDBStreams().Return(mp)
+		versionSvc := createTestVersionService(t)
+		handler := NewProxyHandler(context.Background(), svc, versionSvc)
+		r := setupTestRouter(handler)
+		w := performRequest(r, "GET", "/dynamodb-streams/streams/myStreamArn/shards/myShardId/iterator?shardIteratorType=AT_SEQUENCE_NUMBER&startingSequenceNumber=12345", nil)
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("GET invalid startingTimestamp", func(t *testing.T) {
+		t.Parallel()
+		svc := createMockSvc(t, nil)
+		versionSvc := createTestVersionService(t)
+		handler := NewProxyHandler(context.Background(), svc, versionSvc)
+		r := setupTestRouter(handler)
+		w := performRequest(r, "GET", "/dynamodb-streams/streams/myStreamArn/shards/myShardId/iterator?shardIteratorType=AT_TIMESTAMP&startingTimestamp=not-a-timestamp", nil)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
 }
 
 func TestHandleDynamoDBStreams_GetRecords(t *testing.T) {
@@ -133,6 +169,29 @@ func TestHandleDynamoDBStreams_GetRecords(t *testing.T) {
 		r := setupTestRouter(handler)
 		w := performRequest(r, "POST", "/dynamodb-streams/streams/myStreamArn/shards/myShardId/records", []byte("{}"))
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+
+	t.Run("GET success", func(t *testing.T) {
+		t.Parallel()
+		svc := createMockSvc(t, nil)
+		mp := mockports.NewDynamoDBStreamsPort(t)
+		mp.EXPECT().GetRecords(mock.Anything, mock.Anything).Return(&dynamodbstreams.GetRecordsOutput{}, nil)
+		svc.EXPECT().DynamoDBStreams().Return(mp)
+		versionSvc := createTestVersionService(t)
+		handler := NewProxyHandler(context.Background(), svc, versionSvc)
+		r := setupTestRouter(handler)
+		w := performRequest(r, "GET", "/dynamodb-streams/streams/myStreamArn/shards/myShardId/records?shardIterator=abc123&limit=10", nil)
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("GET invalid limit", func(t *testing.T) {
+		t.Parallel()
+		svc := createMockSvc(t, nil)
+		versionSvc := createTestVersionService(t)
+		handler := NewProxyHandler(context.Background(), svc, versionSvc)
+		r := setupTestRouter(handler)
+		w := performRequest(r, "GET", "/dynamodb-streams/streams/myStreamArn/shards/myShardId/records?shardIterator=abc123&limit=not-a-number", nil)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 }
 

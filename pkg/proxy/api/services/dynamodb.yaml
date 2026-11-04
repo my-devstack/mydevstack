@@ -366,6 +366,15 @@ paths:
         Queries a DynamoDB table using key conditions.
         Uses custom AttributeValue conversion for ExclusiveStartKey.
         Accepts both camelCase and TitleCase JSON keys.
+
+        **Read-operation note**: This is a read operation but is exposed as POST
+        because the request carries nested JSON bodies (KeyConditionExpression,
+        ExpressionAttributeValues, ExclusiveStartKey as AttributeValue maps) that
+        exceed practical URL length limits for a GET query string. As a
+        consequence, when READ_ONLY_MODE=true the read-only middleware blocks
+        this endpoint — that is a known limitation. Future work: convert to GET
+        with a structured encoding or allowlist this path under read-only mode.
+      x-read-operation: true
       operationId: queryTable
       parameters:
         - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
@@ -403,6 +412,15 @@ paths:
         Scans an entire DynamoDB table or a subset of items.
         Uses custom AttributeValue conversion for ExclusiveStartKey.
         Accepts both camelCase and TitleCase JSON keys.
+
+        **Read-operation note**: This is a read operation but is exposed as POST
+        because the request carries nested JSON bodies (ExpressionAttributeValues,
+        ExclusiveStartKey as AttributeValue maps) that exceed practical URL length
+        limits for a GET query string. As a consequence, when READ_ONLY_MODE=true
+        the read-only middleware blocks this endpoint — that is a known limitation.
+        Future work: convert to GET with a structured encoding or allowlist this
+        path under read-only mode.
+      x-read-operation: true
       operationId: scanTable
       parameters:
         - $ref: '../common/_parameters.yaml#/components/parameters/TableNamePath'
@@ -473,6 +491,15 @@ paths:
       description: |
         Retrieves multiple items from one or more tables in a single API call.
         Accepts both camelCase and TitleCase JSON keys.
+
+        **Read-operation note**: This is a read operation but is exposed as POST
+        because the request carries nested JSON bodies (RequestItems map of
+        tables → Keys/ProjectionExpression/ConsistentRead) that exceed practical
+        URL length limits for a GET query string. As a consequence, when
+        READ_ONLY_MODE=true the read-only middleware blocks this endpoint — that
+        is a known limitation. Future work: convert to GET with a structured
+        encoding or allowlist this path under read-only mode.
+      x-read-operation: true
       operationId: batchGetItem
       requestBody:
         required: true

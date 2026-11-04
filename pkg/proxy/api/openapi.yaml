@@ -771,6 +771,18 @@ components:
         TokenType:
           type: string
       type: object
+    AuthorizationData:
+      properties:
+        AuthorizationToken:
+          description: Base64-encoded AWS:floci docker login token
+          type: string
+        ExpiresAt:
+          format: date-time
+          type: string
+        ProxyEndpoint:
+          description: The registry proxy endpoint for docker login
+          type: string
+      type: object
     AuthorizerV1:
       description: Represents an authorizer for a REST API (V1)
       properties:
@@ -872,6 +884,51 @@ components:
           type: string
         UseOffPeakWindow:
           type: boolean
+      type: object
+    BatchDeleteImageInput:
+      properties:
+        ImageIds:
+          items:
+            $ref: '#/components/schemas/ImageIdentifier'
+          type: array
+      required:
+        - ImageIds
+      type: object
+    BatchDeleteImageOutput:
+      properties:
+        Failures:
+          items:
+            $ref: '#/components/schemas/ImageFailure'
+          type: array
+        ImageIds:
+          items:
+            $ref: '#/components/schemas/ImageIdentifier'
+          type: array
+      type: object
+    BatchGetImageInput:
+      properties:
+        AcceptedMediaTypes:
+          description: e.g. application/vnd.oci.image.manifest.v1+json
+          items:
+            type: string
+          type: array
+        ImageIds:
+          items:
+            $ref: '#/components/schemas/ImageIdentifier'
+          type: array
+      required:
+        - ImageIds
+      type: object
+    BatchGetImageOutput:
+      properties:
+        Failures:
+          items:
+            $ref: '#/components/schemas/ImageFailure'
+          type: array
+        Images:
+          items:
+            $ref: '#/components/schemas/Image'
+          type: array
       type: object
     BatchGetItemInput:
       properties:
@@ -1979,6 +2036,43 @@ components:
           format: uri
           type: string
       type: object
+    CreateRepositoryInput:
+      properties:
+        EncryptionConfiguration:
+          properties:
+            EncryptionType:
+              enum:
+                - AES256
+                - KMS
+              type: string
+            KmsKey:
+              type: string
+          type: object
+        ImageScanningConfiguration:
+          properties:
+            ScanOnPush:
+              type: boolean
+          type: object
+        ImageTagMutability:
+          enum:
+            - MUTABLE
+            - IMMUTABLE
+          type: string
+        RepositoryName:
+          description: The repository name (may include namespaces with /)
+          type: string
+        Tags:
+          items:
+            $ref: '#/components/schemas/Tag'
+          type: array
+      required:
+        - RepositoryName
+      type: object
+    CreateRepositoryOutput:
+      properties:
+        Repository:
+          $ref: '#/components/schemas/Repository'
+      type: object
     CreateResourceInput:
       description: Input for creating a resource (V1)
       properties:
@@ -2910,6 +3004,11 @@ components:
           format: uri
           type: string
       type: object
+    DeleteRepositoryOutput:
+      properties:
+        Repository:
+          $ref: '#/components/schemas/Repository'
+      type: object
     DeleteResourceOutput:
       properties: {}
       type: object
@@ -3175,6 +3274,35 @@ components:
         TraceHeader:
           type: string
       type: object
+    DescribeImagesInput:
+      properties:
+        ImageIds:
+          items:
+            $ref: '#/components/schemas/ImageIdentifier'
+          type: array
+        MaxResults:
+          format: int32
+          maximum: 1000
+          minimum: 1
+          type: integer
+        NextToken:
+          type: string
+        TagStatus:
+          enum:
+            - TAGGED
+            - UNTAGGED
+            - ANY
+          type: string
+      type: object
+    DescribeImagesOutput:
+      properties:
+        ImageDetails:
+          items:
+            $ref: '#/components/schemas/ImageDetail'
+          type: array
+        NextToken:
+          type: string
+      type: object
     DescribeKeyInput:
       properties:
         GrantTokens:
@@ -3290,6 +3418,30 @@ components:
         Parameters:
           items:
             $ref: '#/components/schemas/ParameterMetadata'
+          type: array
+      type: object
+    DescribeRepositoriesInput:
+      properties:
+        MaxResults:
+          format: int32
+          maximum: 1000
+          minimum: 1
+          type: integer
+        NextToken:
+          type: string
+        RepositoryNames:
+          description: Filter by repository names
+          items:
+            type: string
+          type: array
+      type: object
+    DescribeRepositoriesOutput:
+      properties:
+        NextToken:
+          type: string
+        Repositories:
+          items:
+            $ref: '#/components/schemas/Repository'
           type: array
       type: object
     DescribeResourceServerOutput:
@@ -4123,6 +4275,13 @@ components:
         NextToken:
           description: The next token for paginated results
           type: string
+      type: object
+    GetAuthorizationTokenOutput:
+      properties:
+        AuthorizationData:
+          items:
+            $ref: '#/components/schemas/AuthorizationData'
+          type: array
       type: object
     GetAuthorizersV1Output:
       properties:
@@ -5340,6 +5499,58 @@ components:
             - FAILED
             - TEMPORARY_FAILURE
             - NOT_STARTED
+          type: string
+      type: object
+    Image:
+      properties:
+        ImageId:
+          $ref: '#/components/schemas/ImageIdentifier'
+        ImageManifest:
+          type: string
+        ImageManifestMediaType:
+          type: string
+        RegistryId:
+          type: string
+        RepositoryName:
+          type: string
+      type: object
+    ImageDetail:
+      properties:
+        ArtifactMediaType:
+          type: string
+        ImageDigest:
+          type: string
+        ImageManifestMediaType:
+          type: string
+        ImagePushedAt:
+          format: date-time
+          type: string
+        ImageSizeInBytes:
+          format: int64
+          type: integer
+        ImageTags:
+          items:
+            type: string
+          type: array
+        RegistryId:
+          type: string
+        RepositoryName:
+          type: string
+      type: object
+    ImageFailure:
+      properties:
+        FailureCode:
+          type: string
+        FailureReason:
+          type: string
+        ImageId:
+          $ref: '#/components/schemas/ImageIdentifier'
+      type: object
+    ImageIdentifier:
+      properties:
+        ImageDigest:
+          type: string
+        ImageTag:
           type: string
       type: object
     ImportRestApiOutput:
@@ -7013,6 +7224,31 @@ components:
         IsTruncated:
           type: boolean
         Marker:
+          type: string
+      type: object
+    ListImagesInput:
+      properties:
+        MaxResults:
+          format: int32
+          maximum: 1000
+          minimum: 1
+          type: integer
+        NextToken:
+          type: string
+        TagStatus:
+          enum:
+            - TAGGED
+            - UNTAGGED
+            - ANY
+          type: string
+      type: object
+    ListImagesOutput:
+      properties:
+        ImageIds:
+          items:
+            $ref: '#/components/schemas/ImageIdentifier'
+          type: array
+        NextToken:
           type: string
       type: object
     ListInvalidationsOutput:
@@ -9442,6 +9678,40 @@ components:
       type: object
     RemoveUserFromGroupOutput:
       properties: {}
+      type: object
+    Repository:
+      properties:
+        CreatedAt:
+          format: date-time
+          type: string
+        EncryptionConfiguration:
+          properties:
+            EncryptionType:
+              enum:
+                - AES256
+                - KMS
+              type: string
+            KmsKey:
+              type: string
+          type: object
+        ImageScanningConfiguration:
+          properties:
+            ScanOnPush:
+              type: boolean
+          type: object
+        ImageTagMutability:
+          enum:
+            - MUTABLE
+            - IMMUTABLE
+          type: string
+        RegistryId:
+          type: string
+        RepositoryArn:
+          type: string
+        RepositoryName:
+          type: string
+        RepositoryUri:
+          type: string
       type: object
     Resource:
       description: Represents a resource in a REST API (V1)
@@ -12946,8 +13216,52 @@ paths:
       tags:
         - API Gateway
   /apigateway/apis/{apiId}/invoke-url:
-    post:
+    get:
       description: |
+        Generates the invocation URL for an HTTP API (V2) stage.
+        Query parameters: stage (required), protocolType (optional, defaults to HTTP).
+      operationId: getInvokeUrlV2GET
+      parameters:
+        - $ref: ../common/_parameters.yaml#/components/parameters/ApiIdPath
+        - example: prod
+          in: query
+          name: stage
+          required: true
+          schema:
+            type: string
+        - example: HTTP
+          in: query
+          name: protocolType
+          required: false
+          schema:
+            default: HTTP
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/InvokeUrlResponse
+          description: Invoke URL
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Get invoke URL (V2)
+      tags:
+        - API Gateway
+    post:
+      deprecated: true
+      description: |
+        Deprecated: use GET /apigateway/apis/{apiId}/invoke-url?stageName=...&protocolType=...
         Generates the invocation URL for an HTTP API (V2) stage.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: getInvokeUrlV2
@@ -13629,8 +13943,51 @@ paths:
       tags:
         - API Gateway
   /apigateway/rest-apis/{restApiId}/invoke-url:
-    post:
+    get:
       description: |
+        Generates the invocation URL for a REST API (V1) stage.
+        Query parameters: apiId (required), stage (required).
+      operationId: getInvokeUrlV1GET
+      parameters:
+        - $ref: ../common/_parameters.yaml#/components/parameters/RestApiIdPath
+        - example: my-api
+          in: query
+          name: apiId
+          required: true
+          schema:
+            type: string
+        - example: prod
+          in: query
+          name: stage
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/InvokeUrlResponse
+          description: Invoke URL
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Get invoke URL (V1)
+      tags:
+        - API Gateway
+    post:
+      deprecated: true
+      description: |
+        Deprecated: use GET /apigateway/rest-apis/{restApiId}/invoke-url?apiId=...&stageName=...
         Generates the invocation URL for a REST API (V1) stage.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: getInvokeUrlV1
@@ -15283,12 +15640,49 @@ paths:
       tags:
         - CloudWatch
   /cloudwatch/metrics/data:
-    post:
+    get:
       description: |
         Returns metric data with advanced querying support using
         MetricDataQueries, including math expressions and metric insights.
-        Accepts both camelCase and TitleCase JSON keys.
       operationId: getMetricData
+      parameters:
+        - description: URL-encoded JSON of GetMetricDataInput
+          example: '{"MetricDataQueries":[{"Id":"m1"}]}'
+          in: query
+          name: params
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMetricDataOutput'
+          description: Metric data results
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Get metric data
+      tags:
+        - CloudWatch
+    post:
+      deprecated: true
+      description: |
+        Deprecated: use GET /cloudwatch/metrics/data.
+        Returns metric data with advanced querying support using
+        MetricDataQueries, including math expressions and metric insights.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getMetricDataLegacy
       requestBody:
         content:
           application/json:
@@ -15314,16 +15708,100 @@ paths:
               schema:
                 $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
           description: Internal server error
-      summary: Get metric data
+      summary: Get metric data (deprecated)
       tags:
         - CloudWatch
   /cloudwatch/metrics/statistics:
-    post:
+    get:
       description: |
+        Returns statistics for a specific metric over a time range.
+      operationId: getMetricStatistics
+      parameters:
+        - example: AWS/EC2
+          in: query
+          name: namespace
+          required: true
+          schema:
+            type: string
+        - example: CPUUtilization
+          in: query
+          name: metricName
+          required: true
+          schema:
+            type: string
+        - description: RFC3339 or Unix seconds/milliseconds
+          example: "2024-01-01T00:00:00Z"
+          in: query
+          name: startTime
+          required: true
+          schema:
+            format: date-time
+            type: string
+        - example: "2024-01-02T00:00:00Z"
+          in: query
+          name: endTime
+          required: true
+          schema:
+            format: date-time
+            type: string
+        - description: Granularity in seconds
+          example: 3600
+          in: query
+          name: period
+          required: true
+          schema:
+            format: int32
+            type: integer
+        - description: Comma-separated list (SampleCount, Average, Sum, Minimum, Maximum)
+          example: Average,Sum
+          in: query
+          name: statistics
+          required: false
+          schema:
+            type: string
+        - description: URL-encoded JSON array of {Name,Value} objects
+          example: '[{"Name":"InstanceId","Value":"i-1234"}]'
+          in: query
+          name: dimensions
+          required: false
+          schema:
+            type: string
+        - example: Percent
+          in: query
+          name: unit
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMetricStatisticsOutput'
+          description: Metric statistics
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Get metric statistics
+      tags:
+        - CloudWatch
+    post:
+      deprecated: true
+      description: |
+        Deprecated: use GET /cloudwatch/metrics/statistics.
         Returns statistics for a specific metric over a time range.
         Requires Namespace, MetricName, StartTime, EndTime, and Period.
         Accepts both camelCase and TitleCase JSON keys.
-      operationId: getMetricStatistics
+      operationId: getMetricStatisticsLegacy
       requestBody:
         content:
           application/json:
@@ -15349,7 +15827,7 @@ paths:
               schema:
                 $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
           description: Internal server error
-      summary: Get metric statistics
+      summary: Get metric statistics (deprecated)
       tags:
         - CloudWatch
   /cognito/admin-initiate-auth:
@@ -16713,13 +17191,68 @@ paths:
       tags:
         - DynamoDB Streams
   /dynamodb-streams/streams/{streamArn}/shards/{shardId}/iterator:
-    post:
+    get:
       description: |
         Returns a shard iterator for reading records from a DynamoDB
-        stream shard. Uses POST (not GET) because the Fetch API
-        does not allow request body on GET requests.
-        Accepts both camelCase and TitleCase JSON keys.
+        stream shard.
       operationId: getShardIterator
+      parameters:
+        - $ref: ../common/_parameters.yaml#/components/parameters/StreamArnPath
+        - $ref: ../common/_parameters.yaml#/components/parameters/ShardIdPath
+        - example: TRIM_HORIZON
+          in: query
+          name: shardIteratorType
+          required: true
+          schema:
+            enum:
+              - TRIM_HORIZON
+              - LATEST
+              - AT_SEQUENCE_NUMBER
+              - AFTER_SEQUENCE_NUMBER
+              - AT_TIMESTAMP
+            type: string
+        - description: Required when shardIteratorType is AT_SEQUENCE_NUMBER or AFTER_SEQUENCE_NUMBER
+          in: query
+          name: startingSequenceNumber
+          required: false
+          schema:
+            type: string
+        - description: Required when shardIteratorType is AT_TIMESTAMP. RFC3339 or Unix seconds/milliseconds.
+          example: "2024-01-01T00:00:00Z"
+          in: query
+          name: startingTimestamp
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetShardIteratorOutput'
+          description: Shard iterator
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Get shard iterator
+      tags:
+        - DynamoDB Streams
+    post:
+      deprecated: true
+      description: |
+        Deprecated: use GET /dynamodb-streams/streams/{streamArn}/shards/{shardId}/iterator.
+        Returns a shard iterator for reading records from a DynamoDB stream shard.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getShardIteratorLegacy
       parameters:
         - $ref: ../common/_parameters.yaml#/components/parameters/StreamArnPath
         - $ref: ../common/_parameters.yaml#/components/parameters/ShardIdPath
@@ -16748,17 +17281,61 @@ paths:
               schema:
                 $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
           description: Internal server error
-      summary: Get shard iterator
+      summary: Get shard iterator (deprecated)
       tags:
         - DynamoDB Streams
   /dynamodb-streams/streams/{streamArn}/shards/{shardId}/records:
-    post:
+    get:
       description: |
-        Returns records from a DynamoDB stream shard using a shard
-        iterator. Uses POST (not GET) because the Fetch API
-        does not allow request body on GET requests.
-        Accepts both camelCase and TitleCase JSON keys.
+        Returns records from a DynamoDB stream shard using a shard iterator.
       operationId: getRecords
+      parameters:
+        - $ref: ../common/_parameters.yaml#/components/parameters/StreamArnPath
+        - $ref: ../common/_parameters.yaml#/components/parameters/ShardIdPath
+        - example: AAAA...
+          in: query
+          name: shardIterator
+          required: true
+          schema:
+            type: string
+        - example: 100
+          in: query
+          name: limit
+          required: false
+          schema:
+            format: int32
+            maximum: 1000
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRecordsOutput'
+          description: Records retrieved
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Get records
+      tags:
+        - DynamoDB Streams
+    post:
+      deprecated: true
+      description: |
+        Deprecated: use GET /dynamodb-streams/streams/{streamArn}/shards/{shardId}/records.
+        Returns records from a DynamoDB stream shard using a shard iterator.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getRecordsLegacy
       parameters:
         - $ref: ../common/_parameters.yaml#/components/parameters/StreamArnPath
         - $ref: ../common/_parameters.yaml#/components/parameters/ShardIdPath
@@ -16787,7 +17364,7 @@ paths:
               schema:
                 $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
           description: Internal server error
-      summary: Get records
+      summary: Get records (deprecated)
       tags:
         - DynamoDB Streams
   /dynamodb/batch-get-item:
@@ -16795,6 +17372,14 @@ paths:
       description: |
         Retrieves multiple items from one or more tables in a single API call.
         Accepts both camelCase and TitleCase JSON keys.
+
+        **Read-operation note**: This is a read operation but is exposed as POST
+        because the request carries nested JSON bodies (RequestItems map of
+        tables → Keys/ProjectionExpression/ConsistentRead) that exceed practical
+        URL length limits for a GET query string. As a consequence, when
+        READ_ONLY_MODE=true the read-only middleware blocks this endpoint — that
+        is a known limitation. Future work: convert to GET with a structured
+        encoding or allowlist this path under read-only mode.
       operationId: batchGetItem
       requestBody:
         content:
@@ -16824,6 +17409,7 @@ paths:
       summary: Batch get item
       tags:
         - DynamoDB
+      x-read-operation: true
   /dynamodb/batch-write-item:
     post:
       description: |
@@ -17221,6 +17807,14 @@ paths:
         Queries a DynamoDB table using key conditions.
         Uses custom AttributeValue conversion for ExclusiveStartKey.
         Accepts both camelCase and TitleCase JSON keys.
+
+        **Read-operation note**: This is a read operation but is exposed as POST
+        because the request carries nested JSON bodies (KeyConditionExpression,
+        ExpressionAttributeValues, ExclusiveStartKey as AttributeValue maps) that
+        exceed practical URL length limits for a GET query string. As a
+        consequence, when READ_ONLY_MODE=true the read-only middleware blocks
+        this endpoint — that is a known limitation. Future work: convert to GET
+        with a structured encoding or allowlist this path under read-only mode.
       operationId: queryTable
       parameters:
         - $ref: ../common/_parameters.yaml#/components/parameters/TableNamePath
@@ -17252,12 +17846,21 @@ paths:
       summary: Query table
       tags:
         - DynamoDB
+      x-read-operation: true
   /dynamodb/tables/{tableName}/scan:
     post:
       description: |
         Scans an entire DynamoDB table or a subset of items.
         Uses custom AttributeValue conversion for ExclusiveStartKey.
         Accepts both camelCase and TitleCase JSON keys.
+
+        **Read-operation note**: This is a read operation but is exposed as POST
+        because the request carries nested JSON bodies (ExpressionAttributeValues,
+        ExclusiveStartKey as AttributeValue maps) that exceed practical URL length
+        limits for a GET query string. As a consequence, when READ_ONLY_MODE=true
+        the read-only middleware blocks this endpoint — that is a known limitation.
+        Future work: convert to GET with a structured encoding or allowlist this
+        path under read-only mode.
       operationId: scanTable
       parameters:
         - $ref: ../common/_parameters.yaml#/components/parameters/TableNamePath
@@ -17289,6 +17892,7 @@ paths:
       summary: Scan table
       tags:
         - DynamoDB
+      x-read-operation: true
   /dynamodb/tables/{tableName}/ttl:
     get:
       description: |
@@ -17860,6 +18464,523 @@ paths:
       summary: Authorize security group ingress
       tags:
         - EC2
+  /ecr/authorization-token:
+    get:
+      description: |
+        Returns a Docker login token (Base64-encoded AWS:floci) and the
+        registry proxy endpoint. Pipe the token to
+        `docker login --username AWS --password-stdin <proxyEndpoint>`.
+      operationId: getAuthorizationToken
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAuthorizationTokenOutput'
+          description: Authorization token
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Get authorization token
+      tags:
+        - ECR
+  /ecr/images/{repositoryName}:
+    get:
+      description: |
+        Lists image IDs (tags and digests) in a repository.
+        Supports pagination via NextToken and MaxResults, and filtering by
+        TagStatus (TAGGED, UNTAGGED, ANY).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: listImages
+      parameters:
+        - description: The repository name
+          example: my-app
+          in: path
+          name: repositoryName
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListImagesInput'
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListImagesOutput'
+          description: List of image IDs
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Repository not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List images
+      tags:
+        - ECR
+  /ecr/images/batch-delete/{repositoryName}:
+    post:
+      description: |
+        Deletes images by tag or digest. Returns the failures list for any
+        images that could not be deleted.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: batchDeleteImage
+      parameters:
+        - description: The repository name
+          example: my-app
+          in: path
+          name: repositoryName
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchDeleteImageInput'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchDeleteImageOutput'
+          description: Images deleted
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Repository not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Batch delete images
+      tags:
+        - ECR
+  /ecr/images/batch-get/{repositoryName}:
+    get:
+      description: |
+        Fetches image manifests for the given image IDs (by tag and/or digest).
+      operationId: batchGetImage
+      parameters:
+        - description: The repository name
+          example: my-app
+          in: path
+          name: repositoryName
+          required: true
+          schema:
+            type: string
+        - description: Comma-separated list of image tags
+          example: v1,latest
+          in: query
+          name: imageTags
+          required: false
+          schema:
+            type: string
+        - description: Comma-separated list of image digests
+          example: sha256:abc123
+          in: query
+          name: imageDigests
+          required: false
+          schema:
+            type: string
+        - description: Comma-separated list of accepted media types
+          example: application/vnd.oci.image.manifest.v1+json
+          in: query
+          name: acceptedMediaTypes
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchGetImageOutput'
+          description: Image manifests
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Repository not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Batch get images
+      tags:
+        - ECR
+    post:
+      deprecated: true
+      description: |
+        Deprecated: use GET /ecr/images/batch-get/{repositoryName}.
+        Fetches image manifests for the given image IDs. Honors
+        acceptedMediaTypes (e.g. application/vnd.oci.image.manifest.v1+json).
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: batchGetImageLegacy
+      parameters:
+        - description: The repository name
+          example: my-app
+          in: path
+          name: repositoryName
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchGetImageInput'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchGetImageOutput'
+          description: Image manifests
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Repository not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Batch get images (deprecated)
+      tags:
+        - ECR
+  /ecr/images/details/{repositoryName}:
+    get:
+      description: |
+        Returns image metadata (digest, size, push timestamp, manifest media
+        type) for images in a repository. Can be filtered by image IDs.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: describeImages
+      parameters:
+        - description: The repository name
+          example: my-app
+          in: path
+          name: repositoryName
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DescribeImagesInput'
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeImagesOutput'
+          description: Image metadata
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Repository not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Describe images
+      tags:
+        - ECR
+  /ecr/repositories:
+    get:
+      description: |
+        Returns a list of repositories. Can be filtered by repository names.
+        Supports pagination via NextToken and MaxResults.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: describeRepositories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DescribeRepositoriesInput'
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeRepositoriesOutput'
+          description: List of repositories
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Repository not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Describe repositories
+      tags:
+        - ECR
+    post:
+      description: |
+        Creates a new repository. Requires RepositoryName.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: createRepository
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRepositoryInput'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRepositoryOutput'
+          description: Repository created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Create repository
+      tags:
+        - ECR
+  /ecr/repositories/{repositoryName}:
+    delete:
+      description: |
+        Deletes a repository. If force=true, the repository contents are
+        deleted as well; otherwise the repository must be empty.
+      operationId: deleteRepository
+      parameters:
+        - description: The repository name
+          example: my-app
+          in: path
+          name: repositoryName
+          required: true
+          schema:
+            type: string
+        - description: Force delete the repository contents
+          in: query
+          name: force
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteRepositoryOutput'
+          description: Repository deleted
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Repository not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Delete repository
+      tags:
+        - ECR
+    get:
+      description: |
+        Returns details about a single repository. The repository name may
+        contain forward slashes (e.g. project-a/nginx-web-app).
+      operationId: describeRepository
+      parameters:
+        - description: The repository name
+          example: my-app
+          in: path
+          name: repositoryName
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeRepositoriesOutput'
+          description: Repository details
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Repository not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Describe repository
+      tags:
+        - ECR
+  /ecr/tags/{repositoryName}:
+    get:
+      description: |
+        Lists the tags attached to a repository.
+      operationId: listTagsForResource
+      parameters:
+        - description: The repository name
+          example: my-app
+          in: path
+          name: repositoryName
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTagsForResourceOutput'
+          description: Repository tags
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Repository not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List tags for resource
+      tags:
+        - ECR
+    put:
+      description: |
+        Adds or removes tags on a repository. Tags to add are passed as a
+        key-value map; tags to remove are passed as RemovedKeys.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: updateTags
+      parameters:
+        - description: The repository name
+          example: my-app
+          in: path
+          name: repositoryName
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTagsInput'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateTagsOutput'
+          description: Tags updated
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Repository not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Update tags
+      tags:
+        - ECR
   /elasticache/cache-clusters:
     get:
       description: |
@@ -18706,10 +19827,22 @@ paths:
   /iam/policies:
     get:
       description: |
-        Lists all managed policies in the account.
-        Supports pagination via Marker and MaxItems.
+        Multiplexed endpoint:
+        - If `policyArn` query parameter is provided: returns the specific policy by ARN (same as POST /iam/policies/get)
+        - Otherwise: lists all managed policies in the account with optional filtering and pagination
+
+        Query parameter: policyArn (string, optional)
+        List mode supports: Scope, OnlyAttached, PathPrefix, PolicyUsageFilter, Marker, MaxItems.
         Accepts both camelCase and TitleCase JSON keys.
-      operationId: listPolicies
+      operationId: listPoliciesOrGetByArn
+      parameters:
+        - description: The ARN of the policy to retrieve (if provided, returns single policy instead of list)
+          example: arn:aws:iam::123456789012:policy/TestPolicy
+          in: query
+          name: policyArn
+          required: false
+          schema:
+            type: string
       requestBody:
         content:
           application/json:
@@ -18721,8 +19854,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListPoliciesOutput'
-          description: List of policies
+                oneOf:
+                  - $ref: '#/components/schemas/ListPoliciesOutput'
+                  - $ref: '#/components/schemas/GetPolicyOutput'
+          description: List of policies or single policy by ARN
         "400":
           content:
             application/json:
@@ -18735,7 +19870,7 @@ paths:
               schema:
                 $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
           description: Internal server error
-      summary: List policies
+      summary: List policies or get policy by ARN
       tags:
         - IAM
     post:
@@ -18809,7 +19944,9 @@ paths:
         - IAM
   /iam/policies/get:
     post:
+      deprecated: true
       description: |
+        Deprecated: use GET /iam/policies?policyArn=... instead.
         Retrieves information about the specified managed policy.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: getPolicy
@@ -19654,11 +20791,67 @@ paths:
       tags:
         - Kinesis
   /kinesis/streams/{streamName}/shards/{shardId}/iterator:
-    post:
+    get:
       description: |
         Gets a shard iterator for reading records from a shard.
-        Accepts both camelCase and TitleCase JSON keys.
       operationId: getShardIterator
+      parameters:
+        - $ref: ../common/_parameters.yaml#/components/parameters/StreamNamePath
+        - $ref: ../common/_parameters.yaml#/components/parameters/ShardIdPath
+        - example: TRIM_HORIZON
+          in: query
+          name: shardIteratorType
+          required: true
+          schema:
+            enum:
+              - TRIM_HORIZON
+              - LATEST
+              - AT_SEQUENCE_NUMBER
+              - AFTER_SEQUENCE_NUMBER
+              - AT_TIMESTAMP
+            type: string
+        - description: Required when shardIteratorType is AT_SEQUENCE_NUMBER or AFTER_SEQUENCE_NUMBER
+          in: query
+          name: startingSequenceNumber
+          required: false
+          schema:
+            type: string
+        - description: Required when shardIteratorType is AT_TIMESTAMP. RFC3339 or Unix seconds/milliseconds.
+          example: "2024-01-01T00:00:00Z"
+          in: query
+          name: startingTimestamp
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetShardIteratorOutput'
+          description: Shard iterator
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Get shard iterator
+      tags:
+        - Kinesis
+    post:
+      deprecated: true
+      description: |
+        Deprecated: use GET /kinesis/streams/{streamName}/shards/{shardId}/iterator.
+        Gets a shard iterator for reading records from a shard.
+        Accepts both camelCase and TitleCase JSON keys.
+      operationId: getShardIteratorLegacy
       parameters:
         - $ref: ../common/_parameters.yaml#/components/parameters/StreamNamePath
         - $ref: ../common/_parameters.yaml#/components/parameters/ShardIdPath
@@ -19687,7 +20880,7 @@ paths:
               schema:
                 $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
           description: Internal server error
-      summary: Get shard iterator
+      summary: Get shard iterator (deprecated)
       tags:
         - Kinesis
   /kinesis/streams/{streamName}/shards/{shardId}/merge:
@@ -22198,8 +23391,98 @@ paths:
       tags:
         - S3
   /secrets-manager/random-password:
-    post:
+    get:
       description: |
+        Generates a random password with configurable complexity rules.
+        All parameters are optional.
+      operationId: getRandomPasswordGET
+      parameters:
+        - description: Length of the generated password (1-4096, default 32)
+          example: 20
+          in: query
+          name: passwordLength
+          required: false
+          schema:
+            default: 32
+            format: int64
+            maximum: 4096
+            minimum: 1
+            type: integer
+        - description: Characters to exclude from the password
+          example: '"@/\'
+          in: query
+          name: excludeCharacters
+          required: false
+          schema:
+            type: string
+        - description: Exclude numeric characters (0-9)
+          example: false
+          in: query
+          name: excludeNumbers
+          required: false
+          schema:
+            type: boolean
+        - description: Exclude punctuation characters
+          example: false
+          in: query
+          name: excludePunctuation
+          required: false
+          schema:
+            type: boolean
+        - description: Exclude uppercase letters (A-Z)
+          example: false
+          in: query
+          name: excludeUppercase
+          required: false
+          schema:
+            type: boolean
+        - description: Exclude lowercase letters (a-z)
+          example: false
+          in: query
+          name: excludeLowercase
+          required: false
+          schema:
+            type: boolean
+        - description: Include space characters
+          example: false
+          in: query
+          name: includeSpace
+          required: false
+          schema:
+            type: boolean
+        - description: Require at least one character from each included type
+          example: true
+          in: query
+          name: requireEachIncludedType
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRandomPasswordOutput'
+          description: Random password generated
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: Get random password
+      tags:
+        - Secrets Manager
+    post:
+      deprecated: true
+      description: |
+        Deprecated: use GET /secrets-manager/random-password with query parameters instead.
         Generates a random password with configurable complexity rules.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: getRandomPassword
@@ -22228,7 +23511,7 @@ paths:
               schema:
                 $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
           description: Internal server error
-      summary: Get random password
+      summary: Get random password (deprecated)
       tags:
         - Secrets Manager
   /secrets-manager/secrets:
@@ -23563,9 +24846,29 @@ paths:
   /ssm/parameters:
     get:
       description: |
-        Returns a list of SSM parameters with optional filtering.
-        Accepts both camelCase and TitleCase JSON keys.
-      operationId: describeParameters
+        Multiplexed endpoint:
+        - If `names` query parameter is provided: performs batch GetParameters (same as POST /ssm/parameters/batch)
+        - Otherwise: performs DescribeParameters (list)
+
+        Query parameters for batch mode: names (CSV, required), withDecryption (boolean, optional).
+
+        For describe mode, accepts optional filter/match options in request body.
+      operationId: describeParametersOrBatchGet
+      parameters:
+        - description: Comma-separated list of parameter names for batch get mode
+          example: /app/db/host,/app/db/port
+          in: query
+          name: names
+          required: false
+          schema:
+            type: string
+        - description: Whether to decrypt SecureString parameters (batch mode only)
+          example: true
+          in: query
+          name: withDecryption
+          required: false
+          schema:
+            type: boolean
       requestBody:
         content:
           application/json:
@@ -23577,8 +24880,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DescribeParametersOutput'
-          description: List of parameters
+                oneOf:
+                  - $ref: '#/components/schemas/DescribeParametersOutput'
+                  - $ref: '#/components/schemas/GetParametersOutput'
+          description: List of parameters or batch get results
         "400":
           content:
             application/json:
@@ -23591,7 +24896,7 @@ paths:
               schema:
                 $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
           description: Internal server error
-      summary: Describe parameters
+      summary: Describe parameters or batch get
       tags:
         - SSM
     post:
@@ -23778,7 +25083,9 @@ paths:
         - SSM
   /ssm/parameters/batch:
     post:
+      deprecated: true
       description: |
+        Deprecated: use GET /ssm/parameters?names=...&withDecryption=... instead.
         Returns the values of multiple SSM parameters by name.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: getParameters
@@ -23811,6 +25118,48 @@ paths:
       tags:
         - SSM
   /ssm/tags:
+    get:
+      description: |
+        Returns all tags on an SSM resource.
+        Query parameters: resourceId (required), resourceType (required).
+      operationId: listTagsForResourceGET
+      parameters:
+        - description: The ID of the SSM resource to list tags for
+          example: my-parameter
+          in: query
+          name: resourceId
+          required: true
+          schema:
+            type: string
+        - description: The type of SSM resource (e.g., Parameter, Document, ManagedInstance)
+          example: Parameter
+          in: query
+          name: resourceType
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTagsForResourceOutput'
+          description: Tags listed
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Invalid request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: ../common/_components.yaml#/components/schemas/ErrorResponse
+          description: Internal server error
+      summary: List tags for resource
+      tags:
+        - SSM
     post:
       description: |
         Adds or overwrites tags on an SSM resource.
@@ -23880,7 +25229,9 @@ paths:
         - SSM
   /ssm/tags/list:
     post:
+      deprecated: true
       description: |
+        Deprecated: use GET /ssm/tags?resourceId=...&resourceType=... instead.
         Returns all tags on an SSM resource.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: listTagsForResource

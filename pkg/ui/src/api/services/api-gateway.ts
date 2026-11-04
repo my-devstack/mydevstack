@@ -10,9 +10,20 @@ import { PROXY_BACKEND } from '@/config'
  
 import { APIError } from '../client'
 
-async function restRequest<T = any>(method: string, path: string, body?: object): Promise<T> {
+async function restRequest<T = any>(method: string, path: string, body?: object, query?: Record<string, string | undefined>): Promise<T> {
   const endpoint = PROXY_BACKEND.replace(/\/$/, '')
-  const url = `${endpoint}/apigateway${path}`
+  let url = `${endpoint}/apigateway${path}`
+
+  if (query) {
+    const params = new URLSearchParams()
+    for (const [key, value] of Object.entries(query)) {
+      if (value !== undefined && value !== '') {
+        params.set(key, value)
+      }
+    }
+    const qs = params.toString()
+    if (qs) url += `?${qs}`
+  }
 
   const options: RequestInit = {
     method,
@@ -444,13 +455,17 @@ export class APIGatewayService {
   }
 
   async getInvokeUrl(apiId: string, stageName: string): Promise<any> {
-    return restRequest('POST', `/rest-apis/${encodeURIComponent(apiId)}/invoke-url`, { apiId, stageName })
+    return restRequest('GET', `/rest-apis/${encodeURIComponent(apiId)}/invoke-url`, undefined, {
+      apiId,
+      stage: stageName,
+    })
   }
 
   async getInvokeUrlV2(apiId: string, stageName: string, protocolType?: string): Promise<any> {
-    const body: any = { apiId, stageName }
-    if (protocolType) { body.protocolType = protocolType }
-    return restRequest('POST', `/apis/${encodeURIComponent(apiId)}/invoke-url`, body)
+    return restRequest('GET', `/apis/${encodeURIComponent(apiId)}/invoke-url`, undefined, {
+      stage: stageName,
+      protocolType,
+    })
   }
 
   // V2 HTTP API Authorizers

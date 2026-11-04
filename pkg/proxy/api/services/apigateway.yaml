@@ -605,10 +605,53 @@ paths:
 
   # --- 18. POST /apigateway/apis/{apiId}/invoke-url ---
   /apigateway/apis/{apiId}/invoke-url:
-    post:
+    get:
       tags: [API Gateway]
       summary: Get invoke URL (V2)
       description: |
+        Generates the invocation URL for an HTTP API (V2) stage.
+        Query parameters: stage (required), protocolType (optional, defaults to HTTP).
+      operationId: getInvokeUrlV2GET
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/ApiIdPath'
+        - name: stage
+          in: query
+          required: true
+          schema:
+            type: string
+          example: prod
+        - name: protocolType
+          in: query
+          required: false
+          schema:
+            type: string
+            default: HTTP
+          example: HTTP
+      responses:
+        "200":
+          description: Invoke URL
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/InvokeUrlResponse'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+    post:
+      deprecated: true
+      tags: [API Gateway]
+      summary: Get invoke URL (V2)
+      description: |
+        Deprecated: use GET /apigateway/apis/{apiId}/invoke-url?stageName=...&protocolType=...
         Generates the invocation URL for an HTTP API (V2) stage.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: getInvokeUrlV2
@@ -1475,10 +1518,52 @@ paths:
 
   # --- 42. POST /apigateway/rest-apis/{restApiId}/invoke-url ---
   /apigateway/rest-apis/{restApiId}/invoke-url:
-    post:
+    get:
       tags: [API Gateway]
       summary: Get invoke URL (V1)
       description: |
+        Generates the invocation URL for a REST API (V1) stage.
+        Query parameters: apiId (required), stage (required).
+      operationId: getInvokeUrlV1GET
+      parameters:
+        - $ref: '../common/_parameters.yaml#/components/parameters/RestApiIdPath'
+        - name: apiId
+          in: query
+          required: true
+          schema:
+            type: string
+          example: my-api
+        - name: stage
+          in: query
+          required: true
+          schema:
+            type: string
+          example: prod
+      responses:
+        "200":
+          description: Invoke URL
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/InvokeUrlResponse'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../common/_components.yaml#/components/schemas/ErrorResponse'
+    post:
+      deprecated: true
+      tags: [API Gateway]
+      summary: Get invoke URL (V1)
+      description: |
+        Deprecated: use GET /apigateway/rest-apis/{restApiId}/invoke-url?apiId=...&stageName=...
         Generates the invocation URL for a REST API (V1) stage.
         Accepts both camelCase and TitleCase JSON keys.
       operationId: getInvokeUrlV1

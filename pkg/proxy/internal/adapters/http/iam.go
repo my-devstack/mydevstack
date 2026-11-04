@@ -32,7 +32,7 @@ func (h *ProxyHandler) registerIAMRoutes(r chi.Router) {
 		r.Get("/roles/{roleName}/policies/{policyName}", h.getRolePolicy)
 		r.Get("/roles/{roleName}/inline-policies", h.listRolePolicies)
 
-		r.Get("/policies", h.listPolicies)
+		r.Get("/policies", h.policiesGETDispatcher)
 		r.Post("/policies", h.createPolicy)
 		r.Post("/policies/get", h.getPolicy)
 		r.Post("/policies/delete", h.deletePolicy)
@@ -164,6 +164,21 @@ func (h *ProxyHandler) listPolicies(w http.ResponseWriter, r *http.Request) {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	h.listPoliciesCore(w, input)
+}
+
+// policiesGETDispatcher multiplexes GET /iam/policies:
+//   - ?policyArn=... → GetPolicy (shared with POST /policies/get)
+//   - otherwise      → ListPolicies
+func (h *ProxyHandler) policiesGETDispatcher(w http.ResponseWriter, r *http.Request) {
+	if arn := r.URL.Query().Get("policyArn"); arn != "" {
+		h.getPolicyCore(w, arn)
+		return
+	}
+	h.listPolicies(w, r)
+}
+
+func (h *ProxyHandler) listPoliciesCore(w http.ResponseWriter, input *iam.ListPoliciesInput) {
 	result, err := h.Svc.IAM().ListPolicies(h.ctx, input)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Failed to list policies", err)
@@ -181,8 +196,16 @@ func (h *ProxyHandler) getPolicy(w http.ResponseWriter, r *http.Request) {
 		sendError(w, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	h.getPolicyCore(w, body.PolicyArn)
+}
+
+func (h *ProxyHandler) getPolicyCore(w http.ResponseWriter, policyArn string) {
+	if policyArn == "" {
+		sendError(w, http.StatusBadRequest, "policyArn is required", nil)
+		return
+	}
 	input := &iam.GetPolicyInput{
-		PolicyArn: aws.String(body.PolicyArn),
+		PolicyArn: aws.String(policyArn),
 	}
 	result, err := h.Svc.IAM().GetPolicy(h.ctx, input)
 	if err != nil {

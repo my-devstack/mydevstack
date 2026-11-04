@@ -153,14 +153,14 @@ describe('Secrets Manager Service', () => {
   })
 
   describe('getRandomPassword', () => {
-    it('sends POST to /secrets-manager/random-password', async () => {
+    it('GET /secrets-manager/random-password with query params', async () => {
       mockFetch.mockResolvedValue(mockResponse({ RandomPassword: 'random123' }))
       const result = await getRandomPassword({ PasswordLength: 16 })
       expect(result.RandomPassword).toBe('random123')
-      expect(mockFetch.mock.calls[0][0]).toContain('/secrets-manager/random-password')
-      expect(mockFetch.mock.calls[0][1].method).toBe('POST')
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body.PasswordLength).toBe(16)
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.pathname).toBe('/secrets-manager/random-password')
+      expect(mockFetch.mock.calls[0][1]).toBeUndefined() // no fetch options
+      expect(url.searchParams.get('passwordLength')).toBe('16')
     })
 
     it('throws APIError on server error', async () => {
@@ -168,11 +168,20 @@ describe('Secrets Manager Service', () => {
       await expect(getRandomPassword()).rejects.toThrow(/Get random password failed/)
     })
 
-    it('sends empty object when no options provided', async () => {
+    it('sends no query when no options provided', async () => {
       mockFetch.mockResolvedValue(mockResponse({ RandomPassword: '' }))
       await getRandomPassword()
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-      expect(body).toEqual({})
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.search).toBe('')
+    })
+
+    it('sends exclude* and includeSpace booleans as true/false', async () => {
+      mockFetch.mockResolvedValue(mockResponse({ RandomPassword: 'x' }))
+      await getRandomPassword({ ExcludeNumbers: true, ExcludePunctuation: false, IncludeSpace: true })
+      const url = new URL(mockFetch.mock.calls[0][0])
+      expect(url.searchParams.get('excludeNumbers')).toBe('true')
+      expect(url.searchParams.get('excludePunctuation')).toBe('false')
+      expect(url.searchParams.get('includeSpace')).toBe('true')
     })
   })
 

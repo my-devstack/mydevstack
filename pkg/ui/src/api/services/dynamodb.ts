@@ -572,17 +572,24 @@ export const describeStream = async (streamArn: string): Promise<any> => {
   return restFetch('GET', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}`, undefined, 'DynamoDBStreams')
 }
 
-export const getShardIterator = async (streamArn: string, shardId: string, iteratorType?: string): Promise<any> => {
-  return restFetch('POST', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}/shards/${encodeURIComponent(shardId)}/iterator`, {
-    ShardIteratorType: iteratorType || 'TRIM_HORIZON',
-  }, 'DynamoDBStreams')
+export const getShardIterator = async (
+  streamArn: string,
+  shardId: string,
+  iteratorType?: string,
+  options?: { startingSequenceNumber?: string; startingTimestamp?: string },
+): Promise<any> => {
+  const qs = new URLSearchParams()
+  qs.set('shardIteratorType', iteratorType || 'TRIM_HORIZON')
+  if (options?.startingSequenceNumber !== undefined) qs.set('startingSequenceNumber', options.startingSequenceNumber)
+  if (options?.startingTimestamp !== undefined) qs.set('startingTimestamp', options.startingTimestamp)
+  return restFetch('GET', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}/shards/${encodeURIComponent(shardId)}/iterator?${qs.toString()}`, undefined, 'DynamoDBStreams')
 }
 
 export const getRecords = async (streamArn: string, shardId: string, shardIterator: string, limit?: number): Promise<any> => {
-  const response = await restFetch('POST', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}/shards/${encodeURIComponent(shardId)}/records`, {
-    ShardIterator: shardIterator,
-    Limit: limit || 100,
-  }, 'DynamoDBStreams')
+  const qs = new URLSearchParams()
+  qs.set('shardIterator', shardIterator)
+  if (limit !== undefined) qs.set('limit', String(limit))
+  const response = await restFetch('GET', `/dynamodb-streams/streams/${encodeURIComponent(streamArn)}/shards/${encodeURIComponent(shardId)}/records?${qs.toString()}`, undefined, 'DynamoDBStreams')
 
   // Normalize response: convert DynamoDBStreams format to expected format
   // API returns: { Records: [{ Dynamodb: {...} }] }

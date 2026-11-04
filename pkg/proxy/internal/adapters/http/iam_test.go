@@ -281,7 +281,7 @@ func TestIAM_GetPolicy_Error(t *testing.T) {
 	_, mp, handler := setupIAMTest(t)
 	mp.EXPECT().GetPolicy(mock.Anything, mock.Anything).Return(nil, errors.New("get policy error"))
 
-	w := performIAMRequest(handler, "POST", "/iam/policies/get", []byte(`{}`))
+	w := performIAMRequest(handler, "POST", "/iam/policies/get", []byte(`{"PolicyArn":"arn:aws:iam::123:policy/my-policy"}`))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	var resp map[string]interface{}
 	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
@@ -872,7 +872,7 @@ func TestIAM_ParseError(t *testing.T) {
 		{name: "ListUsers", method: "GET", path: "/iam/users"},
 		{name: "CreateRole", method: "POST", path: "/iam/roles"},
 		{name: "ListRoles", method: "GET", path: "/iam/roles"},
-		{name: "ListPolicies", method: "GET", path: "/iam/policies"},
+		// ListPolicies GET removed: multiplexed dispatcher does not parse body
 		{name: "GetPolicy", method: "POST", path: "/iam/policies/get"},
 		{name: "CreatePolicy", method: "POST", path: "/iam/policies"},
 		{name: "DeletePolicy", method: "POST", path: "/iam/policies/delete"},
@@ -949,4 +949,38 @@ func TestIAM_ParseError_Direct(t *testing.T) {
 			assert.Contains(t, resp["error"], "Invalid request body")
 		})
 	}
+}
+
+// ---------------------------------------------------------------------------
+// GET /iam/policies endpoints (new GET routes + multiplex)
+// ---------------------------------------------------------------------------
+
+func TestIAM_GetPolicy_ViaGET(t *testing.T) {
+	t.Parallel()
+	_, mp, handler := setupIAMTest(t)
+	mp.EXPECT().GetPolicy(mock.Anything, mock.MatchedBy(func(in *iam.GetPolicyInput) bool {
+		return in.PolicyArn != nil && *in.PolicyArn == "arn:aws:iam::123456789012:policy/test-policy"
+	})).Return(&iam.GetPolicyOutput{}, nil)
+
+	w := performIAMRequest(handler, "GET", "/iam/policies?policyArn=arn:aws:iam::123456789012:policy/test-policy", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestIAM_GetPolicy_ViaGET_MissingArn(t *testing.T) {
+	t.Parallel()
+	_, mp, handler := setupIAMTest(t)
+	// No policyArn query → falls through to listPolicies
+	mp.EXPECT().ListPolicies(mock.Anything, mock.Anything).Return(&iam.ListPoliciesOutput{}, nil)
+
+	w := performIAMRequest(handler, "GET", "/iam/policies", nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestIAM_GetPolicy_POST_Still200(t *testing.T) {
+	t.Parallel()
+	_, mp, handler := setupIAMTest(t)
+	mp.EXPECT().GetPolicy(mock.Anything, mock.Anything).Return(&iam.GetPolicyOutput{}, nil)
+
+	w := performIAMRequest(handler, "POST", "/iam/policies/get", []byte(`{"PolicyArn":"arn:aws:iam::123456789012:policy/test"}`))
+	assert.Equal(t, http.StatusOK, w.Code)
 }
