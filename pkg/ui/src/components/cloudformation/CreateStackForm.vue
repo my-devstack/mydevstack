@@ -220,7 +220,8 @@ defineExpose({ resetForm })
           </button>
           <button
             class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
-            :disabled="loading"
+            :disabled="loading || settingsStore.readOnly"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Create Stack'"
             @click="handleCreate"
           >
             <span v-if="loading">Creating...</span>

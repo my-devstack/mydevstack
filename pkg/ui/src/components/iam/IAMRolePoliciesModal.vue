@@ -34,6 +34,7 @@ function handleClose() {
           Policies for {{ props.roleName }}
         </h3>
         <Button
+          mutating
           variant="primary"
           size="sm"
           @click="emit('open-attach')"
@@ -71,6 +72,7 @@ function handleClose() {
             </p>
           </div>
           <Button
+            mutating
             variant="ghost"
             size="sm"
             @click="emit('detach-policy', policy.PolicyArn)"

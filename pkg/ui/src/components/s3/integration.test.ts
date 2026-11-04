@@ -394,4 +394,66 @@ describe('S3 Components Integration', () => {
       expect(wrapper.vm.showDeleteModal).toBe(false)
     })
   })
+
+  describe('S3ObjectsList Upload — read-only gating', () => {
+    it('readOnly true: upload labels carry pointer-events-none and hidden file inputs are disabled', async () => {
+      const readOnlyState = { value: true }
+      const { useSettingsStore } = await import('@/stores/settings')
+      vi.mocked(useSettingsStore).mockReturnValue({
+        darkMode: false,
+        region: 'us-east-1',
+        accessKey: 'test',
+        secretKey: 'test',
+        emulator: 'aws',
+        get readOnly() { return readOnlyState.value },
+      } as any)
+
+      const wrapper = mount(S3ObjectsList, {
+        props: {
+          objects: [],
+          bucketName: 'test-bucket',
+        },
+      })
+
+      const uploadFilesLabel = wrapper.find('label[aria-label="Upload Files"]')
+      const uploadFolderLabel = wrapper.find('label[aria-label="Upload Folder"]')
+      expect(uploadFilesLabel.exists()).toBe(true)
+      expect(uploadFolderLabel.exists()).toBe(true)
+      expect(uploadFilesLabel.classes()).toContain('pointer-events-none')
+      expect(uploadFolderLabel.classes()).toContain('pointer-events-none')
+
+      const fileInputs = wrapper.findAll('input[type="file"]')
+      expect(fileInputs.length).toBeGreaterThanOrEqual(2)
+      fileInputs.forEach(input => {
+        expect(input.attributes('disabled')).toBeDefined()
+      })
+    })
+
+    it('readOnly false: upload labels do NOT carry pointer-events-none and inputs are enabled', async () => {
+      const readOnlyState = { value: false }
+      const { useSettingsStore } = await import('@/stores/settings')
+      vi.mocked(useSettingsStore).mockReturnValue({
+        darkMode: false,
+        region: 'us-east-1',
+        accessKey: 'test',
+        secretKey: 'test',
+        emulator: 'aws',
+        get readOnly() { return readOnlyState.value },
+      } as any)
+
+      const wrapper = mount(S3ObjectsList, {
+        props: {
+          objects: [],
+          bucketName: 'test-bucket',
+        },
+      })
+
+      const uploadFilesLabel = wrapper.find('label[aria-label="Upload Files"]')
+      expect(uploadFilesLabel.classes()).not.toContain('pointer-events-none')
+      const fileInputs = wrapper.findAll('input[type="file"]')
+      fileInputs.forEach(input => {
+        expect(input.attributes('disabled')).toBeUndefined()
+      })
+    })
+  })
 })

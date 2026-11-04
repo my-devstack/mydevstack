@@ -47,7 +47,10 @@ function handleClose() {
         >
           Cancel
         </Button>
-        <Button @click="emit('create', form.name, form.displayName)">
+        <Button
+          mutating
+          @click="emit('create', form.name, form.displayName)"
+        >
           Create
         </Button>
       </div>

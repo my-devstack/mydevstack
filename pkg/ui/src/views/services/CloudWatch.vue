@@ -184,6 +184,7 @@ const headerResourceCount = computed(() => {
         </div>
         <Button
           v-if="headerButtonLabel"
+          mutating
           variant="primary"
           @click="cw.selectedTab.value === 'logs' ? showCreateLogGroupModal = true : showCreateAlarmModal = true"
         >
@@ -331,6 +332,7 @@ const headerResourceCount = computed(() => {
           title="No CloudWatch Metrics"
           description="Metrics appear when AWS services publish data."
           action-label="Refresh"
+          :action-mutating="false"
           @action="cw.loadMetrics()"
         />
 

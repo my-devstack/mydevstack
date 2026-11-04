@@ -167,6 +167,8 @@ function handleClose() {
           type="file"
           accept=".zip"
           class="w-full"
+          :class="settingsStore.readOnly ? 'opacity-50 cursor-not-allowed' : ''"
+          :disabled="settingsStore.readOnly"
           @change="handleZipFileChange"
         >
       </div>
@@ -222,6 +224,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :disabled="!form.functionName.trim() || loading"
           @click="handleCreate"
         >

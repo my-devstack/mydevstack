@@ -179,7 +179,8 @@ function formatDate(dateStr: string | undefined): string {
             <button
               type="button"
               class="p-1.5 rounded hover:bg-light-border dark:hover:bg-dark-border"
-              title="Edit"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Edit'"
+              :disabled="settingsStore.readOnly"
               @click.stop="emit('edit-api', api)"
             >
               <svg
@@ -199,7 +200,8 @@ function formatDate(dateStr: string | undefined): string {
             <button
               type="button"
               class="p-1.5 rounded hover:bg-light-border dark:hover:bg-dark-border"
-              title="Delete"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
+              :disabled="settingsStore.readOnly"
               @click.stop="emit('delete-api', api)"
             >
               <svg
@@ -251,6 +253,8 @@ function formatDate(dateStr: string | undefined): string {
             <button
               type="button"
               class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
+              :disabled="settingsStore.readOnly"
               @click.stop="emit('create-resource', api, resources?.[0])"
             >
               + Create Resource
@@ -328,7 +332,8 @@ function formatDate(dateStr: string | undefined): string {
                   <button
                     type="button"
                     class="px-2 py-1 text-xs rounded hover:bg-light-border dark:hover:bg-dark-border"
-                    title="Add Method"
+                    :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Add Method'"
+                    :disabled="settingsStore.readOnly"
                     @click.stop="emit('add-method', resource, api)"
                   >
                     + Method
@@ -336,7 +341,8 @@ function formatDate(dateStr: string | undefined): string {
                   <button
                     type="button"
                     class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
-                    title="Delete"
+                    :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
+                    :disabled="settingsStore.readOnly"
                     @click.stop="emit('delete-resource', resource)"
                   >
                     <svg
@@ -422,7 +428,8 @@ function formatDate(dateStr: string | undefined): string {
                       <button
                         type="button"
                         class="px-2 py-1 text-xs rounded hover:bg-light-border dark:hover:bg-dark-border"
-                        title="Setup Integration"
+                        :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Setup Integration'"
+                        :disabled="settingsStore.readOnly"
                         @click.stop="emit('setup-integration', method as string, resource)"
                       >
                         Integration
@@ -430,7 +437,8 @@ function formatDate(dateStr: string | undefined): string {
                       <button
                         type="button"
                         class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
-                        title="Delete Method"
+                        :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete Method'"
+                        :disabled="settingsStore.readOnly"
                         @click.stop="emit('delete-method', method as string, resource)"
                       >
                         <svg
@@ -469,6 +477,8 @@ function formatDate(dateStr: string | undefined): string {
               <button
                 type="button"
                 class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
+                :disabled="settingsStore.readOnly"
                 @click.stop="emit('create-deployment', api)"
               >
                 + Create Deployment
@@ -527,7 +537,8 @@ function formatDate(dateStr: string | undefined): string {
                   <button
                     type="button"
                     class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border"
-                    title="Edit Deployment"
+                    :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Edit Deployment'"
+                    :disabled="settingsStore.readOnly"
                     @click.stop="emit('edit-deployment', deployment)"
                   >
                     <svg
@@ -547,7 +558,8 @@ function formatDate(dateStr: string | undefined): string {
                   <button
                     type="button"
                     class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
-                    title="Delete Deployment"
+                    :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete Deployment'"
+                    :disabled="settingsStore.readOnly"
                     @click.stop="emit('delete-deployment', api.id, deployment.id)"
                   >
                     <svg
@@ -590,6 +602,8 @@ function formatDate(dateStr: string | undefined): string {
               <button
                 type="button"
                 class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
+                :disabled="settingsStore.readOnly"
                 @click.stop="emit('create-stage', api)"
               >
                 + Create Stage
@@ -648,7 +662,8 @@ function formatDate(dateStr: string | undefined): string {
                   <button
                     type="button"
                     class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border"
-                    title="Edit Stage"
+                    :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Edit Stage'"
+                    :disabled="settingsStore.readOnly"
                     @click.stop="emit('edit-stage', stage)"
                   >
                     <svg
@@ -668,7 +683,8 @@ function formatDate(dateStr: string | undefined): string {
                   <button
                     type="button"
                     class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
-                    title="Delete Stage"
+                    :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete Stage'"
+                    :disabled="settingsStore.readOnly"
                     @click.stop="emit('delete-stage', api.id, stage.stageName)"
                   >
                     <svg

@@ -253,6 +253,7 @@ function handleClose() {
       <div class="flex justify-end gap-2">
         <Button
           v-if="isEdit"
+          mutating
           variant="danger"
           :loading="loading"
           @click="handleDelete"
@@ -267,6 +268,7 @@ function handleClose() {
         </Button>
         <Button
           v-if="!isView"
+          mutating
           :loading="loading"
           :disabled="!name.trim()"
           @click="handleSubmit"

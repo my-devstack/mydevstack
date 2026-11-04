@@ -46,6 +46,7 @@ function handleClose() {
   >
     <div class="flex justify-end mb-4">
       <Button
+        mutating
         size="sm"
         @click="handleCreateRoute"
       >

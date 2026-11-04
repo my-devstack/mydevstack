@@ -395,4 +395,138 @@ describe('VPC View Integration', () => {
     // Verify deleteSubnet API was called
     expect(vpcModule.deleteSubnet).toHaveBeenCalledWith('subnet-abc')
   })
+
+  describe('read-only gating', () => {
+    const makeStubs = (opts: { stubButton?: boolean } = {}) => ({
+      Tabs: {
+        name: 'Tabs',
+        props: ['tabs', 'activeTab'],
+        emits: ['update:activeTab'],
+        template: '<div class="tabs-stub"><button v-for="t in tabs" :key="t.id" :data-testid="\'tab-\' + t.id" @click="$emit(\'update:activeTab\', t.id)">{{ t.label }}</button></div>',
+      },
+      ...(opts.stubButton !== false
+        ? { Button: { template: '<button class="mock-btn"><slot /></button>' } }
+        : {}),
+      StatusBadge: { template: '<span class="mock-status-badge" />' },
+      EmptyState: { template: '<div class="mock-empty-state"><slot /></div>' },
+      CodeSnippet: { template: '<div class="mock-code-snippet" />' },
+      VPCCreateVpcModal: { template: '<div class="mock-modal" />' },
+      VPCCreateSubnetModal: { template: '<div class="mock-modal" />' },
+      VPCCreateRouteTableModal: { template: '<div class="mock-modal" />' },
+      VPCCreateIgwModal: { template: '<div class="mock-modal" />' },
+      VPCCreateNatGatewayModal: { template: '<div class="mock-modal" />' },
+      VPCCreateNaclModal: { template: '<div class="mock-modal" />' },
+      VPCCreateFlowLogModal: { template: '<div class="mock-modal" />' },
+      VPCDeleteModal: { template: '<div class="mock-modal" />' },
+      VPCRouteTableDetailModal: { template: '<div class="mock-modal" />' },
+      VPCNaclRuleModal: { template: '<div class="mock-modal" />' },
+      LoadingSpinner: { template: '<span />' },
+    })
+
+    it('readOnly true: Create VPC button (real Button with mutating) is disabled', async () => {
+      const { useSettingsStore } = await import('@/stores/settings')
+      vi.mocked(useSettingsStore).mockReturnValue({
+        emulator: 'aws',
+        darkMode: false,
+        region: 'us-east-1',
+        accessKey: 'test',
+        secretKey: 'test',
+        readOnly: true,
+      } as any)
+
+      const wrapper = mount(VPCView, {
+        global: { stubs: makeStubs({ stubButton: false }) },
+      })
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      const createBtn = wrapper.findAll('button').find(b => b.text().includes('Create VPC'))
+      expect(createBtn).toBeTruthy()
+      expect(createBtn!.attributes('disabled')).toBeDefined()
+      expect(createBtn!.attributes('title')).toBe('Read-only mode: action not allowed')
+    })
+
+    it('readOnly false: Create VPC button is enabled', async () => {
+      const { useSettingsStore } = await import('@/stores/settings')
+      vi.mocked(useSettingsStore).mockReturnValue({
+        emulator: 'aws',
+        darkMode: false,
+        region: 'us-east-1',
+        accessKey: 'test',
+        secretKey: 'test',
+        readOnly: false,
+      } as any)
+
+      const wrapper = mount(VPCView, {
+        global: { stubs: makeStubs({ stubButton: false }) },
+      })
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      const createBtn = wrapper.findAll('button').find(b => b.text().includes('Create VPC'))
+      expect(createBtn).toBeTruthy()
+      expect(createBtn!.attributes('disabled')).toBeUndefined()
+    })
+
+    it('readOnly true: clicking Create VPC does NOT call createVpc API', async () => {
+      const vpcModule = await import('@/api/services/vpc')
+
+      const { useSettingsStore } = await import('@/stores/settings')
+      vi.mocked(useSettingsStore).mockReturnValue({
+        emulator: 'aws',
+        darkMode: false,
+        region: 'us-east-1',
+        accessKey: 'test',
+        secretKey: 'test',
+        readOnly: true,
+      } as any)
+
+      const wrapper = mount(VPCView, {
+        global: { stubs: makeStubs({ stubButton: false }) },
+      })
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      const createBtn = wrapper.findAll('button').find(b => b.text().includes('Create VPC'))!
+      await createBtn.trigger('click')
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      expect(vpcModule.createVpc).not.toHaveBeenCalled()
+    })
+
+    it('readOnly true: row action delete button (mutating) is disabled when VPC list populated', async () => {
+      const vpcModule = await import('@/api/services/vpc')
+      vpcModule.describeVpcs.mockResolvedValueOnce({ Vpcs: [testVpcItem] })
+
+      const { useSettingsStore } = await import('@/stores/settings')
+      vi.mocked(useSettingsStore).mockReturnValue({
+        emulator: 'aws',
+        darkMode: false,
+        region: 'us-east-1',
+        accessKey: 'test',
+        secretKey: 'test',
+        readOnly: true,
+      } as any)
+
+      const wrapper = mount(VPCView, {
+        global: { stubs: makeStubs({ stubButton: false }) },
+      })
+      await flushPromises()
+      await wrapper.vm.$nextTick()
+
+      // Expand VPC row to reveal action buttons
+      const vpcRow = wrapper.find('.cursor-pointer')
+      await vpcRow.trigger('click')
+      await wrapper.vm.$nextTick()
+
+      // Find a mutating action button within the expanded row
+      const allBtns = wrapper.findAll('button')
+      const mutatingBtns = allBtns.filter(b => b.attributes('title') === 'Read-only mode: action not allowed')
+      expect(mutatingBtns.length).toBeGreaterThan(0)
+      mutatingBtns.forEach(b => {
+        expect(b.attributes('disabled')).toBeDefined()
+      })
+    })
+  })
 })

@@ -75,6 +75,7 @@ const message = computed(() => {
           Cancel
         </Button>
         <Button
+          mutating
           variant="danger"
           :loading="props.deleting"
           @click="emit('confirm')"

@@ -142,6 +142,7 @@ watch(
           Cancel
         </Button>
         <Button
+          mutating
           variant="primary"
           :disabled="!form.name.trim() || loading"
           :loading="loading"

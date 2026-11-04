@@ -148,6 +148,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :disabled="loading || (type === 'rest' ? !restName.trim() : !httpName.trim())"
           @click="handleCreate"
         >

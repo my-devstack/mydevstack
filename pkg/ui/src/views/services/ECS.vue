@@ -257,6 +257,7 @@ watch(reloadTrigger, () => {
         </div>
 
         <Button
+          mutating
           variant="primary"
           @click="openCreateModal"
         >

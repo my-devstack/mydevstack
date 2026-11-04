@@ -53,6 +53,7 @@ function handleReboot() {
           Cancel
         </Button>
         <Button
+          mutating
           variant="primary"
           :loading="props.rebooting"
           @click="handleReboot"

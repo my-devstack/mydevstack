@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, useAttrs } from 'vue'
 import LoadingSpinner from './LoadingSpinner.vue'
+import { useSettingsStore } from '@/stores/settings'
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
 type Size = 'sm' | 'md' | 'lg'
@@ -10,6 +11,7 @@ interface Props {
   size?: Size
   loading?: boolean
   disabled?: boolean
+  mutating?: boolean
   type?: 'button' | 'submit' | 'reset'
   fullWidth?: boolean
   ariaLabel?: string
@@ -20,6 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'md',
   loading: false,
   disabled: false,
+  mutating: false,
   type: 'button',
   fullWidth: false,
 })
@@ -29,6 +32,7 @@ const emit = defineEmits<{
 }>()
 
 const attrs = useAttrs()
+const settingsStore = useSettingsStore()
 
 const variantClasses = computed(() => {
   const variants: Record<Variant, string> = {
@@ -53,7 +57,19 @@ const sizeClasses = computed(() => {
   return sizes[props.size]
 })
 
-const isDisabled = computed(() => props.disabled || props.loading)
+const isReadOnlyBlocked = computed(() => props.mutating && settingsStore.readOnly)
+const isDisabled = computed(() => props.disabled || props.loading || isReadOnlyBlocked.value)
+
+const resolvedTitle = computed(() => {
+  const callerTitle = (attrs as Record<string, unknown>).title
+  if (callerTitle !== undefined && callerTitle !== null) {
+    return callerTitle as string
+  }
+  if (isReadOnlyBlocked.value) {
+    return 'Read-only mode: action not allowed'
+  }
+  return undefined
+})
 
 function handleClick(event: MouseEvent) {
   if (isDisabled.value) {
@@ -68,7 +84,9 @@ function handleClick(event: MouseEvent) {
   <button
     :type="type"
     :disabled="isDisabled"
+    :aria-disabled="isReadOnlyBlocked ? 'true' : undefined"
     :aria-label="ariaLabel || $attrs['aria-label']"
+    :title="resolvedTitle"
     :class="[
       'inline-flex items-center justify-center font-medium rounded-md shadow-sm transition-all duration-150',
       'focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-dark-surface',

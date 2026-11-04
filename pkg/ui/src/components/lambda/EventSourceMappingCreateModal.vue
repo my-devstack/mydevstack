@@ -229,6 +229,7 @@ function handleClose() {
         Cancel
       </Button>
       <Button
+        mutating
         variant="primary"
         :disabled="!isValid || loading"
         :loading="loading"

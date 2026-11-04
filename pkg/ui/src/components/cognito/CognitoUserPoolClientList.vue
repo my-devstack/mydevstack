@@ -96,6 +96,7 @@ function formatDate(dateString?: string): string {
               Refresh: {{ client.RefreshTokenValidity }}d
             </span>
             <Button
+              mutating
               variant="ghost"
               size="sm"
               @click="emit('edit', client)"
@@ -105,6 +106,7 @@ function formatDate(dateString?: string): string {
               </template>
             </Button>
             <Button
+              mutating
               variant="ghost"
               size="sm"
               @click="emit('delete', client.ClientId)"

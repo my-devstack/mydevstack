@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
+import { createPinia, setActivePinia } from 'pinia'
+import { useSettingsStore } from '@/stores/settings'
 import S3DeleteModal from './S3DeleteModal.vue'
 
 const meta: Meta<typeof S3DeleteModal> = {
@@ -62,5 +64,27 @@ export const Deleting: Story = {
     item: { type: 'bucket', name: 'my-bucket' },
     loading: true
   },
+  render: renderTemplate
+}
+
+export const ReadOnlyDisabled: Story = {
+  args: {
+    open: true,
+    item: { type: 'bucket', name: 'my-bucket' },
+    loading: false
+  },
+  decorators: [
+    (story) => ({
+      components: { story },
+      setup() {
+        const localPinia = createPinia()
+        setActivePinia(localPinia)
+        const store = useSettingsStore()
+        store.setReadOnly(true)
+        return {}
+      },
+      template: '<div class="h-64"><story /></div>'
+    })
+  ],
   render: renderTemplate
 }

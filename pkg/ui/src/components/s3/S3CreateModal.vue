@@ -292,7 +292,8 @@ function handleClose() {
           Cancel
         </button>
         <button
-          :disabled="!bucketName.trim() || loading"
+          :disabled="!bucketName.trim() || loading || settingsStore.readOnly"
+          :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Create bucket'"
           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
           @click="handleCreate"
         >

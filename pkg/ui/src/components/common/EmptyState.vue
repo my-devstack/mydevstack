@@ -15,22 +15,31 @@ import {
   BellIcon,
   MegaphoneIcon,
 } from '@heroicons/vue/24/outline'
+import { useSettingsStore } from '@/stores/settings'
 
 interface Props {
   icon?: string
   title?: string
   description?: string
   actionLabel?: string
+  actionMutating?: boolean
   compact?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   compact: false,
+  actionMutating: true,
 })
 
 const emit = defineEmits<{
   action: []
 }>()
+
+const settingsStore = useSettingsStore()
+
+const isActionBlocked = computed(
+  () => props.actionMutating && settingsStore.readOnly,
+)
 
 // Icon mapping
 const iconMap: Record<string, unknown> = {
@@ -66,6 +75,7 @@ const iconPadding = computed(() => {
 })
 
 function handleAction() {
+  if (isActionBlocked.value) return
   emit('action')
 }
 </script>
@@ -117,7 +127,10 @@ function handleAction() {
       <button
         v-else-if="actionLabel"
         type="button"
-        class="mt-4 px-4 py-2 text-sm font-medium rounded-md bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 transition-colors"
+        class="mt-4 px-4 py-2 text-sm font-medium rounded-md bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+        :disabled="isActionBlocked"
+        :aria-disabled="isActionBlocked ? 'true' : undefined"
+        :title="isActionBlocked ? 'Read-only mode: action not allowed' : undefined"
         @click="handleAction"
       >
         {{ actionLabel }}

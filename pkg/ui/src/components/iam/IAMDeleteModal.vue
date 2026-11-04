@@ -44,6 +44,7 @@ function handleClose() {
         Cancel
       </Button>
       <Button
+        mutating
         variant="danger"
         @click="emit('confirm')"
       >

@@ -114,24 +114,26 @@ const emptyMessage = computed(() => {
     <div class="flex flex-wrap items-center gap-2">
       <label
         class="inline-flex p-2 rounded text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border"
-        :class="uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
-        title="Upload Files"
+        :class="settingsStore.readOnly ? 'opacity-50 cursor-not-allowed pointer-events-none' : (uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer')"
+        :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Upload Files'"
         aria-label="Upload Files"
+        :aria-disabled="settingsStore.readOnly ? 'true' : undefined"
       >
         <DocumentArrowUpIcon class="w-4 h-4" />
         <input
           type="file"
           multiple
           class="hidden"
-          :disabled="uploading"
+          :disabled="uploading || settingsStore.readOnly"
           @change="(e) => emit('upload-file', e)"
         >
       </label>
       <label
         class="inline-flex p-2 rounded text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border"
-        :class="uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
-        title="Upload Folder"
+        :class="settingsStore.readOnly ? 'opacity-50 cursor-not-allowed pointer-events-none' : (uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer')"
+        :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Upload Folder'"
         aria-label="Upload Folder"
+        :aria-disabled="settingsStore.readOnly ? 'true' : undefined"
       >
         <FolderArrowDownIcon class="w-4 h-4 rotate-180" />
         <input
@@ -139,7 +141,7 @@ const emptyMessage = computed(() => {
           webkitdirectory
           directory
           class="hidden"
-          :disabled="uploading"
+          :disabled="uploading || settingsStore.readOnly"
           @change="(e) => emit('upload-folder', e)"
         >
       </label>
@@ -147,8 +149,8 @@ const emptyMessage = computed(() => {
         type="button"
         class="p-2 rounded text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border"
         :class="uploading ? 'opacity-50 cursor-not-allowed' : ''"
-        :disabled="uploading"
-        :title="uploading ? 'Uploading...' : 'Create Folder'"
+        :disabled="uploading || settingsStore.readOnly"
+        :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : (uploading ? 'Uploading...' : 'Create Folder')"
         aria-label="Create Folder"
         @click="handleCreateFolder"
       >
@@ -294,8 +296,9 @@ const emptyMessage = computed(() => {
             <button
               type="button"
               class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
-              title="Delete Folder"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete Folder'"
               aria-label="Delete Folder"
+              :disabled="settingsStore.readOnly"
               @click.stop="emit('delete-folder', folder.fullPrefix)"
             >
               <TrashIcon class="w-4 h-4" />
@@ -351,8 +354,9 @@ const emptyMessage = computed(() => {
               <button
                 type="button"
                 class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
-                title="Delete"
+                :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
                 aria-label="Delete"
+                :disabled="settingsStore.readOnly"
                 @click="emit('delete-object', obj.Key)"
               >
                 <TrashIcon class="w-4 h-4" />

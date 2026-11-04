@@ -145,6 +145,7 @@ function copyToClipboard(text: string) {
           <button
             class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
             title="Delete"
+            :disabled="settingsStore.readOnly"
             @click="emit('delete-image', image)"
           >
             <svg

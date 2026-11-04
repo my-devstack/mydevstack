@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import { CognitoDeleteUserModal } from './index'
+import Button from '@/components/common/Button.vue'
+import { useSettingsStore } from '@/stores/settings'
 
 const modalStub = {
   template: '<div v-if="open" data-testid="modal">{{title}}<slot /><slot name="footer" /></div>',
@@ -9,12 +11,21 @@ const modalStub = {
   emits: ['update:open', 'close'],
 }
 const buttonStub = {
-  template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
-  props: ['variant', 'loading', 'disabled'],
+  name: 'Button',
+  template: '<button :disabled="disabled" :data-mutating="mutating ? \'true\' : undefined" :variant="variant" :size="size" :type="type" :fullWidth="fullWidth" :ariaLabel="ariaLabel" :loading="loading" @click="$emit(\'click\')"><span><slot /></span></button>',
+  props: {
+    variant: {}, size: {}, loading: { type: Boolean, default: false },
+    disabled: { type: Boolean, default: false }, type: {}, fullWidth: { type: Boolean, default: false },
+    ariaLabel: {}, mutating: { type: Boolean, default: false },
+  },
   emits: ['click'],
 }
 
 const stubs = { Modal: modalStub, Button: buttonStub }
+const stubsWithRealButton = {
+  Modal: modalStub,
+  LoadingSpinner: { template: '<span data-testid="loading-spinner" />' },
+}
 
 describe('CognitoDeleteUserModal', () => {
   beforeEach(() => {
@@ -58,5 +69,43 @@ describe('CognitoDeleteUserModal', () => {
     const cancelBtn = wrapper.findAll('button').find(b => b.text().includes('Cancel'))
     await cancelBtn!.trigger('click')
     expect(wrapper.emitted('update:open')![0]).toEqual([false])
+  })
+
+  it('delete Button receives mutating prop', () => {
+    const wrapper = mount(CognitoDeleteUserModal, {
+      props: { open: true, username: 'alice' },
+      global: { stubs },
+    })
+    const deleteBtn = wrapper.findAllComponents({ name: 'Button' }).find(b => /delete/i.test(b.text()))
+    expect(deleteBtn).toBeTruthy()
+    expect(deleteBtn!.props('mutating')).toBe(true)
+    expect(deleteBtn!.attributes('data-mutating')).toBe('true')
+  })
+
+  it('delete Button disabled when store readOnly true (real Button)', async () => {
+    const wrapper = mount(CognitoDeleteUserModal, {
+      props: { open: true, username: 'alice' },
+      global: { stubs: stubsWithRealButton },
+    })
+    const store = useSettingsStore()
+    store.readOnly = true
+    await wrapper.vm.$nextTick()
+    const deleteBtn = wrapper.findAll('button').find(b => /delete/i.test(b.text()) || b.text().trim() === 'Delete')
+    expect(deleteBtn).toBeTruthy()
+    expect(deleteBtn!.attributes('disabled')).toBeDefined()
+    expect(deleteBtn!.attributes('title')).toContain('Read-only')
+  })
+
+  it('delete Button enabled when store readOnly false (real Button)', async () => {
+    const wrapper = mount(CognitoDeleteUserModal, {
+      props: { open: true, username: 'alice' },
+      global: { stubs: stubsWithRealButton },
+    })
+    const store = useSettingsStore()
+    store.readOnly = false
+    await wrapper.vm.$nextTick()
+    const deleteBtn = wrapper.findAll('button').find(b => /delete/i.test(b.text()) || b.text().trim() === 'Delete')
+    expect(deleteBtn).toBeTruthy()
+    expect(deleteBtn!.attributes('disabled')).toBeUndefined()
   })
 })

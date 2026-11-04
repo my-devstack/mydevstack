@@ -100,6 +100,7 @@ function handleSubmit() {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="props.creating"
           @click="handleSubmit"
         >

@@ -205,6 +205,7 @@ const tabs = [
         <Button
           v-if="selectedTab === 'identities'"
           variant="primary"
+          mutating
           @click="showCreateIdentityModal = true"
         >
           <template #icon>
@@ -227,6 +228,7 @@ const tabs = [
         <Button
           v-else
           variant="primary"
+          mutating
           @click="openCreateTemplateModal"
         >
           <template #icon>
@@ -322,6 +324,7 @@ const tabs = [
                 <button
                   class="p-2 text-primary-500 hover:text-primary-700 hover:bg-primary-50 rounded"
                   title="Send Email"
+                  :disabled="settingsStore.readOnly"
                   @click.stop="openSendEmailModal(identity)"
                 >
                   <svg
@@ -341,6 +344,7 @@ const tabs = [
                 <button
                   class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
                   title="Delete"
+                  :disabled="settingsStore.readOnly"
                   @click.stop="openDeleteIdentityModal(identity)"
                 >
                   <svg
@@ -580,6 +584,7 @@ const tabs = [
                 <button
                   class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
                   title="Delete Template"
+                  :disabled="settingsStore.readOnly"
                   @click.stop="openDeleteTemplateModal(template)"
                 >
                   <svg
@@ -657,6 +662,7 @@ const tabs = [
                     <Button
                       variant="secondary"
                       size="sm"
+                      mutating
                       @click.stop="openEditTemplateModal(templateDetails[template.TemplateName] || template)"
                     >
                       Edit

@@ -78,6 +78,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="loading"
           @click="handleUpdate"
         >

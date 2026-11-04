@@ -58,7 +58,10 @@ function handleClose() {
         >
           Cancel
         </Button>
-        <Button @click="emit('publish', form.subject, form.message)">
+        <Button
+          mutating
+          @click="emit('publish', form.subject, form.message)"
+        >
           Publish
         </Button>
       </div>

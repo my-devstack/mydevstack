@@ -282,6 +282,7 @@ const canCreate = () => props.tableName.trim() && props.partitionKeyName.trim() 
         Cancel
       </Button>
       <Button
+        mutating
         :disabled="!canCreate()"
         @click="handleCreate"
       >

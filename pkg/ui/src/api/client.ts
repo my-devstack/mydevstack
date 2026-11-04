@@ -67,7 +67,23 @@ function createApiClient(): AxiosInstance {
       
       if (response) {
         const service = 'unknown'
-        
+
+        // Read-only backend enforcement: 403 + code READ_ONLY -> single friendly toast
+        if (
+          response.status === 403 &&
+          response.data &&
+          typeof response.data === 'object' &&
+          response.data.code === 'READ_ONLY'
+        ) {
+          toast.error('Read-only mode: action not allowed')
+          throw new APIError(
+            'Action not allowed: server is in read-only mode',
+            403,
+            service,
+            'READ_ONLY'
+          )
+        }
+
         // Try to extract error info from various AWS error formats
         const errorData = response.data?.Error || 
                           response.data?.message || 

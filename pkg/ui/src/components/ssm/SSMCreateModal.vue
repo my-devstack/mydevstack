@@ -88,6 +88,7 @@ const emit = defineEmits<{
           Cancel
         </Button>
         <Button
+          mutating
           aria-label="Create"
           :loading="loading"
           @click="emit('create')"

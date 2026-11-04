@@ -2,11 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import { LambdaCreateModal } from './index'
+import { useSettingsStore } from '@/stores/settings'
 
 vi.mock('@/stores/settings', () => ({
   useSettingsStore: vi.fn(() => ({
     darkMode: false,
     region: 'us-east-1',
+    readOnly: false,
   })),
 }))
 
@@ -28,8 +30,13 @@ const createStubs = () => ({
     emits: ['update:modelValue'],
   },
   Button: {
-    template: '<button @click="$emit(\'click\')" :loading="loading" :disabled="disabled" :variant="variant"><slot /></button>',
-    props: ['loading', 'variant', 'disabled'],
+    name: 'Button',
+    template: '<button @click="$emit(\'click\')" :loading="loading" :disabled="disabled" :variant="variant" :data-mutating="mutating ? \'true\' : undefined" :size="size" :type="type" :fullWidth="fullWidth" :ariaLabel="ariaLabel"><span><slot /></span></button>',
+    props: {
+      variant: {}, size: {}, loading: { type: Boolean, default: false },
+      disabled: { type: Boolean, default: false }, type: {}, fullWidth: { type: Boolean, default: false },
+      ariaLabel: {}, mutating: { type: Boolean, default: false },
+    },
   },
 })
 
@@ -152,5 +159,52 @@ describe('LambdaCreateModal', () => {
     })
     await wrapper.find('.fixed.inset-0').trigger('click')
     expect(wrapper.emitted('update:open')![0]).toEqual([false])
+  })
+
+  it('marks Create Button as mutating', () => {
+    const wrapper = mount(LambdaCreateModal, {
+      props: { open: true, loading: false },
+      global: { stubs: createStubs() },
+    })
+    const buttons = wrapper.findAllComponents({ name: 'Button' })
+    const createButton = buttons.find(b => /create/i.test(b.text()) || /creating/i.test(b.text()))
+    expect(createButton).toBeTruthy()
+    expect(createButton!.props('mutating')).toBe(true)
+    expect(createButton!.attributes('data-mutating')).toBe('true')
+  })
+
+  it('does not mark Cancel Button as mutating', () => {
+    const wrapper = mount(LambdaCreateModal, {
+      props: { open: true, loading: false },
+      global: { stubs: createStubs() },
+    })
+    const buttons = wrapper.findAllComponents({ name: 'Button' })
+    const cancelButton = buttons.find(b => /cancel/i.test(b.text()))
+    expect(cancelButton).toBeTruthy()
+    expect(cancelButton!.props('mutating')).toBeFalsy()
+  })
+
+  it('disables ZIP file input and applies disabled styling when readOnly true', () => {
+    vi.mocked(useSettingsStore).mockReturnValue({ darkMode: false, region: 'us-east-1', readOnly: true } as any)
+    const wrapper = mount(LambdaCreateModal, {
+      props: { open: true, loading: false },
+      global: { stubs: createStubs() },
+    })
+    const input = wrapper.find('input[type="file"]')
+    expect(input.attributes('disabled')).toBeDefined()
+    expect(input.classes()).toContain('opacity-50')
+    expect(input.classes()).toContain('cursor-not-allowed')
+  })
+
+  it('ZIP file input is enabled when readOnly false', () => {
+    vi.mocked(useSettingsStore).mockReturnValue({ darkMode: false, region: 'us-east-1', readOnly: false } as any)
+    const wrapper = mount(LambdaCreateModal, {
+      props: { open: true, loading: false },
+      global: { stubs: createStubs() },
+    })
+    const input = wrapper.find('input[type="file"]')
+    expect(input.attributes('disabled')).toBeUndefined()
+    expect(input.classes()).not.toContain('opacity-50')
+    expect(input.classes()).not.toContain('cursor-not-allowed')
   })
 })

@@ -94,6 +94,7 @@ function updateRow(index: number, field: 'key' | 'value', value: string) {
           @input="updateRow(index, 'value', ($event.target as HTMLInputElement).value)"
         >
         <Button
+          mutating
           variant="ghost"
           size="sm"
           @click="removeRow(index)"
@@ -125,6 +126,7 @@ function updateRow(index: number, field: 'key' | 'value', value: string) {
         class="flex-1 text-sm border rounded px-3 py-2 bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border text-light-text dark:text-dark-text focus:border-primary-500 focus:ring-primary-500 focus:ring-1 focus:outline-none"
       >
       <Button
+        mutating
         variant="secondary"
         size="sm"
         :disabled="!newKey.trim()"

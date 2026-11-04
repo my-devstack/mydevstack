@@ -85,7 +85,10 @@ function handleClose() {
         >
           Cancel
         </Button>
-        <Button @click="emit('update', props.template?.TemplateName || form.name, form.subject, form.htmlBody, form.textBody)">
+        <Button
+          mutating
+          @click="emit('update', props.template?.TemplateName || form.name, form.subject, form.htmlBody, form.textBody)"
+        >
           Save Changes
         </Button>
       </div>

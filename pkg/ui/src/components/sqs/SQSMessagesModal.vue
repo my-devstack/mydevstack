@@ -94,6 +94,7 @@ function handleClose() {
               <pre class="text-sm text-light-text dark:text-dark-text whitespace-pre-wrap break-all font-mono">{{ formatBody(msg.Body || '') }}</pre>
             </div>
             <Button
+              mutating
               variant="danger"
               size="sm"
               :disabled="!msg.ReceiptHandle"

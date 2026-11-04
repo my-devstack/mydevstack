@@ -4,10 +4,13 @@ import { setActivePinia, createPinia } from 'pinia'
 import { ref } from 'vue'
 import { CloudFrontDistributionList } from './index'
 
+const mockSettingsStore = {
+  darkMode: false,
+  readOnly: false,
+}
+
 vi.mock('@/stores/settings', () => ({
-  useSettingsStore: vi.fn(() => ({
-    darkMode: false,
-  })),
+  useSettingsStore: vi.fn(() => mockSettingsStore),
 }))
 
 vi.mock('@/api/services/cloudfront', () => ({
@@ -58,6 +61,8 @@ describe('CloudFrontDistributionList', () => {
     paginatedItems.value = []
     currentPage.value = 1
     totalPages.value = 1
+    mockSettingsStore.readOnly = false
+    mockSettingsStore.darkMode = false
   })
 
   it('shows loading when loading and no distributions', () => {
@@ -152,5 +157,49 @@ describe('CloudFrontDistributionList', () => {
     })
     expect(wrapper.html()).toContain('Previous')
     expect(wrapper.html()).toContain('Next')
+  })
+
+  it('disables Create Invalidation button and shows read-only title when readOnly', () => {
+    mockSettingsStore.readOnly = true
+    paginatedItems.value = [dist]
+    const wrapper = mount(CloudFrontDistributionList, {
+      props: { distributions: [dist], loading: false },
+    })
+    const invalidateBtn = wrapper.find('button[title="Read-only mode: action not allowed"]')
+    expect(invalidateBtn.exists()).toBe(true)
+    expect(invalidateBtn.attributes('disabled')).toBeDefined()
+  })
+
+  it('enables Create Invalidation button with original title when not readOnly', () => {
+    mockSettingsStore.readOnly = false
+    paginatedItems.value = [dist]
+    const wrapper = mount(CloudFrontDistributionList, {
+      props: { distributions: [dist], loading: false },
+    })
+    const invalidateBtn = wrapper.find('button[title="Create Invalidation"]')
+    expect(invalidateBtn.exists()).toBe(true)
+    expect(invalidateBtn.attributes('disabled')).toBeUndefined()
+  })
+
+  it('disables Edit Distribution button and shows read-only title when readOnly', () => {
+    mockSettingsStore.readOnly = true
+    paginatedItems.value = [dist]
+    const wrapper = mount(CloudFrontDistributionList, {
+      props: { distributions: [dist], loading: false },
+    })
+    const editBtn = wrapper.find('button[title="Read-only mode: action not allowed"]')
+    expect(editBtn.exists()).toBe(true)
+    expect(editBtn.attributes('disabled')).toBeDefined()
+  })
+
+  it('enables Edit Distribution button with original title when not readOnly', () => {
+    mockSettingsStore.readOnly = false
+    paginatedItems.value = [dist]
+    const wrapper = mount(CloudFrontDistributionList, {
+      props: { distributions: [dist], loading: false },
+    })
+    const editBtn = wrapper.find('button[title="Edit Distribution"]')
+    expect(editBtn.exists()).toBe(true)
+    expect(editBtn.attributes('disabled')).toBeUndefined()
   })
 })

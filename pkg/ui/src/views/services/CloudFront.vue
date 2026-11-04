@@ -287,7 +287,9 @@ watch(reloadTrigger, () => {
             </svg>
           </button>
           <button
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="settingsStore.readOnly"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
             @click="openCreateModal"
           >
             + Create Distribution
@@ -337,7 +339,9 @@ watch(reloadTrigger, () => {
                 Invalidation for {{ distributionToInvalidate.Id }}
               </h2>
               <button
-                class="mt-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                class="mt-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="settingsStore.readOnly"
+                :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
                 @click="openInvalidateModal(distributionToInvalidate)"
               >
                 + Create Invalidation
@@ -358,7 +362,9 @@ watch(reloadTrigger, () => {
             Origin Access Controls
           </h2>
           <button
-            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="settingsStore.readOnly"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
             @click="openCreateOACModal"
           >
             + Create OAC
@@ -479,8 +485,9 @@ watch(reloadTrigger, () => {
             Cancel
           </button>
           <button
-            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-            :disabled="oacsLoading"
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="oacsLoading || settingsStore.readOnly"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : undefined"
             @click="handleDeleteOAC"
           >
             {{ oacsLoading ? 'Deleting...' : 'Delete' }}

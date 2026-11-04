@@ -27,6 +27,7 @@ func LoadConfig(ctx context.Context) (*Config, error) {
 		"EMULATOR",
 		"GITHUB_REPO",
 		"VERSION_CHECK_HOURS",
+		"READ_ONLY_MODE",
 	)
 	files := []string{}
 	configFile := loader.MustString(CONFIG_FILE, "")
@@ -57,6 +58,7 @@ func setDefaults() config.ConfigMap {
 		"emulator":            "",
 		"github_repo":         "https://github.com/my-devstack/mydevstack",
 		"version_check_hours": 24,
+		"read_only_mode":    false,
 	}
 }
 
@@ -70,5 +72,6 @@ func setEnvAlias() config.ConfigEnvAlias {
 		"EMULATOR":            "emulator",
 		"GITHUB_REPO":         "github_repo",
 		"VERSION_CHECK_HOURS": "version_check_hours",
+		"READ_ONLY_MODE":      "read_only_mode",
 	}
 }

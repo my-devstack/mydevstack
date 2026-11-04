@@ -54,7 +54,10 @@ function handleClose() {
         >
           Cancel
         </Button>
-        <Button @click="emit('subscribe', form.protocol, form.endpoint)">
+        <Button
+          mutating
+          @click="emit('subscribe', form.protocol, form.endpoint)"
+        >
           Subscribe
         </Button>
       </div>

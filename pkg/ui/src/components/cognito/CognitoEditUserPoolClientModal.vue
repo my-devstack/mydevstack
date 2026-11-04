@@ -84,6 +84,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :disabled="!form.ClientName.trim()"
           @click="handleUpdate"
         >

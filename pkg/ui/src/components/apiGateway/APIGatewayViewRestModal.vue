@@ -136,12 +136,14 @@ const endpointType = computed(() => {
         </Button>
         <div class="flex gap-2">
           <Button
+            mutating
             variant="secondary"
             @click="handleEdit"
           >
             Edit
           </Button>
           <Button
+            mutating
             variant="danger"
             @click="handleDelete"
           >

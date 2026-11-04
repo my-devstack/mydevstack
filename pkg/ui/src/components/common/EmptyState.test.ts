@@ -1,9 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { setActivePinia, createPinia } from 'pinia'
+import { useSettingsStore } from '@/stores/settings'
 import EmptyState from './EmptyState.vue'
 
 describe('EmptyState', () => {
   beforeEach(() => {
+    setActivePinia(createPinia())
     vi.resetAllMocks()
   })
 
@@ -75,5 +78,58 @@ describe('EmptyState', () => {
     })
     await wrapper.find('button').trigger('click')
     expect(wrapper.emitted('action')).toBeDefined()
+  })
+
+  describe('read-only mode', () => {
+    it('should keep action button enabled when readOnly is false (default)', () => {
+      const wrapper = mount(EmptyState, {
+        props: {
+          title: 'No items found',
+          actionLabel: 'Create New',
+        },
+      })
+      const btn = wrapper.find('button')
+      expect(btn.attributes('disabled')).toBeUndefined()
+      expect(btn.attributes('aria-disabled')).toBeUndefined()
+    })
+
+    it('should disable action button and block emit when readOnly is true', async () => {
+      const store = useSettingsStore()
+      store.setReadOnly(true)
+
+      const wrapper = mount(EmptyState, {
+        props: {
+          title: 'No items found',
+          actionLabel: 'Create New',
+        },
+      })
+      const btn = wrapper.find('button')
+      expect(btn.attributes('disabled')).toBeDefined()
+      expect(btn.attributes('aria-disabled')).toBe('true')
+      expect(btn.attributes('title')).toBe('Read-only mode: action not allowed')
+
+      await btn.trigger('click')
+      expect(wrapper.emitted('action')).toBeUndefined()
+    })
+
+    it('should keep action button enabled under readOnly when actionMutating is false', async () => {
+      const store = useSettingsStore()
+      store.setReadOnly(true)
+
+      const wrapper = mount(EmptyState, {
+        props: {
+          title: 'No items found',
+          actionLabel: 'Refresh',
+          actionMutating: false,
+        },
+      })
+      const btn = wrapper.find('button')
+      expect(btn.attributes('disabled')).toBeUndefined()
+      expect(btn.attributes('aria-disabled')).toBeUndefined()
+      expect(btn.attributes('title')).toBeUndefined()
+
+      await btn.trigger('click')
+      expect(wrapper.emitted('action')).toBeDefined()
+    })
   })
 })

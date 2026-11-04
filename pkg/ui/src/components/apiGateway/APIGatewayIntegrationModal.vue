@@ -266,6 +266,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="loading"
           :disabled="integrationType !== 'MOCK' && !uri.trim()"
           @click="handleCreate"

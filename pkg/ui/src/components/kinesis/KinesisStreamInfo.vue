@@ -38,8 +38,9 @@ function getStatus(status: string): 'active' | 'pending' | 'inactive' | 'error' 
       >
         Stream: {{ stream.StreamName }}
       </h3>
-      <Button 
+      <Button
         v-if="stream.StreamStatus === 'ACTIVE'" 
+        mutating 
         size="sm" 
         @click="emit('put-record-click')"
       >

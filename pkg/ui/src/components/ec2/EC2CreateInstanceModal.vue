@@ -140,6 +140,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="props.creating"
           @click="emit('create')"
         >

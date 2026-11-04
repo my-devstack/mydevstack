@@ -60,6 +60,7 @@ const emit = defineEmits<{
           Cancel
         </Button>
         <Button
+          mutating
           aria-label="Start Execution"
           :loading="loading"
           @click="emit('start')"

@@ -334,6 +334,7 @@ function close() {
           Cancel
         </Button>
         <Button
+          mutating
           variant="primary"
           :disabled="!localForm.AlarmName.trim() || !localForm.Namespace.trim() || !localForm.MetricName.trim()"
           @click="handleCreate"

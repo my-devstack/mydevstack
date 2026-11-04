@@ -95,6 +95,7 @@ function formatDate(dateString?: string): string {
               {{ server.Scopes.length }} scopes
             </span>
             <Button
+              mutating
               variant="ghost"
               size="sm"
               @click="emit('delete', server.Identifier)"

@@ -114,6 +114,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="loading"
           :disabled="form.integrationType !== 'MOCK' && !form.integrationUri.trim()"
           @click="handleUpdate"

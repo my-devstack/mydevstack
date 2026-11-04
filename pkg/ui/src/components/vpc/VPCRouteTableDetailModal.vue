@@ -160,6 +160,7 @@ function handleDisassociate(associationId: string) {
                   <td class="py-2 px-3 text-right">
                     <Button
                       v-if="route.DestinationCidrBlock !== '0.0.0.0/0' && route.GatewayId !== 'local'"
+                      mutating
                       variant="ghost"
                       size="sm"
                       @click="handleDeleteRoute(route.DestinationCidrBlock || '')"
@@ -205,6 +206,7 @@ function handleDisassociate(associationId: string) {
             </div>
             <div class="flex justify-end">
               <Button
+                mutating
                 size="sm"
                 @click="handleAddRoute"
               >
@@ -266,6 +268,7 @@ function handleDisassociate(associationId: string) {
                   <td class="py-2 px-3 text-right">
                     <Button
                       v-if="!assoc.Main"
+                      mutating
                       variant="ghost"
                       size="sm"
                       @click="handleDisassociate(assoc.RouteTableAssociationId)"
@@ -298,6 +301,7 @@ function handleDisassociate(associationId: string) {
             </div>
             <div class="flex justify-end">
               <Button
+                mutating
                 size="sm"
                 @click="handleAssociate"
               >

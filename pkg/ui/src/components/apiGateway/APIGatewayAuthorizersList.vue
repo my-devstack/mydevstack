@@ -93,6 +93,7 @@ function handleClose() {
   >
     <div class="flex justify-end mb-4">
       <Button
+        mutating
         size="sm"
         @click="handleCreate"
       >
@@ -154,6 +155,7 @@ function handleClose() {
       <template #row-actions="{ row }">
         <div class="flex justify-end gap-2">
           <Button
+            mutating
             size="sm"
             variant="secondary"
             @click="handleEdit(row)"
@@ -161,6 +163,7 @@ function handleClose() {
             Edit
           </Button>
           <Button
+            mutating
             size="sm"
             variant="danger"
             @click="handleDelete(row)"

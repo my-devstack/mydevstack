@@ -95,6 +95,7 @@ function getStatus(status: string): 'active' | 'pending' | 'inactive' | 'error' 
             type="button"
             class="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600"
             title="Delete"
+            :disabled="settingsStore.readOnly"
             @click.stop="emit('delete', row)"
           >
             <TrashIcon class="h-4 w-4" />

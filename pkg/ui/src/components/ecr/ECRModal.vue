@@ -210,6 +210,7 @@ watch(
           Cancel
         </Button>
         <Button
+          mutating
           :variant="mode === 'delete' ? 'danger' : 'primary'"
           :disabled="(mode === 'create' && !form.repositoryName.trim()) || loading"
           :loading="loading"

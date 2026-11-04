@@ -123,6 +123,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="loading"
           :disabled="!stageName.trim() || (type === 'rest' && !selectedDeploymentId)"
           @click="handleCreate"

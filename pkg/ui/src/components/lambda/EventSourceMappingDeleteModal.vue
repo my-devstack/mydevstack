@@ -81,6 +81,7 @@ function handleClose() {
         Cancel
       </Button>
       <Button
+        mutating
         variant="danger"
         :disabled="loading"
         @click="handleDelete"

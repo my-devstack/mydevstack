@@ -65,6 +65,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           variant="primary"
           :loading="loading"
           :disabled="!queueName.trim()"

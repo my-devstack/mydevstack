@@ -117,7 +117,8 @@ function isJson(value: string): boolean {
 
           <button
             v-else
-            :disabled="loading"
+            :disabled="loading || settingsStore.readOnly"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Save Changes'"
             class="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-green-600 hover:bg-green-700 disabled:opacity-50"
             @click="emit('save')"
           >

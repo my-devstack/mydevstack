@@ -61,6 +61,7 @@ function updateStreamField(field: keyof StreamForm, value: string | number) {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="isLoading"
           @click="emit('create')"
         >

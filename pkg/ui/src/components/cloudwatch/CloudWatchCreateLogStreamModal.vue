@@ -115,6 +115,7 @@ function close() {
           Cancel
         </Button>
         <Button
+          mutating
           variant="primary"
           :disabled="!streamName.trim()"
           @click="handleCreate"

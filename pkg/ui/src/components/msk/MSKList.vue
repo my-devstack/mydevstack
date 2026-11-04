@@ -109,6 +109,7 @@ function getStatusBadge(status: string): 'active' | 'pending' | 'inactive' | 'er
             <button
               class="p-1.5 rounded text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
               title="Delete cluster"
+              :disabled="settingsStore.readOnly"
               @click.stop="emit('delete', cluster)"
             >
               <svg

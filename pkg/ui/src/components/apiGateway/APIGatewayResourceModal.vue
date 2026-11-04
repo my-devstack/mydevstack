@@ -55,6 +55,7 @@ function handleClose() {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="loading"
           :disabled="!pathPart.trim()"
           @click="handleCreate"

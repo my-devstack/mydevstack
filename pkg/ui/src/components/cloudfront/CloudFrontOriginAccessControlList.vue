@@ -103,7 +103,8 @@ const {
         <div class="w-16 flex-shrink-0 flex justify-end gap-1">
           <button
             class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
-            title="Delete OAC"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete OAC'"
+            :disabled="settingsStore.readOnly"
             @click="emit('delete', oac)"
           >
             <svg

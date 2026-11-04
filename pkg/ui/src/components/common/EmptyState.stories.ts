@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
+import { createPinia, setActivePinia } from 'pinia';
+import { useSettingsStore } from '@/stores/settings';
 import EmptyState from './EmptyState.vue';
 
 const meta: Meta<typeof EmptyState> = {
@@ -117,6 +119,65 @@ export const Refresh: Story = {
     title: 'No Data Available',
     description: 'Click refresh to load data.'
   },
+  render: (args) => ({
+    components: { EmptyState },
+    setup() {
+      return { args };
+    },
+    template: '<EmptyState v-bind="args" />'
+  })
+};
+
+export const ReadOnlyDisabled: Story = {
+  args: {
+    icon: 'inbox',
+    title: 'No Items',
+    description: 'Start by creating your first item.',
+    actionLabel: 'Create Item'
+  },
+  decorators: [
+    (story) => ({
+      components: { story },
+      setup() {
+        const localPinia = createPinia();
+        setActivePinia(localPinia);
+        const store = useSettingsStore();
+        store.setReadOnly(true);
+        return {};
+      },
+      template: '<story />'
+    })
+  ],
+  render: (args) => ({
+    components: { EmptyState },
+    setup() {
+      return { args };
+    },
+    template: '<EmptyState v-bind="args" />'
+  })
+};
+
+export const ActionSafe: Story = {
+  args: {
+    icon: 'inbox',
+    title: 'No Items',
+    description: 'View-only actions remain enabled in read-only mode.',
+    actionLabel: 'Refresh',
+    actionMutating: false
+  },
+  decorators: [
+    (story) => ({
+      components: { story },
+      setup() {
+        const localPinia = createPinia();
+        setActivePinia(localPinia);
+        const store = useSettingsStore();
+        store.setReadOnly(true);
+        return {};
+      },
+      template: '<story />'
+    })
+  ],
   render: (args) => ({
     components: { EmptyState },
     setup() {

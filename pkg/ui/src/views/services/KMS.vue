@@ -120,6 +120,7 @@ onMounted(() => {
         <div class="flex items-center gap-2">
           <Button
             variant="primary"
+            mutating
             @click="showCreateModal = true"
           >
             <template #icon-left>
@@ -205,6 +206,7 @@ onMounted(() => {
                 <button
                   class="p-2 text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border rounded"
                   title="Encrypt"
+                  :disabled="settingsStore.readOnly"
                   @click="selectKeyForAction(key, 'encrypt')"
                 >
                   <svg
@@ -224,6 +226,7 @@ onMounted(() => {
                 <button
                   class="p-2 text-blue-500 hover:text-blue-700 hover:bg-light-border dark:hover:bg-dark-border rounded"
                   title="Decrypt"
+                  :disabled="settingsStore.readOnly"
                   @click="selectKeyForAction(key, 'decrypt')"
                 >
                   <svg
@@ -243,6 +246,7 @@ onMounted(() => {
                 <button
                   class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
                   title="Delete"
+                  :disabled="settingsStore.readOnly"
                   @click="selectKeyForAction(key, 'delete')"
                 >
                   <svg

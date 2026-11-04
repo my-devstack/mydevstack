@@ -385,6 +385,7 @@ watch(
 
         <div class="mt-4">
           <Button
+            mutating
             variant="secondary"
             size="sm"
             @click="handleGrantAccess"
@@ -469,6 +470,7 @@ watch(
           Cancel
         </Button>
         <Button
+          mutating
           :variant="mode === 'delete' ? 'danger' : 'primary'"
           :disabled="(mode === 'create' && !form.bucketName) || loading"
           :loading="loading"

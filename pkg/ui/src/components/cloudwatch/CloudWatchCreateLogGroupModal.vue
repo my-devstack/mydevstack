@@ -189,6 +189,7 @@ function close() {
           Cancel
         </Button>
         <Button
+          mutating
           variant="primary"
           :disabled="!logGroupName.trim()"
           @click="handleCreate"

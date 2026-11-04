@@ -63,6 +63,7 @@ function handleClose() {
 
       <div class="flex gap-2">
         <Button
+          mutating
           :disabled="loading"
           @click="handleInvoke"
         >

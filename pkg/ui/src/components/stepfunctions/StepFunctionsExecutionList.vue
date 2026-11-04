@@ -155,6 +155,7 @@ function getStatusType(status: string | undefined): 'active' | 'pending' | 'inac
                 <button
                   type="button"
                   aria-label="Stop"
+                  :disabled="settingsStore.readOnly"
                   class="p-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600"
                   @click="emit('stop', execution)"
                 >

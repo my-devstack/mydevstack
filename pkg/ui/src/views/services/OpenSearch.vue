@@ -138,7 +138,8 @@ watch(reloadTrigger, () => {
           </Button>
           <Button
             size="sm"
-            :disabled="!isAvailable"
+            :disabled="!isAvailable || settingsStore.readOnly"
+            mutating
             @click="showCreateModal = true"
           >
             <PlusIcon class="h-4 w-4 mr-1" />
@@ -243,6 +244,7 @@ watch(reloadTrigger, () => {
                   type="button"
                   class="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600"
                   title="Delete"
+                  :disabled="settingsStore.readOnly"
                   @click="confirmDelete(domain)"
                 >
                   <svg
@@ -519,6 +521,7 @@ watch(reloadTrigger, () => {
                     type="button"
                     class="text-xs text-primary-500 hover:text-primary-700 flex items-center gap-1"
                     title="Add tag"
+                    :disabled="settingsStore.readOnly"
                     @click.stop="openAddTagModal(domain.DomainName)"
                   >
                     <svg
@@ -550,6 +553,7 @@ watch(reloadTrigger, () => {
                         type="button"
                         class="ml-1 p-0.5 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 hover:text-red-700"
                         title="Remove tag"
+                        :disabled="settingsStore.readOnly"
                         @click="removeDomainTag(domain.DomainName, tag.Key)"
                       >
                         <svg
@@ -680,7 +684,8 @@ watch(reloadTrigger, () => {
           </Button>
           <Button
             :loading="addingTag"
-            :disabled="!newTagKey"
+            :disabled="!newTagKey || settingsStore.readOnly"
+            mutating
             @click="handleAddTag"
           >
             Add Tag

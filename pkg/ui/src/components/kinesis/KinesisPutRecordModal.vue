@@ -68,6 +68,7 @@ function updateFormField(field: keyof RecordForm, value: string) {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="isLoading"
           @click="emit('put-record')"
         >

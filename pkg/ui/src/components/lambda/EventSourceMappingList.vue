@@ -221,6 +221,7 @@ function isExpanded(uuid: string): boolean {
             type="button"
             aria-label="Delete"
             class="p-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600"
+            :disabled="settingsStore.readOnly"
             @click.stop="emit('delete-mapping', mapping)"
           >
             <TrashIcon class="h-4 w-4" />

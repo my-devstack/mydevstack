@@ -42,6 +42,7 @@ function handleClose() {
           Access Keys for {{ props.userName }}
         </h3>
         <Button
+          mutating
           variant="primary"
           size="sm"
           @click="emit('create-key')"
@@ -84,6 +85,7 @@ function handleClose() {
               :label="key.Status"
             />
             <Button
+              mutating
               variant="ghost"
               size="sm"
               @click="emit('delete-key', key.AccessKeyId)"

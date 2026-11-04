@@ -165,7 +165,8 @@ async function copyToClipboard(text: string) {
         <div class="w-32 flex-shrink-0 flex justify-end gap-1">
           <button
             class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-blue-500"
-            title="Edit Distribution"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Edit Distribution'"
+            :disabled="settingsStore.readOnly"
             @click="emit('edit', dist)"
           >
             <svg
@@ -183,8 +184,9 @@ async function copyToClipboard(text: string) {
             </svg>
           </button>
           <button
-            class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-amber-500"
-            title="Create Invalidation"
+            class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-amber-500 disabled:opacity-50"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Create Invalidation'"
+            :disabled="settingsStore.readOnly"
             @click="emit('invalidate', dist)"
           >
             <svg
@@ -203,7 +205,8 @@ async function copyToClipboard(text: string) {
           </button>
           <button
             class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-green-500"
-            title="Grant Bucket Access"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Grant Bucket Access'"
+            :disabled="settingsStore.readOnly"
             @click="emit('grant-access', dist)"
           >
             <svg
@@ -222,7 +225,8 @@ async function copyToClipboard(text: string) {
           </button>
           <button
             class="p-1 rounded hover:bg-light-border dark:hover:bg-dark-border text-red-500"
-            title="Delete Distribution"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete Distribution'"
+            :disabled="settingsStore.readOnly"
             @click="emit('delete', dist)"
           >
             <svg

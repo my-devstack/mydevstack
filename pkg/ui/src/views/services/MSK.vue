@@ -90,6 +90,7 @@ watch(reloadTrigger, () => {
             <ArrowPathIcon class="h-4 w-4" />
           </Button>
           <Button
+            mutating
             size="sm"
             :disabled="!isAvailable"
             @click="showCreateModal = true"

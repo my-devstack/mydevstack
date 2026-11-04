@@ -267,7 +267,8 @@ function getFunctionArn(functionName: string): string | undefined {
           Cancel
         </button>
         <button
-          :disabled="!selectedFunction || eventTypes.length === 0 || loading"
+          :disabled="!selectedFunction || eventTypes.length === 0 || loading || settingsStore.readOnly"
+          :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Save trigger'"
           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           @click="handleSave"
         >

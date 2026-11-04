@@ -3,8 +3,13 @@ import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import APIGatewayHttpApisList from './APIGatewayHttpApisList.vue'
 
+const mockSettingsStore = {
+  darkMode: false,
+  readOnly: false,
+}
+
 vi.mock('@/stores/settings', () => ({
-  useSettingsStore: () => ({ darkMode: false }),
+  useSettingsStore: () => mockSettingsStore,
 }))
 
 const mockApi = {
@@ -28,6 +33,8 @@ describe('APIGatewayHttpApisList', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
+    mockSettingsStore.readOnly = false
+    mockSettingsStore.darkMode = false
   })
 
   it('renders empty state when no apis', () => {
@@ -195,5 +202,52 @@ describe('APIGatewayHttpApisList', () => {
     expect(wrapper.text()).toContain('PROTOCOL')
     expect(wrapper.text()).toContain('DESCRIPTION')
     expect(wrapper.text()).toContain('ACTIONS')
+  })
+
+  it('disables Edit Route, Edit Integration, Edit Stage when readOnly', () => {
+    mockSettingsStore.readOnly = true
+    const route = { routeId: 'route-1', routeKey: 'GET /items' }
+    const integration = { integrationId: 'int-1', integrationType: 'HTTP', integrationUri: 'http://x' }
+    const stage = { stageName: 'prod', autoDeploy: true }
+    const wrapper = mount(APIGatewayHttpApisList, {
+      props: {
+        ...defaultProps,
+        expandedApis: new Set(['http-api-456']),
+        routes: { 'http-api-456': [route] },
+        routeTargets: { 'http-api-456': { 'route-1': 'int-1' } },
+        integrations: { 'http-api-456': [integration] },
+        stages: { 'http-api-456': [stage] },
+      },
+    })
+    const gated = wrapper.findAll('button[title="Read-only mode: action not allowed"]')
+    // Delete API + Edit Route + Delete Route + Edit Integration + Delete Integration + Edit Stage + Delete Stage + Create gated
+    expect(gated.length).toBeGreaterThanOrEqual(4)
+    expect(gated.every((b) => b.attributes('disabled') !== undefined)).toBe(true)
+  })
+
+  it('enables Edit Route, Edit Integration, Edit Stage with original titles when not readOnly', () => {
+    mockSettingsStore.readOnly = false
+    const route = { routeId: 'route-1', routeKey: 'GET /items' }
+    const integration = { integrationId: 'int-1', integrationType: 'HTTP', integrationUri: 'http://x' }
+    const stage = { stageName: 'prod', autoDeploy: true }
+    const wrapper = mount(APIGatewayHttpApisList, {
+      props: {
+        ...defaultProps,
+        expandedApis: new Set(['http-api-456']),
+        routes: { 'http-api-456': [route] },
+        routeTargets: { 'http-api-456': { 'route-1': 'int-1' } },
+        integrations: { 'http-api-456': [integration] },
+        stages: { 'http-api-456': [stage] },
+      },
+    })
+    const editRoute = wrapper.find('button[title="Edit Route"]')
+    const editInt = wrapper.find('button[title="Edit Integration"]')
+    const editStage = wrapper.find('button[title="Edit Stage"]')
+    expect(editRoute.exists()).toBe(true)
+    expect(editInt.exists()).toBe(true)
+    expect(editStage.exists()).toBe(true)
+    expect(editRoute.attributes('disabled')).toBeUndefined()
+    expect(editInt.attributes('disabled')).toBeUndefined()
+    expect(editStage.attributes('disabled')).toBeUndefined()
   })
 })

@@ -195,6 +195,7 @@ function handleTypeChange(event: Event) {
           Cancel
         </Button>
         <Button
+          mutating
           :loading="loading"
           @click="handleSave"
         >

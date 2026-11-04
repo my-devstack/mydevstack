@@ -97,6 +97,7 @@ function formatData(data: string): string {
         <button
           class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
           title="Delete"
+          :disabled="settingsStore.readOnly"
           @click.stop="$emit('delete', stream)"
         >
           <svg
@@ -137,6 +138,7 @@ function formatData(data: string): string {
           </h3>
           <Button
             v-if="streamDetails.StreamStatus === 'ACTIVE'"
+            mutating
             size="sm"
             @click="emit('put-record-click', stream.StreamName)"
           >

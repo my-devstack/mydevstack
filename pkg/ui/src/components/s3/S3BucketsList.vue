@@ -132,7 +132,8 @@ function toggleBucketExpansion(bucketName: string) {
             <button
               type="button"
               class="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600"
-              title="Delete"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete'"
+              :disabled="settingsStore.readOnly"
               @click="emit('delete-bucket', bucket.Name)"
             >
               <svg

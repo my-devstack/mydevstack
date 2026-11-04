@@ -56,6 +56,7 @@ function handleClose() {
             </p>
           </div>
           <Button
+            mutating
             variant="secondary"
             size="sm"
             @click="emit('attach', policy.PolicyArn)"

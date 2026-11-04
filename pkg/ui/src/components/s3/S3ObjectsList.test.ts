@@ -2,17 +2,23 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import S3ObjectsList from './S3ObjectsList.vue'
+import { useSettingsStore } from '@/stores/settings'
 
 vi.mock('@/stores/settings', () => ({
-  useSettingsStore: () => ({
+  useSettingsStore: vi.fn(() => ({
     darkMode: false,
-  }),
+    readOnly: false,
+  })),
 }))
 
 describe('S3ObjectsList', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.resetAllMocks()
+    vi.mocked(useSettingsStore).mockReturnValue({
+      darkMode: false,
+      readOnly: false,
+    } as any)
   })
 
   const mockObjects = [
@@ -389,6 +395,48 @@ describe('S3ObjectsList', () => {
       expect(button.exists(), `missing button[title="${title}"]`).toBe(true)
       expect(button.attributes('aria-label')).toBe(title)
     }
+  })
+
+  // Read-only mode upload gating
+  describe('Read-only mode upload gating', () => {
+    it('disables both file inputs and applies pointer-events-none + opacity-50 to labels when readOnly true', () => {
+      vi.mocked(useSettingsStore).mockReturnValue({ darkMode: false, readOnly: true } as any)
+      const wrapper = mount(S3ObjectsList, {
+        props: { objects: [], bucketName: 'test-bucket' },
+      })
+      const labels = wrapper.findAll('label[aria-label="Upload Files"], label[aria-label="Upload Folder"]')
+      expect(labels).toHaveLength(2)
+      for (const label of labels) {
+        expect(label.classes()).toContain('pointer-events-none')
+        expect(label.classes()).toContain('opacity-50')
+        expect(label.classes()).toContain('cursor-not-allowed')
+        expect(label.attributes('title')).toBe('Read-only mode: action not allowed')
+        expect(label.attributes('aria-disabled')).toBe('true')
+      }
+      const inputs = wrapper.findAll('input[type="file"]')
+      expect(inputs.length).toBeGreaterThanOrEqual(2)
+      for (const input of inputs) {
+        expect(input.attributes('disabled')).toBeDefined()
+      }
+    })
+
+    it('keeps file inputs enabled and labels interactive when readOnly false', () => {
+      vi.mocked(useSettingsStore).mockReturnValue({ darkMode: false, readOnly: false } as any)
+      const wrapper = mount(S3ObjectsList, {
+        props: { objects: [], bucketName: 'test-bucket', uploading: false },
+      })
+      const fileLabel = wrapper.find('label[aria-label="Upload Files"]')
+      const folderLabel = wrapper.find('label[aria-label="Upload Folder"]')
+      expect(fileLabel.classes()).not.toContain('pointer-events-none')
+      expect(fileLabel.classes()).toContain('cursor-pointer')
+      expect(fileLabel.attributes('title')).toBe('Upload Files')
+      expect(folderLabel.classes()).not.toContain('pointer-events-none')
+      expect(folderLabel.attributes('title')).toBe('Upload Folder')
+      const fileInput = wrapper.find('input[type="file"][multiple]')
+      const folderInput = wrapper.find('input[type="file"][webkitdirectory]')
+      expect(fileInput.attributes('disabled')).toBeUndefined()
+      expect(folderInput.attributes('disabled')).toBeUndefined()
+    })
   })
 
   // New folder navigation tests

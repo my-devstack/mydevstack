@@ -8,6 +8,7 @@ services:
     environment:
       AWS_ENDPOINT: http://ministack:4566
       EMULATOR: MINISTACK
+      READ_ONLY_MODE: ${READ_ONLY_MODE:-false}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]

@@ -1090,6 +1090,7 @@ watch(reloadTrigger, () => {
 
         <Button
           variant="primary"
+          mutating
           @click="openCreateModal"
         >
           <template #icon-left>

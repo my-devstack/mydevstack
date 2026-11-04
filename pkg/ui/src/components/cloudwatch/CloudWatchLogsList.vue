@@ -67,7 +67,8 @@ function retentionLabel(days?: number): string {
         <div class="col-span-1 flex items-center justify-end gap-1">
           <button
             class="text-red-500 hover:text-red-700 text-xs px-1"
-            title="Delete log group"
+            :disabled="settingsStore.readOnly"
+            :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Delete log group'"
             @click.stop="emit('deleteLogGroup', group.logGroupName)"
           >
             <svg
@@ -112,6 +113,8 @@ function retentionLabel(days?: number): string {
             <span class="text-xs font-medium text-light-muted dark:text-dark-muted">Log Streams</span>
             <button
               class="text-xs text-primary-600 hover:text-primary-700 font-medium"
+              :disabled="settingsStore.readOnly"
+              :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Create stream'"
               @click.stop="emit('createStream', group.logGroupName)"
             >
               + Create Stream
@@ -218,6 +221,8 @@ function retentionLabel(days?: number): string {
     <div class="flex justify-center py-4">
       <button
         class="text-sm text-primary-600 hover:text-primary-700 font-medium"
+        :disabled="settingsStore.readOnly"
+        :title="settingsStore.readOnly ? 'Read-only mode: action not allowed' : 'Create log group'"
         @click="emit('create')"
       >
         + Create Log Group

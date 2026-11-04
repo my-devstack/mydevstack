@@ -8,6 +8,7 @@ type Config struct {
 	Emulator          string         `mapstructure:"emulator"`
 	GitHubRepo        string         `mapstructure:"github_repo"`
 	VersionCheckHours int            `mapstructure:"version_check_hours"`
+	ReadOnlyMode      bool           `mapstructure:"read_only_mode"`
 }
 
 type AWSProxyConfig struct {
