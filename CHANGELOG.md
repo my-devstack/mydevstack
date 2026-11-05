@@ -5,6 +5,73 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+- No unreleased changes yet.
+
+## [1.17.0] - 2026-11-05
+
+### Added
+- **Read-only mode** — `READ_ONLY_MODE` env var, `read_only_mode` config, and `read_only_mode` field in `/health` response; mutating requests return `403 {"error":"Action not allowed: server is in read-only mode","code":"READ_ONLY"}` (except `POST /proxy/region`); UI banner plus disabled create/edit/delete controls
+- **Dedicated docs tree** — `docs/` with getting-started, configuration, upgrade, troubleshooting, and development guides
+- **Docker Compose examples** — `examples/docker-compose/` with LocalStack, FloCi, and MiniStack stacks plus Makefile compose targets
+
+### Changed
+- **Read endpoints switched to `GET`** — DynamoDB Streams iterator/records, ECR `batch-get-image`, CloudWatch metrics statistics/data, API Gateway invoke URL (REST + HTTP), SSM parameters/tags, IAM policy get, Kinesis shard iterator, Secrets Manager random password; legacy POST twins retained for one release and marked deprecated at all layers (`// Deprecated:` in Go, `Deprecation: true` + `Warning` headers, OpenAPI `deprecated: true`)
+- OpenAPI service specs updated and bundle regenerated
+- Dependency bumps
+
+### Fixed
+- **Secrets Manager random-password UI** — endpoint called `/secretsmanager/...` (404) — corrected to `/secrets-manager/...`
+
+## [1.16.0] - 2026-10-26
+
+### Added
+- **S3 folder view** — folder navigation in object listing
+- **S3 recursive folder delete**
+
+### Changed
+- Dependency bumps
+
+### Fixed
+- Missing links on dashboard
+
+## [1.15.1] - 2026-10-04
+
+### Added
+- **S3 folder upload**
+
+### Fixed
+- SES CRUD
+- Flaky E2E tests
+
+## [1.15.0] - 2026-10-01
+
+### Added
+- **CloudFront support**
+
+### Changed
+- Dependency bumps
+
+## [1.14.1] - 2026-09-22
+
+### Added
+- Active tab preserved across page reload
+
+### Fixed
+- API Gateway JWT authorizer not listed
+
+## [1.14.0] - 2026-09-21
+
+### Added
+- Edit and view details for API Gateway components
+
+### Changed
+- Dependency bump
+
+### Fixed
+- Version-check memory leak with no internet connection
+
 ## [1.13.0] - 2026-09-14
 
 ### Added
